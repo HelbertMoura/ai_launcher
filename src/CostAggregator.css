@@ -1,0 +1,366 @@
+/* ============================================================
+ * CostAggregator — escopado a .cost-*
+ * Dark por default, override via [data-theme="light"]
+ * Usa variáveis do tema quando possível, com fallbacks.
+ * ============================================================ */
+
+.cost-root {
+  padding: 24px 32px 48px;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--text, #e6e6e6);
+  font-size: 14px;
+}
+
+/* -------- Cabeçalho -------- */
+.cost-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cost-title {
+  margin: 0 0 4px 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text, #e6e6e6);
+}
+.cost-sub {
+  margin: 0;
+  color: var(--text-muted, #8b8b8b);
+  font-size: 13px;
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+.cost-btn {
+  background: var(--inner, #1f1f22);
+  color: var(--text, #e6e6e6);
+  border: 1px solid var(--border, #2c2c2f);
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+              border-color var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform var(--d-fast, 120ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.cost-btn:hover {
+  background: color-mix(in srgb, var(--brand) 8%, var(--inner));
+  border-color: var(--brand, #8B1E2A);
+}
+.cost-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 30%, transparent);
+}
+.cost-btn:active { transform: scale(0.98); }
+
+/* -------- Loading / Error / Empty -------- */
+.cost-loading {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--text-muted, #8b8b8b);
+}
+.cost-error {
+  border: 1px solid #b3261e;
+  background: rgba(179, 38, 30, 0.08);
+  padding: 16px;
+  border-radius: 8px;
+  color: var(--text, #e6e6e6);
+}
+.cost-error pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: transparent;
+  margin: 8px 0;
+  font-size: 12px;
+  color: var(--text-muted, #b0b0b0);
+}
+.cost-empty {
+  border: 1px dashed var(--border, #2c2c2f);
+  background: var(--bg-surface, #1a1a1d);
+  padding: 28px;
+  border-radius: 10px;
+  text-align: left;
+  color: var(--text-muted, #9a9a9a);
+}
+.cost-empty p {
+  margin: 0 0 10px;
+}
+.cost-empty-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+.cost-empty-list code,
+.cost-footer code {
+  background: var(--bg-surface-hover, #27272a);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text, #e6e6e6);
+}
+
+/* -------- Cards de resumo -------- */
+.cost-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.cost-card {
+  background: var(--inner, #1a1a1d);
+  border: 1px solid var(--border, #2c2c2f);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+              transform var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.cost-card:hover {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--border));
+  transform: translateY(-1px);
+}
+.cost-card-highlight {
+  border-color: #8B1E2A;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 30, 42, 0.12),
+    rgba(139, 30, 42, 0.02)
+  );
+}
+.cost-card-label {
+  color: var(--text-muted, #9a9a9a);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.cost-card-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text, #e6e6e6);
+  line-height: 1.15;
+  margin-top: 2px;
+}
+.cost-card-hint {
+  color: var(--text-muted, #7a7a7a);
+  font-size: 12px;
+}
+
+/* -------- Seções -------- */
+.cost-section {
+  margin-bottom: 28px;
+}
+.cost-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #9a9a9a);
+  margin: 0 0 12px 0;
+}
+
+/* -------- Barras por CLI -------- */
+.cost-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cost-bar-row {
+  display: grid;
+  grid-template-columns: 160px 1fr 180px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--bg-surface, #1a1a1d);
+  border: 1px solid var(--border, #2c2c2f);
+  border-radius: 8px;
+}
+.cost-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  color: var(--text, #e6e6e6);
+}
+.cost-bar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.cost-bar-track {
+  height: 10px;
+  background: var(--bg-surface-hover, #27272a);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cost-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  /* Exceção justificada: animar width quando dados atualizam (600ms ease-out) */
+  transition: width 600ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.cost-bar-value {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.cost-bar-value strong {
+  font-size: 15px;
+  color: var(--text, #e6e6e6);
+}
+.cost-bar-meta {
+  font-size: 11px;
+  color: var(--text-muted, #7a7a7a);
+}
+
+/* -------- Projetos -------- */
+.cost-projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cost-project {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--bg-surface, #1a1a1d);
+  border: 1px solid var(--border, #2c2c2f);
+  border-radius: 8px;
+}
+.cost-project-path {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 12px;
+  color: var(--text, #e6e6e6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cost-project-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.cost-project-tokens {
+  font-size: 11px;
+  color: var(--text-muted, #7a7a7a);
+}
+
+/* -------- Warnings -------- */
+.cost-warnings {
+  border: 1px solid rgba(240, 180, 40, 0.35);
+  background: rgba(240, 180, 40, 0.05);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.cost-warnings-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text, #e6e6e6);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0;
+}
+.cost-warnings-list {
+  margin: 8px 0 0;
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--text-muted, #a0a0a0);
+}
+
+/* -------- Footer -------- */
+.cost-footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #2c2c2f);
+  color: var(--text-muted, #7a7a7a);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ============================================================
+ * LIGHT THEME OVERRIDES
+ * ============================================================ */
+[data-theme="light"] .cost-root {
+  color: var(--text, #1a1a1a);
+}
+[data-theme="light"] .cost-card,
+[data-theme="light"] .cost-bar-row,
+[data-theme="light"] .cost-project,
+[data-theme="light"] .cost-empty {
+  background: var(--bg-surface, #ffffff);
+  border-color: var(--border, #e4e4e7);
+}
+[data-theme="light"] .cost-btn {
+  background: var(--bg-surface, #ffffff);
+  border-color: var(--border, #e4e4e7);
+  color: var(--text, #1a1a1a);
+}
+[data-theme="light"] .cost-btn:hover {
+  background: #f4f4f5;
+  border-color: #8B1E2A;
+}
+[data-theme="light"] .cost-bar-track {
+  background: #ededf0;
+}
+[data-theme="light"] .cost-card-highlight {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 30, 42, 0.08),
+    rgba(139, 30, 42, 0.01)
+  );
+}
+[data-theme="light"] .cost-empty-list code,
+[data-theme="light"] .cost-footer code {
+  background: #f1f1f4;
+  color: #1a1a1a;
+}
+
+/* ============================================================
+ * RESPONSIVO
+ * ============================================================ */
+@media (max-width: 720px) {
+  .cost-root {
+    padding: 16px 18px 32px;
+  }
+  .cost-bar-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .cost-bar-value {
+    text-align: left;
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 10px;
+  }
+}
+
+/* ============================================================
+ * REDUCED MOTION
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .cost-btn,
+  .cost-card,
+  .cost-bar-fill {
+    transition: none !important;
+  }
+  .cost-card:hover { transform: none; }
+  .cost-btn:active { transform: none; }
+}

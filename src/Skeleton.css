@@ -1,0 +1,33 @@
+/* Skeleton — shimmer loader.
+   Usa var(--inner) e var(--border) para se adaptar a dark/light.
+   v4: gradient mais suave (color-mix) e duração mais longa para
+   reduzir cansaço visual. */
+
+.skel {
+  display: inline-block;
+  vertical-align: middle;
+  background: var(--inner);
+  background-image: linear-gradient(
+    90deg,
+    var(--inner) 0%,
+    color-mix(in srgb, var(--border) 60%, var(--inner)) 50%,
+    var(--inner) 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  animation: skel-shimmer 1.8s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
+}
+
+@keyframes skel-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skel {
+    animation: none;
+    background-image: none;
+    background: color-mix(in srgb, var(--border) 50%, var(--inner));
+  }
+}

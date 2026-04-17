@@ -1,0 +1,60 @@
+{
+  "$schema": "https://v2.tauri.app/schemas/config.schema.json",
+  "productName": "AI Launcher",
+  "version": "4.1.0",
+  "identifier": "com.devmaniacs.ailauncher",
+  "build": {
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "AI Launcher — by Helbert Moura | DevManiac's",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 1024,
+        "minHeight": 700,
+        "resizable": true,
+        "maximized": true,
+        "center": true
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": false,
+      "menuOnLeftClick": false,
+      "tooltip": "AI Launcher"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "publisher": "Helbert Moura | DevManiac's",
+    "copyright": "Copyright (c) 2026 Helbert Moura | DevManiac's",
+    "category": "DeveloperTool",
+    "shortDescription": "Desktop launcher for AI coding CLIs",
+    "longDescription": "Centralized hub to discover, install, update and launch AI coding CLIs (Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, Droid) and developer tools (VS Code, Cursor, Windsurf, AntGravity) — single window, live install progress, no terminal flashing.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
+      },
+      "wix": {
+        "language": "pt-BR"
+      }
+    }
+  }
+}
