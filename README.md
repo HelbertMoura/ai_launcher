@@ -51,18 +51,11 @@ Feito com ❤️, **Tauri v2**, **React 18** e **Rust**, sendo altamente otimiza
 
 Suporte nativo para detectar: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop e Codex Desktop**. O launcher identifica as instalações e permite abrir o diretório de trabalho atual na sua IDE favorita com um clique.
 
-### 📥 Download e Instalação
+### 🛠️ Construa e Instale (Recomendado)
 
-Obtenha a versão mais recente diretamente na [Página de Releases](https://github.com/HelbertMoura/ai_launcher/releases).
+Para garantir máxima segurança e evitar alertas incômodos do Windows SmartScreen (comuns em executáveis não assinados com certificados pagos), recomendamos que você construa o **AI Launcher** diretamente do código-fonte. É fácil e rápido!
 
-- `AI Launcher_<version>_x64_pt-BR.msi` — Formato MSI. Ideal e recomendado para implantação em máquinas corporativas ou gerenciadas por TI.
-- `AI Launcher_<version>_x64-setup.exe` — Instalador NSIS padrão. Apenas clique duas vezes!
-
-> ⚠️ **Aviso de primeira execução (SmartScreen):** Como este é um projeto _open-source_ gratuito e sem um certificado EV pago, o Windows SmartScreen pode exibir um alerta. Basta clicar em **Mais informações → Executar mesmo assim**. Se preferir, você mesmo pode construir os executáveis a partir do código-fonte! (Veja abaixo).
-
-### 🛠️ Construa você mesmo! (Open Source 💖)
-
-Por ser totalmente open-source, **você pode buildar seu próprio `.msi` ou `.exe` facilmente**. Perfeito para garantir segurança ou personalizar para a sua empresa!
+Por ser totalmente open-source, **você pode buildar seu próprio `.msi` ou `.exe` na sua máquina**. Perfeito para assegurar integridade ou personalizar para a sua empresa!
 
 **Pré-requisitos:**
 - Node.js 18+
@@ -84,7 +77,7 @@ npm run tauri dev
 # 4. Gere os seus próprios instaladores! (MSI e NSIS)
 npm run tauri build
 ```
-Os instaladores gerados estarão disponíveis em `src-tauri/target/release/bundle/`.
+Os instaladores gerados estarão disponíveis em `src-tauri/target/release/bundle/`. A partir daí, basta executar o `.msi` ou `.exe` gerado para instalar o AI Launcher.
 
 _(Deseja assinar os binários localmente? Temos os scripts `gen-cert.ps1` e `sign-build.ps1` em `/scripts/` para isso!)_
 
@@ -135,18 +128,11 @@ Built passionately with **Tauri v2**, **React 18**, and **Rust**, fully optimize
 
 Out-of-the-box detection for: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop, and Codex Desktop**. Open your current workspace in your preferred editor with just one click.
 
-### 📥 Download & Install
+### 🛠️ Build and Install (Recommended)
 
-Grab the latest installer directly from the [Releases page](https://github.com/HelbertMoura/ai_launcher/releases):
+To ensure maximum security and avoid pesky Windows SmartScreen warnings (common with executables not signed with paid certificates), we recommend building **AI Launcher** directly from the source code. It's quick and easy!
 
-- `AI Launcher_<version>_x64_pt-BR.msi` — MSI format. Highly recommended for IT-managed machines and bulk deployments.
-- `AI Launcher_<version>_x64-setup.exe` — Standard NSIS installer. Just double-click!
-
-> ⚠️ **First-run SmartScreen Warning:** Since this is a free, open-source project without a paid EV certificate, Windows SmartScreen may show a warning. Click **More info → Run anyway**. Or better yet, build the installers yourself from the source! (See below).
-
-### 🛠️ Build it Yourself! (Open Source 💖)
-
-Because we are fully open-source, **you can easily build the `.msi` or `.exe` directly on your machine**. This is perfect if you want to ensure maximum security or customize the app for your enterprise!
+Because we are fully open-source, **you can easily build the `.msi` or `.exe` directly on your machine**. This is perfect if you want to ensure total integrity or customize the app for your enterprise!
 
 **Prerequisites:**
 - Node.js 18+
@@ -168,7 +154,7 @@ npm run tauri dev
 # 4. Generate your very own release installers! (MSI & NSIS)
 npm run tauri build
 ```
-Your freshly built installers will be waiting for you in `src-tauri/target/release/bundle/`.
+Your freshly built installers will be waiting for you in `src-tauri/target/release/bundle/`. From there, simply run the generated `.msi` or `.exe` to install AI Launcher on your machine.
 
 _(Need local code signing? Check out `gen-cert.ps1` and `sign-build.ps1` inside `/scripts/`!)_
 
