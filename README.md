@@ -1,171 +1,223 @@
 <div align="center">
-  <img src="./public/images/banner.png" alt="AI Launcher Banner" />
+  <img src="./public/images/banner.png" alt="AI Launcher Banner" width="100%" />
+
+  <br />
+  <br />
 
   <h1>🚀 AI Launcher</h1>
 
-  <p><strong>Your ultimate desktop hub for AI coding CLIs. Built for speed, flexibility, and productivity.</strong></p>
-
   <p>
-    <a href="https://github.com/HelbertMoura/ai_launcher/blob/main/LICENSE"><img src="https://img.shields.io/github/license/HelbertMoura/ai_launcher?style=for-the-badge&color=blue" alt="License" /></a>
-    <a href="https://github.com/HelbertMoura/ai_launcher/stargazers"><img src="https://img.shields.io/github/stars/HelbertMoura/ai_launcher?style=for-the-badge&color=yellow" alt="Stars" /></a>
-    <a href="https://github.com/HelbertMoura/ai_launcher/network/members"><img src="https://img.shields.io/github/forks/HelbertMoura/ai_launcher?style=for-the-badge&color=orange" alt="Forks" /></a>
-    <a href="https://github.com/HelbertMoura/ai_launcher/issues"><img src="https://img.shields.io/github/issues/HelbertMoura/ai_launcher?style=for-the-badge&color=red" alt="Issues" /></a>
+    <strong>Your ultimate desktop hub for AI coding CLIs. Built for speed, flexibility, and productivity.</strong>
   </p>
 
   <p>
-    <a href="#-português">Português</a> •
-    <a href="#-english">English</a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/HelbertMoura/ai_launcher?style=for-the-badge&color=blue" alt="License" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/stargazers">
+      <img src="https://img.shields.io/github/stars/HelbertMoura/ai_launcher?style=for-the-badge&color=yellow" alt="Stars" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/network/members">
+      <img src="https://img.shields.io/github/forks/HelbertMoura/ai_launcher?style=for-the-badge&color=orange" alt="Forks" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/issues">
+      <img src="https://img.shields.io/github/issues/HelbertMoura/ai_launcher?style=for-the-badge&color=red" alt="Issues" />
+    </a>
   </p>
+
+  <h3>
+    <a href="#-português">🇧🇷 Português</a>
+    <span> | </span>
+    <a href="#-english">🇬🇧 English</a>
+  </h3>
 </div>
 
----
+<hr />
 
 ## 🇧🇷 Português
 
-**AI Launcher** é o seu hub definitivo e _open-source_ para CLIs de Inteligência Artificial no Windows. Descubra, instale, atualize e gerencie suas ferramentas de IA favoritas — como Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush e Droid — tudo em uma interface moderna, rápida e intuitiva.
+O **AI Launcher** é o seu hub definitivo e de código aberto para Command Line Interfaces (CLIs) de Inteligência Artificial no Windows. Descubra, instale, atualize e gerencie suas ferramentas de IA favoritas — como **Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush e Droid** — tudo a partir de uma interface moderna, rápida e incrivelmente intuitiva.
 
-Além disso, oferece atalhos diretos para editores populares como VS Code, Cursor, Windsurf e AntGravity. Diga adeus às telas pretas piscando, buscas infinitas por comandos `npm install -g` específicos e dores de cabeça com configuração de ambiente por sessão. Tudo fica em um único lugar! ✨
+Além de gerenciar suas IAs, ele oferece atalhos de um clique para editores populares como **VS Code, Cursor, Windsurf e AntGravity**. Diga adeus às telas pretas piscando, buscas intermináveis por comandos `npm install -g` específicos e dores de cabeça com a configuração de variáveis de ambiente. Tudo está aqui, em um único lugar! ✨
 
-Feito com ❤️, **Tauri v2**, **React 18** e **Rust**, sendo altamente otimizado para Windows 10 e 11.
+Construído com ❤️ usando **Tauri v2**, **React 18** e **Rust**, com foco em extrema otimização para Windows 10 e 11.
 
-### 🌟 O que ele faz?
+<br />
 
-- 📦 **Instalação e Atualização Sem Complicações** — Detecta o que falta no seu ambiente. Executa `npm install -g` ou `pip install` em segundo plano com uma interface limpa que mostra o progresso em tempo real. O sistema compara versões instaladas com as mais recentes das CLIs, IDEs e pré-requisitos (Node, Python, Git, Rust).
-- 🚀 **Execução Inteligente** — Abre as CLIs diretamente no Windows Terminal (se disponível), caindo para PowerShell 7 ou `cmd` caso necessário. O melhor de tudo? Ele **aplica automaticamente as flags de permissão corretas** (`--dangerously-skip-permissions`, `--yolo`, etc.) para você focar apenas no código.
-- 📊 **Rastreamento Avançado** — Mantém o histórico de execuções por projeto, consolida o uso de tokens (ex: Claude Code) e permite a execução de múltiplas CLIs lado a lado no mesmo diretório através da aba **Orquestrador**.
+### ✨ Principais Funcionalidades
+
+- 📦 **Instalação e Atualização Sem Complicações**
+  O AI Launcher detecta o que falta no seu ambiente. Ele executa `npm install -g` ou `pip install` em segundo plano com uma interface limpa que mostra o progresso em tempo real. O sistema compara suas versões locais com as mais recentes das CLIs, IDEs e pré-requisitos (Node.js, Python, Git, Rust).
+
+- 🚀 **Execução Inteligente**
+  Abra suas CLIs diretamente no Windows Terminal (se disponível), com fallback automático para PowerShell 7 ou `cmd`. A melhor parte? Ele **aplica automaticamente as flags de permissão corretas** (como `--dangerously-skip-permissions` ou `--yolo`) para que você foque apenas no código.
+
+- 📊 **Rastreamento Avançado (Orquestrador)**
+  Mantenha um histórico detalhado de execuções por projeto, consolide o uso de tokens (ex.: Claude Code) e gerencie a execução de múltiplas CLIs lado a lado no mesmo diretório através da poderosa aba **Orquestrador**.
+
+<br />
 
 ### 🤖 CLIs de IA Suportadas
 
-| CLI | Comando Base | Flag de Permissão Automática |
-| --- | --- | --- |
+| CLI de IA | Comando Base de Instalação | Flag Automática Injetada |
+| :--- | :--- | :--- |
 | **Claude Code** | `npm install -g @anthropic-ai/claude-code` | `--dangerously-skip-permissions` |
 | **Codex** | `npm install -g @openai/codex` | `--dangerously-bypass-approvals-and-sandbox` |
 | **Gemini CLI** | `npm install -g @google/gemini-cli` | `--yolo` |
 | **Qwen** | `npm install -g qwen-ai` | `--yolo` |
-| **Droid** | `npm install -g droid` | — |
 | **Kilo Code** | `pip install kilo-code` | `--yolo` |
-| **OpenCode** | `npm install -g opencode-ai` | — |
 | **Crush** | `npm install -g crush-cli` | `--yolo` |
+| **Droid** | `npm install -g droid` | — |
+| **OpenCode** | `npm install -g opencode-ai` | — |
 
-### 🛠 IDEs & Editores
+<br />
 
-Suporte nativo para detectar: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop e Codex Desktop**. O launcher identifica as instalações e permite abrir o diretório de trabalho atual na sua IDE favorita com um clique.
+### 🛠 IDEs & Editores Compatíveis
 
-### 🛠️ Construa e Instale (Recomendado)
+Suporte nativo e detecção automática para: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop e Codex Desktop**. O launcher identifica as instalações e permite que você abra o diretório de trabalho atual na sua IDE favorita com apenas um clique.
 
-Para garantir máxima segurança e evitar alertas incômodos do Windows SmartScreen (comuns em executáveis não assinados com certificados pagos), recomendamos que você construa o **AI Launcher** diretamente do código-fonte. É fácil e rápido!
+<br />
 
-Por ser totalmente open-source, **você pode buildar seu próprio `.msi` ou `.exe` na sua máquina**. Perfeito para assegurar integridade ou personalizar para a sua empresa!
+### ⚙️ Como Compilar e Instalar (Recomendado)
 
-**Pré-requisitos:**
+Para garantir máxima segurança e evitar alertas incômodos do Windows SmartScreen (muito comuns em executáveis que não são assinados com certificados pagos), recomendamos fortemente que você construa o **AI Launcher** diretamente a partir do código-fonte. É um processo rápido e transparente!
+
+Por ser totalmente open-source, **você pode compilar seu próprio `.msi` ou `.exe` localmente**. Isso é perfeito para assegurar integridade ou para customizar a ferramenta para as necessidades da sua empresa!
+
+#### Pré-requisitos:
 - Node.js 18+
-- [Rust stable](https://rustup.rs/)
+- [Rust (Stable)](https://rustup.rs/)
 - Windows 10 ou 11
-- Visual Studio Build Tools (Carga de trabalho: **Desenvolvimento para desktop com C++** para vinculação do Tauri).
+- Visual Studio Build Tools (Carga de trabalho requerida: **Desenvolvimento para desktop com C++** para compilação do Tauri).
 
-```powershell
+```bash
 # 1. Clone o repositório
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
 
-# 2. Instale as dependências
+# 2. Instale as dependências Node
 npm install
 
-# 3. (Opcional) Rode em modo desenvolvimento com Hot Reload (Frontend + Backend)
+# 3. (Opcional) Execute o ambiente de desenvolvimento (Hot Reload)
 npm run tauri dev
 
-# 4. Gere os seus próprios instaladores! (MSI e NSIS)
+# 4. Compile os seus próprios instaladores! (Gera MSI e NSIS)
 npm run tauri build
 ```
-Os instaladores gerados estarão disponíveis em `src-tauri/target/release/bundle/`. A partir daí, basta executar o `.msi` ou `.exe` gerado para instalar o AI Launcher.
 
-_(Deseja assinar os binários localmente? Temos os scripts `gen-cert.ps1` e `sign-build.ps1` em `/scripts/` para isso!)_
+🎉 Os instaladores gerados estarão disponíveis em `src-tauri/target/release/bundle/`. Basta executar o `.msi` ou `.exe` gerado para instalar o AI Launcher.
 
-### 🤝 Contribua conosco!
+> _**Dica:** Deseja assinar os binários localmente para remover completamente avisos do Windows? Confira os scripts `gen-cert.ps1` e `sign-build.ps1` localizados na pasta `/scripts/`._
 
-Toda ajuda é super bem-vinda! Se você tem uma ideia de nova CLI, melhoria de interface, ou encontrou um bug:
+<br />
 
-1. Dê uma lida no nosso [CONTRIBUTING.md](./CONTRIBUTING.md).
-2. Reporte problemas ou sugira features através das [Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+### 🤝 Contribua Conosco!
+
+A força do Open Source está na comunidade! Toda ajuda é super bem-vinda. Se você tem uma ideia para adicionar uma nova CLI, melhorar a interface de usuário (UI/UX) ou encontrou um bug:
+
+1. Dê uma lida atenta no nosso guia de contribuição: [CONTRIBUTING.md](./CONTRIBUTING.md).
+2. Reporte problemas, debata arquitetura ou sugira funcionalidades através das [Issues no GitHub](https://github.com/HelbertMoura/ai_launcher/issues).
+
+<br />
 
 ### 📄 Licença
 
-Projeto distribuído sob a licença [MIT](./LICENSE).
+Este projeto é orgulhosamente distribuído sob a licença [MIT](./LICENSE).
+<br />
 Copyright © 2026 Helbert Moura | DevManiac's.
 
----
-
-<br/>
+<br /><br />
+<hr />
+<br /><br />
 
 ## 🇬🇧 English
 
-**AI Launcher** is your ultimate, _open-source_ hub for AI Command Line Interfaces (CLIs) on Windows. Discover, install, update, and seamlessly manage your favorite AI tools like Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, and Droid, all within a sleek, modern, and intuitive UI.
+**AI Launcher** is your ultimate, fully open-source hub for AI Command Line Interfaces (CLIs) on Windows. Discover, install, update, and seamlessly manage your favorite AI tools like **Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, and Droid**, all within a sleek, modern, and highly intuitive UI.
 
-Additionally, it provides rapid shortcuts for popular editors such as VS Code, Cursor, Windsurf, and AntGravity. Say goodbye to flashing `cmd` windows, digging through docs for specific `npm install -g` commands, or tedious environment setups! ✨
+Additionally, it provides rapid one-click shortcuts for popular editors such as **VS Code, Cursor, Windsurf, and AntGravity**. Say goodbye to flashing `cmd` windows, digging through docs for specific `npm install -g` commands, or dealing with tedious environment path setups. It’s all here, in one place! ✨
 
-Built passionately with **Tauri v2**, **React 18**, and **Rust**, fully optimized for Windows 10 and 11.
+Built passionately with **Tauri v2**, **React 18**, and **Rust**, it is deeply optimized for Windows 10 and 11.
 
-### 🌟 Features
+<br />
 
-- 📦 **Painless Install & Update** — Automatically detects missing prerequisites. Runs `npm install -g` or `pip install` in-process with a beautiful live progress bar. The built-in updater keeps your CLIs, IDEs, and system requirements (Node, Python, Git, Rust) always up-to-date.
-- 🚀 **Smart Launching** — Instantly fires up CLIs in Windows Terminal (if available), falling back to PowerShell 7 or `cmd`. Best of all? It **automatically injects the correct permission flags** (`--dangerously-skip-permissions`, `--yolo`, etc.) so you don't have to memorize them.
-- 📊 **Advanced Tracking** — Maintains per-project run histories. Aggregates token usage (e.g., Claude Code runs). You can even run multiple CLIs side-by-side on the same project using the **Orchestrator** tab.
+### ✨ Core Features
+
+- 📦 **Painless Install & Update**
+  AI Launcher automatically detects missing prerequisites in your environment. It runs `npm install -g` or `pip install` securely in-process with a beautiful live progress bar. The built-in system checks keep your CLIs, IDEs, and base requirements (Node.js, Python, Git, Rust) always up-to-date.
+
+- 🚀 **Smart Launching**
+  Instantly fire up CLIs in Windows Terminal (if available), automatically falling back to PowerShell 7 or standard `cmd`. Best of all? It **automatically injects the correct security/permission flags** (like `--dangerously-skip-permissions` or `--yolo`) so you don't have to memorize them.
+
+- 📊 **Advanced Tracking (Orchestrator)**
+  Maintain detailed per-project run histories, aggregate your token usage (e.g., for Claude Code), and safely run multiple CLIs side-by-side on the same directory workspace using the powerful **Orchestrator** tab.
+
+<br />
 
 ### 🤖 Supported AI CLIs
 
-| CLI | Base Install Command | Auto-Injected Flag |
-| --- | --- | --- |
+| AI CLI | Base Install Command | Auto-Injected Flag |
+| :--- | :--- | :--- |
 | **Claude Code** | `npm install -g @anthropic-ai/claude-code` | `--dangerously-skip-permissions` |
 | **Codex** | `npm install -g @openai/codex` | `--dangerously-bypass-approvals-and-sandbox` |
 | **Gemini CLI** | `npm install -g @google/gemini-cli` | `--yolo` |
 | **Qwen** | `npm install -g qwen-ai` | `--yolo` |
-| **Droid** | `npm install -g droid` | — |
 | **Kilo Code** | `pip install kilo-code` | `--yolo` |
-| **OpenCode** | `npm install -g opencode-ai` | — |
 | **Crush** | `npm install -g crush-cli` | `--yolo` |
+| **Droid** | `npm install -g droid` | — |
+| **OpenCode** | `npm install -g opencode-ai` | — |
+
+<br />
 
 ### 🛠 Supported IDEs & Editors
 
-Out-of-the-box detection for: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop, and Codex Desktop**. Open your current workspace in your preferred editor with just one click.
+Out-of-the-box native detection for: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop, and Codex Desktop**. Open your current workspace in your preferred editor with just one click directly from the UI.
 
-### 🛠️ Build and Install (Recommended)
+<br />
 
-To ensure maximum security and avoid pesky Windows SmartScreen warnings (common with executables not signed with paid certificates), we recommend building **AI Launcher** directly from the source code. It's quick and easy!
+### ⚙️ How to Build and Install (Recommended)
 
-Because we are fully open-source, **you can easily build the `.msi` or `.exe` directly on your machine**. This is perfect if you want to ensure total integrity or customize the app for your enterprise!
+To ensure maximum security and avoid pesky Windows SmartScreen warnings (which are common with executables not signed with expensive paid EV certificates), we highly recommend building **AI Launcher** directly from the source code. It's quick, transparent, and easy!
 
-**Prerequisites:**
+Because we are fully open-source, **you can seamlessly build the `.msi` or `.exe` installers directly on your own machine**. This is perfect if you want to ensure absolute binary integrity or customize the application for your enterprise!
+
+#### Prerequisites:
 - Node.js 18+
-- [Rust stable](https://rustup.rs/)
+- [Rust (Stable)](https://rustup.rs/)
 - Windows 10 or 11
-- Visual Studio Build Tools (Workload: **Desktop development with C++** — required by Tauri).
+- Visual Studio Build Tools (Required workload: **Desktop development with C++** — needed by Tauri for C++ linking).
 
-```powershell
+```bash
 # 1. Clone the repository
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
 
-# 2. Install dependencies
+# 2. Install Node dependencies
 npm install
 
-# 3. (Optional) Run the dev environment with Hot Reload
+# 3. (Optional) Run the dev environment with Hot Reload enabled
 npm run tauri dev
 
-# 4. Generate your very own release installers! (MSI & NSIS)
+# 4. Generate your very own release installers! (Builds MSI & NSIS)
 npm run tauri build
 ```
-Your freshly built installers will be waiting for you in `src-tauri/target/release/bundle/`. From there, simply run the generated `.msi` or `.exe` to install AI Launcher on your machine.
 
-_(Need local code signing? Check out `gen-cert.ps1` and `sign-build.ps1` inside `/scripts/`!)_
+🎉 Your freshly built installers will be waiting for you in `src-tauri/target/release/bundle/`. From there, simply run the generated `.msi` or `.exe` to install AI Launcher.
+
+> _**Pro-Tip:** Need local code signing to stop Windows warnings completely? Check out the `gen-cert.ps1` and `sign-build.ps1` scripts located inside the `/scripts/` folder!_
+
+<br />
 
 ### 🤝 Contributing
 
-We love community contributions! Whether it's adding a new CLI, tweaking the UI, or squashing bugs:
+The strength of Open Source is its community! We absolutely love contributions. Whether you're adding a new CLI configuration, tweaking the user interface, or squashing bugs:
 
-1. Please read our [CONTRIBUTING.md](./CONTRIBUTING.md) first.
-2. File bugs or suggest features via GitHub [Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+1. Please take a moment to read our contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md).
+2. File bugs, discuss architecture, or suggest new features via the [GitHub Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+
+<br />
 
 ### 📄 License
 
-Distributed under the [MIT License](./LICENSE).
+This project is proudly distributed under the [MIT License](./LICENSE).
+<br />
 Copyright © 2026 Helbert Moura | DevManiac's.
