@@ -23,9 +23,14 @@ export interface HistoryTabProps {
   relaunchFromHistory: (item: HistoryItem) => void;
 }
 
+function entryKey(item: HistoryItem): string {
+  return `${item.timestamp}|${item.cliKey}|${item.directory}`;
+}
+
 export function HistoryTab({ history, clearHistory, relaunchFromHistory }: HistoryTabProps) {
   const [cliFilter, setCliFilter] = useState<Set<string>>(new Set());
   const [providerFilter, setProviderFilter] = useState<string>('');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const uniqueClis = useMemo(() => {
     const map = new Map<string, string>();
@@ -64,13 +69,23 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
     });
   }
 
-  async function copyArgs(args: string) {
+  async function copyArgs(item: HistoryItem) {
+    const key = entryKey(item);
     try {
-      await navigator.clipboard.writeText(args);
+      await navigator.clipboard.writeText(item.args);
+      setCopiedKey(key);
     } catch {
-      /* best effort — clipboard unavailable */
+      setCopiedKey(`${key}::failed`);
     }
+    setTimeout(() => setCopiedKey((prev) => (prev && prev.startsWith(key) ? null : prev)), 1500);
   }
+
+  function clearFilters() {
+    setCliFilter(new Set());
+    setProviderFilter('');
+  }
+
+  const filtersActive = cliFilter.size > 0 || providerFilter !== '';
 
   return (
     <div className="tab-scroll">
@@ -111,17 +126,27 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
         </div>
 
         {filtered.length === 0 ? (
-          <p className="history-empty">
-            {history.length === 0
-              ? 'Nenhuma execução ainda.'
-              : 'Nenhuma entrada corresponde aos filtros atuais.'}
-          </p>
+          <div className="history-empty">
+            <p>
+              {history.length === 0
+                ? 'Nenhuma execução ainda.'
+                : 'Nenhuma entrada corresponde aos filtros atuais.'}
+            </p>
+            {filtersActive && (
+              <button type="button" className="history-empty__action" onClick={clearFilters}>
+                clear filters
+              </button>
+            )}
+          </div>
         ) : (
           <ol className="history-timeline">
-            {filtered.map((item, index) => {
+            {filtered.map((item) => {
               const providerClass = item.provider ? ` kind-${item.provider.providerKind}` : '';
+              const key = entryKey(item);
+              const copyState =
+                copiedKey === key ? 'copied' : copiedKey === `${key}::failed` ? 'failed' : 'idle';
               return (
-                <li key={`${item.timestamp}-${item.cliKey}-${index}`} className="history-entry">
+                <li key={key} className="history-entry">
                   <span className="history-entry__marker" aria-hidden="true">●</span>
                   <div className="history-entry__body">
                     <header className="history-entry__head">
@@ -146,9 +171,16 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
                       </button>
                       {item.args && (
                         <button type="button" className="history-entry__action"
-                                onClick={() => copyArgs(item.args)}
-                                aria-label="Copiar argumentos">
-                          <Copy size={12} /><span>copy args</span>
+                                onClick={() => copyArgs(item)}
+                                aria-label={`Copiar argumentos de ${item.cli}`}>
+                          <Copy size={12} />
+                          <span>
+                            {copyState === 'copied'
+                              ? 'copied!'
+                              : copyState === 'failed'
+                                ? 'failed'
+                                : 'copy args'}
+                          </span>
                         </button>
                       )}
                     </div>
