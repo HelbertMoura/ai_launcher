@@ -12,6 +12,7 @@ import { buildLaunchEnv, exportProfiles, importProfiles, redactEnv, removeProfil
 import { testProviderConnection } from './testConnection';
 import { hintsFor } from './modelCatalog';
 import { DOCS_LINKS } from './docsLinks';
+import { AppearanceSection } from './AppearanceSection';
 
 interface AdminPanelProps {
   state: ProvidersState;
@@ -437,6 +438,8 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
           )
           : <div className="admin-note">Nenhuma env injetada (usa config default do Claude Code).</div>}
       </div>
+
+      <AppearanceSection />
     </div>
   );
 }
