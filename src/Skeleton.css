@@ -31,3 +31,25 @@
     background: color-mix(in srgb, var(--border) 50%, var(--inner));
   }
 }
+
+/* Variants — reutilizam a animação skel-shimmer definida acima. */
+.skel--cli-card {
+  display: block;
+  height: 140px;
+  width: 100%;
+  border-radius: var(--radius-md, 8px);
+}
+
+.skel--history-row {
+  display: block;
+  height: 48px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skel--cost-bar {
+  display: block;
+  height: 38px;
+  width: 100%;
+  margin-bottom: 10px;
+}
