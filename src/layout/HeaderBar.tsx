@@ -35,13 +35,13 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-  { id: 'launcher', label: 'launch', keycap: ['\u2318', '1'] },
-  { id: 'install', label: 'install', keycap: ['\u2318', '2'] },
+  { id: 'launcher', label: 'launch', keycap: ['\u2318', '\u21E7', '1'] },
+  { id: 'install', label: 'install', keycap: ['\u2318', '\u21E7', '2'] },
   { id: 'tools', label: 'tools' },
   { id: 'orchestrator', label: 'orchestrator' },
-  { id: 'history', label: 'history', keycap: ['\u2318', '3'] },
+  { id: 'history', label: 'history', keycap: ['\u2318', '\u21E7', '3'] },
   { id: 'updates', label: 'updates' },
-  { id: 'costs', label: 'costs', keycap: ['\u2318', '4'] },
+  { id: 'costs', label: 'costs', keycap: ['\u2318', '\u21E7', '4'] },
   { id: 'help', label: 'help' },
   { id: 'admin', label: 'admin', adminOnly: true },
 ];

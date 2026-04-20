@@ -427,11 +427,11 @@ function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Global ⌘/Ctrl+1-4 tab switch (skip when typing in inputs)
+  // Global ⌘/Ctrl+Shift+1-4 tab switch (skip when typing in inputs)
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (!(e.metaKey || e.ctrlKey)) return;
-      if (e.shiftKey || e.altKey) return;
+      if (!e.shiftKey || e.altKey) return;
       if (!['1', '2', '3', '4'].includes(e.key)) return;
       const target = document.activeElement;
       if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
@@ -478,8 +478,8 @@ function App() {
         setQuickSwitchOpen(v => !v);
         return;
       }
-      // Ctrl+1..9 = dispara preset N (skip 1-4: reserved for tab switching)
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && /^[5-9]$/.test(e.key)) {
+      // Ctrl+1..9 = dispara preset N (tab switching uses Ctrl+Shift+1..4)
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
         const idx = parseInt(e.key, 10) - 1;
         const target = presets[idx];
         if (target) {
