@@ -131,6 +131,37 @@
   --green: var(--color-success);
   --red: var(--color-danger);
   --yellow: var(--color-warn);
+
+  /* ========== v5.5 Terminal Dramático extensions ========== */
+
+  /* Display typography */
+  --ff-display: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  --ff-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  --ff-ui:      system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-display-sm: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --fs-display-md: clamp(2rem,  1.5rem + 2vw,   3rem);
+  --fs-display-lg: clamp(2.5rem, 2rem + 3vw,    4.5rem);
+  --fs-display-xl: clamp(3rem,  2rem + 5vw,     6rem);
+
+  /* Terminal surfaces */
+  --bg-terminal:       oklch(16% 0.008 250);
+  --bg-surface-raised: oklch(20% 0.010 250);
+  --bg-prompt:         oklch(14% 0.006 250);
+  --border-dim:        oklch(25% 0.010 250);
+  --border-bright:     oklch(40% 0.020 180);
+  --text-dim:          oklch(50% 0.010 250);
+  --text-prompt:       oklch(72% 0.150 160);
+
+  /* Elevation */
+  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.6);
+  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.4);
+
+  /* Motion */
+  --ease-terminal: cubic-bezier(0.22, 1, 0.36, 1);
+  --d-tab-switch: 180ms;
+  --d-page-enter: 240ms;
+  --d-stagger: 40ms;
 }
 
 /* ==========================================================================
