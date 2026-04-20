@@ -17,6 +17,7 @@ import { computeTodaySpend, shouldAlert } from './providers/budget';
 import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
 import type { LaunchPreset } from './presets/types';
 import { LauncherTab } from './tabs/LauncherTab';
+import { HistoryTab } from './tabs/HistoryTab';
 import './providers/providers.css';
 
 // ==================== TYPES ====================
@@ -1208,39 +1209,11 @@ function App() {
 
       {/* ========== HISTORY ========== */}
       {activeTab === 'history' && (
-        <div className="tab-scroll">
-          <div className="tab-pad">
-          <div className="history-header">
-            <h2>📜 Histórico</h2>
-            {history.length > 0 && <button className="btn btn-danger" onClick={clearHistory}>🗑️ Limpar</button>}
-          </div>
-          <div className="history-list">
-            {history.length === 0 ? (
-              <p className="empty">Nenhuma execução ainda.</p>
-            ) : (
-              history.map((item, i) => (
-                <div key={i} className="history-item">
-                  <div className="history-left">
-                    <span className="history-cli">{item.cli}</span>
-                    <span className="history-dir">{item.directory}</span>
-                    {item.args && <span className="history-args">{item.args}</span>}
-                    {item.provider && (
-                      <span className={`history-provider kind-${item.provider.providerKind}`}
-                            title={`Provider: ${item.provider.providerName}`}>
-                        via {item.provider.providerName} · {item.provider.mainModel}
-                      </span>
-                    )}
-                  </div>
-                  <div className="history-right">
-                    <span className="history-time">{item.timestamp}</span>
-                    <button className="btn-relaunch" onClick={() => relaunchFromHistory(item)} title="Relançar">▶</button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          </div>
-        </div>
+        <HistoryTab
+          history={history}
+          clearHistory={clearHistory}
+          relaunchFromHistory={relaunchFromHistory}
+        />
       )}
 
       {/* ========== UPDATES (reformulado v3.2.1) ========== */}
