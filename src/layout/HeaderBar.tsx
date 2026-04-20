@@ -1,5 +1,7 @@
-import { ProviderBadge } from '../providers/ProviderBadge';
-import type { ProvidersState } from '../providers/types';
+import { Terminal, Command, Moon, Sun, RefreshCw } from '../icons';
+import { KeyCap } from '../shared/KeyCap';
+import type { ProvidersState, ProviderKind } from '../providers/types';
+import './HeaderBar.css';
 
 export type HeaderTabId =
   | 'launcher'
@@ -22,6 +24,35 @@ interface HeaderBarProps {
   adminMode: boolean;
   providers: ProvidersState;
   updateCount: number;
+  onOpenPalette?: () => void;
+}
+
+interface TabDef {
+  id: HeaderTabId;
+  label: string;
+  keycap?: string[];
+  adminOnly?: boolean;
+}
+
+const TABS: TabDef[] = [
+  { id: 'launcher', label: 'launch', keycap: ['\u2318', '1'] },
+  { id: 'install', label: 'install', keycap: ['\u2318', '2'] },
+  { id: 'tools', label: 'tools' },
+  { id: 'orchestrator', label: 'orchestrator' },
+  { id: 'history', label: 'history', keycap: ['\u2318', '3'] },
+  { id: 'updates', label: 'updates' },
+  { id: 'costs', label: 'costs', keycap: ['\u2318', '4'] },
+  { id: 'help', label: 'help' },
+  { id: 'admin', label: 'admin', adminOnly: true },
+];
+
+function resolveActiveProvider(
+  providers: ProvidersState,
+): { kind: ProviderKind; name: string } | null {
+  const active = providers.profiles.find(p => p.id === providers.activeId);
+  if (!active) return null;
+  if (active.kind === 'anthropic' && !active.baseUrl) return null;
+  return { kind: active.kind, name: active.name };
 }
 
 export function HeaderBar({
@@ -34,70 +65,105 @@ export function HeaderBar({
   adminMode,
   providers,
   updateCount,
+  onOpenPalette,
 }: HeaderBarProps) {
-  return (
-    <>
-      <header className="header">
-        <div className="logo">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <rect width="24" height="24" rx="5" fill="#8B1E2A" />
-              <path d="M7 7l-3 5 3 5M17 7l3 5-3 5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-            </svg>
-          </div>
-          <div>
-            <div className="logo-title">
-              AI Launcher <span>Pro</span>
-              <small className="logo-ver">v{version}</small>
-              {/^\d+\.\d+\.\d+-(alpha|beta|rc)/i.test(version) && (
-                <small className="logo-badge logo-badge-beta">BETA</small>
-              )}
-            </div>
-            <div className="logo-sub">by Helbert Moura • Powered by DevManiac's</div>
-          </div>
-        </div>
-        <div className="header-actions">
-          {adminMode && (
-            <ProviderBadge
-              state={providers}
-              onClick={() => onSelectTab('admin')}
-            />
-          )}
-          <button
-            className="theme-btn"
-            onClick={onThemeToggle}
-            title="Alternar tema"
-            aria-label={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button
-            className="btn"
-            onClick={onRefresh}
-            title="Re-verificar CLIs (F5)"
-            aria-label="Re-verificar CLIs instalados"
-          >🔄</button>
-        </div>
-      </header>
+  const visibleTabs = TABS.filter(t => !t.adminOnly || adminMode);
+  const activeProvider = adminMode ? resolveActiveProvider(providers) : null;
 
-      <div className="tabs">
-        <div className={`tab ${activeTab === 'launcher' ? 'active' : ''}`} onClick={() => onSelectTab('launcher')}>⚡ Launcher</div>
-        <div className={`tab ${activeTab === 'install' ? 'active' : ''}`} onClick={() => onSelectTab('install')}>📦 Instalar</div>
-        <div className={`tab ${activeTab === 'tools' ? 'active' : ''}`} onClick={() => onSelectTab('tools')}>🛠️ Ferramentas</div>
-        <div className={`tab ${activeTab === 'orchestrator' ? 'active' : ''}`} onClick={() => onSelectTab('orchestrator')}>🎛️ Orquestrador</div>
-        <div className={`tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => onSelectTab('history')}>📜 Histórico</div>
-        <div className={`tab ${activeTab === 'updates' ? 'active' : ''}`} onClick={() => onSelectTab('updates')}>
-          🔔 Atualizações
-          {updateCount > 0 && <span className="tab-badge">{updateCount}</span>}
+  return (
+    <header className="headerbar">
+      <div className="headerbar__top">
+        <div className="headerbar__brand">
+          <span className="headerbar__brand-icon" aria-hidden="true">
+            <Terminal size={18} strokeWidth={1.5} />
+          </span>
+          <span className="headerbar__wordmark">AI LAUNCHER</span>
+          <span className="headerbar__version">v{version}</span>
         </div>
-        <div className={`tab ${activeTab === 'costs' ? 'active' : ''}`} onClick={() => onSelectTab('costs')}>💰 Custos</div>
-        <div className={`tab ${activeTab === 'help' ? 'active' : ''}`} onClick={() => onSelectTab('help')}>❓ Ajuda</div>
-        {adminMode && (
-          <div className={`tab tab-admin ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => onSelectTab('admin')}>
-            ⚙️ Admin
-          </div>
-        )}
+
+        <div className="headerbar__status">
+          {activeProvider && (
+            <button
+              type="button"
+              className="headerbar__provider"
+              onClick={() => onSelectTab('admin')}
+              aria-label={`Active provider: ${activeProvider.name}`}
+              title="Open admin panel"
+            >
+              <span
+                className={`headerbar__dot headerbar__dot--${activeProvider.kind}`}
+                aria-hidden="true"
+              />
+              <span>{activeProvider.name}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="headerbar__btn"
+            onClick={() => onOpenPalette?.()}
+            aria-label="Open command palette"
+            title="Command palette"
+          >
+            <Command size={14} strokeWidth={1.5} />
+            <KeyCap keys={['\u2318', 'K']} dimmed />
+          </button>
+
+          <button
+            type="button"
+            className="headerbar__btn"
+            onClick={onThemeToggle}
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            title="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun size={14} strokeWidth={1.5} />
+            ) : (
+              <Moon size={14} strokeWidth={1.5} />
+            )}
+          </button>
+
+          <button
+            type="button"
+            className="headerbar__btn"
+            onClick={onRefresh}
+            aria-label="Re-check installed CLIs"
+            title="Refresh (F5)"
+          >
+            <RefreshCw size={14} strokeWidth={1.5} />
+          </button>
+        </div>
       </div>
-    </>
+
+      <nav className="headerbar__tabs" aria-label="Primary navigation">
+        {visibleTabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          const tabClasses = [
+            'headerbar__tab',
+            isActive ? 'headerbar__tab--active' : '',
+            tab.id === 'admin' ? 'headerbar__tab--admin' : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className={tabClasses}
+              onClick={() => onSelectTab(tab.id)}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <span className="headerbar__tab-prompt" aria-hidden="true">&gt;</span>
+              <span className="headerbar__tab-label">{tab.label}</span>
+              {tab.id === 'updates' && updateCount > 0 && (
+                <span className="headerbar__tab-badge">{updateCount}</span>
+              )}
+              {tab.keycap && <KeyCap keys={tab.keycap} dimmed />}
+            </button>
+          );
+        })}
+      </nav>
+    </header>
   );
 }
