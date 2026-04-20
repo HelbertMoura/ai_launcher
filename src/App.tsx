@@ -6,7 +6,6 @@ import CommandPalette from './CommandPalette';
 import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
-import { AdminPanel } from './providers/AdminPanel';
 import { ProviderBadge } from './providers/ProviderBadge';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
@@ -18,6 +17,7 @@ import type { LaunchPreset } from './presets/types';
 import { LauncherTab } from './tabs/LauncherTab';
 import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
+import { AdminTab } from './tabs/AdminTab';
 import './providers/providers.css';
 
 // ==================== TYPES ====================
@@ -1370,16 +1370,13 @@ function App() {
 
       {activeTab === 'costs' && <CostsTab />}
 
-      {activeTab === 'admin' && adminMode && (
-        <div className="tab-scroll">
-          <div className="tab-pad">
-            <AdminPanel
-              state={providers}
-              onChange={updateProviders}
-              onToast={showToast}
-            />
-          </div>
-        </div>
+      {activeTab === 'admin' && (
+        <AdminTab
+          adminMode={adminMode}
+          providers={providers}
+          updateProviders={updateProviders}
+          showToast={showToast}
+        />
       )}
 
       {/* ========== HELP (reformulado v3.2.1 sem sidebar) ========== */}
