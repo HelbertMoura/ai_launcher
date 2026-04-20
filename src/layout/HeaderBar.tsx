@@ -15,7 +15,7 @@ export type HeaderTabId =
   | 'admin';
 
 interface HeaderBarProps {
-  activeTab: string;
+  activeTab: HeaderTabId;
   onSelectTab: (tab: HeaderTabId) => void;
   onThemeToggle: () => void;
   onRefresh: () => void;
@@ -51,6 +51,7 @@ function resolveActiveProvider(
 ): { kind: ProviderKind; name: string } | null {
   const active = providers.profiles.find(p => p.id === providers.activeId);
   if (!active) return null;
+  // Hide dot for default Anthropic (no custom baseUrl) — indicator is for custom providers only
   if (active.kind === 'anthropic' && !active.baseUrl) return null;
   return { kind: active.kind, name: active.name };
 }
@@ -152,7 +153,7 @@ export function HeaderBar({
               type="button"
               className={tabClasses}
               onClick={() => onSelectTab(tab.id)}
-              aria-current={isActive ? 'page' : undefined}
+              aria-current={isActive ? 'true' : undefined}
             >
               <span className="headerbar__tab-prompt" aria-hidden="true">&gt;</span>
               <span className="headerbar__tab-label">{tab.label}</span>
