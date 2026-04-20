@@ -11,6 +11,18 @@
   </p>
 
   <p>
+    <a href="https://github.com/HelbertMoura/ai_launcher/releases/latest">
+      <img src="https://img.shields.io/github/v/release/HelbertMoura/ai_launcher?style=for-the-badge&color=8B1E2A&label=release" alt="Latest release" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/actions/workflows/build.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/HelbertMoura/ai_launcher/build.yml?style=for-the-badge&label=build" alt="Build status" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/releases">
+      <img src="https://img.shields.io/github/downloads/HelbertMoura/ai_launcher/total?style=for-the-badge&color=brightgreen&label=downloads" alt="Downloads" />
+    </a>
+    <img src="https://img.shields.io/badge/platform-windows%2010%20%2F%2011-0078D4?style=for-the-badge&logo=windows" alt="Platform" />
+  </p>
+  <p>
     <a href="https://github.com/HelbertMoura/ai_launcher/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/HelbertMoura/ai_launcher?style=for-the-badge&color=blue" alt="License" />
     </a>
@@ -22,6 +34,9 @@
     </a>
     <a href="https://github.com/HelbertMoura/ai_launcher/issues">
       <img src="https://img.shields.io/github/issues/HelbertMoura/ai_launcher?style=for-the-badge&color=red" alt="Issues" />
+    </a>
+    <a href="https://github.com/HelbertMoura/ai_launcher/blob/main/.github/dependabot.yml">
+      <img src="https://img.shields.io/badge/dependabot-enabled-025E8C?style=for-the-badge&logo=dependabot" alt="Dependabot" />
     </a>
   </p>
 

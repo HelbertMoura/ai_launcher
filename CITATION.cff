@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+title: AI Launcher
+message: Se você usa este software na sua pesquisa ou projeto, por favor cite.
+type: software
+authors:
+  - family-names: Moura
+    given-names: Helbert
+    alias: HelbertMoura
+repository-code: "https://github.com/HelbertMoura/ai_launcher"
+url: "https://github.com/HelbertMoura/ai_launcher"
+abstract: >-
+  Desktop launcher Windows (Tauri v2 + React 18 + Rust) pra gerenciar,
+  instalar e executar CLIs de IA (Claude Code, Codex, Gemini, Qwen e
+  outros). A v5.0+ adiciona suporte opt-in a providers Anthropic-
+  compatible alternativos (Z.AI/GLM, MiniMax) com mapeamento automático
+  de modelos.
+keywords:
+  - tauri
+  - windows
+  - ai
+  - cli
+  - claude-code
+  - launcher
+  - devtools
+license: MIT
+version: 5.0.0
+date-released: "2026-04-20"

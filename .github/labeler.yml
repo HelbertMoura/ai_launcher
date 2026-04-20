@@ -1,0 +1,53 @@
+# Mapa path → label aplicado pelo workflow .github/workflows/labeler.yml
+# Cada label é criado sob demanda (use a aba Labels do GitHub se quiser
+# configurar cor/descrição antecipadamente).
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**'
+          - 'index.html'
+          - 'vite.config.ts'
+          - 'tsconfig*.json'
+          - 'package.json'
+          - 'package-lock.json'
+
+rust:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src-tauri/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'CHANGELOG.md'
+          - 'CONTRIBUTING.md'
+          - 'README.md'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/workflows/**'
+          - '.github/dependabot.yml'
+
+providers:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/providers/**'
+
+presets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/presets/**'
+
+styles:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/**/*.css'
+
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'scripts/**'
+          - '*.ps1'
