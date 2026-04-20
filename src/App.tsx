@@ -127,7 +127,7 @@ function formatTimestamp(epochSecStr: string): string {
 // ==================== APP ====================
 
 function App() {
-  const [activeTab, setActiveTab] = useState('launcher');
+  const [activeTab, setActiveTab] = useState<HeaderTabId>('launcher');
   const [bootReady, setBootReady] = useState(false);
 
   // Welcome: visível OU oculta. Usuário controla.
@@ -339,7 +339,7 @@ function App() {
           setActiveTab('launcher');
         });
         const u2 = await listen<string>('tray-open-tab', (e) => {
-          if (e.payload) setActiveTab(e.payload);
+          if (e.payload) setActiveTab(e.payload as HeaderTabId);
         });
         const u3 = await listen<null>('tray-update-all', () => {
           setActiveTab('updates');
@@ -434,7 +434,12 @@ function App() {
       if (!e.shiftKey || e.altKey) return;
       if (!['1', '2', '3', '4'].includes(e.key)) return;
       const target = document.activeElement;
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
       e.preventDefault();
       const map: Record<string, HeaderTabId> = {
         '1': 'launcher',
@@ -1041,7 +1046,7 @@ function App() {
           launch={launch}
           launchMulti={launchMulti}
           setDryRunOpen={setDryRunOpen}
-          setActiveTab={setActiveTab}
+          setActiveTab={(t) => setActiveTab(t as HeaderTabId)}
           saveConfigDirectory={(dir) => saveConfig({ directory: dir })}
           openInExplorer={async (path) => {
             try { await invoke('open_in_explorer', { path }); }
@@ -1553,7 +1558,7 @@ function App() {
           })();
         }}
         onLaunchTool={(key) => { launchTool(key); }}
-        onOpenTab={setActiveTab}
+        onOpenTab={(t) => setActiveTab(t as HeaderTabId)}
         onToggleTheme={() => {
           const t = theme === 'dark' ? 'light' : 'dark';
           setTheme(t);
