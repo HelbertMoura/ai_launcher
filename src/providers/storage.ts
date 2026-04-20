@@ -90,14 +90,29 @@ export function buildLaunchEnv(state: ProvidersState): Record<string, string> | 
   }
   const env: Record<string, string> = {};
   if (profile.baseUrl) env.ANTHROPIC_BASE_URL = profile.baseUrl;
+  // Anthropic-compatible providers aceitam APENAS UM dos dois — setar ambos
+  // gera `Auth conflict` no Claude Code. Usamos AUTH_TOKEN (padrão da spec MiniMax/Z.AI).
   if (profile.apiKey) {
     env.ANTHROPIC_AUTH_TOKEN = profile.apiKey;
-    env.ANTHROPIC_API_KEY = profile.apiKey;
   }
   const main = state.overrideMainModel || profile.mainModel;
   const fast = state.overrideFastModel || profile.fastModel;
   if (main) env.ANTHROPIC_MODEL = main;
   if (fast) env.ANTHROPIC_SMALL_FAST_MODEL = fast;
+
+  // Envs recomendados pela doc oficial para providers Anthropic-compatible
+  // (https://platform.minimax.io/docs/token-plan/claude-code). Sem eles,
+  // Claude Code tenta resolver sonnet/opus/haiku em endpoints que não existem.
+  if (profile.kind !== 'anthropic' && main) {
+    const haiku = fast || main;
+    env.ANTHROPIC_DEFAULT_SONNET_MODEL = main;
+    env.ANTHROPIC_DEFAULT_OPUS_MODEL = main;
+    env.ANTHROPIC_DEFAULT_HAIKU_MODEL = haiku;
+    env.API_TIMEOUT_MS = '3000000';
+    env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = '1';
+  }
+
+  // extraEnv do perfil pode sobrescrever tudo acima (escape hatch do usuário).
   if (profile.extraEnv) {
     for (const [k, v] of Object.entries(profile.extraEnv)) {
       if (k && v) env[k] = v;

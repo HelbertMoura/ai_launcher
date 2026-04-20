@@ -157,6 +157,22 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
     onToast('Providers resetados');
   }
 
+  async function handleResetClaudeState() {
+    const ok = confirm(
+      'Limpar estado do Claude Code?\n\n' +
+      'Remove customApiKeyResponses, oauthAccount e model do ~/.claude.json\n' +
+      '(faz backup em .claude.json.bak antes).\n\n' +
+      'Útil quando o Claude Code está "travado" em provider antigo.'
+    );
+    if (!ok) return;
+    try {
+      const msg = await invoke<string>('reset_claude_state');
+      onToast(msg);
+    } catch (e) {
+      onToast(`Erro: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
   function updateDraft<K extends keyof ProviderProfile>(key: K, value: ProviderProfile[K]) {
     setDraft(d => d ? { ...d, [key]: value } : d);
   }
@@ -204,6 +220,14 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
           <button className="btn" onClick={handleExport} title="Copia JSON com todos os perfis">⬇ Exportar</button>
           <button className="btn" onClick={() => setShowImport(v => !v)}>⬆ Importar</button>
           <button className="btn btn-danger" onClick={handleReset} title="Reverte pros built-ins">♻ Reset</button>
+          <button
+            className="btn btn-warn"
+            onClick={handleResetClaudeState}
+            title="Limpa customApiKeyResponses/oauthAccount/model do ~/.claude.json (faz backup)"
+            aria-label="Reset do estado do Claude Code"
+          >
+            🧹 Reset Claude state
+          </button>
         </div>
       </div>
 
@@ -247,7 +271,14 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
                     onClick={() => openDocs(DOCS_LINKS[profile.kind].url)}
                     title={DOCS_LINKS[profile.kind].label}
                   >↗ Docs</button>
-                  {!profile.builtin && <button className="btn btn-sm btn-danger" onClick={() => handleDelete(profile)}>×</button>}
+                  {!profile.builtin && (
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(profile)}
+                      title="Excluir perfil"
+                      aria-label={`Excluir perfil ${profile.name}`}
+                    >×</button>
+                  )}
                 </div>
               </div>
               <div className="admin-card-body">
@@ -372,7 +403,13 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
                   <div key={`env-${k}`} className="admin-env-row">
                     <input className="input" value={k} onChange={e => updateExtraEnvKey(k, e.target.value.toUpperCase())} placeholder="NOME_DA_VAR" />
                     <input className="input" value={v} onChange={e => updateExtraEnvVal(k, e.target.value)} placeholder="valor" />
-                    <button className="btn btn-sm btn-danger" type="button" onClick={() => removeExtraEnv(k)}>×</button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      type="button"
+                      onClick={() => removeExtraEnv(k)}
+                      title="Remover variável de ambiente"
+                      aria-label={`Remover env ${k || 'vazio'}`}
+                    >×</button>
                   </div>
                 ))}
                 <button className="btn btn-sm" type="button" onClick={addExtraEnv}>+ Adicionar env</button>

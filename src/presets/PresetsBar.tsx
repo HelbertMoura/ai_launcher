@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import type { LaunchPreset } from './types';
+import { PresetIcon, PRESET_ICON_IDS } from './PresetIcon';
 
 interface PresetsBarProps {
   presets: LaunchPreset[];
@@ -15,12 +16,17 @@ interface PresetsBarProps {
   onRename: (id: string, name: string) => void;
 }
 
-const EMOJI_CHOICES = ['⚡','🔥','🧪','🧠','📝','🔧','🎯','🚀','🐛','🎨','📊','🧰'];
+/**
+ * v5.1 — IDs de SVG monograma (rendering consistente entre Win10/11/Linux/macOS).
+ * Campo `emoji` no LaunchPreset passou a aceitar também IDs SVG além de emojis
+ * legados; PresetIcon.resolveIconId faz a tradução.
+ */
+const ICON_CHOICES: ReadonlyArray<string> = PRESET_ICON_IDS;
 
 export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: PresetsBarProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [draftName, setDraftName] = useState('');
-  const [draftEmoji, setDraftEmoji] = useState('⚡');
+  const [draftEmoji, setDraftEmoji] = useState<string>('bolt');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
 
@@ -29,7 +35,7 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
     if (!name) return;
     onSave(name, draftEmoji);
     setDraftName('');
-    setDraftEmoji('⚡');
+    setDraftEmoji('bolt');
     setShowAdd(false);
   }
 
@@ -49,14 +55,19 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
       </div>
       {showAdd && (
         <div className="preset-add">
-          <div className="preset-emoji-row">
-            {EMOJI_CHOICES.map(e => (
+          <div className="preset-emoji-row" role="radiogroup" aria-label="Escolher ícone do preset">
+            {ICON_CHOICES.map(id => (
               <button
-                key={e}
+                key={id}
                 type="button"
-                className={`preset-emoji ${draftEmoji === e ? 'active' : ''}`}
-                onClick={() => setDraftEmoji(e)}
-              >{e}</button>
+                role="radio"
+                aria-checked={draftEmoji === id}
+                aria-label={`Ícone ${id}`}
+                className={`preset-emoji ${draftEmoji === id ? 'active' : ''}`}
+                onClick={() => setDraftEmoji(id)}
+              >
+                <PresetIcon id={id} size={16} />
+              </button>
             ))}
           </div>
           <input
@@ -84,7 +95,9 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
                 onClick={() => onLaunch(p)}
                 title={`Lançar (Ctrl+${idx + 1})`}
               >
-                <span className="preset-chip-emoji">{p.emoji || '⚡'}</span>
+                <span className="preset-chip-emoji" aria-hidden="true">
+                  <PresetIcon id={p.emoji || 'bolt'} size={14} />
+                </span>
                 {renamingId === p.id ? (
                   <input
                     className="preset-rename"

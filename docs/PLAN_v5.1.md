@@ -262,3 +262,44 @@ Criar `src/styles/tokens.css`:
 - CHANGELOG.md atualizado
 - README (PT + EN) atualizado se algum fluxo visual mudou muito
 - Este `docs/PLAN_v5.1.md` preservado no repo como documentação viva
+
+---
+
+## Post-release retrospective — v5.1.0 (2026-04-20)
+
+### Descobertas durante a execução (não previstas no plano original)
+
+1. **Causa raiz real do `Auth conflict` não era env herdada** — a auditoria de
+   `src/providers/storage.ts` revelou que o próprio launcher setava
+   `ANTHROPIC_AUTH_TOKEN` **e** `ANTHROPIC_API_KEY` com o mesmo valor, em
+   `buildLaunchEnv`. Claude Code detectava os dois e falhava toda vez. O fix
+   do `main.rs` (previsto no plano) era defense-in-depth; o fix primário foi
+   remover 1 linha de TS (`storage.ts:95`).
+2. **"Failed to fetch" era CORS no webview, não rede** — o `fetch()` em
+   `testConnection.ts` era bloqueado pela política CORS do webview Tauri
+   (origin `tauri://localhost` contra API MiniMax que não retorna
+   `Access-Control-Allow-Origin`). Solução: novo comando Rust
+   `test_provider_connection` via `ureq` (backend não tem CORS).
+3. **Spec MiniMax exigia 5 envs adicionais** — além de `BASE_URL`/`AUTH_TOKEN`/
+   `MODEL`/`SMALL_FAST_MODEL`, Claude Code precisa de
+   `DEFAULT_SONNET_MODEL`, `DEFAULT_OPUS_MODEL`, `DEFAULT_HAIKU_MODEL`,
+   `API_TIMEOUT_MS=3000000` e `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`.
+   Sem eles, os aliases `opus/sonnet/haiku` tentavam resolver em endpoints
+   inexistentes. Confirmado via doc oficial
+   <https://platform.minimax.io/docs/token-plan/claude-code>.
+
+### Métricas finais
+
+- 16 arquivos modificados + 2 criados (`tokens.css`, `PresetIcon.tsx`)
+- `cargo check` em **10.18s**, `cargo clippy -D warnings` com 0 warnings
+- `tsc --noEmit` 0 erros
+- Escopo expandido: Trilha 1 passou de 3 sub-tarefas para 6 após o diagnóstico
+
+### O que ficou fora do escopo (pra v5.2+)
+
+- Split de `App.tsx` (1744 linhas).
+- Dark/light mode toggle repaginado (toggle ainda usa ícones emoji — ok, porém
+  inconsistente com o resto que foi pra SVG).
+- PRs Dependabot majors (#9 Vite 5→8 + TS 5→6, #10 React 18→19, #11 react-dom 18→19).
+- Code signing cert (Windows SmartScreen alerta continua esperado).
+- Landing page / site público.

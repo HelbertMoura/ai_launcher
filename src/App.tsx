@@ -995,10 +995,20 @@ function App() {
               onClick={() => setActiveTab('admin')}
             />
           )}
-          <button className="theme-btn" onClick={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }} title="Alternar tema">
+          <button
+            className="theme-btn"
+            onClick={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
+            title="Alternar tema"
+            aria-label={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
+          >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <button className="btn" onClick={checkInstalled} title="Re-verificar CLIs (F5)">🔄</button>
+          <button
+            className="btn"
+            onClick={checkInstalled}
+            title="Re-verificar CLIs (F5)"
+            aria-label="Re-verificar CLIs instalados"
+          >🔄</button>
         </div>
       </header>
 
