@@ -140,6 +140,13 @@ O AI Launcher v5.0 introduz recursos opcionais de power-user que ficam **ocultos
 
 Copie `.env.example` para `.env.local` e remova o `#` da linha `VITE_ADMIN_MODE=1` para ativar.
 
+> **⚠️ Nota MiniMax — regiões**: o seed built-in aponta para o endpoint **internacional**
+> (`https://api.minimax.io/anthropic`) e usa o modelo **`MiniMax-M2.7`**. Se você tem conta
+> **na China**, edite o perfil no Admin Panel e troque a baseUrl para
+> `https://api.minimaxi.com/anthropic`. Chaves:
+> [internacional](https://platform.minimax.io/user-center/basic-information/interface-key) ·
+> [china](https://platform.minimaxi.com/user-center/basic-information/interface-key).
+
 <br />
 
 ### 🤝 Contribua Conosco!
@@ -251,6 +258,13 @@ AI Launcher v5.0 ships with optional power-user features that stay **hidden by d
 - **Tray quick-switch** — System tray submenu to change provider without opening the main window.
 
 Copy `.env.example` to `.env.local` and uncomment `VITE_ADMIN_MODE=1` to enable.
+
+> **⚠️ MiniMax note — regions**: the built-in seed points to the **international** endpoint
+> (`https://api.minimax.io/anthropic`) with model **`MiniMax-M2.7`**. If your account is in
+> **China**, edit the profile in Admin Panel and switch baseUrl to
+> `https://api.minimaxi.com/anthropic`. API keys:
+> [international](https://platform.minimax.io/user-center/basic-information/interface-key) ·
+> [china](https://platform.minimaxi.com/user-center/basic-information/interface-key).
 
 ### 🤝 Contributing
 
