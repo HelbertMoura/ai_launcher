@@ -3,7 +3,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
 import CommandPalette from './CommandPalette';
-import CostAggregator from './CostAggregator';
 import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
@@ -18,6 +17,7 @@ import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } 
 import type { LaunchPreset } from './presets/types';
 import { LauncherTab } from './tabs/LauncherTab';
 import { HistoryTab } from './tabs/HistoryTab';
+import { CostsTab } from './tabs/CostsTab';
 import './providers/providers.css';
 
 // ==================== TYPES ====================
@@ -1368,7 +1368,7 @@ function App() {
         />
       )}
 
-      {activeTab === 'costs' && <CostAggregator />}
+      {activeTab === 'costs' && <CostsTab />}
 
       {activeTab === 'admin' && adminMode && (
         <div className="tab-scroll">
