@@ -1827,6 +1827,20 @@ fn open_in_explorer(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
+fn open_external_url(url: String) -> Result<String, String> {
+    // Apenas https:// é permitido pra evitar command injection via file:// ou
+    // protocolos custom. Validação barata mas suficiente pra uso interno.
+    if !url.starts_with("https://") && !url.starts_with("http://") {
+        return Err("URL deve começar com http(s)://".into());
+    }
+    std::process::Command::new("cmd")
+        .args(["/C", "start", "", &url])
+        .spawn()
+        .map(|_| "Aberto".into())
+        .map_err(|e| format!("Erro: {}", e))
+}
+
+#[tauri::command]
 fn reset_all_config() -> Result<String, String> {
     // Remove install.log (localStorage é limpo pelo frontend)
     if let Some(dir) = dirs::config_dir() {
@@ -2408,6 +2422,24 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         ],
     )?;
 
+    // Submenu: Provider Claude (quick-switch)
+    // Lista estática dos 3 built-ins. Perfis custom ficam só no Admin (UI).
+    let prov_anthropic = MenuItem::with_id(
+        app, "tray-provider-anthropic", "Anthropic (oficial)", true, None::<&str>,
+    )?;
+    let prov_zai = MenuItem::with_id(
+        app, "tray-provider-zai", "Z.AI (GLM)", true, None::<&str>,
+    )?;
+    let prov_minimax = MenuItem::with_id(
+        app, "tray-provider-minimax", "MiniMax", true, None::<&str>,
+    )?;
+    let provider_menu = Submenu::with_items(
+        app,
+        "Provider Claude",
+        true,
+        &[&prov_anthropic, &prov_zai, &prov_minimax],
+    )?;
+
     let sep2 = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "tray-quit", "Sair", true, None::<&str>)?;
 
@@ -2417,6 +2449,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
             &show,
             &sep1,
             &launch_menu,
+            &provider_menu,
             &update_all,
             &tabs_menu,
             &sep2,
@@ -2448,6 +2481,11 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
             };
             show_and_focus(app);
             let _ = app.emit("tray-open-tab", mapped);
+        }
+        id if id.starts_with("tray-provider-") => {
+            let provider_id = id.strip_prefix("tray-provider-").unwrap_or("").to_string();
+            // Não abre foco — troca silenciosa no tray.
+            let _ = app.emit("tray-set-provider", provider_id);
         }
         _ => {}
     }
@@ -2563,6 +2601,7 @@ fn main() {
             launch_tool,
             install_tool,
             open_in_explorer,
+            open_external_url,
             get_all_clis,
             get_all_tools,
             install_prerequisite,

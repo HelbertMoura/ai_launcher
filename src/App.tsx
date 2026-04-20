@@ -8,6 +8,18 @@ import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
 import { EmptyState } from './EmptyState';
+import { AdminPanel } from './providers/AdminPanel';
+import { ProviderBadge } from './providers/ProviderBadge';
+import { ProviderSelector } from './providers/ProviderSelector';
+import { QuickSwitchModal } from './providers/QuickSwitchModal';
+import { DryRunModal } from './providers/DryRunModal';
+import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
+import { isAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
+import { computeTodaySpend, shouldAlert } from './providers/budget';
+import { PresetsBar } from './presets/PresetsBar';
+import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
+import type { LaunchPreset } from './presets/types';
+import './providers/providers.css';
 
 // ==================== TYPES ====================
 
@@ -24,7 +36,14 @@ interface CliInfo {
   install_url: string | null;
 }
 interface CheckResult { name: string; installed: boolean; version: string | null; install_command: string | null; }
-interface HistoryItem { cli: string; cliKey: string; directory: string; args: string; timestamp: string; }
+interface HistoryItem {
+  cli: string;
+  cliKey: string;
+  directory: string;
+  args: string;
+  timestamp: string;
+  provider?: LaunchProviderInfo;
+}
 interface UpdateInfo {
   cli: string;
   current: string | null;
@@ -171,6 +190,29 @@ function App() {
   const [trayHotkey, setTrayHotkey] = useState<string>('CommandOrControl+Alt+Space');
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(false);
 
+  // Admin: providers Anthropic-compatible (Z.AI, MiniMax, etc.)
+  const adminMode = isAdminMode();
+  const [providers, setProviders] = useState<ProvidersState>(() => loadProviders());
+  const [quickSwitchOpen, setQuickSwitchOpen] = useState(false);
+  const [dryRunOpen, setDryRunOpen] = useState(false);
+  const [presets, setPresets] = useState<LaunchPreset[]>(() => loadPresets());
+  const updateProviders = (next: ProvidersState) => {
+    setProviders(next);
+    saveProviders(next);
+  };
+  const activeProvider = providers.profiles.find(p => p.id === providers.activeId);
+  const currentProviderInfo = (): LaunchProviderInfo | undefined => {
+    if (!activeProvider) return undefined;
+    if (activeProvider.kind === 'anthropic' && !activeProvider.baseUrl) return undefined;
+    return {
+      providerId: activeProvider.id,
+      providerName: activeProvider.name,
+      providerKind: activeProvider.kind,
+      mainModel: providers.overrideMainModel || activeProvider.mainModel,
+      fastModel: providers.overrideFastModel || activeProvider.fastModel,
+    };
+  };
+
   const installingRef = useRef<string | null>(null);
   const directoryInputRef = useRef<HTMLInputElement>(null);
 
@@ -304,7 +346,18 @@ function App() {
           setActiveTab('updates');
           updateAllClis();
         });
-        unlisteners.push(u1, u2, u3);
+        const u4 = await listen<string>('tray-set-provider', (e) => {
+          const id = e.payload;
+          if (!id) return;
+          setProviders(prev => {
+            const next = setActive(prev, id);
+            saveProviders(next);
+            const name = next.profiles.find(p => p.id === id)?.name || id;
+            showToast(`🔀 Provider ativo: ${name}`);
+            return next;
+          });
+        });
+        unlisteners.push(u1, u2, u3, u4);
       } catch (err) {
         console.error('[tray] listen error:', err);
       }
@@ -398,6 +451,22 @@ function App() {
         directoryInputRef.current?.focus();
         directoryInputRef.current?.select();
         return;
+      }
+      // Ctrl+P = Quick Switch de provider (admin only, sem shift pra não conflitar com Command Palette)
+      if (adminMode && e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setQuickSwitchOpen(v => !v);
+        return;
+      }
+      // Ctrl+1..9 = dispara preset N
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
+        const idx = parseInt(e.key, 10) - 1;
+        const target = presets[idx];
+        if (target) {
+          e.preventDefault();
+          launchFromPreset(target);
+          return;
+        }
       }
       // Ctrl+K = lança (no launcher tab, se CLI instalado)
       if (e.ctrlKey && e.key.toLowerCase() === 'k' && activeTab === 'launcher') {
@@ -605,21 +674,44 @@ function App() {
 
   // ============= LAUNCH =============
 
+  // Budget alert: cruza usage.jsonl com preço do perfil ativo.
+  async function checkBudgetAlert(): Promise<void> {
+    const active = providers.profiles.find(p => p.id === providers.activeId);
+    if (!active || !active.dailyBudget || active.dailyBudget <= 0) return;
+    try {
+      const report = await invoke<{ entries: Array<{ date: string; cli: string; model: string | null; tokens_in: number; tokens_out: number; cost_estimate_usd: number }> }>('read_usage_stats');
+      const spend = computeTodaySpend(report.entries || [], active);
+      if (shouldAlert(spend, active.dailyBudget)) {
+        showToast(`⚠ Budget: $${spend.usd.toFixed(2)} / $${active.dailyBudget.toFixed(2)} hoje (${active.name})`);
+      }
+    } catch { /* sem usage ainda = sem alerta */ }
+  }
+
   async function launch() {
     const cli = clis.find(c => c.key === selectedCli);
     if (!cli) return;
     try {
+      const envVars = selectedCli === 'claude' ? buildLaunchEnv(providers) : undefined;
+      const providerInfo = selectedCli === 'claude' ? currentProviderInfo() : undefined;
+      if (selectedCli === 'claude') checkBudgetAlert();
       await invoke('launch_cli', {
         cliKey: selectedCli, directory, args, noPerms,
-        envVars: undefined,
+        envVars,
       });
+      if (envVars && providerInfo) {
+        const red = redactEnv(envVars);
+        const keys = Object.keys(red).join(', ');
+        showToast(`▶ ${cli.name} via ${providerInfo.providerName} · envs: ${keys}`);
+      }
       if (directory) pushRecent(directory);
       const newItem: HistoryItem = {
         cli: cli.name, cliKey: cli.key, directory, args,
         timestamp: new Date().toLocaleString('pt-BR'),
+        provider: providerInfo,
       };
       const isDup = history[0] && history[0].cliKey === newItem.cliKey &&
-        history[0].directory === newItem.directory && history[0].args === newItem.args;
+        history[0].directory === newItem.directory && history[0].args === newItem.args &&
+        history[0].provider?.providerId === newItem.provider?.providerId;
       const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
       setHistory(newHistory);
       saveConfig({ history: newHistory });
@@ -628,9 +720,12 @@ function App() {
 
   async function relaunchFromHistory(item: HistoryItem) {
     try {
+      // Re-aplica o provider ATUAL (não o registrado no histórico) pra evitar
+      // usar chave/config antiga já excluída.
+      const envVars = item.cliKey === 'claude' ? buildLaunchEnv(providers) : undefined;
       await invoke('launch_cli', {
         cliKey: item.cliKey, directory: item.directory, args: item.args,
-        noPerms: true, envVars: undefined,
+        noPerms: true, envVars,
       });
       if (item.directory) pushRecent(item.directory);
     } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
@@ -643,12 +738,81 @@ function App() {
     }
   }
 
+  // ============= PRESETS =============
+
+  function savePresetFromCurrent(name: string, emoji: string) {
+    const preset: LaunchPreset = {
+      id: generatePresetId(),
+      name, emoji,
+      cliKey: selectedCli,
+      providerId: selectedCli === 'claude' ? providers.activeId : undefined,
+      directory, args, noPerms,
+      createdAt: new Date().toISOString(),
+    };
+    setPresets(prev => addPreset(prev, preset));
+    showToast(`💾 Preset "${name}" salvo`);
+  }
+
+  async function launchFromPreset(p: LaunchPreset) {
+    setSelectedCli(p.cliKey);
+    setDirectory(p.directory);
+    setArgs(p.args);
+    setNoPerms(p.noPerms);
+    // Aplica provider do preset, se houver e existir ainda
+    let stateForLaunch = providers;
+    if (p.cliKey === 'claude' && p.providerId && providers.profiles.some(pp => pp.id === p.providerId)) {
+      stateForLaunch = setActive(providers, p.providerId);
+      setProviders(stateForLaunch);
+      saveProviders(stateForLaunch);
+    }
+    const cli = clis.find(c => c.key === p.cliKey);
+    if (!cli) { showToast(`CLI "${p.cliKey}" não encontrado`); return; }
+    try {
+      const envVars = p.cliKey === 'claude' ? buildLaunchEnv(stateForLaunch) : undefined;
+      const providerInfo = p.cliKey === 'claude' ? (() => {
+        const ap = stateForLaunch.profiles.find(pp => pp.id === stateForLaunch.activeId);
+        if (!ap || (ap.kind === 'anthropic' && !ap.baseUrl)) return undefined;
+        return {
+          providerId: ap.id, providerName: ap.name, providerKind: ap.kind,
+          mainModel: stateForLaunch.overrideMainModel || ap.mainModel,
+          fastModel: stateForLaunch.overrideFastModel || ap.fastModel,
+        };
+      })() : undefined;
+      if (p.cliKey === 'claude') checkBudgetAlert();
+      await invoke('launch_cli', { cliKey: p.cliKey, directory: p.directory, args: p.args, noPerms: p.noPerms, envVars });
+      if (p.directory) pushRecent(p.directory);
+      const newItem: HistoryItem = {
+        cli: cli.name, cliKey: cli.key,
+        directory: p.directory, args: p.args,
+        timestamp: new Date().toLocaleString('pt-BR'),
+        provider: providerInfo,
+      };
+      const newHistory = [newItem, ...history.slice(0, 49)];
+      setHistory(newHistory);
+      saveConfig({ history: newHistory });
+      showToast(`▶ ${p.emoji || '⚡'} ${p.name}`);
+    } catch (e) {
+      showToast(`Erro: ${String(e).slice(0, 120)}`);
+    }
+  }
+
+  function removePresetById(id: string) {
+    setPresets(prev => removePreset(prev, id));
+    showToast('Preset excluído');
+  }
+
+  function renamePreset(id: string, name: string) {
+    setPresets(prev => updatePreset(prev, id, { name }));
+  }
+
   async function launchMulti() {
     if (multiSelected.length === 0) return;
     try {
+      // Multi: só injeta env do provider se "claude" estiver no lote.
+      const envVars = multiSelected.includes('claude') ? buildLaunchEnv(providers) : undefined;
       await invoke('launch_multi_clis', {
         cliKeys: multiSelected, directory, args, noPerms,
-        envVars: undefined,
+        envVars,
       });
       if (directory) pushRecent(directory);
     } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
@@ -825,6 +989,12 @@ function App() {
           </div>
         </div>
         <div className="header-actions">
+          {adminMode && (
+            <ProviderBadge
+              state={providers}
+              onClick={() => setActiveTab('admin')}
+            />
+          )}
           <button className="theme-btn" onClick={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }} title="Alternar tema">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -844,6 +1014,11 @@ function App() {
         </div>
         <div className={`tab ${activeTab === 'costs' ? 'active' : ''}`} onClick={() => setActiveTab('costs')}>💰 Custos</div>
         <div className={`tab ${activeTab === 'help' ? 'active' : ''}`} onClick={() => setActiveTab('help')}>❓ Ajuda</div>
+        {adminMode && (
+          <div className={`tab tab-admin ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>
+            ⚙️ Admin
+          </div>
+        )}
       </div>
 
       {/* ========== LAUNCHER ========== */}
@@ -857,6 +1032,13 @@ function App() {
       {activeTab === 'launcher' && !(bootReady && hasChecked && installedClis.length === 0 && clis.length > 0) && (
         <div className="content">
           <div className="left-col">
+            <PresetsBar
+              presets={presets}
+              onLaunch={launchFromPreset}
+              onRemove={removePresetById}
+              onSave={savePresetFromCurrent}
+              onRename={renamePreset}
+            />
             <div className="section">
               <div className="section-title">CLIs DE IA</div>
               <div className="cli-grid">
@@ -959,6 +1141,14 @@ function App() {
               </label>
             </div>
 
+            {adminMode && (
+              <ProviderSelector
+                state={providers}
+                onChange={updateProviders}
+                selectedCli={selectedCli}
+              />
+            )}
+
             {selectedCliData && (
               <div className="cli-info" style={{ '--c': CLI_COLORS[selectedCli] || '#8B1E2A' } as React.CSSProperties}>
                 <div className="cli-info-header">
@@ -979,9 +1169,16 @@ function App() {
               <code>{selectedCliData?.command} {args} {noPerms && selectedCliData?.flag}</code>
             </div>
 
-            <button className="launch-btn" onClick={launch} disabled={!cliInfo.installed}>
-              ▶ INICIAR {selectedCliData?.name?.toUpperCase()} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
-            </button>
+            <div className="launch-row">
+              <button className="launch-btn" onClick={launch} disabled={!cliInfo.installed}>
+                ▶ INICIAR {selectedCliData?.name?.toUpperCase()} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
+              </button>
+              <button
+                className="btn btn-preview"
+                onClick={() => setDryRunOpen(true)}
+                title="Preview: ver CMD + envs sem executar"
+              >🔬 Preview</button>
+            </div>
 
             {multiSelected.length > 0 && (
               <button className="launch-btn multi" onClick={launchMulti}>
@@ -1144,6 +1341,12 @@ function App() {
                     <span className="history-cli">{item.cli}</span>
                     <span className="history-dir">{item.directory}</span>
                     {item.args && <span className="history-args">{item.args}</span>}
+                    {item.provider && (
+                      <span className={`history-provider kind-${item.provider.providerKind}`}
+                            title={`Provider: ${item.provider.providerName}`}>
+                        via {item.provider.providerName} · {item.provider.mainModel}
+                      </span>
+                    )}
                   </div>
                   <div className="history-right">
                     <span className="history-time">{item.timestamp}</span>
@@ -1311,6 +1514,18 @@ function App() {
 
       {activeTab === 'costs' && <CostAggregator />}
 
+      {activeTab === 'admin' && adminMode && (
+        <div className="tab-scroll">
+          <div className="tab-pad">
+            <AdminPanel
+              state={providers}
+              onChange={updateProviders}
+              onToast={showToast}
+            />
+          </div>
+        </div>
+      )}
+
       {/* ========== HELP (reformulado v3.2.1 sem sidebar) ========== */}
       {activeTab === 'help' && (
         <div className="tab-scroll">
@@ -1450,6 +1665,27 @@ function App() {
         </div>
       )}
 
+      {adminMode && (
+        <QuickSwitchModal
+          open={quickSwitchOpen}
+          state={providers}
+          onChange={updateProviders}
+          onClose={() => setQuickSwitchOpen(false)}
+        />
+      )}
+
+      <DryRunModal
+        open={dryRunOpen}
+        state={providers}
+        selectedCli={selectedCli}
+        command={selectedCliData?.command || ''}
+        flag={selectedCliData?.flag || null}
+        noPerms={noPerms}
+        args={args}
+        directory={directory}
+        onClose={() => setDryRunOpen(false)}
+      />
+
       {toast && <div className="toast show">{toast}</div>}
 
       <CommandPalette
@@ -1465,17 +1701,21 @@ function App() {
             const cli = clis.find(c => c.key === key);
             if (!cli) return;
             try {
+              const envVars = key === 'claude' ? buildLaunchEnv(providers) : undefined;
+              const providerInfo = key === 'claude' ? currentProviderInfo() : undefined;
               await invoke('launch_cli', {
                 cliKey: key, directory, args, noPerms,
-                envVars: undefined,
+                envVars,
               });
               if (directory) pushRecent(directory);
               const newItem: HistoryItem = {
                 cli: cli.name, cliKey: cli.key, directory, args,
                 timestamp: new Date().toLocaleString('pt-BR'),
+                provider: providerInfo,
               };
               const isDup = history[0] && history[0].cliKey === newItem.cliKey &&
-                history[0].directory === newItem.directory && history[0].args === newItem.args;
+                history[0].directory === newItem.directory && history[0].args === newItem.args &&
+                history[0].provider?.providerId === newItem.provider?.providerId;
               const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
               setHistory(newHistory);
               saveConfig({ history: newHistory });

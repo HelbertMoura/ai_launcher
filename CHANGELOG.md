@@ -5,6 +5,71 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] — 2026-04-20
+
+### 🎉 Major: Alternative Providers & Launch Presets
+
+Claude Code agora pode ser lançado apontando para providers Anthropic-compatible
+alternativos (Z.AI / GLM, MiniMax) com um clique. Opt-in via flag
+`VITE_ADMIN_MODE=1` em `.env.local` — sem afetar o fluxo padrão.
+
+### Added
+
+#### Provider system (opt-in, admin mode)
+- **Admin Panel** (`⚙️ Admin`) — CRUD completo de perfis Anthropic-compatible
+  com teste de conexão, editor de env vars extras, import/export JSON.
+- **Seeds pré-cadastrados**: Anthropic (oficial), Z.AI (`glm-5.1` / `glm-4.7`),
+  MiniMax (`MiniMax-M2`).
+- **Provider Selector** na aba Lançar — dropdown + aviso de context cap quando
+  o provider ativo tem janela menor que Anthropic.
+- **Provider Badge** no header mostrando provider ativo + modelo principal.
+- **Override de modelo por launch** — sobrescreve main/fast só pra próxima
+  execução sem editar perfil.
+- **Test de conexão** com `max_tokens:1` (zero custo) + latência + eco do modelo.
+- **Env vars custom por perfil** — campos livres adicionados às envs do launch.
+- **Autocomplete de modelos por kind** (`<datalist>`): glm-\*, MiniMax-\*,
+  claude-\*.
+- **Estimador de custo** por sessão típica + comparativo vs. Anthropic.
+- **Budget diário** por perfil com alerta quando gasto do dia ultrapassa.
+- **Docs link** por perfil abre documentação oficial do provider.
+
+#### Launch presets
+- **Presets bar** na aba Lançar — salva combinação atual (CLI + provider +
+  diretório + args + noPerms) como chip clicável.
+- **Atalhos Ctrl+1..9** para disparar presets diretamente.
+- Renomear, excluir e reordenar presets inline.
+
+#### Quick-switch
+- **Ctrl+P** abre modal de busca de provider (setas + Enter para ativar).
+- **Submenu "Provider Claude" no tray** com radio pros 3 built-ins
+  (Anthropic / Z.AI / MiniMax).
+
+#### Preview & observabilidade
+- **🔬 Preview button** no Lançar — mostra CMD + envs (redacted) + copia
+  script `.bat` equivalente.
+- **Histórico enriquecido** — cada launch grava o provider usado (`via Z.AI ·
+  glm-5.1`).
+- **Cost Aggregator provider-aware** — reestima custos usando preços do Admin
+  quando o modelo não é reconhecido pela tabela padrão.
+
+#### Backend (Rust)
+- `open_external_url` command com validação http(s) only.
+- Submenu `Provider Claude` no tray + evento `tray-set-provider`.
+
+### Privacy & security
+- Admin mode é 100% opt-in (`VITE_ADMIN_MODE=1` em `.env.local` ignorado pelo
+  git). Sem a flag, o app se comporta como na v4.
+- Chaves API ficam no `localStorage` (plain text, escopo local) e são
+  redacted em todos os toasts/logs da UI.
+- `.env.local`, `.env.*` (exceto `.env.example`) permanecem no `.gitignore`.
+
+### Notes
+- **Não quebra nada da v4**: usuários sem admin mode continuam com o app
+  exatamente como antes.
+- Changelog v4.1.0 preservado abaixo.
+
+---
+
 ## [4.1.0] — 2026-04-17
 
 First public release.

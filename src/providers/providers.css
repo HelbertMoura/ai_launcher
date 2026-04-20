@@ -1,0 +1,307 @@
+/* ============================================================================
+   AI Launcher Pro - Providers UI (Admin Panel + Selector + Badge)
+   ============================================================================ */
+
+.admin-panel { padding: 16px 20px 32px; }
+.admin-panel .admin-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.admin-panel .admin-header h2 { margin: 0 0 4px; font-size: 18px; }
+.admin-panel .admin-sub { margin: 0; opacity: 0.75; font-size: 13px; }
+.admin-panel .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.admin-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px; margin-bottom: 16px;
+}
+.admin-card {
+  background: var(--card, rgba(255,255,255,0.04));
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 10px; padding: 12px 14px;
+}
+.admin-card.active {
+  border-color: #8B1E2A; box-shadow: 0 0 0 1px rgba(139,30,42,0.4);
+}
+.admin-card.editing { border-color: #4285F4; }
+
+.admin-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.admin-card-head strong { font-size: 14px; }
+.admin-card-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.admin-tag {
+  display: inline-block; padding: 1px 7px; margin-left: 6px;
+  font-size: 10px; border-radius: 10px;
+  background: rgba(255,255,255,0.08); color: var(--muted, #aaa);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.admin-tag-active { background: rgba(139,30,42,0.6); color: white; }
+
+.admin-card-body { font-size: 12.5px; }
+.admin-row {
+  display: flex; justify-content: space-between; gap: 8px;
+  padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.admin-row:last-child { border-bottom: none; }
+.admin-row span:first-child { opacity: 0.6; }
+.admin-row code { font-size: 11.5px; }
+.admin-saving { color: #4ade80; margin-left: 6px; font-size: 11px; }
+.admin-note {
+  margin-top: 8px; padding: 6px 8px; font-size: 11.5px;
+  background: rgba(255,255,255,0.03); border-left: 2px solid rgba(255,255,255,0.1);
+  border-radius: 3px; opacity: 0.85;
+}
+
+.admin-editor {
+  background: var(--card, rgba(255,255,255,0.05));
+  border: 1px solid #4285F4; border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.admin-form {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px 12px; margin-top: 8px;
+}
+.admin-form label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 11.5px; opacity: 0.85;
+}
+.admin-form label .input { font-size: 13px; }
+
+.admin-editor-actions {
+  display: flex; gap: 8px; align-items: center;
+  margin-top: 12px; flex-wrap: wrap;
+}
+.admin-test-result {
+  margin-top: 10px; padding: 8px 10px; font-family: monospace;
+  background: rgba(0,0,0,0.2); border-radius: 6px; font-size: 12px;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+.admin-extra-env { display: flex; flex-direction: column; gap: 6px; }
+.admin-env-row {
+  display: grid; grid-template-columns: 1fr 2fr auto; gap: 6px;
+}
+
+.admin-import { border-color: #4285F4; }
+.admin-import-ta { font-family: monospace; font-size: 11.5px; width: 100%; }
+
+.admin-debug { margin-top: 16px; }
+.admin-env-pre {
+  font-family: monospace; font-size: 11.5px;
+  background: rgba(0,0,0,0.25); padding: 10px; border-radius: 6px;
+  white-space: pre-wrap; word-break: break-all; margin: 0;
+}
+
+/* ---- Selector no Lançar ---- */
+.provider-row { display: flex; gap: 8px; align-items: center; }
+.provider-row select { flex: 1; }
+.provider-meta {
+  display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px;
+  font-size: 11.5px; opacity: 0.8;
+}
+.provider-meta code { font-size: 11px; }
+.provider-warning {
+  margin-top: 8px; padding: 8px 10px; font-size: 12px;
+  background: rgba(255,170,0,0.08); border-left: 3px solid #ffa500;
+  border-radius: 4px;
+}
+.provider-override {
+  margin-top: 10px; padding: 10px; display: grid;
+  grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end;
+  background: rgba(66,133,244,0.06); border-radius: 6px;
+  border: 1px dashed rgba(66,133,244,0.3);
+}
+.provider-override label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 11.5px; opacity: 0.85;
+}
+
+/* ---- Badge no header ---- */
+.provider-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; margin-right: 8px;
+  font-size: 11.5px; border-radius: 12px;
+  background: rgba(139,30,42,0.15); border: 1px solid rgba(139,30,42,0.4);
+  color: inherit; cursor: pointer; transition: background 0.15s;
+}
+.provider-badge:hover { background: rgba(139,30,42,0.25); }
+.provider-badge.kind-zai {
+  background: rgba(88,101,242,0.15); border-color: rgba(88,101,242,0.4);
+}
+.provider-badge.kind-zai:hover { background: rgba(88,101,242,0.25); }
+.provider-badge.kind-minimax {
+  background: rgba(255,79,163,0.15); border-color: rgba(255,79,163,0.4);
+}
+.provider-badge.kind-minimax:hover { background: rgba(255,79,163,0.25); }
+.provider-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.7;
+}
+.provider-badge-model { font-family: monospace; opacity: 0.75; }
+
+/* ---- Aba Admin (só aparece com flag) ---- */
+.tab.tab-admin {
+  background: linear-gradient(90deg, rgba(66,133,244,0.2), rgba(139,30,42,0.2));
+}
+
+/* Botões pequenos reutilizáveis */
+.btn-sm { padding: 3px 8px; font-size: 11.5px; }
+
+/* ============================================================================
+   PRESETS BAR (aba Launcher)
+   ============================================================================ */
+.presets-bar {
+  background: var(--card, rgba(255,255,255,0.03));
+  border: 1px solid var(--border, rgba(255,255,255,0.06));
+  border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;
+}
+.presets-bar-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin-bottom: 6px;
+}
+.presets-empty { font-size: 12px; opacity: 0.7; padding: 6px 2px; }
+
+.preset-add {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 6px; padding: 8px 0; align-items: center;
+}
+.preset-add .input { grid-column: 1; }
+.preset-emoji-row {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px;
+}
+.preset-emoji {
+  width: 28px; height: 28px; padding: 0; font-size: 16px;
+  border: 1px solid rgba(255,255,255,0.1); background: transparent;
+  border-radius: 6px; cursor: pointer;
+}
+.preset-emoji.active { border-color: #8B1E2A; background: rgba(139,30,42,0.15); }
+
+.presets-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.preset-chip {
+  display: inline-flex; align-items: stretch;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px; overflow: hidden;
+}
+.preset-chip-main {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px 4px 8px; background: transparent; border: none;
+  color: inherit; cursor: pointer; font-size: 12.5px;
+}
+.preset-chip-main:hover { background: rgba(255,255,255,0.05); }
+.preset-chip-emoji { font-size: 14px; }
+.preset-chip-name { font-weight: 500; }
+.preset-chip-kbd {
+  font-size: 9.5px; padding: 1px 5px; margin-left: 4px;
+  background: rgba(255,255,255,0.08); border-radius: 3px; font-family: monospace;
+}
+.preset-chip-edit, .preset-chip-x {
+  background: transparent; border: none; border-left: 1px solid rgba(255,255,255,0.08);
+  padding: 0 8px; color: inherit; cursor: pointer; font-size: 12px;
+}
+.preset-chip-edit:hover { background: rgba(66,133,244,0.2); }
+.preset-chip-x:hover { background: rgba(244,67,54,0.2); color: #ff8a80; }
+.preset-rename {
+  background: transparent; border: 1px solid rgba(255,255,255,0.2);
+  color: inherit; font-size: 12px; padding: 2px 6px; border-radius: 4px;
+  width: 150px;
+}
+
+/* ============================================================================
+   QUICK SWITCH MODAL (Ctrl+P)
+   ============================================================================ */
+.quick-switch-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: flex-start;
+  padding-top: 15vh; z-index: 1000; backdrop-filter: blur(3px);
+}
+.quick-switch-modal {
+  width: min(560px, 90vw); background: var(--bg, #1a1a1a);
+  border: 1px solid rgba(66,133,244,0.4); border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden;
+}
+.quick-switch-input {
+  width: 100%; border: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0; padding: 12px 14px; font-size: 14px;
+}
+.quick-switch-list { max-height: 50vh; overflow-y: auto; }
+.quick-switch-empty { padding: 20px; text-align: center; opacity: 0.6; }
+.quick-switch-item {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%; padding: 10px 14px; background: transparent; border: none;
+  color: inherit; cursor: pointer; text-align: left; font-size: 13px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.quick-switch-item.active { background: rgba(66,133,244,0.15); }
+.quick-switch-item.current { border-left: 3px solid #8B1E2A; }
+.quick-switch-name { font-weight: 500; }
+.quick-switch-meta { font-size: 11.5px; opacity: 0.75; }
+.quick-switch-hint {
+  padding: 8px 14px; font-size: 11px; opacity: 0.6;
+  background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);
+}
+.quick-switch-hint kbd {
+  padding: 1px 5px; background: rgba(255,255,255,0.08); border-radius: 3px;
+  font-family: monospace;
+}
+
+/* ============================================================================
+   DRY-RUN PREVIEW MODAL
+   ============================================================================ */
+.dryrun-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000; backdrop-filter: blur(3px);
+}
+.dryrun-modal {
+  width: min(720px, 92vw); max-height: 85vh; overflow-y: auto;
+  background: var(--bg, #1a1a1a); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.dryrun-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.dryrun-head h3 { margin: 0; }
+.dryrun-body {
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;
+}
+.dryrun-code {
+  display: block; padding: 8px 10px; background: rgba(0,0,0,0.3);
+  border-radius: 6px; font-family: monospace; font-size: 12.5px;
+  word-break: break-all; margin-top: 4px;
+}
+.dryrun-env {
+  font-family: monospace; font-size: 12px;
+  background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px;
+  white-space: pre-wrap; word-break: break-all; margin: 4px 0 0;
+}
+.dryrun-actions {
+  display: flex; gap: 8px; padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08); justify-content: flex-end;
+}
+
+/* ---- Botão Preview na Launcher ---- */
+.launch-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: stretch;
+}
+.btn-preview {
+  padding: 0 14px; font-size: 13px;
+  background: rgba(66,133,244,0.1); border-color: rgba(66,133,244,0.3);
+}
+.btn-preview:hover { background: rgba(66,133,244,0.2); }
+
+/* ---- Pill do histórico ---- */
+.history-provider {
+  display: inline-block; margin-left: 8px; padding: 1px 8px;
+  font-size: 10.5px; border-radius: 10px; font-family: monospace;
+  background: rgba(139,30,42,0.15); border: 1px solid rgba(139,30,42,0.3);
+}
+.history-provider.kind-zai {
+  background: rgba(88,101,242,0.15); border-color: rgba(88,101,242,0.3);
+}
+.history-provider.kind-minimax {
+  background: rgba(255,79,163,0.15); border-color: rgba(255,79,163,0.3);
+}
