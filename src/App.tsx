@@ -6,7 +6,6 @@ import CommandPalette from './CommandPalette';
 import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
-import { ProviderBadge } from './providers/ProviderBadge';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
@@ -18,6 +17,7 @@ import { LauncherTab } from './tabs/LauncherTab';
 import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
+import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
 import './providers/providers.css';
 
 // ==================== TYPES ====================
@@ -967,67 +967,22 @@ function App() {
   return (
     <div className={`app${isDragging ? ' dragging' : ''}`}>
       {showOnboarding && <Onboarding onClose={closeOnboarding} />}
-      <header className="header">
-        <div className="logo">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <rect width="24" height="24" rx="5" fill="#8B1E2A" />
-              <path d="M7 7l-3 5 3 5M17 7l3 5-3 5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-            </svg>
-          </div>
-          <div>
-            <div className="logo-title">
-              AI Launcher <span>Pro</span>
-              <small className="logo-ver">v{APP_VERSION}</small>
-              {/^\d+\.\d+\.\d+-(alpha|beta|rc)/i.test(APP_VERSION) && (
-                <small className="logo-badge logo-badge-beta">BETA</small>
-              )}
-            </div>
-            <div className="logo-sub">by Helbert Moura • Powered by DevManiac's</div>
-          </div>
-        </div>
-        <div className="header-actions">
-          {adminMode && (
-            <ProviderBadge
-              state={providers}
-              onClick={() => setActiveTab('admin')}
-            />
-          )}
-          <button
-            className="theme-btn"
-            onClick={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
-            title="Alternar tema"
-            aria-label={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button
-            className="btn"
-            onClick={checkInstalled}
-            title="Re-verificar CLIs (F5)"
-            aria-label="Re-verificar CLIs instalados"
-          >🔄</button>
-        </div>
-      </header>
-
-      <div className="tabs">
-        <div className={`tab ${activeTab === 'launcher' ? 'active' : ''}`} onClick={() => setActiveTab('launcher')}>⚡ Launcher</div>
-        <div className={`tab ${activeTab === 'install' ? 'active' : ''}`} onClick={() => { setActiveTab('install'); if (envChecks.length === 0) checkEnvironment(); }}>📦 Instalar</div>
-        <div className={`tab ${activeTab === 'tools' ? 'active' : ''}`} onClick={() => { setActiveTab('tools'); if (Object.keys(toolsChecked).length === 0) checkToolsInstalled(); }}>🛠️ Ferramentas</div>
-        <div className={`tab ${activeTab === 'orchestrator' ? 'active' : ''}`} onClick={() => setActiveTab('orchestrator')}>🎛️ Orquestrador</div>
-        <div className={`tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>📜 Histórico</div>
-        <div className={`tab ${activeTab === 'updates' ? 'active' : ''}`} onClick={() => { setActiveTab('updates'); if (!updatesSummary) checkAllUpdates(false); }}>
-          🔔 Atualizações
-          {updateCount > 0 && <span className="tab-badge">{updateCount}</span>}
-        </div>
-        <div className={`tab ${activeTab === 'costs' ? 'active' : ''}`} onClick={() => setActiveTab('costs')}>💰 Custos</div>
-        <div className={`tab ${activeTab === 'help' ? 'active' : ''}`} onClick={() => setActiveTab('help')}>❓ Ajuda</div>
-        {adminMode && (
-          <div className={`tab tab-admin ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>
-            ⚙️ Admin
-          </div>
-        )}
-      </div>
+      <HeaderBar
+        activeTab={activeTab}
+        onSelectTab={(tabId: HeaderTabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'install' && envChecks.length === 0) checkEnvironment();
+          if (tabId === 'tools' && Object.keys(toolsChecked).length === 0) checkToolsInstalled();
+          if (tabId === 'updates' && !updatesSummary) checkAllUpdates(false);
+        }}
+        onThemeToggle={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
+        onRefresh={checkInstalled}
+        theme={theme}
+        version={APP_VERSION}
+        adminMode={adminMode}
+        providers={providers}
+        updateCount={updateCount}
+      />
 
       {/* ========== LAUNCHER ========== */}
       {activeTab === 'launcher' && (
