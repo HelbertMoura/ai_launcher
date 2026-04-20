@@ -111,6 +111,22 @@ npm run tauri build
 
 <br />
 
+### 🧪 Recursos avançados (v5.0+)
+
+O AI Launcher v5.0 introduz recursos opcionais de power-user que ficam **ocultos por padrão** e só aparecem quando você cria um arquivo `.env.local` com `VITE_ADMIN_MODE=1`. Nenhum desses recursos quebra o fluxo padrão da v4.
+
+- **Providers alternativos (Claude Code)** — Lance o Claude Code apontando para endpoints Anthropic-compatible como **Z.AI (GLM)** ou **MiniMax**, com CRUD completo, teste de conexão e mapeamento automático de modelos (`opus/sonnet → glm-5.1`, `haiku → glm-4.7`).
+- **Launch Presets** — Salve combinações CLI + provider + diretório + args como chips clicáveis. Atalhos `Ctrl+1..9` para lançar instantaneamente.
+- **Quick Switch** — `Ctrl+P` abre busca fuzzy de providers; alterne sem abrir o painel.
+- **Preview (dry-run)** — Veja o comando e as env vars que serão injetadas antes de executar. Exporta script `.bat` reprodutível.
+- **Cost-aware tracking** — A aba Custos reestima valores usando os preços configurados no Admin quando o modelo não é reconhecido pela tabela padrão.
+- **Budget diário** — Configure um limite por provider e receba alerta quando o gasto do dia ultrapassar.
+- **Tray quick-switch** — Submenu no system tray para trocar provider sem abrir a janela principal.
+
+Copie `.env.example` para `.env.local` e remova o `#` da linha `VITE_ADMIN_MODE=1` para ativar.
+
+<br />
+
 ### 🤝 Contribua Conosco!
 
 A força do Open Source está na comunidade! Toda ajuda é super bem-vinda. Se você tem uma ideia para adicionar uma nova CLI, melhorar a interface de usuário (UI/UX) ou encontrou um bug:
@@ -206,6 +222,20 @@ npm run tauri build
 > _**Pro-Tip:** Need local code signing to stop Windows warnings completely? Check out the `gen-cert.ps1` and `sign-build.ps1` scripts located inside the `/scripts/` folder!_
 
 <br />
+
+### 🧪 Advanced features (v5.0+)
+
+AI Launcher v5.0 ships with optional power-user features that stay **hidden by default** and only show up when you create a `.env.local` file with `VITE_ADMIN_MODE=1`. None of them disrupt the v4 default flow.
+
+- **Alternative providers (Claude Code)** — Launch Claude Code pointing to Anthropic-compatible endpoints like **Z.AI (GLM)** or **MiniMax**, with full CRUD, connection test and automatic model mapping (`opus/sonnet → glm-5.1`, `haiku → glm-4.7`).
+- **Launch Presets** — Save CLI + provider + directory + args combos as clickable chips. `Ctrl+1..9` shortcuts for instant launches.
+- **Quick Switch** — `Ctrl+P` opens a fuzzy provider picker; switch without opening the admin panel.
+- **Preview (dry-run)** — See the exact command and env vars that will be injected before running. Exports a reproducible `.bat` script.
+- **Cost-aware tracking** — The Costs tab restates values using the prices configured in Admin when the model is not recognized by the default table.
+- **Daily budget** — Set a per-provider limit; get a toast when today's spend exceeds it.
+- **Tray quick-switch** — System tray submenu to change provider without opening the main window.
+
+Copy `.env.example` to `.env.local` and uncomment `VITE_ADMIN_MODE=1` to enable.
 
 ### 🤝 Contributing
 

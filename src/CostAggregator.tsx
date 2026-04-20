@@ -1,6 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { loadProviders } from './providers/storage';
+import type { ProviderProfile } from './providers/types';
 import './CostAggregator.css';
+
+/**
+ * Tenta casar um nome de modelo (vindo do usage.jsonl) com um perfil
+ * cadastrado. Útil pra Z.AI (glm-*), MiniMax (MiniMax-*) e customs.
+ * Prioridade: prefix específico do kind > mainModel/fastModel exatos.
+ */
+function matchProviderForModel(model: string | null, profiles: ProviderProfile[]): ProviderProfile | undefined {
+  if (!model) return undefined;
+  const lower = model.toLowerCase();
+  // 1. Tenta match por prefix de família
+  if (lower.startsWith('glm-')) return profiles.find(p => p.kind === 'zai');
+  if (lower.startsWith('minimax-')) return profiles.find(p => p.kind === 'minimax');
+  // 2. Match exato em main/fast
+  return profiles.find(p => p.mainModel === model || p.fastModel === model);
+}
 
 // ==================== TYPES ====================
 // Schema uniforme retornado pelo comando Tauri `read_usage_stats`.
@@ -88,6 +105,7 @@ export default function CostAggregator() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showWarnings, setShowWarnings] = useState<boolean>(false);
+  const [providerProfiles] = useState(() => loadProviders().profiles);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,6 +149,34 @@ export default function CostAggregator() {
       ...Object.values(report.by_cli).map((s) => s.cost_usd),
     );
   }, [report]);
+
+  // ---- Reestima custos usando preços dos perfis Admin quando disponíveis ----
+  // O backend tem tabela hardcoded que só conhece Claude/Codex/Gemini. Se você
+  // rodou Claude via Z.AI (glm-*) ou MiniMax, o custo está incorreto. Aqui
+  // ajustamos client-side pra refletir o preço do perfil cadastrado.
+  const providerRestated = useMemo(() => {
+    if (!report) return null;
+    let adjustedTotal = 0;
+    const byProvider: Record<string, { cost_usd: number; tokens: number; entries: number; label: string }> = {};
+    for (const e of report.entries) {
+      const matched = matchProviderForModel(e.model, providerProfiles);
+      let cost = e.cost_estimate_usd;
+      if (matched && matched.priceInPerM != null && matched.priceOutPerM != null) {
+        cost = (e.tokens_in / 1_000_000) * matched.priceInPerM + (e.tokens_out / 1_000_000) * matched.priceOutPerM;
+      }
+      adjustedTotal += cost;
+      const key = matched?.id || (e.model || e.cli);
+      const label = matched?.name || (e.model ? `${e.cli} · ${e.model}` : e.cli);
+      if (!byProvider[key]) byProvider[key] = { cost_usd: 0, tokens: 0, entries: 0, label };
+      byProvider[key].cost_usd += cost;
+      byProvider[key].tokens += e.tokens_in + e.tokens_out;
+      byProvider[key].entries += 1;
+    }
+    return {
+      adjustedTotal: Number(adjustedTotal.toFixed(4)),
+      byProvider,
+    };
+  }, [report, providerProfiles]);
 
   // ---- Render ----
   if (loading) {
@@ -260,6 +306,38 @@ export default function CostAggregator() {
               })}
             </div>
           </section>
+
+          {/* ===== Por Provider (Admin-aware) ===== */}
+          {providerRestated && Object.keys(providerRestated.byProvider).length > 1 && (
+            <section className="cost-section">
+              <h3 className="cost-section-title">
+                Por Provider (reestimado com preços do Admin)
+              </h3>
+              <p className="cost-sub" style={{ marginTop: 0 }}>
+                Total ajustado: <strong>{formatUsd(providerRestated.adjustedTotal)}</strong>
+                {Math.abs(providerRestated.adjustedTotal - report.total_cost_usd) > 0.005 && (
+                  <span style={{ marginLeft: 8, opacity: 0.7 }}>
+                    (vs. {formatUsd(report.total_cost_usd)} do backend)
+                  </span>
+                )}
+              </p>
+              <ul className="cost-projects">
+                {Object.entries(providerRestated.byProvider)
+                  .sort((a, b) => b[1].cost_usd - a[1].cost_usd)
+                  .map(([key, v]) => (
+                    <li className="cost-project" key={key}>
+                      <div className="cost-project-path" title={v.label}>{v.label}</div>
+                      <div className="cost-project-stats">
+                        <strong>{formatUsd(v.cost_usd)}</strong>
+                        <span className="cost-project-tokens">
+                          {v.entries} req · {formatTokens(v.tokens)} tokens
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          )}
 
           {/* ===== Top projetos ===== */}
           {report.top_projects.length > 0 && (
