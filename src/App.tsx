@@ -7,18 +7,16 @@ import CostAggregator from './CostAggregator';
 import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
-import { EmptyState } from './EmptyState';
 import { AdminPanel } from './providers/AdminPanel';
 import { ProviderBadge } from './providers/ProviderBadge';
-import { ProviderSelector } from './providers/ProviderSelector';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
-import { PresetsBar } from './presets/PresetsBar';
 import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
 import type { LaunchPreset } from './presets/types';
+import { LauncherTab } from './tabs/LauncherTab';
 import './providers/providers.css';
 
 // ==================== TYPES ====================
@@ -67,7 +65,7 @@ interface ProgressEvent { key: string; phase: 'start' | 'stdout' | 'stderr' | 'd
 
 const APP_VERSION = __APP_VERSION__;
 
-const CLI_COLORS: Record<string, string> = {
+export const CLI_COLORS: Record<string, string> = {
   claude: '#CC785C',
   codex: '#10A37F',
   gemini: '#4285F4',
@@ -80,7 +78,7 @@ const CLI_COLORS: Record<string, string> = {
 
 // ==================== ÍCONES ====================
 
-function CliIcon({ cliKey, size = 32 }: { cliKey: string; size?: number }) {
+export function CliIcon({ cliKey, size = 32 }: { cliKey: string; size?: number }) {
   const fileName = cliKey === 'kilocode' ? 'kilo' : cliKey;
   return <img src={`/icons/cli/${fileName}.svg`} width={size} height={size} alt={cliKey} style={{ display: 'block' }} />;
 }
@@ -960,7 +958,6 @@ function App() {
   // ==================== MAIN APP ====================
 
   const selectedCliData = clis.find(c => c.key === selectedCli);
-  const cliInfo = installed[selectedCli] || { installed: false, version: null };
   const notInstalledClis = clis.filter(c => !installed[c.key]?.installed);
   const installedClis = clis.filter(c => installed[c.key]?.installed);
   const currentInstallingLog = installingCli ? (installLog[installingCli] || []) : [];
@@ -1032,171 +1029,47 @@ function App() {
       </div>
 
       {/* ========== LAUNCHER ========== */}
-      {activeTab === 'launcher' && bootReady && hasChecked && installedClis.length === 0 && clis.length > 0 && (
-        <div className="content">
-          <div style={{ flex: 1 }}>
-            <EmptyState onInstallClick={() => setActiveTab('install')} />
-          </div>
-        </div>
-      )}
-      {activeTab === 'launcher' && !(bootReady && hasChecked && installedClis.length === 0 && clis.length > 0) && (
-        <div className="content">
-          <div className="left-col">
-            <PresetsBar
-              presets={presets}
-              onLaunch={launchFromPreset}
-              onRemove={removePresetById}
-              onSave={savePresetFromCurrent}
-              onRename={renamePreset}
-            />
-            <div className="section">
-              <div className="section-title">CLIs DE IA</div>
-              <div className="cli-grid">
-                {clis.map(cli => {
-                  const info = installed[cli.key] || { installed: false, version: null };
-                  const hasUpdate = updatesSummary?.cli_updates.find(u => {
-                    const k = clis.find(c => c.name === u.cli)?.key;
-                    return k === cli.key && u.has_update;
-                  });
-                  return (
-                    <div
-                      key={cli.key}
-                      className={`cli-card ${selectedCli === cli.key ? 'selected' : ''} ${!info.installed ? 'not-installed' : ''}`}
-                      style={{ '--c': CLI_COLORS[cli.key] || '#8B1E2A' } as React.CSSProperties}
-                      onClick={() => setSelectedCli(cli.key)}
-                    >
-                      <div className="cli-icon-wrap">
-                        <CliIcon cliKey={cli.key} size={40} />
-                        {hasUpdate && <span className="cli-update-dot" />}
-                      </div>
-                      <div className="cli-name">{cli.name}</div>
-                      <div className="cli-version">
-                        {!hasChecked
-                          ? <Skeleton width={60} height={10} />
-                          : (info.version || (info.installed ? 'instalado' : 'não instalado'))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="section">
-              <div className="section-title">MÚLTIPLOS CLIs</div>
-              <div className="multi-list">
-                {clis.map(cli => {
-                  const canUse = installed[cli.key]?.installed || false;
-                  return (
-                    <label key={cli.key} className={`multi-item ${!canUse ? 'disabled' : ''}`}>
-                      <input type="checkbox"
-                        checked={multiSelected.includes(cli.key)}
-                        onChange={() => canUse ? toggleMultiCli(cli.key) : undefined}
-                        disabled={!canUse} />
-                      <span>{cli.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="right-col">
-            <div className="section">
-              <div className="section-title">DIRETÓRIO</div>
-              <div className="dir-row">
-                <input ref={directoryInputRef} className="input" value={directory} onChange={e => setDirectory(e.target.value)} placeholder={`C:\\seu\\projeto (Ctrl+L para focar, ou arraste uma pasta)`} />
-                <button className="btn btn-labeled" onClick={pickDir} title="Escolher pasta">
-                  <span>📂</span><small>Escolher</small>
-                </button>
-                <button className="btn btn-labeled" onClick={async () => {
-                  if (directory) {
-                    try { await invoke('open_in_explorer', { path: directory }); }
-                    catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
-                  }
-                }} title="Abrir no Explorer">
-                  <span>📁</span><small>Explorar</small>
-                </button>
-              </div>
-              {recentProjects.length > 0 && (
-                <div className="recent-list">
-                  {recentProjects.map(p => (
-                    <span key={p} className="recent-pill" title={p}>
-                      <button
-                        className="recent-pill-main"
-                        onClick={() => { setDirectory(p); saveConfig({ directory: p }); }}
-                      >
-                        📁 {basenameOf(p)}
-                      </button>
-                      <button
-                        className="recent-pill-x"
-                        onClick={() => removeRecent(p)}
-                        title="Remover do histórico"
-                        aria-label={`Remover ${basenameOf(p)}`}
-                      >✕</button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="section">
-              <div className="section-title">ARGUMENTOS</div>
-              <input className="input" placeholder="Ex: --verbose" value={args} onChange={e => setArgs(e.target.value)} />
-            </div>
-
-            <div className="section">
-              <label className="checkbox">
-                <input type="checkbox" checked={noPerms} onChange={e => setNoPerms(e.target.checked)} />
-                <span>Sem pedir permissão</span>
-              </label>
-            </div>
-
-            {adminMode && (
-              <ProviderSelector
-                state={providers}
-                onChange={updateProviders}
-                selectedCli={selectedCli}
-              />
-            )}
-
-            {selectedCliData && (
-              <div className="cli-info" style={{ '--c': CLI_COLORS[selectedCli] || '#8B1E2A' } as React.CSSProperties}>
-                <div className="cli-info-header">
-                  <div className="cli-icon-lg"><CliIcon cliKey={selectedCli} size={48} /></div>
-                  <div>
-                    <div className="cli-info-name">{selectedCliData.name}</div>
-                    <div className="cli-info-version">
-                      {installed[selectedCli]?.version || 'não instalado'}
-                    </div>
-                  </div>
-                </div>
-                <div className="cli-info-flag">Flag: <code>{selectedCliData.flag || '(nenhuma)'}</code></div>
-              </div>
-            )}
-
-            <div className="preview">
-              <div className="preview-title">COMANDO</div>
-              <code>{selectedCliData?.command} {args} {noPerms && selectedCliData?.flag}</code>
-            </div>
-
-            <div className="launch-row">
-              <button className="launch-btn" onClick={launch} disabled={!cliInfo.installed}>
-                ▶ INICIAR {selectedCliData?.name?.toUpperCase()} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
-              </button>
-              <button
-                className="btn btn-preview"
-                onClick={() => setDryRunOpen(true)}
-                title="Preview: ver CMD + envs sem executar"
-              >🔬 Preview</button>
-            </div>
-
-            {multiSelected.length > 0 && (
-              <button className="launch-btn multi" onClick={launchMulti}>
-                ▶▶ INICIAR {multiSelected.length} CLIs
-              </button>
-            )}
-          </div>
-        </div>
+      {activeTab === 'launcher' && (
+        <LauncherTab
+          bootReady={bootReady}
+          hasChecked={hasChecked}
+          adminMode={adminMode}
+          clis={clis}
+          installed={installed}
+          installedClis={installedClis}
+          updatesSummary={updatesSummary}
+          selectedCli={selectedCli}
+          setSelectedCli={setSelectedCli}
+          directory={directory}
+          setDirectory={setDirectory}
+          args={args}
+          setArgs={setArgs}
+          noPerms={noPerms}
+          setNoPerms={setNoPerms}
+          multiSelected={multiSelected}
+          toggleMultiCli={toggleMultiCli}
+          directoryInputRef={directoryInputRef}
+          recentProjects={recentProjects}
+          removeRecent={removeRecent}
+          basenameOf={basenameOf}
+          providers={providers}
+          updateProviders={updateProviders}
+          presets={presets}
+          launchFromPreset={launchFromPreset}
+          removePresetById={removePresetById}
+          savePresetFromCurrent={savePresetFromCurrent}
+          renamePreset={renamePreset}
+          pickDir={pickDir}
+          launch={launch}
+          launchMulti={launchMulti}
+          setDryRunOpen={setDryRunOpen}
+          setActiveTab={setActiveTab}
+          saveConfigDirectory={(dir) => saveConfig({ directory: dir })}
+          openInExplorer={async (path) => {
+            try { await invoke('open_in_explorer', { path }); }
+            catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+          }}
+        />
       )}
 
       {/* ========== INSTALL ========== */}
