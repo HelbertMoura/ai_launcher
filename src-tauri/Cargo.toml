@@ -1,6 +1,6 @@
 [package]
 name = "ai-launcher"
-version = "5.0.0"
+version = "5.0.1"
 description = "Desktop launcher for AI coding CLIs (Windows)"
 authors = ["Helbert Moura"]
 license = "MIT"
