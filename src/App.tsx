@@ -18,7 +18,12 @@ import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
 import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
+import { applyFontStack, FONT_STORAGE_KEY, type FontId } from './providers/AppearanceSection';
 import './providers/providers.css';
+
+// Boot-time font restore (prevents FOUT on reload). Runs once at module load.
+const savedFont = typeof localStorage !== 'undefined' ? localStorage.getItem(FONT_STORAGE_KEY) : null;
+if (savedFont) applyFontStack(savedFont as FontId);
 
 // ==================== TYPES ====================
 
