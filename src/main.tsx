@@ -2,6 +2,7 @@ import './styles/fonts.css';
 import './styles/tokens.css';        // shared (families, scales, spacing, radius, motion)
 import './styles/tokens-dark.css';   // dark (default + [data-theme="dark"])
 import './styles/tokens-light.css';  // light (overrides when [data-theme="light"])
+import './styles/motion.css';        // keyframes for tab transitions
 import './styles.css';
 
 import React from 'react';

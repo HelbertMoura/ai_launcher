@@ -1016,6 +1016,7 @@ function App() {
         onOpenPalette={() => setCommandPaletteOpen(true)}
       />
 
+      <main key={activeTab} className="tab-content">
       {/* ========== LAUNCHER ========== */}
       {activeTab === 'launcher' && (
         <LauncherTab
@@ -1504,6 +1505,7 @@ function App() {
           </div>
         </div>
       )}
+      </main>
 
       {adminMode && (
         <QuickSwitchModal
