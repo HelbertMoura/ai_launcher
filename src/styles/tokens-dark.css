@@ -1,0 +1,83 @@
+/* ============================================================================
+ * AI Launcher Pro — Dark theme tokens
+ *
+ * Palette oklch perceptualmente uniforme (default). Aplicada em :root para ser
+ * o tema padrão sem depender de [data-theme="dark"], e replicada no seletor
+ * explícito para cobrir o caso do atributo ser definido manualmente.
+ * ============================================================================ */
+
+:root,
+[data-theme="dark"] {
+  /* -- Neutral surfaces (dark) -- */
+  --color-bg-0: oklch(14% 0.005 260);
+  --color-bg-1: oklch(18% 0.008 260);
+  --color-bg-2: oklch(23% 0.010 260);
+  --color-border: oklch(30% 0.012 260);
+  --color-border-strong: oklch(38% 0.015 260);
+
+  /* -- Text scale -- */
+  --color-text: oklch(96% 0.003 260);
+  --color-text-soft: oklch(82% 0.005 260);
+  --color-text-muted: oklch(66% 0.010 260);
+  --color-text-dim: oklch(50% 0.010 260);
+
+  /* -- Accent: esmeralda -- */
+  --color-accent: oklch(70% 0.155 162);
+  --color-accent-soft: oklch(58% 0.110 162);
+  --color-accent-dim: oklch(45% 0.080 162);
+  --color-accent-on: oklch(14% 0.005 260); /* texto sobre accent */
+
+  /* -- Semantic -- */
+  --color-success: oklch(72% 0.165 145);
+  --color-success-dim: oklch(48% 0.100 145);
+  --color-danger: oklch(65% 0.225 25);
+  --color-danger-dim: oklch(42% 0.140 25);
+  --color-warn: oklch(78% 0.150 85);
+  --color-warn-dim: oklch(52% 0.100 85);
+  --color-info: oklch(68% 0.140 230);
+  --color-info-dim: oklch(45% 0.090 230);
+
+  /* -- Provider brand tags (daltônico-safe) -- */
+  --color-brand-anthropic: oklch(68% 0.155 52);
+  --color-brand-google: oklch(68% 0.170 235);
+  --color-brand-zai: oklch(70% 0.130 288);
+  --color-brand-minimax: oklch(68% 0.165 16);
+
+  /* -- Shadows (oklch pra consistência perceptiva) -- */
+  --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.28);
+  --shadow-md: 0 4px 12px 0 oklch(0% 0 0 / 0.34);
+  --shadow-lg: 0 12px 32px 0 oklch(0% 0 0 / 0.48);
+  --shadow-glow-accent: 0 0 0 1px color-mix(in oklch, var(--color-accent) 40%, transparent),
+                        0 0 24px -4px color-mix(in oklch, var(--color-accent) 30%, transparent);
+
+  /* -- Focus ring (acessível) -- */
+  --ring: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-accent);
+  --ring-danger: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-danger);
+
+  /* -- Aliases legados → tokens novos -- */
+  --bg: var(--color-bg-0);
+  --surface: var(--color-bg-1);
+  --inner: var(--color-bg-2);
+  --border: var(--color-border);
+  --muted: var(--color-text-muted);
+  --text: var(--color-text);
+  --brand: var(--color-accent);
+  --brand-light: var(--color-accent-soft);
+  --brand-dark: var(--color-accent-dim);
+  --green: var(--color-success);
+  --red: var(--color-danger);
+  --yellow: var(--color-warn);
+
+  /* -- v5.5 Terminal Dramático: surfaces (dark) -- */
+  --bg-terminal:       oklch(16% 0.008 250);
+  --bg-surface-raised: oklch(20% 0.010 250);
+  --bg-prompt:         oklch(14% 0.006 250);
+  --border-dim:        oklch(25% 0.010 250);
+  --border-bright:     oklch(40% 0.020 180);
+  --text-dim:          oklch(50% 0.010 250);
+  --text-prompt:       oklch(72% 0.150 160);
+
+  /* -- v5.5 Elevation (dark) -- */
+  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.6);
+  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.4);
+}

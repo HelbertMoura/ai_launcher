@@ -1,49 +1,12 @@
 /* ============================================================================
- * AI Launcher Pro — Design Tokens v5.1 "Terminal Refinado"
+ * AI Launcher Pro — Shared design tokens (tema-agnóstico)
  *
- * Palette oklch perceptualmente uniforme, substitui o vermelho-vinho
- * (#8B1E2A) que conflitava com verdes de status. Accent esmeralda.
- * Base tipográfica 13px (era 12px). Tokens explícitos para spacing,
- * radius, motion e shadows. Aliases legados mapeiam as variáveis
- * antigas pros novos tokens — permite migração gradual sem breaking.
+ * Contém apenas tokens que não mudam entre temas: tipografia (famílias,
+ * tamanhos, pesos), spacing, radius e motion. Cores ficam em
+ * tokens-dark.css (default) e tokens-light.css (override opt-in).
  * ============================================================================ */
 
 :root {
-  /* -- Neutral surfaces (dark, default) -- */
-  --color-bg-0: oklch(14% 0.005 260);
-  --color-bg-1: oklch(18% 0.008 260);
-  --color-bg-2: oklch(23% 0.010 260);
-  --color-border: oklch(30% 0.012 260);
-  --color-border-strong: oklch(38% 0.015 260);
-
-  /* -- Text scale -- */
-  --color-text: oklch(96% 0.003 260);
-  --color-text-soft: oklch(82% 0.005 260);
-  --color-text-muted: oklch(66% 0.010 260);
-  --color-text-dim: oklch(50% 0.010 260);
-
-  /* -- Accent: esmeralda (substitui vermelho-vinho) -- */
-  --color-accent: oklch(70% 0.155 162);
-  --color-accent-soft: oklch(58% 0.110 162);
-  --color-accent-dim: oklch(45% 0.080 162);
-  --color-accent-on: oklch(14% 0.005 260); /* texto sobre accent */
-
-  /* -- Semantic -- */
-  --color-success: oklch(72% 0.165 145);
-  --color-success-dim: oklch(48% 0.100 145);
-  --color-danger: oklch(65% 0.225 25);
-  --color-danger-dim: oklch(42% 0.140 25);
-  --color-warn: oklch(78% 0.150 85);
-  --color-warn-dim: oklch(52% 0.100 85);
-  --color-info: oklch(68% 0.140 230);
-  --color-info-dim: oklch(45% 0.090 230);
-
-  /* -- Provider brand tags (terminais, distinguíveis daltônico-safe) -- */
-  --color-brand-anthropic: oklch(68% 0.155 52);   /* âmbar */
-  --color-brand-google: oklch(68% 0.170 235);     /* azul */
-  --color-brand-zai: oklch(70% 0.130 288);        /* violeta */
-  --color-brand-minimax: oklch(68% 0.165 16);     /* rubi (não o #8B1E2A opaco) */
-
   /* -- Spacing (base 4px) -- */
   --space-0: 0;
   --space-1: 2px;
@@ -56,12 +19,17 @@
   --space-8: 48px;
   --space-9: 64px;
 
-  /* -- Typography -- */
+  /* -- Typography: families -- */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI',
                system-ui, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Mono', 'Segoe UI Mono',
                ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
+  --ff-display: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  --ff-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  --ff-ui:      system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* -- Typography: sizes -- */
   --fs-xs: 11px;
   --fs-sm: 12px;
   --fs-base: 13px;
@@ -71,15 +39,23 @@
   --fs-2xl: 24px;
   --fs-3xl: 32px;
 
+  --fs-display-sm: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --fs-display-md: clamp(2rem,  1.5rem + 2vw,   3rem);
+  --fs-display-lg: clamp(2.5rem, 2rem + 3vw,    4.5rem);
+  --fs-display-xl: clamp(3rem,  2rem + 5vw,     6rem);
+
+  /* -- Typography: weights -- */
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
   --fw-bold: 700;
 
+  /* -- Typography: line-heights -- */
   --lh-tight: 1.2;
   --lh-base: 1.5;
   --lh-loose: 1.65;
 
+  /* -- Typography: letter-spacing -- */
   --ls-tight: -0.01em;
   --ls-base: 0;
   --ls-wide: 0.02em;
@@ -93,98 +69,21 @@
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* -- Motion -- */
+  /* -- Motion: easing -- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-in:  cubic-bezier(0.4, 0, 1, 1);
+  --ease-terminal: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* -- Motion: durations -- */
   --d-instant: 80ms;
   --d-fast: 120ms;
   --d-base: 180ms;
   --d-enter: 260ms;
   --d-modal: 320ms;
-
-  /* -- Shadows (oklch pra consistência perceptiva) -- */
-  --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.28);
-  --shadow-md: 0 4px 12px 0 oklch(0% 0 0 / 0.34);
-  --shadow-lg: 0 12px 32px 0 oklch(0% 0 0 / 0.48);
-  --shadow-glow-accent: 0 0 0 1px color-mix(in oklch, var(--color-accent) 40%, transparent),
-                        0 0 24px -4px color-mix(in oklch, var(--color-accent) 30%, transparent);
-
-  /* -- Focus ring (acessível) -- */
-  --ring: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-accent);
-  --ring-danger: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-danger);
-
-  /* ==========================================================================
-   * Aliases legados → tokens novos
-   * Os selectors que usam --bg, --surface, --brand, etc continuam funcionando.
-   * Trilha 2 de tokenização em providers.css substitui gradualmente.
-   * ========================================================================== */
-  --bg: var(--color-bg-0);
-  --surface: var(--color-bg-1);
-  --inner: var(--color-bg-2);
-  --border: var(--color-border);
-  --muted: var(--color-text-muted);
-  --text: var(--color-text);
-  --brand: var(--color-accent);
-  --brand-light: var(--color-accent-soft);
-  --brand-dark: var(--color-accent-dim);
-  --green: var(--color-success);
-  --red: var(--color-danger);
-  --yellow: var(--color-warn);
-
-  /* ========== v5.5 Terminal Dramático extensions ========== */
-
-  /* Display typography */
-  --ff-display: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
-  --ff-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Consolas', monospace;
-  --ff-ui:      system-ui, -apple-system, 'Segoe UI', sans-serif;
-
-  --fs-display-sm: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
-  --fs-display-md: clamp(2rem,  1.5rem + 2vw,   3rem);
-  --fs-display-lg: clamp(2.5rem, 2rem + 3vw,    4.5rem);
-  --fs-display-xl: clamp(3rem,  2rem + 5vw,     6rem);
-
-  /* Terminal surfaces */
-  --bg-terminal:       oklch(16% 0.008 250);
-  --bg-surface-raised: oklch(20% 0.010 250);
-  --bg-prompt:         oklch(14% 0.006 250);
-  --border-dim:        oklch(25% 0.010 250);
-  --border-bright:     oklch(40% 0.020 180);
-  --text-dim:          oklch(50% 0.010 250);
-  --text-prompt:       oklch(72% 0.150 160);
-
-  /* Elevation */
-  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.6);
-  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.4);
-
-  /* Motion */
-  --ease-terminal: cubic-bezier(0.22, 1, 0.36, 1);
   --d-tab-switch: 180ms;
   --d-page-enter: 240ms;
   --d-stagger: 40ms;
-}
-
-/* ==========================================================================
- * Light theme — override opt-in via [data-theme="light"]
- * (app hoje é dark-first; mantemos compat com o toggle legado existente)
- * ========================================================================== */
-[data-theme="light"] {
-  --color-bg-0: oklch(98% 0.002 260);
-  --color-bg-1: oklch(100% 0 0);
-  --color-bg-2: oklch(96% 0.003 260);
-  --color-border: oklch(88% 0.005 260);
-  --color-border-strong: oklch(78% 0.008 260);
-
-  --color-text: oklch(18% 0.010 260);
-  --color-text-soft: oklch(34% 0.010 260);
-  --color-text-muted: oklch(52% 0.012 260);
-  --color-text-dim: oklch(68% 0.010 260);
-
-  --color-accent-on: oklch(98% 0.002 260);
-
-  --shadow-sm: 0 1px 2px 0 oklch(20% 0 260 / 0.06);
-  --shadow-md: 0 4px 12px 0 oklch(20% 0 260 / 0.10);
-  --shadow-lg: 0 12px 32px 0 oklch(20% 0 260 / 0.16);
 }
 
 /* ==========================================================================
@@ -197,5 +96,8 @@
     --d-base: 0ms;
     --d-enter: 0ms;
     --d-modal: 0ms;
+    --d-tab-switch: 0ms;
+    --d-page-enter: 0ms;
+    --d-stagger: 0ms;
   }
 }
