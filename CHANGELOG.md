@@ -5,6 +5,89 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] — 2026-04-20
+
+### 🎨 "Terminal Refinado" — fix MiniMax + refatoração visual completa
+
+Release consolidada: remove **todas** as causas do `Auth conflict` / `Failed to fetch`
+do MiniMax (diagnóstico revelou 3 bugs independentes no launcher, não só um),
+substitui a paleta `#8B1E2A` vermelho-vinho por tokens `oklch` com accent
+esmeralda perceptivamente uniforme, e adiciona a primeira camada responsiva do app.
+
+### Fixed
+
+#### MiniMax `Auth conflict` — causa raiz real (nunca era só envs herdadas)
+- **Injeção dupla de chave em `storage.ts:buildLaunchEnv`** — o launcher setava
+  `ANTHROPIC_AUTH_TOKEN` E `ANTHROPIC_API_KEY` com o mesmo valor. Claude Code
+  detectava os dois e emitia o erro. Agora injeta só `AUTH_TOKEN` (padrão da spec).
+- **Defense-in-depth em `launch_cli` (`main.rs:1680`)** — script PowerShell agora
+  limpa `ANTHROPIC_*`, `CLAUDE_CODE_*` e `API_TIMEOUT_MS` herdados do shell pai
+  **antes** de injetar os novos valores. Recomendação oficial da MiniMax
+  ("Clear the following Anthropic-related environment variables to avoid conflicts").
+
+#### MiniMax `Failed to fetch` no teste de conexão
+- **`testConnection.ts` era bloqueado por CORS no webview do Tauri** (origin
+  `tauri://localhost` contra `api.minimax.io` que não retorna
+  `Access-Control-Allow-Origin`). Movido para comando Rust
+  `test_provider_connection` (via `ureq`) — backend faz a chamada direta, sem
+  política CORS. Mensagens de erro agora são específicas por status (401/403/404/429).
+
+#### Envs oficiais Anthropic-compatible faltando
+- `buildLaunchEnv` agora injeta, para qualquer provider ≠ anthropic:
+  `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_OPUS_MODEL`,
+  `ANTHROPIC_DEFAULT_HAIKU_MODEL`, `API_TIMEOUT_MS=3000000`,
+  `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`. Sem esses, Claude Code tentava
+  resolver aliases que não existem nos endpoints de terceiros.
+
+### Added
+
+- **Botão "🧹 Reset Claude state"** no Admin Panel — comando Rust `reset_claude_state`
+  limpa `customApiKeyResponses`, `oauthAccount` e `model` custom do
+  `~/.claude.json` (faz backup em `.claude.json.bak` antes). Útil quando o CLI
+  fica "travado" em provider antigo.
+- **`src/styles/tokens.css`** — fonte única de verdade para cores/spacing/typography/
+  radius/motion/shadows. Paleta oklch com accent esmeralda (substitui vermelho-vinho
+  `#8B1E2A` que conflitava com verdes de status). Aliases legados mapeados pra
+  não quebrar nenhum selector existente.
+- **Primeira camada responsiva** — media queries `@max-width:1100px` e `@max-width:720px`
+  em `providers.css` (o app tinha ZERO media queries até agora). Grid admin colapsa,
+  modais ocupam 95vw, header empilha.
+- **Monogramas SVG (`PresetIcon.tsx`)** — 12 ícones vetoriais substituem os emojis
+  do `PresetsBar`. Rendering consistente entre Win10/11/Linux/macOS. Backward-compat
+  via `LEGACY_EMOJI_MAP` (presets antigos com emoji continuam funcionando).
+- **Reduced motion** — `tokens.css` zera durations quando `prefers-reduced-motion:reduce`
+  (WCAG 2.3.3).
+
+### Changed
+
+- **Base tipográfica 12px → 13px** (body). Escala completa em tokens
+  (`--fs-xs` 11px até `--fs-3xl` 32px). Abolidos valores <11px. Section titles
+  recebem `text-transform: uppercase` + `letter-spacing: 0.08em`.
+- **Providers.css tokenizado** — todas as cores `#8B1E2A`, `#4285F4`, `#4ade80`,
+  `#ffa500`, `#ff8a80`, e `rgba(...)` de brands substituídas por
+  `color-mix(in oklch, var(--color-*) X%, transparent)`. Radius consistente
+  (`--radius-sm/md/lg/full`), spacing em grade 4px.
+- **CommandPalette harmonizado** — mesmos tokens, mesmos radius, mesma accent.
+  Hover/selected usam `color-mix` oklch.
+- **Selected state do `.preset-emoji`** — borda 2px + bg 20% + accent, em vez do
+  fill opaco que destoava dos cards não selecionados.
+
+### Accessibility
+
+- `aria-label` adicionado em botões icon-only: refresh CLIs, theme toggle,
+  delete profile, remove env var, fechar preview.
+- `role="radiogroup"` + `role="radio"` + `aria-checked` no seletor de ícones de preset.
+
+### Notes
+
+- **Zero breaking.** Perfis salvos em `localStorage` pela v5.0/v5.0.1 continuam
+  funcionando identicamente (schema inalterado). Presets com emoji legado
+  renderizam via fallback SVG.
+- Cargo.lock bump automático 5.0.1 → 5.1.0.
+- Plano executável desta release: `docs/PLAN_v5.1.md` (no repo).
+
+---
+
 ## [5.0.1] — 2026-04-20
 
 ### 🔧 Hotfix: MiniMax provider (URL + model)

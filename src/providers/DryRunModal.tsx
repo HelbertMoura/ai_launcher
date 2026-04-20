@@ -51,7 +51,12 @@ export function DryRunModal({
       <div className="dryrun-modal" onClick={e => e.stopPropagation()}>
         <div className="dryrun-head">
           <h3>🔬 Preview do launch</h3>
-          <button className="btn btn-sm" onClick={onClose}>✕</button>
+          <button
+            className="btn btn-sm"
+            onClick={onClose}
+            title="Fechar preview"
+            aria-label="Fechar preview de launch"
+          >✕</button>
         </div>
         <div className="dryrun-body">
           <div>

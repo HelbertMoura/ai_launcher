@@ -1679,6 +1679,19 @@ fn launch_cli(
     // `-EncodedCommand`, que aceita QUALQUER conteúdo sem escaping.
     let mut ps_script =
         String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+
+    // Defense-in-depth: quando o app injeta envs (provider alternativo via Admin),
+    // limpar envs ANTHROPIC_*/CLAUDE_CODE_*/API_TIMEOUT_MS herdadas do shell pai
+    // para evitar conflito com o que vamos injetar. A spec oficial da MiniMax e Z.AI
+    // exige explicitamente: "Clear ANTHROPIC_* before configuring" (platform.minimax.io).
+    if env_vars.is_some() {
+        ps_script.push_str(
+            "Remove-Item Env:ANTHROPIC_* -ErrorAction SilentlyContinue\n\
+             Remove-Item Env:CLAUDE_CODE_* -ErrorAction SilentlyContinue\n\
+             Remove-Item Env:API_TIMEOUT_MS -ErrorAction SilentlyContinue\n",
+        );
+    }
+
     if let Some(ref vars) = env_vars {
         for (k, v) in vars {
             let esc = v.replace('\'', "''");
@@ -2549,6 +2562,178 @@ fn open_crash_dir() -> Result<(), String> {
 }
 
 // ============================================================
+// PROVIDER CONNECTION TEST (Rust — sem CORS)
+// ============================================================
+
+#[derive(Serialize)]
+struct ProviderTestResult {
+    ok: bool,
+    #[serde(rename = "statusCode")]
+    status_code: Option<u16>,
+    #[serde(rename = "latencyMs")]
+    latency_ms: u64,
+    #[serde(rename = "modelEcho")]
+    model_echo: Option<String>,
+    message: String,
+}
+
+/// Testa conexão com endpoint Anthropic-compatible direto do backend Rust
+/// para evitar bloqueio CORS do webview Tauri (que gerava "Failed to fetch"
+/// mesmo com credenciais corretas).
+#[tauri::command]
+fn test_provider_connection(
+    base_url: String,
+    api_key: String,
+    model: String,
+) -> Result<ProviderTestResult, String> {
+    if base_url.trim().is_empty() {
+        return Ok(ProviderTestResult {
+            ok: false,
+            status_code: None,
+            latency_ms: 0,
+            model_echo: None,
+            message: "Sem baseUrl — perfil oficial depende da config local do Claude Code."
+                .to_string(),
+        });
+    }
+    if api_key.trim().is_empty() {
+        return Ok(ProviderTestResult {
+            ok: false,
+            status_code: None,
+            latency_ms: 0,
+            model_echo: None,
+            message: "Sem apiKey — preencha antes de testar.".to_string(),
+        });
+    }
+    let url = format!("{}/v1/messages", base_url.trim_end_matches('/'));
+    let body = serde_json::json!({
+        "model": model,
+        "max_tokens": 1,
+        "messages": [{ "role": "user", "content": "ping" }],
+    });
+
+    let agent = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(10))
+        .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
+        .build();
+
+    let t0 = std::time::Instant::now();
+    let resp = agent
+        .post(&url)
+        .set("Content-Type", "application/json")
+        .set("x-api-key", &api_key)
+        .set("Authorization", &format!("Bearer {}", api_key))
+        .set("anthropic-version", "2023-06-01")
+        .send_json(body);
+    let latency_ms = t0.elapsed().as_millis() as u64;
+
+    match resp {
+        Ok(r) => {
+            let status = r.status();
+            let text = r.into_string().unwrap_or_default();
+            let model_echo = serde_json::from_str::<serde_json::Value>(&text)
+                .ok()
+                .and_then(|j| j.get("model").and_then(|m| m.as_str().map(String::from)));
+            Ok(ProviderTestResult {
+                ok: true,
+                status_code: Some(status),
+                latency_ms,
+                message: format!(
+                    "Conectou em {}ms{}",
+                    latency_ms,
+                    model_echo
+                        .as_ref()
+                        .map(|m| format!(" · modelo {}", m))
+                        .unwrap_or_default()
+                ),
+                model_echo,
+            })
+        }
+        Err(ureq::Error::Status(code, resp)) => {
+            let text = resp.into_string().unwrap_or_default();
+            let hint = match code {
+                401 | 403 => "Chave inválida ou sem acesso.",
+                404 => "Endpoint não encontrado — verifique a baseUrl.",
+                429 => "Rate-limited, mas o endpoint responde.",
+                _ => "Erro do provider.",
+            };
+            let snippet = if text.is_empty() {
+                String::new()
+            } else {
+                format!(" · {}", text.chars().take(160).collect::<String>())
+            };
+            Ok(ProviderTestResult {
+                ok: false,
+                status_code: Some(code),
+                latency_ms,
+                model_echo: None,
+                message: format!("HTTP {} — {}{}", code, hint, snippet),
+            })
+        }
+        Err(ureq::Error::Transport(t)) => Ok(ProviderTestResult {
+            ok: false,
+            status_code: None,
+            latency_ms,
+            model_echo: None,
+            message: format!(
+                "Falha de rede: {}. Verifique conexão, firewall ou baseUrl.",
+                t
+            ),
+        }),
+    }
+}
+
+// ============================================================
+// RESET CLAUDE CODE STATE
+// ============================================================
+
+/// Limpa estado local do Claude Code que pode causar conflitos ao trocar
+/// de provider: customApiKeyResponses (prompt já aceito p/ chave antiga),
+/// oauthAccount (conta logada) e model (modelo custom fixado).
+///
+/// Mantém o resto do ~/.claude.json (MCP servers, theme, etc).
+#[tauri::command]
+fn reset_claude_state() -> Result<String, String> {
+    let home = dirs::home_dir().ok_or("HOME não encontrado")?;
+    let path = home.join(".claude.json");
+    if !path.exists() {
+        return Ok("Nada a limpar — ~/.claude.json não existe.".to_string());
+    }
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Falha ao ler {}: {}", path.display(), e))?;
+    let mut json: serde_json::Value = serde_json::from_str(&content)
+        .map_err(|e| format!("JSON inválido em {}: {}", path.display(), e))?;
+
+    let mut removed = Vec::new();
+    if let Some(obj) = json.as_object_mut() {
+        for key in ["customApiKeyResponses", "oauthAccount", "model"] {
+            if obj.remove(key).is_some() {
+                removed.push(key.to_string());
+            }
+        }
+    }
+
+    // Backup antes de sobrescrever
+    let backup = path.with_extension("json.bak");
+    let _ = std::fs::copy(&path, &backup);
+
+    let serialized = serde_json::to_string_pretty(&json)
+        .map_err(|e| format!("Falha ao serializar: {}", e))?;
+    std::fs::write(&path, serialized)
+        .map_err(|e| format!("Falha ao escrever {}: {}", path.display(), e))?;
+
+    if removed.is_empty() {
+        Ok("Nada a limpar — nenhum campo conflitante encontrado.".to_string())
+    } else {
+        Ok(format!(
+            "Limpou: {}. Backup em {}.",
+            removed.join(", "),
+            backup.display()
+        ))
+    }
+}
+
+// ============================================================
 // MAIN
 // ============================================================
 
@@ -2615,6 +2800,8 @@ fn main() {
             save_crash_log,
             read_crash_log,
             open_crash_dir,
+            test_provider_connection,
+            reset_claude_state,
         ])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();

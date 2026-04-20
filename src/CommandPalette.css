@@ -8,14 +8,14 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.55);
+  background: color-mix(in oklch, black 55%, transparent);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 15vh 16px 16px;
-  animation: cmdk-ail-fadein var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  padding: 15vh var(--space-5) var(--space-5);
+  animation: cmdk-ail-fadein var(--d-base) var(--ease-out);
 }
 
 @keyframes cmdk-ail-fadein {
@@ -27,14 +27,14 @@
   width: 100%;
   max-width: 640px;
   max-height: 60vh;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: cmdk-ail-slidein var(--d-enter, 260ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  animation: cmdk-ail-slidein var(--d-enter) var(--ease-out);
 }
 
 @keyframes cmdk-ail-slidein {
@@ -52,24 +52,24 @@
 .cmdk-ail-input {
   width: 100%;
   height: 56px;
-  padding: 0 20px;
-  font-size: 18px;
-  font-family: inherit;
-  color: var(--text);
+  padding: 0 var(--space-6);
+  font-size: var(--fs-lg);
+  font-family: var(--font-sans);
+  color: var(--color-text);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--color-border);
   outline: none;
   box-sizing: border-box;
-  transition: border-bottom-color var(--d-base, 180ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  transition: border-bottom-color var(--d-base) var(--ease-out);
 }
 
 .cmdk-ail-input::placeholder {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 .cmdk-ail-input:focus {
-  border-bottom-color: var(--brand);
+  border-bottom-color: var(--color-accent);
 }
 
 .cmdk-ail-list {
@@ -84,53 +84,53 @@
   width: 8px;
 }
 .cmdk-ail-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-sm);
 }
 .cmdk-ail-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .cmdk-ail-empty {
-  padding: 24px 20px;
-  color: var(--muted);
-  font-size: 14px;
+  padding: var(--space-6) var(--space-6);
+  color: var(--color-text-muted);
+  font-size: var(--fs-md);
   text-align: center;
 }
 
 .cmdk-ail-group {
-  padding: 4px 0;
+  padding: var(--space-2) 0;
 }
 
 .cmdk-ail-group [cmdk-group-heading] {
-  padding: 8px 20px 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  padding: var(--space-3) var(--space-6) var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-caps);
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--color-text-muted);
   user-select: none;
 }
 
 .cmdk-ail-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  font-size: 14px;
-  color: var(--text);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--fs-md);
+  color: var(--color-text);
   cursor: pointer;
   border-left: 3px solid transparent;
-  transition: background-color var(--d-fast, 120ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
-              border-left-color var(--d-fast, 120ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
-              color var(--d-fast, 120ms) var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  transition: background-color var(--d-fast) var(--ease-out),
+              border-left-color var(--d-fast) var(--ease-out),
+              color var(--d-fast) var(--ease-out);
   user-select: none;
 }
 
 .cmdk-ail-item[data-selected="true"],
 .cmdk-ail-item:hover {
-  background: color-mix(in srgb, var(--brand) 14%, transparent);
-  border-left-color: var(--brand);
+  background: color-mix(in oklch, var(--color-accent) 14%, transparent);
+  border-left-color: var(--color-accent);
 }
 
 .cmdk-ail-item[data-disabled="true"] {
@@ -142,17 +142,18 @@
   display: inline-flex;
   width: 18px;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--fs-md);
   flex-shrink: 0;
+  color: var(--color-text-soft);
 }
 
 .cmdk-ail-dot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
   display: inline-block;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-text) 4%, transparent);
 }
 
 .cmdk-ail-label {
@@ -163,14 +164,14 @@
 }
 
 .cmdk-ail-shortcut {
-  color: var(--muted);
-  font-size: 12px;
-  padding: 2px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  padding: 2px var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--color-text) 3%, transparent);
   flex-shrink: 0;
-  font-family: ui-monospace, Consolas, monospace;
+  font-family: var(--font-mono);
 }
 
 /* ==============================================================
@@ -178,21 +179,21 @@
    ============================================================== */
 
 [data-theme="light"] .cmdk-ail-overlay {
-  background: rgba(20, 20, 20, 0.35);
+  background: color-mix(in oklch, black 35%, transparent);
 }
 
 [data-theme="light"] .cmdk-ail-item[data-selected="true"],
 [data-theme="light"] .cmdk-ail-item:hover {
-  background: color-mix(in srgb, var(--brand) 8%, transparent);
-  border-left-color: var(--brand);
+  background: color-mix(in oklch, var(--color-accent) 8%, transparent);
+  border-left-color: var(--color-accent);
 }
 
 [data-theme="light"] .cmdk-ail-dot {
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 0 0 2px color-mix(in oklch, black 4%, transparent);
 }
 
 [data-theme="light"] .cmdk-ail-shortcut {
-  background: rgba(0, 0, 0, 0.03);
+  background: color-mix(in oklch, black 3%, transparent);
 }
 
 /* ==============================================================
