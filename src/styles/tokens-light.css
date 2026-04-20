@@ -39,4 +39,9 @@
   /* -- v5.5 Elevation (light) -- */
   --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.1);
   --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.08);
+
+  /* -- Brand colors (light) — slightly darker for contrast on light surfaces -- */
+  --color-brand-anthropic: oklch(55% 0.155 52);
+  --color-brand-zai:       oklch(50% 0.130 288);
+  --color-brand-minimax:   oklch(52% 0.165 16);
 }
