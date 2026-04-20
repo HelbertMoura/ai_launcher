@@ -3,13 +3,30 @@
 // Extraído de App.tsx (Task 8 do split). JSX IDÊNTICO ao original.
 // ==============================================================================
 
+import { open as openUrl } from '@tauri-apps/plugin-shell';
 import { EmptyState } from '../EmptyState';
 import { Skeleton } from '../Skeleton';
 import { PresetsBar } from '../presets/PresetsBar';
 import { ProviderSelector } from '../providers/ProviderSelector';
 import { CliIcon, CLI_COLORS } from '../App';
+import { Play, ExternalLink } from '../icons';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
+import './LauncherTab.css';
+
+function cliDescription(key: string): string {
+  const map: Record<string, string> = {
+    claude: 'Anthropic official CLI',
+    codex: 'OpenAI Codex CLI',
+    gemini: 'Google Gemini CLI',
+    qwen: 'Alibaba Qwen CLI',
+    kilocode: 'Kilo Code agent',
+    opencode: 'OpenCode CLI',
+    crush: 'Crush CLI',
+    droid: 'Factory Droid CLI',
+  };
+  return map[key] ?? '';
+}
 
 // Tipos compartilhados com App.tsx — duplicados aqui pra não criar arquivo
 // shared ainda (pode ser extraído em task futura).
@@ -162,31 +179,92 @@ export function LauncherTab(props: LauncherTabProps) {
         />
         <div className="section">
           <div className="section-title">CLIs DE IA</div>
-          <div className="cli-grid">
+          <div className="launcher-cli-grid">
             {clis.map(cli => {
               const info = installed[cli.key] || { installed: false, version: null };
               const hasUpdate = updatesSummary?.cli_updates.find(u => {
                 const k = clis.find(c => c.name === u.cli)?.key;
                 return k === cli.key && u.has_update;
               });
+              const isSelected = selectedCli === cli.key;
+              const stateClass = info.installed ? 'is-installed' : 'is-missing';
               return (
-                <div
+                <article
                   key={cli.key}
-                  className={`cli-card ${selectedCli === cli.key ? 'selected' : ''} ${!info.installed ? 'not-installed' : ''}`}
+                  className={`launcher-cli-card ${isSelected ? 'is-selected' : ''} ${stateClass}`}
                   style={{ '--c': CLI_COLORS[cli.key] || '#8B1E2A' } as React.CSSProperties}
                   onClick={() => setSelectedCli(cli.key)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedCli(cli.key);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
                 >
-                  <div className="cli-icon-wrap">
-                    <CliIcon cliKey={cli.key} size={40} />
-                    {hasUpdate && <span className="cli-update-dot" />}
+                  <header className="launcher-cli-card__head">
+                    <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
+                    <span className="launcher-cli-card__icon">
+                      <CliIcon cliKey={cli.key} size={20} />
+                    </span>
+                    <h3 className="launcher-cli-card__name">{cli.name.toUpperCase()}</h3>
+                    <span className="launcher-cli-card__version">
+                      {!hasChecked
+                        ? <Skeleton width={40} height={10} />
+                        : (info.version ? `v${info.version}` : '—')}
+                    </span>
+                  </header>
+                  <div className="launcher-cli-card__status-row">
+                    <span
+                      className="launcher-cli-card__status"
+                      aria-label={info.installed ? 'installed' : 'missing'}
+                    >
+                      {info.installed ? '● installed' : '○ missing'}
+                    </span>
+                    {hasUpdate && (
+                      <span className="launcher-cli-card__update" title="Atualização disponível">
+                        ↑ update
+                      </span>
+                    )}
                   </div>
-                  <div className="cli-name">{cli.name}</div>
-                  <div className="cli-version">
-                    {!hasChecked
-                      ? <Skeleton width={60} height={10} />
-                      : (info.version || (info.installed ? 'instalado' : 'não instalado'))}
+                  <p className="launcher-cli-card__desc">{cliDescription(cli.key)}</p>
+                  <div className="launcher-cli-card__actions">
+                    <button
+                      type="button"
+                      className="btn-cli-primary"
+                      disabled={!info.installed}
+                      onClick={e => {
+                        e.stopPropagation();
+                        setSelectedCli(cli.key);
+                        launch();
+                      }}
+                      title={info.installed ? 'Launch CLI' : 'CLI não instalado'}
+                    >
+                      <Play size={12} strokeWidth={1.5} />
+                      <span>Launch</span>
+                    </button>
+                    {cli.install_url && (
+                      <button
+                        type="button"
+                        className="btn-cli-ghost"
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (cli.install_url) {
+                            openUrl(cli.install_url).catch(() => {
+                              /* silently fail — fallback to no-op */
+                            });
+                          }
+                        }}
+                        title="Abrir docs"
+                      >
+                        <ExternalLink size={12} strokeWidth={1.5} />
+                        <span>Docs</span>
+                      </button>
+                    )}
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
