@@ -20,8 +20,8 @@ export const MODEL_CATALOG: Record<ProviderKind, ModelHints> = {
     fast: ['glm-4.7', 'glm-4.5-air'],
   },
   minimax: {
-    main: ['MiniMax-M2', 'MiniMax-abab6.5', 'MiniMax-Text-01'],
-    fast: ['MiniMax-M2', 'MiniMax-abab6.5-s'],
+    main: ['MiniMax-M2.7', 'MiniMax-M2', 'MiniMax-abab6.5', 'MiniMax-Text-01'],
+    fast: ['MiniMax-M2.7', 'MiniMax-M2', 'MiniMax-abab6.5-s'],
   },
   custom: {
     main: [],

@@ -73,3 +73,6 @@ coverage/
 *.nsis
 *.dmg
 *.app
+
+# --- Claude Code local settings (per-dev, never commit) ---
+.claude/
