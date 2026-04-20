@@ -1,0 +1,84 @@
+name: release
+
+# Dispara quando uma tag `v*` é pushada. Builda MSI + NSIS e anexa ao release
+# correspondente (cria o release se ainda não existir).
+#
+# Signing opcional: configure os secrets `SIGNING_CERT_BASE64` e
+# `SIGNING_CERT_PASSWORD` em Settings → Secrets and variables → Actions pra
+# que os binários sejam assinados e o SmartScreen deixe de alertar.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag para anexar (ex: v5.0.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+            ${{ runner.os }}-cargo-
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build Tauri bundle (MSI + NSIS)
+        run: npm run tauri build
+
+      # Signing é opt-in — só roda se o secret existir. Sem o secret, os
+      # binários saem sem assinatura e os usuários verão o aviso SmartScreen.
+      - name: Sign binaries (opt-in)
+        if: env.SIGNING_CERT_BASE64 != ''
+        env:
+          SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+          SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        shell: pwsh
+        run: |
+          $certBytes = [Convert]::FromBase64String($env:SIGNING_CERT_BASE64)
+          $certPath = "$env:RUNNER_TEMP\code-signing.pfx"
+          [IO.File]::WriteAllBytes($certPath, $certBytes)
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Where-Object { $_.FullName -like "*x64*" } | Select-Object -First 1
+          Get-ChildItem -Path src-tauri/target/release/bundle -Recurse -Include *.msi,*-setup.exe | ForEach-Object {
+            & $signtool.FullName sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 $_.FullName
+          }
+
+      - name: Attach binaries to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*-setup.exe
+          fail_on_unmatched_files: true
+          generate_release_notes: true

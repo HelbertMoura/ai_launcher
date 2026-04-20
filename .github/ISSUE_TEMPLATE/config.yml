@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussão (Q&A, ideias, show & tell)
+    url: https://github.com/HelbertMoura/ai_launcher/discussions
+    about: Perguntas de uso, debate de features e compartilhamento de fluxos pertencem ao Discussions. Issues são pra bugs e features concretas.
+  - name: 🔒 Reportar vulnerabilidade de segurança
+    url: https://github.com/HelbertMoura/ai_launcher/blob/main/SECURITY.md
+    about: Siga a política do SECURITY.md. Não abra issue pública para falhas de segurança.

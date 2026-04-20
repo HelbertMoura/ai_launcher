@@ -1,0 +1,36 @@
+title: "[Q&A] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Dúvidas de uso, configuração ou setup. Para bugs confirmados, use [Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+  - type: textarea
+    id: question
+    attributes:
+      label: Pergunta
+      description: Descreva o que você tentou fazer e o que esperava.
+      placeholder: "Como faço pra..."
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão do AI Launcher
+      placeholder: "ex: v5.0.0"
+    validations:
+      required: false
+  - type: input
+    id: os
+    attributes:
+      label: Sistema operacional
+      placeholder: "Windows 11 23H2, Windows 10 22H2, etc."
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto adicional
+      description: Logs, screenshots, config relevante.
+    validations:
+      required: false

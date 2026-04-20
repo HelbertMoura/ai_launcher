@@ -1,0 +1,21 @@
+title: "[Show & Tell] "
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Compartilhe seu setup, screenshots, fluxos criados ou combinações de CLIs/providers que tão te ajudando.
+  - type: textarea
+    id: story
+    attributes:
+      label: O que você construiu / configurou?
+      description: Pode incluir screenshots, presets salvos, fluxos que virou hábito.
+    validations:
+      required: true
+  - type: input
+    id: cli
+    attributes:
+      label: CLIs / providers usados
+      placeholder: "Claude Code via Z.AI, Codex, Gemini, ..."
+    validations:
+      required: false

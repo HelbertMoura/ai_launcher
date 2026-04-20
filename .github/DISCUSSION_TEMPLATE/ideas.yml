@@ -1,0 +1,28 @@
+title: "[Ideia] "
+labels: ["enhancement", "discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideias de features, melhorias ou novos CLIs/providers suportados. Se for algo concreto com escopo claro, prefira abrir uma Feature Request em Issues.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Qual a ideia?
+      description: Descreva o problema que ela resolve e como se encaixa no app.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternativas consideradas
+      description: Outras abordagens pensadas e por que não foram ideais.
+    validations:
+      required: false
+  - type: input
+    id: priority
+    attributes:
+      label: Prioridade pessoal
+      placeholder: "alta / média / baixa"
+    validations:
+      required: false

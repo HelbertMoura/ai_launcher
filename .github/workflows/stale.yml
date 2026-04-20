@@ -1,0 +1,34 @@
+name: stale
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # segunda 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 60
+          days-before-issue-close: 14
+          stale-issue-label: 'stale'
+          stale-issue-message: |
+            Essa issue ficou sem atividade por 60 dias. Ela será fechada em 14 dias se não houver novas interações. Comente se ainda for relevante.
+          close-issue-message: |
+            Fechada automaticamente por inatividade. Sinta-se livre pra reabrir se o problema persistir.
+          exempt-issue-labels: 'pinned,security,roadmap,help-wanted'
+
+          days-before-pr-stale: 30
+          days-before-pr-close: 14
+          stale-pr-label: 'stale'
+          stale-pr-message: |
+            Esse PR ficou sem atividade por 30 dias. Será fechado em 14 dias se não houver novos commits ou respostas.
+          close-pr-message: |
+            Fechado automaticamente por inatividade. Abra um novo PR quando puder retomar.
+          exempt-pr-labels: 'pinned,security,wip'

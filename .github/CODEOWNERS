@@ -1,0 +1,13 @@
+# CODEOWNERS — reviewers automáticos em PRs.
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner pra tudo
+*                               @HelbertMoura
+
+# Subsistemas específicos (o owner continua o mesmo aqui — mantido pra
+# facilitar futura delegação)
+/src-tauri/                     @HelbertMoura
+/src/providers/                 @HelbertMoura
+/src/presets/                   @HelbertMoura
+/.github/                       @HelbertMoura
+*.md                            @HelbertMoura
