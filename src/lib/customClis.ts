@@ -17,6 +17,10 @@ export interface CustomCli {
 
 const STORAGE_KEY = 'ai-launcher:custom-clis';
 
+// Same-tab sync bus. Consumers (App.tsx, LauncherTab) subscribe to react to
+// AdminPanel edits without requiring a reload.
+export const CUSTOM_CLIS_CHANGED_EVENT = 'ai-launcher:custom-clis-changed';
+
 export function loadCustomClis(): CustomCli[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -36,6 +40,11 @@ export function loadCustomClis(): CustomCli[] {
 export function saveCustomClis(clis: CustomCli[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(clis));
+    try {
+      window.dispatchEvent(new CustomEvent(CUSTOM_CLIS_CHANGED_EVENT, { detail: clis }));
+    } catch {
+      /* ignore */
+    }
   } catch (e) {
     console.error('[customClis] save failed', e);
   }

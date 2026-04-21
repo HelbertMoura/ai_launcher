@@ -3,7 +3,7 @@
 // Extraído de App.tsx (Task 8 do split). JSX IDÊNTICO ao original.
 // ==============================================================================
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
@@ -13,7 +13,7 @@ import { PresetsBar } from '../presets/PresetsBar';
 import { ProviderSelector } from '../providers/ProviderSelector';
 import { CliIcon, CLI_COLORS } from '../App';
 import { Play, ExternalLink } from '../icons';
-import { loadCustomClis, type CustomCli } from '../lib/customClis';
+import { loadCustomClis, CUSTOM_CLIS_CHANGED_EVENT, type CustomCli } from '../lib/customClis';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
 import './LauncherTab.css';
@@ -144,7 +144,17 @@ export function LauncherTab(props: LauncherTabProps) {
   } = props;
 
   const { t } = useTranslation();
-  const [customClis] = useState(() => loadCustomClis());
+  const [customClis, setCustomClisState] = useState<CustomCli[]>(() => loadCustomClis());
+  // v7.1 same-tab sync: AdminPanel saves dispatch CUSTOM_CLIS_CHANGED_EVENT so
+  // the launcher picks up new/removed custom CLIs without reload.
+  useEffect(() => {
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent<CustomCli[]>).detail;
+      setCustomClisState(detail ?? loadCustomClis());
+    }
+    window.addEventListener(CUSTOM_CLIS_CHANGED_EVENT, onChange);
+    return () => window.removeEventListener(CUSTOM_CLIS_CHANGED_EVENT, onChange);
+  }, []);
 
   function cliDescription(key: string): string {
     return t(`launcher.cliDescriptions.${key}`, { defaultValue: '' });
