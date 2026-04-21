@@ -11,6 +11,8 @@ import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { CustomIdeModal } from './providers/CustomIdeModal';
 import { loadCustomIdes, saveCustomIdes, addCustomIde, removeCustomIde, type CustomIde } from './lib/customIdes';
+import { loadAppSettings } from './lib/appSettings';
+// commandTimeout: reserved for Tauri backend wiring in v7.1
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
@@ -241,6 +243,11 @@ function App() {
     };
   };
 
+  // v7 preferences (maxHistory, refreshInterval, commandTimeout).
+  // Stored via AdminPanel; cross-tab sync via storage event. Same-tab changes
+  // take effect on reload (v7.1 TODO: event bus or lifted state for live sync).
+  const [appSettings, setAppSettings] = useState(() => loadAppSettings());
+
   const installingRef = useRef<string | null>(null);
   const directoryInputRef = useRef<HTMLInputElement>(null);
 
@@ -386,6 +393,28 @@ function App() {
       checkAllUpdates(true); // silent no boot
     }
   }, [bootReady, hasChecked, clis.length]);
+
+  // v7 preferences: cross-tab sync via storage event.
+  // Note: `storage` only fires in OTHER tabs — same-tab AdminPanel changes
+  // require reload to take effect. v7.1 TODO: replace with event bus.
+  useEffect(() => {
+    function onStorage(e: StorageEvent) {
+      if (e.key === 'ai-launcher:app-settings') setAppSettings(loadAppSettings());
+    }
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // v7 preferences: auto-refresh CLI install state every N seconds (0 = disabled).
+  useEffect(() => {
+    if (appSettings.refreshInterval <= 0) return;
+    const ms = appSettings.refreshInterval * 1000;
+    const id = setInterval(() => {
+      checkInstalled();
+    }, ms);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appSettings.refreshInterval]);
 
   // Command Palette (Ctrl+Shift+P)
   useEffect(() => {
@@ -780,7 +809,8 @@ function App() {
       const isDup = history[0] && history[0].cliKey === newItem.cliKey &&
         history[0].directory === newItem.directory && history[0].args === newItem.args &&
         history[0].provider?.providerId === newItem.provider?.providerId;
-      const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
+      const cap = Math.max(1, appSettings.maxHistory);
+      const newHistory = isDup ? history : [newItem, ...history.slice(0, cap - 1)];
       setHistory(newHistory);
       saveConfig({ history: newHistory });
     } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
@@ -855,7 +885,8 @@ function App() {
         timestamp: new Date().toLocaleString('pt-BR'),
         provider: providerInfo,
       };
-      const newHistory = [newItem, ...history.slice(0, 49)];
+      const cap = Math.max(1, appSettings.maxHistory);
+      const newHistory = [newItem, ...history.slice(0, cap - 1)];
       setHistory(newHistory);
       saveConfig({ history: newHistory });
       showToast(t('toasts.launchedPreset', { emoji: p.emoji || '⚡', name: p.name }));
@@ -1526,7 +1557,8 @@ function App() {
               const isDup = history[0] && history[0].cliKey === newItem.cliKey &&
                 history[0].directory === newItem.directory && history[0].args === newItem.args &&
                 history[0].provider?.providerId === newItem.provider?.providerId;
-              const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
+              const cap = Math.max(1, appSettings.maxHistory);
+              const newHistory = isDup ? history : [newItem, ...history.slice(0, cap - 1)];
               setHistory(newHistory);
               saveConfig({ history: newHistory });
             } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }

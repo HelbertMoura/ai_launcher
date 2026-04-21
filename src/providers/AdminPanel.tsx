@@ -19,6 +19,13 @@ import { Download, Upload } from '../icons';
 import { downloadConfigJson, importConfig } from '../lib/configIO';
 import type { CustomCli } from '../lib/customClis';
 import { addCustomCli, loadCustomClis, removeCustomCli, saveCustomClis } from '../lib/customClis';
+import {
+  loadAppSettings,
+  saveAppSettings,
+  resetAppSettings,
+  DEFAULT_SETTINGS,
+  type AppSettings,
+} from '../lib/appSettings';
 
 interface AdminPanelProps {
   state: ProvidersState;
@@ -74,6 +81,19 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
   const [customClis, setCustomClis] = useState<CustomCli[]>(() => loadCustomClis());
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [editingCustomCli, setEditingCustomCli] = useState<CustomCli | null>(null);
+  const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
+
+  function updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
+    const next = { ...settings, [key]: value };
+    setSettings(next);
+    saveAppSettings(next);
+  }
+
+  function handleResetSettings() {
+    const reset = resetAppSettings();
+    setSettings(reset);
+    onToast(t('admin.settings.resetBtn'));
+  }
 
   const baseline = useMemo(() => state.profiles.find(p => p.id === 'anthropic'), [state.profiles]);
   const activeProfile = useMemo(() => state.profiles.find(p => p.id === state.activeId), [state.profiles, state.activeId]);
@@ -510,6 +530,65 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       </div>
 
       <AppearanceSection />
+
+      <section className="admin-section admin-settings">
+        <h3 className="admin-section__title">
+          <span>{t('admin.settings.title')}</span>
+        </h3>
+        <div className="admin-settings__fields">
+          <label className="admin-settings__field">
+            <span className="admin-settings__label">{t('admin.settings.maxHistory')}</span>
+            <input
+              type="number"
+              min="1"
+              max="1000"
+              className="admin-settings__input"
+              value={settings.maxHistory}
+              onChange={e =>
+                updateSetting(
+                  'maxHistory',
+                  Math.max(1, parseInt(e.target.value, 10) || DEFAULT_SETTINGS.maxHistory),
+                )
+              }
+            />
+            <span className="admin-settings__hint">{t('admin.settings.maxHistoryHint')}</span>
+          </label>
+          <label className="admin-settings__field">
+            <span className="admin-settings__label">{t('admin.settings.refreshInterval')}</span>
+            <input
+              type="number"
+              min="0"
+              max="3600"
+              className="admin-settings__input"
+              value={settings.refreshInterval}
+              onChange={e =>
+                updateSetting('refreshInterval', Math.max(0, parseInt(e.target.value, 10) || 0))
+              }
+            />
+            <span className="admin-settings__hint">{t('admin.settings.refreshIntervalHint')}</span>
+          </label>
+          <label className="admin-settings__field">
+            <span className="admin-settings__label">{t('admin.settings.commandTimeout')}</span>
+            <input
+              type="number"
+              min="1"
+              max="600"
+              className="admin-settings__input"
+              value={settings.commandTimeout}
+              onChange={e =>
+                updateSetting(
+                  'commandTimeout',
+                  Math.max(1, parseInt(e.target.value, 10) || DEFAULT_SETTINGS.commandTimeout),
+                )
+              }
+            />
+            <span className="admin-settings__hint">{t('admin.settings.commandTimeoutHint')}</span>
+          </label>
+        </div>
+        <button type="button" className="btn" onClick={handleResetSettings}>
+          {t('admin.settings.resetBtn')}
+        </button>
+      </section>
 
       <section className="admin-section admin-custom-clis">
         <h3 className="admin-section__title">
