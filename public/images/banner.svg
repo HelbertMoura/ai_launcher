@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="AI Launcher Pro — eight AI CLIs, one launcher">
+  <defs>
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A0A0C"/>
+      <stop offset="1" stop-color="#141418"/>
+    </linearGradient>
+    <pattern id="dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.7" fill="#2A2A30"/>
+    </pattern>
+    <linearGradient id="term-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17171B"/>
+      <stop offset="1" stop-color="#121216"/>
+    </linearGradient>
+    <linearGradient id="title-grad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F5F1E8"/>
+      <stop offset="1" stop-color="#E3DED0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#bg-grad)"/>
+  <rect width="1200" height="300" fill="url(#dots)" opacity="0.35"/>
+
+  <!-- Accent hairline at top-left -->
+  <line x1="0" y1="0" x2="520" y2="0" stroke="#58D68D" stroke-width="2" opacity="0.25"/>
+
+  <!-- Terminal mock on the left -->
+  <g transform="translate(40,40)">
+    <rect width="480" height="220" rx="10" ry="10" fill="url(#term-grad)" stroke="#2A2A30" stroke-width="1"/>
+    <!-- Title bar separator -->
+    <line x1="0" y1="40" x2="480" y2="40" stroke="#222228" stroke-width="1"/>
+    <!-- Traffic lights -->
+    <circle cx="22" cy="22" r="5.5" fill="#EC5545" opacity="0.9"/>
+    <circle cx="42" cy="22" r="5.5" fill="#EFBF38" opacity="0.9"/>
+    <circle cx="62" cy="22" r="5.5" fill="#55C658" opacity="0.9"/>
+    <!-- Title bar text -->
+    <text x="230" y="26" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="middle">ai_launcher — zsh — 120×24</text>
+
+    <!-- Prompt line 1 -->
+    <text x="22" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#58D68D">&gt;</text>
+    <text x="42" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E8E4DB">ai_launcher --provider kimi</text>
+
+    <!-- Output lines -->
+    <text x="22" y="110" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">[launching claude code via kimi-k2-0905]</text>
+    <text x="22" y="134" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">context: 256k  ·  cost: $0.60/M in</text>
+    <text x="22" y="158" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#7A7670">ok — session ready in 184ms</text>
+
+    <!-- Prompt line with blinking cursor (static) -->
+    <text x="22" y="194" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#58D68D">&gt;</text>
+    <rect x="42" y="181" width="10" height="16" fill="#E8E4DB" opacity="0.85"/>
+  </g>
+
+  <!-- Wordmark on the right -->
+  <g transform="translate(560,128)">
+    <!-- Small caret badge -->
+    <text x="0" y="-32" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#58D68D" letter-spacing="2">&gt; launcher.exec</text>
+
+    <!-- Main title -->
+    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="60" font-weight="800" letter-spacing="4" fill="url(#title-grad)">AI LAUNCHER</text>
+
+    <!-- Taglines -->
+    <text x="2" y="40" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="20" fill="#AFAAA0">eight AI CLIs. one launcher.</text>
+    <text x="2" y="68" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" font-style="italic" fill="#7A7670">bilingual · local-first · terminal-native</text>
+  </g>
+
+  <!-- Bottom hairline -->
+  <line x1="680" y1="258" x2="1160" y2="258" stroke="#2A2A30" stroke-width="1"/>
+
+  <!-- Version tag bottom-right -->
+  <g transform="translate(1160,278)">
+    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="end">v7.0+  ·  tauri v2  ·  react 19</text>
+  </g>
+</svg>
