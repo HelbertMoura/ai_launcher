@@ -1,136 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-label="AI Launcher Pro — eight AI CLIs, one launcher">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-label="AI Launcher Pro banner" font-family='"JetBrains Mono", "Cascadia Code", "Consolas", ui-monospace, monospace'>
   <defs>
-    <linearGradient id="bg-grad" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0A0A0C"/>
       <stop offset="1" stop-color="#141418"/>
     </linearGradient>
-    <pattern id="dots" x="0" y="0" width="22" height="22" patternUnits="userSpaceOnUse">
-      <circle cx="1" cy="1" r="0.7" fill="#2A2A30"/>
+    <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.6" fill="#2A2A30" fill-opacity="0.35"/>
     </pattern>
-    <linearGradient id="term-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#17171B"/>
-      <stop offset="1" stop-color="#121216"/>
-    </linearGradient>
-    <linearGradient id="titlebar-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1A1A1F"/>
-      <stop offset="1" stop-color="#0F0F14"/>
-    </linearGradient>
-    <linearGradient id="title-grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#F5F1E8"/>
-      <stop offset="1" stop-color="#E3DED0"/>
-    </linearGradient>
-    <radialGradient id="crt-glow" cx="0.5" cy="0.5" r="0.8">
-      <stop offset="0" stop-color="#E5514F" stop-opacity="0"/>
-      <stop offset="0.75" stop-color="#0A0A0C" stop-opacity="0"/>
-      <stop offset="1" stop-color="#0A0A0C" stop-opacity="0.55"/>
+    <pattern id="scanlines" x="0" y="0" width="4" height="3" patternUnits="userSpaceOnUse">
+      <rect x="0" y="0" width="4" height="1" fill="#FFFFFF" fill-opacity="0.03"/>
+    </pattern>
+    <radialGradient id="tlRed" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FF7264"/>
+      <stop offset="1" stop-color="#EC5545"/>
     </radialGradient>
-    <pattern id="scanlines" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="4" y2="0" stroke="#FFFFFF" stroke-width="0.5" opacity="0.05"/>
-    </pattern>
-    <clipPath id="term-clip">
-      <rect x="0" y="0" width="480" height="220" rx="10" ry="10"/>
-    </clipPath>
+    <radialGradient id="tlYellow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFD85C"/>
+      <stop offset="1" stop-color="#EFBF38"/>
+    </radialGradient>
+    <radialGradient id="tlGreen" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#74E07A"/>
+      <stop offset="1" stop-color="#55C658"/>
+    </radialGradient>
   </defs>
 
   <!-- Background -->
-  <rect width="1200" height="300" fill="url(#bg-grad)"/>
-  <rect width="1200" height="300" fill="url(#dots)" opacity="0.35"/>
+  <rect width="1200" height="400" fill="url(#bgGrad)"/>
+  <rect width="1200" height="400" fill="url(#dots)"/>
 
-  <!-- Accent hairline at top-left -->
-  <line x1="0" y1="0" x2="520" y2="0" stroke="#E5514F" stroke-width="2" opacity="0.25"/>
+  <!-- ============================= -->
+  <!-- LEFT PANEL: terminal mock     -->
+  <!-- ============================= -->
+  <g transform="translate(32,28)">
+    <!-- Panel shell -->
+    <rect x="0" y="0" width="620" height="284" rx="10" ry="10" fill="#16161A" stroke="#2A2A30" stroke-width="1"/>
 
-  <!-- Terminal mock on the left -->
-  <g transform="translate(40,40)">
-    <!-- Window body -->
-    <rect width="480" height="220" rx="10" ry="10" fill="url(#term-grad)" stroke="#2A2A30" stroke-width="1"/>
+    <!-- Title bar -->
+    <rect x="0" y="0" width="620" height="30" rx="10" ry="10" fill="#1A1A1F"/>
+    <rect x="0" y="16" width="620" height="14" fill="#1A1A1F"/>
+    <line x1="0" y1="30" x2="620" y2="30" stroke="#2A2A30" stroke-width="1"/>
 
-    <g clip-path="url(#term-clip)">
-      <!-- Title bar -->
-      <rect x="0" y="0" width="480" height="28" fill="url(#titlebar-grad)"/>
-      <line x1="0" y1="28" x2="480" y2="28" stroke="#2A2A30" stroke-width="1"/>
+    <!-- Traffic lights w/ halo -->
+    <circle cx="18" cy="15" r="8" fill="#EC5545" fill-opacity="0.18"/>
+    <circle cx="18" cy="15" r="5" fill="url(#tlRed)"/>
+    <circle cx="38" cy="15" r="8" fill="#EFBF38" fill-opacity="0.18"/>
+    <circle cx="38" cy="15" r="5" fill="url(#tlYellow)"/>
+    <circle cx="58" cy="15" r="8" fill="#55C658" fill-opacity="0.18"/>
+    <circle cx="58" cy="15" r="5" fill="url(#tlGreen)"/>
 
-      <!-- Traffic lights with subtle glow -->
-      <circle cx="18" cy="14" r="5.5" fill="#EC5545" opacity="0.35"/>
-      <circle cx="18" cy="14" r="4.5" fill="#EC5545"/>
-      <circle cx="36" cy="14" r="5.5" fill="#EFBF38" opacity="0.35"/>
-      <circle cx="36" cy="14" r="4.5" fill="#EFBF38"/>
-      <circle cx="54" cy="14" r="5.5" fill="#55C658" opacity="0.35"/>
-      <circle cx="54" cy="14" r="4.5" fill="#55C658"/>
+    <!-- Filename pill (centered) -->
+    <rect x="200" y="7" width="220" height="16" rx="8" ry="8" fill="#0F0F14" stroke="#2A2A30" stroke-width="1"/>
+    <text x="310" y="18" fill="#AFAAA0" font-size="10" text-anchor="middle" letter-spacing="0.4">ai-launcher — terminal — v7.1 — pt-BR</text>
 
-      <!-- Filename tab pill (centered) -->
-      <rect x="150" y="6" width="220" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.5"/>
-      <text x="260" y="17" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">ai-launcher — terminal — pt-BR</text>
+    <!-- Scanlines overlay on content area -->
+    <rect x="1" y="31" width="618" height="252" fill="url(#scanlines)"/>
 
-      <!-- Scanlines overlay inside body -->
-      <rect x="0" y="28" width="480" height="192" fill="url(#scanlines)" pointer-events="none"/>
-      <!-- CRT vignette -->
-      <rect x="0" y="28" width="480" height="192" fill="url(#crt-glow)" pointer-events="none"/>
+    <!-- Terminal content -->
+    <g font-size="13">
+      <!-- Line 1: invocation -->
+      <text x="20" y="58" fill="#E5514F">$</text>
+      <text x="36" y="58" fill="#E8E4DB">ai-launcher</text>
 
-      <!-- Body lines -->
-      <!-- Line 1: prompt + command -->
-      <text x="16" y="56" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
-      <text x="30" y="56" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E8E4DB">ai_launcher --provider kimi</text>
+      <!-- Line 2: active provider -->
+      <text x="20" y="82" fill="#E5514F">●</text>
+      <text x="36" y="82" fill="#AFAAA0">active:</text>
+      <text x="92" y="82" fill="#E8E4DB">kimi-k2-0905</text>
+      <text x="196" y="82" fill="#6D6A68">(256k ctx)</text>
 
-      <!-- Line 2: provider dot + meta -->
-      <circle cx="21" cy="75" r="4" fill="#E5514F"/>
-      <text x="30" y="80" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">kimi.moonshot · kimi-k2-0905-preview</text>
+      <!-- Line 3: launch command -->
+      <text x="20" y="114" fill="#E5514F">&gt;</text>
+      <text x="36" y="114" fill="#E8E4DB">launch claude</text>
+      <text x="144" y="114" fill="#AFAAA0">--dir ./app</text>
 
-      <!-- Line 3: muted body -->
-      <text x="30" y="100" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#6D6A68">context 256k · pricing $0.60/M in</text>
+      <!-- Line 4-5: launch meta -->
+      <text x="44" y="134" fill="#6D6A68">[env]</text>
+      <text x="88" y="134" fill="#AFAAA0">ANTHROPIC_BASE_URL</text>
+      <text x="240" y="134" fill="#6D6A68">: ***</text>
+      <text x="44" y="152" fill="#6D6A68">[pid]</text>
+      <text x="88" y="152" fill="#E8E4DB">44892</text>
+      <text x="140" y="152" fill="#6D6A68">· session ready 184ms</text>
 
-      <!-- Line 4: prompt + command -->
-      <text x="16" y="128" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
-      <text x="30" y="128" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E8E4DB">launch claude</text>
+      <!-- Line 6: history -->
+      <text x="20" y="184" fill="#E5514F">&gt;</text>
+      <text x="36" y="184" fill="#E8E4DB">history</text>
+      <text x="96" y="184" fill="#AFAAA0">--last 3</text>
 
-      <!-- Keycap hints to the right of the command -->
-      <g transform="translate(170,116)">
-        <rect x="0" y="0" width="28" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
-        <text x="14" y="12" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">⌘K</text>
-        <rect x="34" y="0" width="36" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
-        <text x="52" y="12" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">⌘⇧A</text>
-      </g>
+      <!-- History rows -->
+      <text x="44" y="204" fill="#E8E4DB">claude</text>
+      <text x="108" y="204" fill="#6D6A68">· 2h ago</text>
+      <text x="180" y="204" fill="#AFAAA0">1.2M tokens</text>
+      <text x="44" y="222" fill="#E8E4DB">codex</text>
+      <text x="108" y="222" fill="#6D6A68">· 5h ago</text>
+      <text x="180" y="222" fill="#AFAAA0">842K tokens</text>
+      <text x="44" y="240" fill="#E8E4DB">gemini</text>
+      <text x="108" y="240" fill="#6D6A68">· 9h ago</text>
+      <text x="180" y="240" fill="#AFAAA0">234K tokens</text>
 
-      <!-- Line 5: running status -->
-      <rect x="16" y="142" width="10" height="12" fill="#E5514F"/>
-      <text x="30" y="152" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#AFAAA0">running · pid 44892 · session ready in 184ms</text>
-
-      <!-- Line 6: active empty prompt with cursor block -->
-      <text x="16" y="180" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
-      <rect x="32" y="168" width="9" height="15" fill="#E5514F" opacity="0.9"/>
-
-      <!-- Bottom faint status strip -->
-      <line x1="0" y1="200" x2="480" y2="200" stroke="#2A2A30" stroke-width="0.5" opacity="0.7"/>
-      <text x="16" y="212" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="9" fill="#5A565A">zsh · utf-8 · 120×24</text>
-      <text x="464" y="212" text-anchor="end" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="9" fill="#5A565A">● online</text>
+      <!-- Prompt + cursor -->
+      <text x="20" y="268" fill="#E5514F">&gt;</text>
+      <rect x="36" y="257" width="9" height="14" fill="#E5514F"/>
     </g>
   </g>
 
-  <!-- Provider indicator badge above wordmark -->
-  <g transform="translate(560,78)">
-    <rect width="184" height="22" rx="4" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
-    <circle cx="14" cy="11" r="4" fill="#E5514F"/>
-    <text x="26" y="15" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="11" fill="#AFAAA0">kimi-k2 · 256k · v7.1</text>
+  <!-- ============================= -->
+  <!-- RIGHT PANEL: brand + ticks    -->
+  <!-- ============================= -->
+  <g transform="translate(684,28)">
+    <!-- Panel shell (softer than terminal) -->
+    <rect x="0" y="0" width="484" height="284" rx="10" ry="10" fill="#0F0F14" stroke="#2A2A30" stroke-width="1"/>
+
+    <!-- Wordmark -->
+    <text x="28" y="66" fill="#F5F1E8" font-size="38" font-weight="800" letter-spacing="3.2">AI LAUNCHER</text>
+    <text x="28" y="104" fill="#F5F1E8" font-size="38" font-weight="800" letter-spacing="3.2">PRO</text>
+    <!-- PRO accent underline -->
+    <rect x="28" y="112" width="88" height="3" fill="#E5514F"/>
+
+    <!-- Tagline -->
+    <text x="28" y="146" fill="#AFAAA0" font-size="14">eight AI CLIs. one terminal-native</text>
+    <text x="28" y="164" fill="#AFAAA0" font-size="14">launcher.</text>
+
+    <!-- Hairline separator -->
+    <line x1="28" y1="182" x2="456" y2="182" stroke="#2A2A30" stroke-width="1"/>
+
+    <!-- Feature ticks -->
+    <g font-size="13">
+      <text x="28" y="204" fill="#E5514F">▣</text>
+      <text x="48" y="204" fill="#E8E4DB">bilingual interface (EN / pt-BR)</text>
+
+      <text x="28" y="224" fill="#E5514F">▣</text>
+      <text x="48" y="224" fill="#E8E4DB">6 Anthropic-compatible providers</text>
+
+      <text x="28" y="244" fill="#E5514F">▣</text>
+      <text x="48" y="244" fill="#E8E4DB">custom CLIs + IDEs at runtime</text>
+
+      <text x="28" y="264" fill="#E5514F">▣</text>
+      <text x="48" y="264" fill="#E8E4DB">local-first, zero telemetry</text>
+    </g>
+
+    <!-- Second hairline -->
+    <line x1="28" y1="276" x2="456" y2="276" stroke="#2A2A30" stroke-width="1"/>
   </g>
 
-  <!-- Wordmark on the right -->
-  <g transform="translate(560,128)">
-    <!-- Small caret badge -->
-    <text x="0" y="-16" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F" letter-spacing="2">&gt; launcher.exec</text>
+  <!-- Footer strip -->
+  <g transform="translate(0,340)">
+    <rect x="0" y="0" width="1200" height="60" fill="#0F0F14"/>
+    <line x1="0" y1="0" x2="1200" y2="0" stroke="#2A2A30" stroke-width="1"/>
 
-    <!-- Main title -->
-    <text x="0" y="22" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="60" font-weight="800" letter-spacing="4" fill="url(#title-grad)">AI LAUNCHER</text>
+    <!-- Left: online indicator -->
+    <circle cx="40" cy="30" r="8" fill="#55C658" fill-opacity="0.18"/>
+    <circle cx="40" cy="30" r="4" fill="url(#tlGreen)"/>
+    <text x="54" y="34" fill="#AFAAA0" font-size="12">online</text>
+    <text x="108" y="34" fill="#5A565A" font-size="12">·</text>
+    <text x="120" y="34" fill="#AFAAA0" font-size="12">v7.1.0 · MIT licensed</text>
 
-    <!-- Taglines -->
-    <text x="2" y="62" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="20" fill="#AFAAA0">eight AI CLIs. one launcher.</text>
-    <text x="2" y="90" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" font-style="italic" fill="#7A7670">bilingual · local-first · terminal-native</text>
+    <!-- Center: stack -->
+    <text x="600" y="34" fill="#6D6A68" font-size="12" text-anchor="middle">tauri v2 · react 19 · windows first — macOS / Linux soon</text>
+
+    <!-- Right: date -->
+    <text x="1160" y="34" fill="#6D6A68" font-size="12" text-anchor="end">April 2026</text>
   </g>
 
-  <!-- Bottom hairline -->
-  <line x1="680" y1="258" x2="1160" y2="258" stroke="#2A2A30" stroke-width="1"/>
-
-  <!-- Version tag bottom-right -->
-  <g transform="translate(1160,278)">
-    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="end">v7.1  ·  tauri v2  ·  react 19</text>
-  </g>
+  <!-- Bottom hairline accent -->
+  <rect x="0" y="399" width="1200" height="1" fill="#E5514F" fill-opacity="0.3"/>
 </svg>
