@@ -39,6 +39,7 @@ export {
   HelpCircle,
   Type,
   CheckCircle2,
+  Globe,
 } from 'lucide-react';
 
 export { DEFAULT_ICON_SIZE, DEFAULT_STROKE_WIDTH } from './types';
