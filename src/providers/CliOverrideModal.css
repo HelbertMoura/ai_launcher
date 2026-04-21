@@ -1,0 +1,225 @@
+/* ==============================================================================
+   AI Launcher Pro - CliOverrideModal styling (v7.1)
+   Mirrors CustomCliModal visuals (terminal pane aesthetic) but specific to
+   the override modal to avoid coupling.
+============================================================================== */
+
+.cli-override-modal {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklch, var(--bg-base) 72%, transparent);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 120;
+  padding: 24px;
+}
+
+.cli-override-modal__frame {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  font-family: var(--ff-mono);
+  color: var(--text);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.cli-override-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.cli-override-modal__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex: 1;
+}
+
+.cli-override-modal__prompt {
+  color: var(--text-prompt);
+}
+
+.cli-override-modal__body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cli-override-modal__preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-dim);
+  border-radius: var(--radius-sm);
+}
+
+.cli-override-modal__preview-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cli-override-modal__preview-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.cli-override-modal__preview-icon svg {
+  display: block;
+}
+
+.cli-override-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cli-override-modal__label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cli-override-modal__input {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--d-base) var(--ease-terminal);
+}
+
+.cli-override-modal__input:focus {
+  border-color: var(--text-prompt);
+}
+
+.cli-override-modal__input--short {
+  max-width: 120px;
+}
+
+.cli-override-modal__hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cli-override-modal__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-dim);
+}
+
+.cli-override-modal__footer-spacer {
+  flex: 1;
+}
+
+.cli-override-modal__btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--d-base) var(--ease-terminal);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cli-override-modal__btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.cli-override-modal__btn.is-primary {
+  background: var(--text-prompt);
+  color: var(--bg-base);
+  border-color: var(--text-prompt);
+}
+
+.cli-override-modal__btn.is-primary:hover {
+  filter: brightness(1.08);
+}
+
+.cli-override-modal__btn--ghost {
+  color: var(--text-dim);
+}
+
+.cli-override-modal__btn--ghost:hover {
+  color: var(--text);
+}
+
+/* Edit button shown on hover over a built-in CLI/IDE card. */
+.launcher-cli-card__edit,
+.tool-card__edit {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--d-base) var(--ease-terminal),
+              border-color var(--d-base) var(--ease-terminal),
+              color var(--d-base) var(--ease-terminal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-mono);
+  font-size: 12px;
+  line-height: 1;
+  z-index: 2;
+}
+
+.launcher-cli-card { position: relative; }
+.tool-card { position: relative; }
+
+.launcher-cli-card:hover .launcher-cli-card__edit,
+.launcher-cli-card:focus-within .launcher-cli-card__edit,
+.tool-card:hover .tool-card__edit,
+.tool-card:focus-within .tool-card__edit {
+  opacity: 0.75;
+}
+
+.launcher-cli-card__edit:hover,
+.launcher-cli-card__edit:focus-visible,
+.tool-card__edit:hover,
+.tool-card__edit:focus-visible {
+  opacity: 1;
+  border-color: var(--border-dim);
+  color: var(--text);
+  outline: none;
+}

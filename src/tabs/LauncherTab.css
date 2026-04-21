@@ -72,6 +72,16 @@
   border-radius: 4px;
 }
 
+.launcher-cli-card__icon-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 18px;
+  line-height: 1;
+}
+
 .launcher-cli-card__name {
   flex: 1;
   margin: 0;

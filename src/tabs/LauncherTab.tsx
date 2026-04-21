@@ -14,6 +14,18 @@ import { ProviderSelector } from '../providers/ProviderSelector';
 import { CliIcon, CLI_COLORS } from '../App';
 import { Play, ExternalLink } from '../icons';
 import { loadCustomClis, CUSTOM_CLIS_CHANGED_EVENT, type CustomCli } from '../lib/customClis';
+import {
+  loadCliOverrides,
+  saveCliOverrides,
+  setCliOverride,
+  clearCliOverride,
+  getEffectiveName,
+  getEffectiveIcon,
+  CLI_OVERRIDES_CHANGED_EVENT,
+  type CliOverrides,
+  type CliOverride,
+} from '../lib/clisOverrides';
+import { CliOverrideModal, type CliOverrideTarget } from '../providers/CliOverrideModal';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
 import './LauncherTab.css';
@@ -145,6 +157,8 @@ export function LauncherTab(props: LauncherTabProps) {
 
   const { t } = useTranslation();
   const [customClis, setCustomClisState] = useState<CustomCli[]>(() => loadCustomClis());
+  const [cliOverrides, setCliOverridesState] = useState<CliOverrides>(() => loadCliOverrides());
+  const [overrideTarget, setOverrideTarget] = useState<CliOverrideTarget | null>(null);
   // v7.1 same-tab sync: AdminPanel saves dispatch CUSTOM_CLIS_CHANGED_EVENT so
   // the launcher picks up new/removed custom CLIs without reload.
   useEffect(() => {
@@ -155,6 +169,37 @@ export function LauncherTab(props: LauncherTabProps) {
     window.addEventListener(CUSTOM_CLIS_CHANGED_EVENT, onChange);
     return () => window.removeEventListener(CUSTOM_CLIS_CHANGED_EVENT, onChange);
   }, []);
+
+  // v7.1 override sync: pick up edits made in this or other tabs.
+  useEffect(() => {
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent<CliOverrides>).detail;
+      setCliOverridesState(detail ?? loadCliOverrides());
+    }
+    function onStorage(e: StorageEvent) {
+      if (e.key === 'ai-launcher:cli-overrides') setCliOverridesState(loadCliOverrides());
+    }
+    window.addEventListener(CLI_OVERRIDES_CHANGED_EVENT, onChange);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      window.removeEventListener(CLI_OVERRIDES_CHANGED_EVENT, onChange);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  function handleOverrideSave(key: string, override: CliOverride) {
+    const next = setCliOverride(cliOverrides, key, override);
+    saveCliOverrides(next);
+    setCliOverridesState(next);
+    setOverrideTarget(null);
+  }
+
+  function handleOverrideClear(key: string) {
+    const next = clearCliOverride(cliOverrides, key);
+    saveCliOverrides(next);
+    setCliOverridesState(next);
+    setOverrideTarget(null);
+  }
 
   function cliDescription(key: string): string {
     return t(`launcher.cliDescriptions.${key}`, { defaultValue: '' });
@@ -184,6 +229,18 @@ export function LauncherTab(props: LauncherTabProps) {
   const selectedCliData = clis.find(c => c.key === selectedCli);
   const cliInfo = installed[selectedCli] || { installed: false, version: null };
 
+  const overrideModal = (
+    <CliOverrideModal
+      open={!!overrideTarget}
+      target={overrideTarget}
+      current={overrideTarget ? (cliOverrides[overrideTarget.key] ?? {}) : {}}
+      onSave={handleOverrideSave}
+      onClear={handleOverrideClear}
+      onCancel={() => setOverrideTarget(null)}
+      kind="cli"
+    />
+  );
+
   // Empty-state: nenhum CLI instalado ainda
   if (bootReady && hasChecked && installedClis.length === 0 && clis.length > 0) {
     return (
@@ -191,6 +248,7 @@ export function LauncherTab(props: LauncherTabProps) {
         <div style={{ flex: 1 }}>
           <EmptyState onInstallClick={() => setActiveTab('install')} />
         </div>
+        {overrideModal}
       </div>
     );
   }
@@ -216,6 +274,8 @@ export function LauncherTab(props: LauncherTabProps) {
               });
               const isSelected = selectedCli === cli.key;
               const stateClass = info.installed ? 'is-installed' : 'is-missing';
+              const displayName = getEffectiveName(cli.key, cli.name, cliOverrides);
+              const overrideEmoji = getEffectiveIcon(cli.key, cliOverrides);
               return (
                 <article
                   key={cli.key}
@@ -232,12 +292,30 @@ export function LauncherTab(props: LauncherTabProps) {
                   tabIndex={0}
                   aria-pressed={isSelected}
                 >
+                  <button
+                    type="button"
+                    className="launcher-cli-card__edit"
+                    aria-label={t('overrides.editBtnAria', { name: displayName })}
+                    title={t('overrides.editBtnAria', { name: displayName })}
+                    onClick={e => {
+                      e.stopPropagation();
+                      setOverrideTarget({
+                        key: cli.key,
+                        builtinName: cli.name,
+                        builtinIcon: <CliIcon cliKey={cli.key} size={20} />,
+                      });
+                    }}
+                  >
+                    ✎
+                  </button>
                   <header className="launcher-cli-card__head">
                     <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
-                    <span className="launcher-cli-card__icon">
-                      <CliIcon cliKey={cli.key} size={20} />
+                    <span className="launcher-cli-card__icon" aria-hidden="true">
+                      {overrideEmoji
+                        ? <span className="launcher-cli-card__icon-emoji">{overrideEmoji}</span>
+                        : <CliIcon cliKey={cli.key} size={20} />}
                     </span>
-                    <h3 className="launcher-cli-card__name">{cli.name.toUpperCase()}</h3>
+                    <h3 className="launcher-cli-card__name">{displayName.toUpperCase()}</h3>
                     <span className="launcher-cli-card__version">
                       {!hasChecked
                         ? <Skeleton width={40} height={10} />
@@ -465,6 +543,7 @@ export function LauncherTab(props: LauncherTabProps) {
           </button>
         )}
       </div>
+      {overrideModal}
     </div>
   );
 }

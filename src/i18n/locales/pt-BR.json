@@ -653,6 +653,20 @@
     "addBtn": "+ Adicionar IDE custom",
     "customBadge": "custom"
   },
+  "overrides": {
+    "editTitle": "Customizar: {{name}}",
+    "nameLabel": "Nome de exibição",
+    "nameHint": "Deixe em branco para usar o padrão",
+    "iconLabel": "Ícone (emoji ou texto curto)",
+    "iconHint": "Até 3 caracteres; deixe em branco para usar o SVG padrão",
+    "iconPreview": "Prévia:",
+    "reset": "restaurar padrão",
+    "save": "salvar",
+    "cancel": "cancelar",
+    "editBtnAria": "Customizar {{name}}",
+    "restoredToast": "{{name}} restaurado ao padrão",
+    "savedToast": "{{name}} customizado"
+  },
   "footer": {
     "by": "by Helbert Moura",
     "poweredBy": "Powered by DevManiac's",
