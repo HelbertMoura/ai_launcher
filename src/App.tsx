@@ -1005,17 +1005,17 @@ function App() {
                 ))}
               </div>
               <button className="welcome-btn" onClick={() => { setWelcomeVisible(false); if (isFirstTime) checkInstalled(); }}>
-                🚀 Continuar para o Launcher
+                {t('welcome.continueToLauncher')}
               </button>
             </div>
           ) : (
             <>
               <button className="welcome-btn" onClick={() => { checkEnvironment(); checkInstalled(); }}>
-                🔍 Validar Sistema
+                {t('welcome.validateSystem')}
               </button>
               {!isFirstTime && (
                 <button className="welcome-btn secondary" onClick={() => setWelcomeVisible(false)}>
-                  ➜ Ir direto para o Launcher
+                  {t('welcome.goDirectly')}
                 </button>
               )}
               {isFirstTime && (
@@ -1023,7 +1023,7 @@ function App() {
                   setHasChecked(true); setWelcomeVisible(false);
                   saveConfig({ hasChecked: true });
                 }}>
-                  Pular validação
+                  {t('welcome.skipValidation')}
                 </button>
               )}
             </>
@@ -1125,7 +1125,7 @@ function App() {
           </div>
           <div className="install-top-actions">
             <button className="btn" onClick={checkEnvironment} disabled={checkingEnv}>
-              {checkingEnv ? <><span className="spinner-sm" /> <Skeleton width={84} height={10} /></> : '🔍 Re-verificar Pré-requisitos'}
+              {checkingEnv ? <><span className="spinner-sm" /> <Skeleton width={84} height={10} /></> : t('installTab.recheckPrereqs')}
             </button>
           </div>
 
@@ -1167,7 +1167,7 @@ function App() {
                     </div>
                     <div className="install-action">
                       {installingCli === cli.key ? (
-                        <span className="installing-badge"><span className="spinner-sm" /> Instalando...</span>
+                        <span className="installing-badge"><span className="spinner-sm" /> {t('installTab.installing')}</span>
                       ) : (
                         <button className="btn-install" onClick={() => installCli(cli.key)} disabled={!!installingCli}>{t('installTab.installButton')}</button>
                       )}
@@ -1180,7 +1180,7 @@ function App() {
 
           {installedClis.length > 0 && (
             <div className="install-section">
-              <div className="install-section-title">✓ Instalados ({installedClis.length})</div>
+              <div className="install-section-title">{t('installTab.installedSection', { n: installedClis.length })}</div>
               <div className="install-list">
                 {installedClis.map(cli => {
                   const info = installed[cli.key];
@@ -1192,7 +1192,7 @@ function App() {
                         <div className="install-version">{info?.version || t('launcher.installed')}</div>
                       </div>
                       <div className="install-action">
-                        <span className="installed-badge">✓ Instalado</span>
+                        <span className="installed-badge">{t('installTab.installedBadge')}</span>
                       </div>
                     </div>
                   );
@@ -1223,7 +1223,7 @@ function App() {
             <h2>{t('header.tabs.tools')}</h2>
             <div className="tools-header-actions">
               <button className="btn" onClick={checkToolsInstalled} disabled={checkingTools}>
-                {checkingTools ? <><span className="spinner-sm" /> <Skeleton width={60} height={10} /></> : '🔄 Re-verificar'}
+                {checkingTools ? <><span className="spinner-sm" /> <Skeleton width={60} height={10} /></> : t('toolsTab.recheck')}
               </button>
               {lastToolsCheck && <span className="last-check">{t('toolsTab.lastCheck', { time: lastToolsCheck })}</span>}
             </div>
@@ -1267,11 +1267,11 @@ function App() {
             <div className="updates-global-actions">
               {updatesSummary && (
                 <span className="updates-timestamp">
-                  Última: {formatTimestamp(updatesSummary.checked_at)} · {updateCount} com update
+                  {t('updatesTab.lastCheck', { time: formatTimestamp(updatesSummary.checked_at), n: updateCount })}
                 </span>
               )}
               <button className="btn" onClick={() => checkAllUpdates(false)} disabled={checkingAllUpdates}>
-                {checkingAllUpdates ? <><span className="spinner-sm" /> <Skeleton width={72} height={10} /></> : '🔄 Verificar tudo'}
+                {checkingAllUpdates ? <><span className="spinner-sm" /> <Skeleton width={72} height={10} /></> : t('updatesTab.checkAll')}
               </button>
               {updatesSummary && updatesSummary.cli_updates.some(u => u.has_update) && (
                 <button className="btn btn-primary" onClick={updateAllClis} disabled={updatingAll || !!installingCli}>
@@ -1292,9 +1292,9 @@ function App() {
               {/* CLIs */}
               <details className="updates-section" open>
                 <summary>
-                  <span>🤖 CLIs de IA</span>
+                  <span>{t('updatesTab.aiClisGroup')}</span>
                   <span className="updates-section-counter">
-                    {updatesSummary.cli_updates.filter(u => u.has_update).length} com update / {updatesSummary.cli_updates.length}
+                    {t('updatesTab.counter', { n: updatesSummary.cli_updates.filter(u => u.has_update).length, total: updatesSummary.cli_updates.length })}
                   </span>
                 </summary>
                 <div className="updates-list">
@@ -1316,12 +1316,12 @@ function App() {
                         <div className="update-action">
                           {u.has_update ? (
                             <button className="btn-update" onClick={() => updateCli(cliKey)} disabled={isUpdating || !!installingCli}>
-                              {isUpdating ? <><span className="spinner-sm" /> ...</> : '⬆ Atualizar'}
+                              {isUpdating ? <><span className="spinner-sm" /> ...</> : t('updatesTab.updateBtn')}
                             </button>
                           ) : !u.current ? (
-                            <span className="badge-neutral">? não instalado</span>
+                            <span className="badge-neutral">{t('updatesTab.notInstalledBadge')}</span>
                           ) : (
-                            <span className="badge-uptodate">✓ Atualizado</span>
+                            <span className="badge-uptodate">{t('updatesTab.upToDateBadge')}</span>
                           )}
                         </div>
                       </div>
@@ -1333,9 +1333,9 @@ function App() {
               {/* Pré-requisitos */}
               <details className="updates-section" open>
                 <summary>
-                  <span>⚙️ Pré-requisitos</span>
+                  <span>{t('updatesTab.prereqsGroup')}</span>
                   <span className="updates-section-counter">
-                    {updatesSummary.env_updates.filter(u => u.has_update).length} com update / {updatesSummary.env_updates.length}
+                    {t('updatesTab.counter', { n: updatesSummary.env_updates.filter(u => u.has_update).length, total: updatesSummary.env_updates.length })}
                   </span>
                 </summary>
                 <div className="updates-list">
@@ -1365,7 +1365,7 @@ function App() {
                               title={t('updatesTab.updateViaNpm')}
                               aria-label={t('updatesTab.updateCliLabel', { cli: u.cli })}
                             >
-                              {isUpdatingThis ? <><span className="spinner-sm" /> ...</> : '⬆ Atualizar'}
+                              {isUpdatingThis ? <><span className="spinner-sm" /> ...</> : t('updatesTab.updateBtn')}
                             </button>
                           ) : u.has_update ? (
                             <button
@@ -1375,7 +1375,7 @@ function App() {
                               title={t('updatesTab.openDownloadPage')}
                               aria-label={t('updatesTab.openDownloadLabel', { cli: u.cli })}
                             >
-                              {isUpdatingThis ? <><span className="spinner-sm" /> abrindo...</> : '🌐 Abrir página'}
+                              {isUpdatingThis ? <><span className="spinner-sm" /> {t('updatesTab.opening')}</> : t('updatesTab.openPage')}
                             </button>
                           ) : u.latest ? (
                             <span className="badge-uptodate" title={t('updatesTab.upToDate')}>✓</span>
@@ -1477,20 +1477,20 @@ function App() {
 
             <section id="help-security">
               <h3>{t('helpTab.securityTitle')}</h3>
-              <p>Se o Windows Defender ou SmartScreen sinalizar o app: é falso-positivo típico de binários novos. O app é assinado com um cert self-signed (DevManiacs). Para eliminar o alerta nesta máquina, o cert já foi instalado no Trusted Root. Em outras máquinas, o usuário precisa importar o <code>.cer</code> manualmente, OU o autor precisa comprar cert real (Sectigo, DigiCert, SSL.com ou Azure Trusted Signing).</p>
-              <p>Todo install/update agora roda via <code>tokio::process</code> direto, sem <code>cmd /C</code> intermediário — isso elimina a heurística "processo oculto → cmd invisível → baixa da internet" que disparava o Defender.</p>
+              <p>{t('helpTab.securityBody1')}</p>
+              <p>{t('helpTab.securityBody2')}</p>
             </section>
 
             <section id="help-troubleshoot">
               <h3>{t('helpTab.troubleshootTitle')}</h3>
-              <details><summary>Um CLI aparece como "detectado" mas sem versão</summary>
-                <p>O binário existe no PATH mas o comando <code>--version</code> retornou output não parseável. Geralmente é benigno — o CLI funciona. Tente rodar o comando manualmente no terminal para confirmar.</p>
+              <details><summary>{t('helpTab.troubleshootItem1Title')}</summary>
+                <p>{t('helpTab.troubleshootItem1Body')}</p>
               </details>
-              <details><summary>Instalação trava ou falha</summary>
-                <p>Veja o log ao vivo na aba Instalar (painel embaixo). Log persistente em <code>%APPDATA%/ai-launcher/install.log</code>. Causas comuns: falta de permissão pro npm global, proxy corporativo, Defender bloqueando npm.</p>
+              <details><summary>{t('helpTab.troubleshootItem2Title')}</summary>
+                <p>{t('helpTab.troubleshootItem2Body')}</p>
               </details>
-              <details><summary>"Diretório não existe" ao lançar</summary>
-                <p>O caminho digitado não existe no disco ou foi deletado. Use o botão 📂 Escolher para selecionar uma pasta válida.</p>
+              <details><summary>{t('helpTab.troubleshootItem3Title')}</summary>
+                <p>{t('helpTab.troubleshootItem3Body')}</p>
               </details>
             </section>
 
@@ -1502,15 +1502,15 @@ function App() {
                 saveConfig({ hideWelcome: false });
                 showToast(t('toasts.welcomeOnNext'));
               }} disabled={!hideWelcome}>
-                {hideWelcome ? '👋 Reativar welcome na próxima abertura' : '✓ Welcome já está ativa'}
+                {hideWelcome ? t('helpTab.reenableWelcome') : t('helpTab.welcomeAlreadyActive')}
               </button>
               <button className="btn" style={{marginLeft: 8}} onClick={() => setWelcomeVisible(true)}>
-                ↺ Voltar para welcome agora
+                {t('helpTab.backToWelcome')}
               </button>
             </section>
 
             <section id="help-tray">
-              <h3>🖥️ System Tray</h3>
+              <h3>{t('helpTab.trayTitle')}</h3>
               <p>{t('helpTab.traySection')}</p>
               <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
                 <input
@@ -1531,7 +1531,7 @@ function App() {
                   onBlur={saveTrayHotkey}
                   placeholder="CommandOrControl+Alt+Space"
                 />
-                <button className="btn" onClick={resetTrayHotkey}>↺ Reset</button>
+                <button className="btn" onClick={resetTrayHotkey}>{t('helpTab.resetTrayHotkey')}</button>
               </div>
               <p className="help-text" style={{ marginTop: 6, opacity: 0.75, fontSize: '0.85em' }}>
                 {t('helpTab.trayShortcutHelp')}
@@ -1539,15 +1539,15 @@ function App() {
             </section>
 
             <section id="help-onboarding">
-              <h3>🎓 Onboarding</h3>
-              <p>Reveja o tour de boas-vindas com atalhos e instalação guiada.</p>
-              <button className="btn" onClick={reopenOnboarding}>↺ Reabrir onboarding</button>
+              <h3>{t('helpTab.onboardingTitle')}</h3>
+              <p>{t('helpTab.onboardingBody')}</p>
+              <button className="btn" onClick={reopenOnboarding}>{t('helpTab.reopenOnboarding')}</button>
             </section>
 
             <section id="help-reset">
               <h3>{t('helpTab.resetTitle')}</h3>
               <p>{t('helpTab.resetBody')}</p>
-              <button className="btn btn-danger" onClick={resetAllConfig}>🗑️ Resetar tudo</button>
+              <button className="btn btn-danger" onClick={resetAllConfig}>{t('helpTab.resetAll')}</button>
             </section>
 
             <section id="help-support">
@@ -1638,7 +1638,7 @@ function App() {
       <HelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
 
       <footer className="footer">
-        <span>✓ {clis.filter(c => installed[c.key]?.installed).length}/{clis.length} CLIs{updateCount > 0 && <span className="footer-updates"> · {t('toasts.updatesAvailable', { count: updateCount })}</span>}</span>
+        <span>{t('footer.clisCount', { n: clis.filter(c => installed[c.key]?.installed).length, total: clis.length })}{updateCount > 0 && <span className="footer-updates"> · {t('toasts.updatesAvailable', { count: updateCount })}</span>}</span>
         <span>{t('footer.by')} • {t('footer.poweredBy')}</span>
       </footer>
     </div>

@@ -254,23 +254,17 @@ export default function CostAggregator() {
     <div className="cost-root">
       <div className="cost-header">
         <div>
-          <h2 className="cost-title">💰 Custos & Uso dos CLIs</h2>
-          <p className="cost-sub">
-            Leitura local dos arquivos de uso do Claude Code, Codex e Gemini.
-            Nada é enviado para fora da sua máquina.
-          </p>
+          <h2 className="cost-title">{t('costs.header.title')}</h2>
+          <p className="cost-sub">{t('costs.header.sub')}</p>
         </div>
         <button className="cost-btn" onClick={load}>
-          ↻ {t('common.refresh')}
+          {t('common.refresh')}
         </button>
       </div>
 
       {!hasData && (
         <div className="cost-empty">
-          <p>
-            Nenhum dado de uso encontrado. Rode algum CLI (Claude / Codex /
-            Gemini) primeiro para gerar os arquivos de telemetria local.
-          </p>
+          <p>{t('costs.empty.body')}</p>
           <ul className="cost-empty-list">
             <li>
               <code>~/.claude/usage.jsonl</code>
@@ -290,7 +284,7 @@ export default function CostAggregator() {
           {/* ===== Hero: total hoje + barra de orçamento ===== */}
           <section className="costs-hero">
             <h1 className="costs-hero__value">$ {totalToday.toFixed(2)}</h1>
-            <span className="costs-hero__label">total hoje</span>
+            <span className="costs-hero__label">{t('costs.hero.totalToday')}</span>
             {budget > 0 && (
               <div className="costs-budget">
                 <div className="costs-budget__track">
@@ -300,7 +294,7 @@ export default function CostAggregator() {
                   />
                 </div>
                 <span className="costs-budget__label">
-                  ${totalToday.toFixed(2)} / ${budget.toFixed(2)} daily
+                  ${totalToday.toFixed(2)} / ${budget.toFixed(2)} {t('costs.dailyLabel')}
                 </span>
               </div>
             )}
@@ -377,13 +371,13 @@ export default function CostAggregator() {
           {providerRestated && Object.keys(providerRestated.byProvider).length > 1 && (
             <section className="cost-section">
               <h3 className="cost-section-title">
-                Por Provider (reestimado com preços do Admin)
+                {t('costs.providerSection.title')}
               </h3>
               <p className="cost-sub" style={{ marginTop: 0 }}>
-                Total ajustado: <strong>{formatUsd(providerRestated.adjustedTotal)}</strong>
+                {t('costs.providerSection.totalAdjusted')} <strong>{formatUsd(providerRestated.adjustedTotal)}</strong>
                 {Math.abs(providerRestated.adjustedTotal - report.total_cost_usd) > 0.005 && (
                   <span style={{ marginLeft: 8, opacity: 0.7 }}>
-                    (vs. {formatUsd(report.total_cost_usd)} do backend)
+                    {t('costs.providerSection.backendCompare', { total: formatUsd(report.total_cost_usd) })}
                   </span>
                 )}
               </p>
@@ -436,7 +430,7 @@ export default function CostAggregator() {
             className="cost-warnings-toggle"
             onClick={() => setShowWarnings((v) => !v)}
           >
-            {showWarnings ? '▼' : '▶'} Avisos ({report.warnings.length})
+            {showWarnings ? '▼' : '▶'} {t('costs.warnings', { n: report.warnings.length })}
           </button>
           {showWarnings && (
             <ul className="cost-warnings-list">
@@ -450,9 +444,7 @@ export default function CostAggregator() {
 
       {/* ===== Rodapé ===== */}
       <footer className="cost-footer">
-        Estimativa baseada em tabela de preços hardcoded — não é cobrança
-        oficial. Atualize <code>price_per_mtoken</code> em <code>main.rs</code>{' '}
-        quando a tabela de preços dos provedores mudar.
+        {t('costs.footer')}
       </footer>
     </div>
   );

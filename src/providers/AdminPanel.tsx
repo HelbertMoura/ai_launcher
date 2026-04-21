@@ -106,19 +106,19 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
     onChange(next);
     setEditingId(null);
     setDraft(null);
-    onToast(`Perfil "${profile.name}" salvo`);
+    onToast(t('admin.toasts.profileSaved', { name: profile.name }));
   }
 
   function handleDelete(profile: ProviderProfile) {
     if (profile.builtin) { onToast(t('admin.toasts.builtinNotDeletable')); return; }
-    if (!confirm(`Excluir perfil "${profile.name}"?`)) return;
+    if (!confirm(t('admin.confirmDelete', { name: profile.name }))) return;
     onChange(removeProfile(state, profile.id));
-    onToast(`Perfil "${profile.name}" excluído`);
+    onToast(t('admin.toasts.profileDeleted', { name: profile.name }));
   }
 
   function handleActivate(profile: ProviderProfile) {
     onChange(setActive(state, profile.id));
-    onToast(`Provider ativo: ${profile.name}`);
+    onToast(t('admin.toasts.activeSet', { name: profile.name }));
   }
 
   async function handleTest(profile: ProviderProfile) {
@@ -151,9 +151,9 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       onChange(next);
       setImportText('');
       setShowImport(false);
-      onToast(`Importado ${next.profiles.length} perfis`);
+      onToast(t('admin.toasts.importOk', { count: next.profiles.length }));
     } catch (e: unknown) {
-      onToast(`Erro no import: ${e instanceof Error ? e.message : String(e)}`);
+      onToast(t('admin.toasts.importError', { error: e instanceof Error ? e.message : String(e) }));
     }
   }
 
@@ -170,7 +170,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       const msg = await invoke<string>('reset_claude_state');
       onToast(msg);
     } catch (e) {
-      onToast(`Erro: ${e instanceof Error ? e.message : String(e)}`);
+      onToast(t('admin.toasts.resetClaudeError', { error: e instanceof Error ? e.message : String(e) }));
     }
   }
 
@@ -179,7 +179,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       downloadConfigJson(appVersion ?? 'unknown');
       onToast(t('admin.toasts.configExported'));
     } catch (e: unknown) {
-      onToast(`Erro no export: ${e instanceof Error ? e.message : String(e)}`);
+      onToast(t('admin.toasts.exportError', { error: e instanceof Error ? e.message : String(e) }));
     }
   }
 
@@ -195,14 +195,12 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
         const mode = confirm(t('admin.confirmMerge')) ? 'merge' : 'replace';
         const result = importConfig(text, mode);
         if (!result.ok) {
-          onToast(`Import falhou: ${result.error}`);
+          onToast(t('admin.toasts.importBackupFailed', { error: result.error }));
           return;
         }
-        onToast(
-          `Import OK. ${result.redactedCount} secret(s) redacted - edite manualmente. Reload p/ aplicar.`,
-        );
+        onToast(t('admin.toasts.importBackupOk', { count: result.redactedCount }));
       } catch (err: unknown) {
-        onToast(`Erro no import: ${err instanceof Error ? err.message : String(err)}`);
+        onToast(t('admin.toasts.backupImportError', { error: err instanceof Error ? err.message : String(err) }));
       }
     };
     input.click();
@@ -244,16 +242,16 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
     <div className="admin-panel">
       <div className="admin-header">
         <div>
-          <h2>⚙️ Painel Admin — Providers</h2>
+          <h2>{t('admin.header.title')}</h2>
           <p className="admin-sub">
-            Gerencia perfis de provider Anthropic-compatible (Z.AI, MiniMax, etc.). Perfil ativo:{' '}
+            {t('admin.header.sub')}{' '}
             <strong>{activeProfile?.name || '—'}</strong>
           </p>
         </div>
         <div className="admin-actions">
-          <button className="btn" onClick={startCreate}>+ Novo perfil</button>
+          <button className="btn" onClick={startCreate}>{t('admin.actions.newProfile')}</button>
           <button className="btn" onClick={handleExport} title={t('admin.buttons.exportTitle')}>{t('admin.buttons.export')}</button>
-          <button className="btn" onClick={() => setShowImport(v => !v)}>⬆ Importar</button>
+          <button className="btn" onClick={() => setShowImport(v => !v)}>{t('admin.actions.import')}</button>
           <button className="btn btn-danger" onClick={handleReset} title={t('admin.buttons.resetTitle')}>{t('admin.buttons.reset')}</button>
           <button
             className="btn btn-warn"
@@ -261,24 +259,24 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
             title={t('admin.buttons.resetClaudeTitle')}
             aria-label={t('admin.buttons.resetClaudeLabel')}
           >
-            🧹 Reset Claude state
+            {t('admin.actions.resetClaude')}
           </button>
         </div>
       </div>
 
       {showImport && (
         <div className="admin-card admin-import">
-          <div className="section-title">Colar JSON de import</div>
+          <div className="section-title">{t('admin.import.title')}</div>
           <textarea
             className="input admin-import-ta"
             value={importText}
             onChange={e => setImportText(e.target.value)}
-            placeholder='{"version":1,"profiles":[...],"activeId":"anthropic"}'
+            placeholder={t('admin.import.placeholder')}
             rows={6}
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button className="btn" onClick={handleImport}>Importar</button>
-            <button className="btn" onClick={() => { setShowImport(false); setImportText(''); }}>Cancelar</button>
+            <button className="btn" onClick={handleImport}>{t('admin.import.submit')}</button>
+            <button className="btn" onClick={() => { setShowImport(false); setImportText(''); }}>{t('admin.import.cancel')}</button>
           </div>
         </div>
       )}
@@ -294,18 +292,18 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
               <div className="admin-card-head">
                 <div>
                   <strong>{profile.name}</strong>
-                  {profile.builtin && <span className="admin-tag">built-in</span>}
+                  {profile.builtin && <span className="admin-tag">{t('admin.cardBody.builtIn')}</span>}
                   {isActive && <span className="admin-tag admin-tag-active">{t('common.active')}</span>}
                 </div>
                 <div className="admin-card-actions">
-                  {!isActive && <button className="btn btn-sm" onClick={() => handleActivate(profile)}>Ativar</button>}
-                  <button className="btn btn-sm" onClick={() => startEdit(profile)}>Editar</button>
-                  <button className="btn btn-sm" onClick={() => handleTest(profile)} disabled={testing}>Testar</button>
+                  {!isActive && <button className="btn btn-sm" onClick={() => handleActivate(profile)}>{t('admin.cardActions.activate')}</button>}
+                  <button className="btn btn-sm" onClick={() => startEdit(profile)}>{t('admin.cardActions.edit')}</button>
+                  <button className="btn btn-sm" onClick={() => handleTest(profile)} disabled={testing}>{t('admin.cardActions.test')}</button>
                   <button
                     className="btn btn-sm"
                     onClick={() => openDocs(DOCS_LINKS[profile.kind].url)}
                     title={DOCS_LINKS[profile.kind].label}
-                  >↗ Docs</button>
+                  >{t('admin.cardActions.docs')}</button>
                   {!profile.builtin && (
                     <button
                       className="btn btn-sm btn-danger"
@@ -317,12 +315,12 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 </div>
               </div>
               <div className="admin-card-body">
-                <div className="admin-row"><span>baseUrl</span><code>{profile.baseUrl || '(oficial Anthropic)'}</code></div>
-                <div className="admin-row"><span>opus/sonnet →</span><code>{profile.mainModel}</code></div>
-                <div className="admin-row"><span>haiku →</span><code>{profile.fastModel}</code></div>
-                <div className="admin-row"><span>context</span><code>{profile.contextWindow.toLocaleString()} tokens</code></div>
+                <div className="admin-row"><span>{t('admin.cardBody.baseUrl')}</span><code>{profile.baseUrl || t('admin.cardBody.officialAnthropic')}</code></div>
+                <div className="admin-row"><span>{t('admin.cardBody.opusSonnet')}</span><code>{profile.mainModel}</code></div>
+                <div className="admin-row"><span>{t('admin.cardBody.haiku')}</span><code>{profile.fastModel}</code></div>
+                <div className="admin-row"><span>{t('admin.cardBody.context')}</span><code>{t('admin.cardBody.contextUnit', { n: profile.contextWindow.toLocaleString() })}</code></div>
                 <div className="admin-row">
-                  <span>custo ~sessão (50k in + 10k out)</span>
+                  <span>{t('admin.cardBody.costSession')}</span>
                   <code>
                     {formatUSD(cost.perTypicalSession)}
                     {saving && <span className="admin-saving"> · {saving}</span>}
@@ -339,21 +337,21 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
         <div className="admin-editor">
           <div className="section-title">{editingId === '__new__' ? t('admin.form.newProfile') : t('admin.form.editing', { name: draft.name })}</div>
           <div className="admin-form">
-            <label>Nome
+            <label>{t('admin.form.labels.name')}
               <input className="input" value={draft.name} onChange={e => updateDraft('name', e.target.value)} placeholder={t('admin.form.namePlaceholder')} />
             </label>
-            <label>Tipo
+            <label>{t('admin.form.labels.kind')}
               <select className="input" value={draft.kind} onChange={e => updateDraft('kind', e.target.value as ProviderProfile['kind'])}>
                 {PROVIDER_KIND_VALUES.map(v => <option key={v} value={v}>{t(`admin.providerKinds.${v}`)}</option>)}
               </select>
             </label>
-            <label>ID (slug, opcional)
+            <label>{t('admin.form.labels.id')}
               <input className="input" value={draft.id} onChange={e => updateDraft('id', slugify(e.target.value))} placeholder={t('admin.form.idPlaceholder')} disabled={!!draft.builtin} />
             </label>
-            <label>Base URL
+            <label>{t('admin.form.labels.baseUrl')}
               <input className="input" value={draft.baseUrl} onChange={e => updateDraft('baseUrl', e.target.value)} placeholder={t('admin.form.baseUrlPlaceholder')} />
             </label>
-            <label>API Key
+            <label>{t('admin.form.labels.apiKey')}
               <div style={{ display: 'flex', gap: 6 }}>
                 <input
                   className="input"
@@ -366,7 +364,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 <button className="btn btn-sm" type="button" onClick={() => setShowKey(v => !v)}>{showKey ? '🙈' : '👁'}</button>
               </div>
             </label>
-            <label>Modelo principal (opus/sonnet →)
+            <label>{t('admin.form.labels.mainModel')}
               <input
                 className="input"
                 value={draft.mainModel}
@@ -378,7 +376,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 {hintsFor(draft.kind, 'main').map(m => <option key={m} value={m} />)}
               </datalist>
             </label>
-            <label>Modelo fast (haiku →)
+            <label>{t('admin.form.labels.fastModel')}
               <input
                 className="input"
                 value={draft.fastModel}
@@ -390,7 +388,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 {hintsFor(draft.kind, 'fast').map(m => <option key={m} value={m} />)}
               </datalist>
             </label>
-            <label>Context window (tokens)
+            <label>{t('admin.form.labels.contextWindow')}
               <input
                 className="input"
                 type="number"
@@ -398,7 +396,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 onChange={e => updateDraft('contextWindow', parseInt(e.target.value || '0', 10))}
               />
             </label>
-            <label>Preço input ($/1M)
+            <label>{t('admin.form.labels.priceInput')}
               <input
                 className="input"
                 type="number"
@@ -407,7 +405,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 onChange={e => updateDraft('priceInPerM', parseFloat(e.target.value || '0'))}
               />
             </label>
-            <label>Preço output ($/1M)
+            <label>{t('admin.form.labels.priceOutput')}
               <input
                 className="input"
                 type="number"
@@ -416,7 +414,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 onChange={e => updateDraft('priceOutPerM', parseFloat(e.target.value || '0'))}
               />
             </label>
-            <label>Budget diário (USD, 0 = sem limite)
+            <label>{t('admin.form.labels.dailyBudget')}
               <input
                 className="input"
                 type="number"
@@ -427,12 +425,12 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 placeholder={t('admin.form.dailyBudgetPlaceholder')}
               />
             </label>
-            <label style={{ gridColumn: '1 / -1' }}>Observação
+            <label style={{ gridColumn: '1 / -1' }}>{t('admin.form.labels.note')}
               <input className="input" value={draft.note || ''} onChange={e => updateDraft('note', e.target.value)} placeholder={t('admin.form.notePlaceholder')} />
             </label>
 
             <div style={{ gridColumn: '1 / -1' }}>
-              <div className="section-title" style={{ marginTop: 12 }}>Env vars extras (Fase 4)</div>
+              <div className="section-title" style={{ marginTop: 12 }}>{t('admin.form.extraEnvTitle')}</div>
               <div className="admin-extra-env">
                 {Object.entries(draft.extraEnv || {}).map(([k, v]) => (
                   <div key={`env-${k}`} className="admin-env-row">
@@ -443,11 +441,11 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                       type="button"
                       onClick={() => removeExtraEnv(k)}
                       title={t('admin.form.removeEnvTitle')}
-                      aria-label={t('admin.form.removeEnvLabel', { key: k || '(empty)' })}
+                      aria-label={t('admin.form.removeEnvLabel', { key: k || t('admin.form.emptyPlaceholder') })}
                     >×</button>
                   </div>
                 ))}
-                <button className="btn btn-sm" type="button" onClick={addExtraEnv}>+ Adicionar env</button>
+                <button className="btn btn-sm" type="button" onClick={addExtraEnv}>{t('admin.form.addEnv')}</button>
               </div>
             </div>
           </div>
@@ -455,22 +453,22 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
           <div className="admin-editor-actions">
             <button className="btn" onClick={() => handleTest(draft)} disabled={testing}>{testing ? t('admin.testing') : t('admin.testConnection')}</button>
             <div style={{ flex: 1 }} />
-            <button className="btn" onClick={cancelEdit}>Cancelar</button>
-            <button className="launch-btn" onClick={commitDraft}>💾 Salvar</button>
+            <button className="btn" onClick={cancelEdit}>{t('admin.form.cancel')}</button>
+            <button className="launch-btn" onClick={commitDraft}>{t('admin.form.save')}</button>
           </div>
           {testResult && <div className="admin-test-result">{testResult}</div>}
         </div>
       )}
 
       <div className="admin-card admin-debug">
-        <div className="section-title">🔬 Envs que serão injetadas no próximo launch</div>
+        <div className="section-title">{t('admin.form.envPreviewTitle')}</div>
         {liveEnv
           ? (
             <pre className="admin-env-pre">
               {Object.entries(redactEnv(liveEnv)).map(([k, v]) => `${k}=${v}`).join('\n')}
             </pre>
           )
-          : <div className="admin-note">Nenhuma env injetada (usa config default do Claude Code).</div>}
+          : <div className="admin-note">{t('admin.form.noEnvs')}</div>}
       </div>
 
       <AppearanceSection />
@@ -478,17 +476,17 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       <section className="admin-section admin-backup">
         <h3 className="admin-section__title">
           <Download size={14} strokeWidth={1.5} aria-hidden="true" />
-          <span>Backup</span>
+          <span>{t('admin.backup.title')}</span>
         </h3>
         <p className="admin-section__hint">
-          Export/import da config completa em JSON. Secrets (apiKey, tokens, keys) sao redacted no arquivo exportado.
+          {t('admin.backup.hint')}
         </p>
         <div className="admin-backup__actions">
           <button type="button" className="btn" onClick={handleBackupExport}>
-            <Download size={12} strokeWidth={1.5} aria-hidden="true" /> export JSON
+            <Download size={12} strokeWidth={1.5} aria-hidden="true" /> {t('admin.backup.exportBtn')}
           </button>
           <button type="button" className="btn" onClick={handleBackupImport}>
-            <Upload size={12} strokeWidth={1.5} aria-hidden="true" /> import JSON
+            <Upload size={12} strokeWidth={1.5} aria-hidden="true" /> {t('admin.backup.importBtn')}
           </button>
         </div>
       </section>

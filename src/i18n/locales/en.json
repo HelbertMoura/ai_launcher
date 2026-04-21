@@ -114,7 +114,25 @@
     "tokensOutMonth": "Tokens OUT this month",
     "totalCost": "Total estimated cost",
     "byCli": "By CLI",
-    "topProjects": "Top projects (by cost)"
+    "topProjects": "Top projects (by cost)",
+    "header": {
+      "title": "Cost & CLI usage",
+      "sub": "Local read of Claude Code, Codex and Gemini usage files. Nothing is sent outside your machine."
+    },
+    "empty": {
+      "body": "No usage data found. Run any CLI (Claude / Codex / Gemini) first to generate the local telemetry files."
+    },
+    "hero": {
+      "totalToday": "total today"
+    },
+    "dailyLabel": "daily",
+    "providerSection": {
+      "title": "By provider (re-estimated with Admin prices)",
+      "totalAdjusted": "Adjusted total:",
+      "backendCompare": "(vs. {{total}} from backend)"
+    },
+    "warnings": "Warnings ({{n}})",
+    "footer": "Estimate based on a hardcoded price table — not an official bill. Update price_per_mtoken in main.rs when provider prices change."
   },
   "palette": {
     "ariaLabel": "Command palette",
@@ -171,7 +189,7 @@
     "welcome": {
       "brand": "AI LAUNCHER",
       "tagline": "eight CLIs. one launcher.",
-      "body": "AI Launcher Pro detects your installed CLIs, switches providers in a click, and launches with the right environment — straight from the dramatic terminal.",
+      "body": "AI Launcher Pro detects your installed CLIs, switches providers in a click, and launches with the right environment \u2014 straight from the dramatic terminal.",
       "start": "start",
       "skip": "skip tour"
     },
@@ -206,14 +224,56 @@
       "builtinNotDeletable": "Built-in can't be deleted (only edited).",
       "jsonCopied": "JSON copied to clipboard",
       "providersReset": "Providers reset",
-      "configExported": "Config exported (secrets redacted)"
+      "configExported": "Config exported (secrets redacted)",
+      "profileSaved": "Profile \"{{name}}\" saved",
+      "profileDeleted": "Profile \"{{name}}\" deleted",
+      "activeSet": "Active provider: {{name}}",
+      "importOk": "Imported {{count}} profiles",
+      "importError": "Import error: {{error}}",
+      "importBackupOk": "Import OK. {{count}} secret(s) redacted - edit manually. Reload to apply.",
+      "exportError": "Export error: {{error}}",
+      "importBackupFailed": "Import failed: {{error}}",
+      "backupImportError": "Import error: {{error}}",
+      "resetClaudeError": "Error: {{error}}"
     },
     "testing": "Testing...",
     "testConnection": "\uD83D\uDD0C Test connection",
     "confirmReset": "Reset providers to built-ins? Custom profiles will be lost.",
     "confirmResetClaude": "Clear Claude Code state?\n\nRemoves customApiKeyResponses, oauthAccount and model from ~/.claude.json\n\nUseful when Claude Code is \"stuck\" on an old provider.",
     "confirmMerge": "Merge with current config? (Cancel = REPLACE)",
+    "confirmDelete": "Delete profile \"{{name}}\"?",
     "copyJsonPrompt": "Copy the JSON below:",
+    "header": {
+      "title": "Admin panel \u2014 Providers",
+      "sub": "Manage Anthropic-compatible provider profiles (Z.AI, MiniMax, etc.). Active profile:"
+    },
+    "actions": {
+      "newProfile": "New profile",
+      "import": "Import",
+      "resetClaude": "Reset Claude state"
+    },
+    "import": {
+      "title": "Paste import JSON",
+      "placeholder": "{\"version\":1,\"profiles\":[...],\"activeId\":\"anthropic\"}",
+      "submit": "Import",
+      "cancel": "Cancel"
+    },
+    "cardActions": {
+      "activate": "Activate",
+      "edit": "Edit",
+      "test": "Test",
+      "docs": "Docs"
+    },
+    "cardBody": {
+      "baseUrl": "baseUrl",
+      "opusSonnet": "opus/sonnet \u2192",
+      "haiku": "haiku \u2192",
+      "context": "context",
+      "contextUnit": "{{n}} tokens",
+      "costSession": "cost ~session (50k in + 10k out)",
+      "officialAnthropic": "(official Anthropic)",
+      "builtIn": "built-in"
+    },
     "buttons": {
       "export": "\u2B07 Export",
       "exportTitle": "Copies JSON with all profiles",
@@ -238,7 +298,34 @@
       "removeEnvTitle": "Remove environment variable",
       "removeEnvLabel": "Remove env {{key}}",
       "deleteProfileTitle": "Delete profile",
-      "deleteProfileLabel": "Delete profile {{name}}"
+      "deleteProfileLabel": "Delete profile {{name}}",
+      "labels": {
+        "name": "Name",
+        "kind": "Type",
+        "id": "ID (slug, optional)",
+        "baseUrl": "Base URL",
+        "apiKey": "API Key",
+        "mainModel": "Main model (opus/sonnet \u2192)",
+        "fastModel": "Fast model (haiku \u2192)",
+        "contextWindow": "Context window (tokens)",
+        "priceInput": "Input price ($/1M)",
+        "priceOutput": "Output price ($/1M)",
+        "dailyBudget": "Daily budget (USD, 0 = no limit)",
+        "note": "Note"
+      },
+      "extraEnvTitle": "Extra env vars (Phase 4)",
+      "addEnv": "+ Add env",
+      "cancel": "Cancel",
+      "save": "Save",
+      "envPreviewTitle": "Envs injected in the next launch",
+      "noEnvs": "No envs injected (uses Claude Code default config).",
+      "emptyPlaceholder": "(empty)"
+    },
+    "backup": {
+      "title": "Backup",
+      "hint": "Export/import the full config as JSON. Secrets (apiKey, tokens, keys) are redacted in the exported file.",
+      "exportBtn": "export JSON",
+      "importBtn": "import JSON"
     },
     "appearance": {
       "title": "Appearance",
@@ -320,7 +407,11 @@
     "firstTimeBody": "Click \"Validate System\" for the launcher to detect Node, Python, Git, Rust, installed CLIs, etc. Takes a few seconds and unlocks all features.",
     "validating": "Validating system...",
     "envDetected": "Detected environment",
-    "hideCheckbox": "Don't show this screen again (can re-enable in Help)"
+    "hideCheckbox": "Don't show this screen again (can re-enable in Help)",
+    "continueToLauncher": "Continue to Launcher",
+    "validateSystem": "Validate System",
+    "goDirectly": "Go directly to Launcher",
+    "skipValidation": "Skip validation"
   },
   "installTab": {
     "sub": "Manage prerequisites and AI CLIs. Silent install with live log.",
@@ -328,14 +419,18 @@
     "cliNotInstalled": "CLIs not installed",
     "installButton": "Install",
     "logTitle": "Install log \u2014 {{cli}}",
-    "installing": "Installing..."
+    "installing": "Installing...",
+    "recheckPrereqs": "Re-check prerequisites",
+    "installedSection": "Installed ({{n}})",
+    "installedBadge": "Installed"
   },
   "toolsTab": {
     "lastCheck": "Last: {{time}}",
     "available": "Available",
     "notInstalled": "Not installed",
     "open": "Open",
-    "download": "Download"
+    "download": "Download",
+    "recheck": "Re-check"
   },
   "updatesTab": {
     "updateAll": "\u2B06 Update all CLIs",
@@ -350,7 +445,17 @@
     "upToDate": "You're on the latest version",
     "noComparison": "? no comparison",
     "noComparisonTitle": "No public API to compare version",
-    "emptyPrereqs": "No prerequisites detected."
+    "emptyPrereqs": "No prerequisites detected.",
+    "lastCheck": "Last: {{time}} \u00B7 {{n}} with update",
+    "checkAll": "Check all",
+    "aiClisGroup": "AI CLIs",
+    "prereqsGroup": "Prerequisites",
+    "counter": "{{n}} with update / {{total}}",
+    "updateBtn": "Update",
+    "notInstalledBadge": "not installed",
+    "upToDateBadge": "Up to date",
+    "openPage": "Open page",
+    "opening": "opening..."
   },
   "helpTab": {
     "sub": "Everything you need to know to use AI Launcher Pro.",
@@ -373,21 +478,39 @@
     "updatesBulk": "When there are multiple CLI updates, use \"Update all\" to apply them in batch.",
     "shortcutsTitle": "Keyboard shortcuts",
     "securityTitle": "Security & virus alerts",
+    "securityBody1": "If Windows Defender or SmartScreen flags the app: it's a typical false positive for new binaries. The app is signed with a self-signed cert (DevManiacs). To remove the alert on this machine, the cert has already been installed in the Trusted Root. On other machines, the user needs to import the .cer manually, OR the author needs to buy a real cert (Sectigo, DigiCert, SSL.com or Azure Trusted Signing).",
+    "securityBody2": "Every install/update now runs via tokio::process directly, without an intermediate cmd /C \u2014 this eliminates the \"hidden process \u2192 invisible cmd \u2192 downloads from the internet\" heuristic that triggered Defender.",
     "troubleshootTitle": "Troubleshooting",
+    "troubleshootItem1Title": "A CLI appears \"detected\" but without version",
+    "troubleshootItem1Body": "The binary exists in PATH but the --version command returned unparseable output. Usually benign \u2014 the CLI works. Try running the command manually in the terminal to confirm.",
+    "troubleshootItem2Title": "Installation hangs or fails",
+    "troubleshootItem2Body": "See the live log on the Install tab (panel below). Persistent log in %APPDATA%/ai-launcher/install.log. Common causes: lack of permission for npm global, corporate proxy, Defender blocking npm.",
+    "troubleshootItem3Title": "\"Directory does not exist\" on launch",
+    "troubleshootItem3Body": "The typed path doesn't exist on disk or was deleted. Use the Pick folder button to select a valid folder.",
     "welcomeTitle": "Welcome screen",
     "welcomeBody": "The screen appears whenever you open the app, unless you check \"Don't show this screen again\". You can re-enable it at any time:",
+    "reenableWelcome": "Re-enable welcome on next open",
+    "welcomeAlreadyActive": "Welcome is already active",
+    "backToWelcome": "Back to welcome now",
     "traySection": "The app keeps an icon next to the clock. Left click opens/focuses the window; right click shows a menu with quick CLI launches and access to the tabs.",
+    "trayTitle": "System Tray",
     "trayMinimize": "Minimize to tray when closing (instead of quitting)",
     "trayShortcut": "Global shortcut (open/close):",
     "trayShortcutHelp": "Format: modifiers separated by +. Ex: CommandOrControl+Shift+L, Alt+F1. Conflicts with other apps (Raycast, AutoHotkey) may block registration \u2014 choose another combination if that happens.",
+    "resetTrayHotkey": "Reset",
+    "onboardingTitle": "Onboarding",
+    "onboardingBody": "Review the welcome tour with shortcuts and guided install.",
+    "reopenOnboarding": "Reopen onboarding",
     "resetTitle": "Reset all settings",
     "resetBody": "Removes: saved directory, history, theme, welcome preference, install log. The app reloads.",
+    "resetAll": "Reset everything",
     "supportTitle": "Support & contact",
     "supportBody": "Developed by Helbert Moura. Brand DevManiac's.",
     "currentVersion": "Current version: v{{version}}."
   },
   "footer": {
     "by": "by Helbert Moura",
-    "poweredBy": "Powered by DevManiac's"
+    "poweredBy": "Powered by DevManiac's",
+    "clisCount": "\u2713 {{n}}/{{total}} CLIs"
   }
 }
