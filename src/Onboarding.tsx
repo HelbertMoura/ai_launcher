@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { TerminalFrame } from './shared/TerminalFrame';
 import { Terminal, CheckCircle2, ArrowUpRight } from './icons';
 import './Onboarding.css';
@@ -47,74 +48,79 @@ export function Onboarding({ onClose }: OnboardingProps) {
 }
 
 function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="onboarding-step">
       <h1 className="onboarding-step__title">
-        <Terminal size={20} strokeWidth={1.5} /> AI LAUNCHER
+        <Terminal size={20} strokeWidth={1.5} /> {t('onboarding.welcome.brand')}
       </h1>
-      <p className="onboarding-step__tagline">eight CLIs. one launcher.</p>
+      <p className="onboarding-step__tagline">{t('onboarding.welcome.tagline')}</p>
       <p className="onboarding-step__body">
-        O AI Launcher Pro detecta as CLIs instaladas, alterna providers num clique
-        e lança com o ambiente certo — direto do terminal dramático.
+        {t('onboarding.welcome.body')}
       </p>
       <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>start</button>
-        <button type="button" className="btn-ghost" onClick={onSkip}>skip tour</button>
+        <button type="button" className="btn btn-primary" onClick={onNext}>{t('onboarding.welcome.start')}</button>
+        <button type="button" className="btn-ghost" onClick={onSkip}>{t('onboarding.welcome.skip')}</button>
       </div>
     </div>
   );
 }
 
 function DetectStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="onboarding-step">
-      <p className="onboarding-step__prompt">&gt; detecting installed CLIs...</p>
+      <p className="onboarding-step__prompt">{t('onboarding.detect.prompt')}</p>
       <ul className="onboarding-step__checklist">
         <li><CheckCircle2 size={14}/> <code>claude</code></li>
         <li><CheckCircle2 size={14}/> <code>codex</code></li>
         <li><CheckCircle2 size={14}/> <code>cursor-agent</code></li>
       </ul>
       <p className="onboarding-step__body">
-        A lista real aparece na aba Launcher depois que você terminar o tour.
+        {t('onboarding.detect.body')}
       </p>
       <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>continue</button>
+        <button type="button" className="btn btn-primary" onClick={onNext}>{t('onboarding.detect.continue')}</button>
       </div>
     </div>
   );
 }
 
 function ProviderStep({ onNext }: { onNext: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="onboarding-step">
-      <p className="onboarding-step__prompt">&gt; choose provider</p>
+      <p className="onboarding-step__prompt">{t('onboarding.provider.prompt')}</p>
       <div className="onboarding-step__radios">
-        <label className="is-active"><input type="radio" name="ob-prov" defaultChecked /> Anthropic (oficial)</label>
-        <label><input type="radio" name="ob-prov" /> Z.AI</label>
-        <label><input type="radio" name="ob-prov" /> MiniMax</label>
+        <label className="is-active"><input type="radio" name="ob-prov" defaultChecked /> {t('onboarding.provider.optionAnthropic')}</label>
+        <label><input type="radio" name="ob-prov" /> {t('onboarding.provider.optionZai')}</label>
+        <label><input type="radio" name="ob-prov" /> {t('onboarding.provider.optionMinimax')}</label>
       </div>
       <p className="onboarding-step__body">
-        Configure tokens depois no Admin → Providers. Tokens ficam local only,
-        zero telemetria.
+        {t('onboarding.provider.body')}
       </p>
       <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>continue</button>
+        <button type="button" className="btn btn-primary" onClick={onNext}>{t('onboarding.provider.continue')}</button>
       </div>
     </div>
   );
 }
 
 function LaunchStep({ onFinish }: { onFinish: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="onboarding-step">
-      <p className="onboarding-step__prompt">&gt; ready to launch</p>
+      <p className="onboarding-step__prompt">{t('onboarding.launch.prompt')}</p>
       <p className="onboarding-step__body">
-        Pressione <kbd>⌘</kbd> <kbd>K</kbd> pra abrir a paleta a qualquer hora,
-        ou volte pra aba Launcher e selecione a CLI.
+        <Trans
+          i18nKey="onboarding.launch.body"
+          values={{ cmd: '\u2318', k: 'K' }}
+          components={{ 1: <kbd />, 2: <kbd /> }}
+        />
       </p>
       <div className="onboarding-step__actions">
         <button type="button" className="btn btn-primary" onClick={onFinish}>
-          <ArrowUpRight size={14} /> launch now
+          <ArrowUpRight size={14} /> {t('onboarding.launch.cta')}
         </button>
       </div>
     </div>

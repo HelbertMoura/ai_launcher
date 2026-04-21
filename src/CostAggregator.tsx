@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { loadProviders } from './providers/storage';
 import type { ProviderProfile } from './providers/types';
@@ -102,6 +103,7 @@ function currentMonthPrefix(): string {
 }
 
 export default function CostAggregator() {
+  const { t } = useTranslation();
   const [report, setReport] = useState<UsageReport | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -222,7 +224,7 @@ export default function CostAggregator() {
   if (loading) {
     return (
       <div className="cost-root">
-        <div className="cost-loading">Carregando dados de uso...</div>
+        <div className="cost-loading">{t('costs.loading')}</div>
       </div>
     );
   }
@@ -231,10 +233,10 @@ export default function CostAggregator() {
     return (
       <div className="cost-root">
         <div className="cost-error">
-          <strong>Erro ao ler estatísticas:</strong>
+          <strong>{t('costs.errorTitle')}</strong>
           <pre>{error}</pre>
           <button className="cost-btn" onClick={load}>
-            Tentar novamente
+            {t('common.refresh')}
           </button>
         </div>
       </div>
@@ -259,7 +261,7 @@ export default function CostAggregator() {
           </p>
         </div>
         <button className="cost-btn" onClick={load}>
-          ↻ Recarregar
+          ↻ {t('common.refresh')}
         </button>
       </div>
 
@@ -307,17 +309,17 @@ export default function CostAggregator() {
           {/* ===== Cards de resumo ===== */}
           <div className="cost-cards">
             <div className="cost-card">
-              <div className="cost-card-label">Tokens IN hoje</div>
+              <div className="cost-card-label">{t('costs.tokensInToday')}</div>
               <div className="cost-card-value">{formatTokens(tokensInToday)}</div>
               <div className="cost-card-hint">{today}</div>
             </div>
             <div className="cost-card">
-              <div className="cost-card-label">Tokens OUT no mês</div>
+              <div className="cost-card-label">{t('costs.tokensOutMonth')}</div>
               <div className="cost-card-value">{formatTokens(tokensOutMonth)}</div>
               <div className="cost-card-hint">{monthPrefix}</div>
             </div>
             <div className="cost-card cost-card-highlight">
-              <div className="cost-card-label">Custo estimado total</div>
+              <div className="cost-card-label">{t('costs.totalCost')}</div>
               <div className="cost-card-value">
                 {formatUsd(report.total_cost_usd)}
               </div>
@@ -330,7 +332,7 @@ export default function CostAggregator() {
 
           {/* ===== Por CLI (barras horizontais) ===== */}
           <section className="cost-section">
-            <h3 className="cost-section-title">Por CLI</h3>
+            <h3 className="cost-section-title">{t('costs.byCli')}</h3>
             <div className="cost-bars">
               {cliKeys.map((k) => {
                 const s = report.by_cli[k];
@@ -406,7 +408,7 @@ export default function CostAggregator() {
           {/* ===== Top projetos ===== */}
           {report.top_projects.length > 0 && (
             <section className="cost-section">
-              <h3 className="cost-section-title">Top projetos (por custo)</h3>
+              <h3 className="cost-section-title">{t('costs.topProjects')}</h3>
               <ul className="cost-projects">
                 {report.top_projects.map((p) => (
                   <li className="cost-project" key={p.project}>

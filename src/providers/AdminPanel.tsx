@@ -5,6 +5,7 @@
 // ==============================================================================
 
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import type { ProviderProfile, ProvidersState } from './types';
 import { estimateCost, formatUSD, savingsVsBaseline } from './costEstimator';
@@ -23,11 +24,11 @@ interface AdminPanelProps {
   appVersion?: string;
 }
 
-const PROVIDER_KIND_OPTIONS: Array<{ value: ProviderProfile['kind']; label: string }> = [
-  { value: 'anthropic', label: 'Anthropic (oficial)' },
-  { value: 'zai', label: 'Z.AI (GLM)' },
-  { value: 'minimax', label: 'MiniMax' },
-  { value: 'custom', label: 'Custom (outro)' },
+const PROVIDER_KIND_VALUES: ReadonlyArray<ProviderProfile['kind']> = [
+  'anthropic',
+  'zai',
+  'minimax',
+  'custom',
 ];
 
 function slugify(s: string): string {
@@ -59,6 +60,7 @@ async function openDocs(url: string) {
 }
 
 export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelProps) {
+  const { t } = useTranslation();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ProviderProfile | null>(null);
   const [showKey, setShowKey] = useState(false);
@@ -97,7 +99,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
     const id = draft.id?.trim() || slugify(draft.name) || `provider-${Date.now()}`;
     const profile: ProviderProfile = { ...draft, id };
     if (!profile.name.trim()) {
-      onToast('Nome obrigatório.');
+      onToast(t('admin.toasts.nameRequired'));
       return;
     }
     const next = upsertProfile(state, profile);
@@ -108,7 +110,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
   }
 
   function handleDelete(profile: ProviderProfile) {
-    if (profile.builtin) { onToast('Built-in não pode ser excluído (só editado).'); return; }
+    if (profile.builtin) { onToast(t('admin.toasts.builtinNotDeletable')); return; }
     if (!confirm(`Excluir perfil "${profile.name}"?`)) return;
     onChange(removeProfile(state, profile.id));
     onToast(`Perfil "${profile.name}" excluído`);
@@ -121,7 +123,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
 
   async function handleTest(profile: ProviderProfile) {
     setTesting(true);
-    setTestResult('Testando...');
+    setTestResult(t('admin.testing'));
     try {
       const r = await testProviderConnection(profile);
       setTestResult(`${r.ok ? '✅' : '❌'} ${r.message}`);
@@ -136,10 +138,10 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
     const json = exportProfiles(state);
     try {
       navigator.clipboard?.writeText(json);
-      onToast('JSON copiado pro clipboard');
+      onToast(t('admin.toasts.jsonCopied'));
     } catch {
       // fallback: mostra num prompt
-      prompt('Copie o JSON abaixo:', json);
+      prompt(t('admin.copyJsonPrompt'), json);
     }
   }
 
@@ -156,18 +158,13 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
   }
 
   function handleReset() {
-    if (!confirm('Resetar providers para os built-ins? Perfis custom serão perdidos.')) return;
+    if (!confirm(t('admin.confirmReset'))) return;
     onChange(resetProviders());
-    onToast('Providers resetados');
+    onToast(t('admin.toasts.providersReset'));
   }
 
   async function handleResetClaudeState() {
-    const ok = confirm(
-      'Limpar estado do Claude Code?\n\n' +
-      'Remove customApiKeyResponses, oauthAccount e model do ~/.claude.json\n' +
-      '(faz backup em .claude.json.bak antes).\n\n' +
-      'Útil quando o Claude Code está "travado" em provider antigo.'
-    );
+    const ok = confirm(t('admin.confirmResetClaude'));
     if (!ok) return;
     try {
       const msg = await invoke<string>('reset_claude_state');
@@ -180,7 +177,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
   function handleBackupExport() {
     try {
       downloadConfigJson(appVersion ?? 'unknown');
-      onToast('Config exportada (secrets redacted)');
+      onToast(t('admin.toasts.configExported'));
     } catch (e: unknown) {
       onToast(`Erro no export: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -195,7 +192,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       if (!file) return;
       try {
         const text = await file.text();
-        const mode = confirm('Merge com config atual? (Cancel = REPLACE)') ? 'merge' : 'replace';
+        const mode = confirm(t('admin.confirmMerge')) ? 'merge' : 'replace';
         const result = importConfig(text, mode);
         if (!result.ok) {
           onToast(`Import falhou: ${result.error}`);
@@ -255,14 +252,14 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
         </div>
         <div className="admin-actions">
           <button className="btn" onClick={startCreate}>+ Novo perfil</button>
-          <button className="btn" onClick={handleExport} title="Copia JSON com todos os perfis">⬇ Exportar</button>
+          <button className="btn" onClick={handleExport} title={t('admin.buttons.exportTitle')}>{t('admin.buttons.export')}</button>
           <button className="btn" onClick={() => setShowImport(v => !v)}>⬆ Importar</button>
-          <button className="btn btn-danger" onClick={handleReset} title="Reverte pros built-ins">♻ Reset</button>
+          <button className="btn btn-danger" onClick={handleReset} title={t('admin.buttons.resetTitle')}>{t('admin.buttons.reset')}</button>
           <button
             className="btn btn-warn"
             onClick={handleResetClaudeState}
-            title="Limpa customApiKeyResponses/oauthAccount/model do ~/.claude.json (faz backup)"
-            aria-label="Reset do estado do Claude Code"
+            title={t('admin.buttons.resetClaudeTitle')}
+            aria-label={t('admin.buttons.resetClaudeLabel')}
           >
             🧹 Reset Claude state
           </button>
@@ -298,7 +295,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 <div>
                   <strong>{profile.name}</strong>
                   {profile.builtin && <span className="admin-tag">built-in</span>}
-                  {isActive && <span className="admin-tag admin-tag-active">ATIVO</span>}
+                  {isActive && <span className="admin-tag admin-tag-active">{t('common.active')}</span>}
                 </div>
                 <div className="admin-card-actions">
                   {!isActive && <button className="btn btn-sm" onClick={() => handleActivate(profile)}>Ativar</button>}
@@ -313,8 +310,8 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={() => handleDelete(profile)}
-                      title="Excluir perfil"
-                      aria-label={`Excluir perfil ${profile.name}`}
+                      title={t('admin.form.deleteProfileTitle')}
+                      aria-label={t('admin.form.deleteProfileLabel', { name: profile.name })}
                     >×</button>
                   )}
                 </div>
@@ -340,21 +337,21 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
 
       {editingId && draft && (
         <div className="admin-editor">
-          <div className="section-title">{editingId === '__new__' ? 'Novo perfil' : `Editando: ${draft.name}`}</div>
+          <div className="section-title">{editingId === '__new__' ? t('admin.form.newProfile') : t('admin.form.editing', { name: draft.name })}</div>
           <div className="admin-form">
             <label>Nome
-              <input className="input" value={draft.name} onChange={e => updateDraft('name', e.target.value)} placeholder="Z.AI dev, MiniMax prod, etc." />
+              <input className="input" value={draft.name} onChange={e => updateDraft('name', e.target.value)} placeholder={t('admin.form.namePlaceholder')} />
             </label>
             <label>Tipo
               <select className="input" value={draft.kind} onChange={e => updateDraft('kind', e.target.value as ProviderProfile['kind'])}>
-                {PROVIDER_KIND_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {PROVIDER_KIND_VALUES.map(v => <option key={v} value={v}>{t(`admin.providerKinds.${v}`)}</option>)}
               </select>
             </label>
             <label>ID (slug, opcional)
-              <input className="input" value={draft.id} onChange={e => updateDraft('id', slugify(e.target.value))} placeholder="auto a partir do nome" disabled={!!draft.builtin} />
+              <input className="input" value={draft.id} onChange={e => updateDraft('id', slugify(e.target.value))} placeholder={t('admin.form.idPlaceholder')} disabled={!!draft.builtin} />
             </label>
             <label>Base URL
-              <input className="input" value={draft.baseUrl} onChange={e => updateDraft('baseUrl', e.target.value)} placeholder="https://api.z.ai/api/anthropic" />
+              <input className="input" value={draft.baseUrl} onChange={e => updateDraft('baseUrl', e.target.value)} placeholder={t('admin.form.baseUrlPlaceholder')} />
             </label>
             <label>API Key
               <div style={{ display: 'flex', gap: 6 }}>
@@ -363,7 +360,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                   type={showKey ? 'text' : 'password'}
                   value={draft.apiKey}
                   onChange={e => updateDraft('apiKey', e.target.value)}
-                  placeholder="cole sua chave aqui"
+                  placeholder={t('admin.form.apiKeyPlaceholder')}
                   autoComplete="off"
                 />
                 <button className="btn btn-sm" type="button" onClick={() => setShowKey(v => !v)}>{showKey ? '🙈' : '👁'}</button>
@@ -374,7 +371,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 className="input"
                 value={draft.mainModel}
                 onChange={e => updateDraft('mainModel', e.target.value)}
-                placeholder="glm-5.1"
+                placeholder={t('admin.form.mainModelPlaceholder')}
                 list={`models-main-${draft.kind}`}
               />
               <datalist id={`models-main-${draft.kind}`}>
@@ -386,7 +383,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 className="input"
                 value={draft.fastModel}
                 onChange={e => updateDraft('fastModel', e.target.value)}
-                placeholder="glm-4.7"
+                placeholder={t('admin.form.smallModelPlaceholder')}
                 list={`models-fast-${draft.kind}`}
               />
               <datalist id={`models-fast-${draft.kind}`}>
@@ -427,11 +424,11 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
                 min="0"
                 value={draft.dailyBudget ?? 0}
                 onChange={e => updateDraft('dailyBudget', parseFloat(e.target.value || '0'))}
-                placeholder="ex: 5 = alerta acima de $5/dia"
+                placeholder={t('admin.form.dailyBudgetPlaceholder')}
               />
             </label>
             <label style={{ gridColumn: '1 / -1' }}>Observação
-              <input className="input" value={draft.note || ''} onChange={e => updateDraft('note', e.target.value)} placeholder="Nota livre (mostrada no card)" />
+              <input className="input" value={draft.note || ''} onChange={e => updateDraft('note', e.target.value)} placeholder={t('admin.form.notePlaceholder')} />
             </label>
 
             <div style={{ gridColumn: '1 / -1' }}>
@@ -439,14 +436,14 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
               <div className="admin-extra-env">
                 {Object.entries(draft.extraEnv || {}).map(([k, v]) => (
                   <div key={`env-${k}`} className="admin-env-row">
-                    <input className="input" value={k} onChange={e => updateExtraEnvKey(k, e.target.value.toUpperCase())} placeholder="NOME_DA_VAR" />
-                    <input className="input" value={v} onChange={e => updateExtraEnvVal(k, e.target.value)} placeholder="valor" />
+                    <input className="input" value={k} onChange={e => updateExtraEnvKey(k, e.target.value.toUpperCase())} placeholder={t('admin.form.envKeyPlaceholder')} />
+                    <input className="input" value={v} onChange={e => updateExtraEnvVal(k, e.target.value)} placeholder={t('admin.form.envValuePlaceholder')} />
                     <button
                       className="btn btn-sm btn-danger"
                       type="button"
                       onClick={() => removeExtraEnv(k)}
-                      title="Remover variável de ambiente"
-                      aria-label={`Remover env ${k || 'vazio'}`}
+                      title={t('admin.form.removeEnvTitle')}
+                      aria-label={t('admin.form.removeEnvLabel', { key: k || '(empty)' })}
                     >×</button>
                   </div>
                 ))}
@@ -456,7 +453,7 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
           </div>
 
           <div className="admin-editor-actions">
-            <button className="btn" onClick={() => handleTest(draft)} disabled={testing}>{testing ? 'Testando...' : '🔌 Testar conexão'}</button>
+            <button className="btn" onClick={() => handleTest(draft)} disabled={testing}>{testing ? t('admin.testing') : t('admin.testConnection')}</button>
             <div style={{ flex: 1 }} />
             <button className="btn" onClick={cancelEdit}>Cancelar</button>
             <button className="launch-btn" onClick={commitDraft}>💾 Salvar</button>
