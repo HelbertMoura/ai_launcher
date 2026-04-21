@@ -9,6 +9,8 @@ import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
+import { CustomIdeModal } from './providers/CustomIdeModal';
+import { loadCustomIdes, saveCustomIdes, addCustomIde, removeCustomIde, type CustomIde } from './lib/customIdes';
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
@@ -204,6 +206,24 @@ function App() {
   const [quickSwitchOpen, setQuickSwitchOpen] = useState(false);
   const [dryRunOpen, setDryRunOpen] = useState(false);
   const [presets, setPresets] = useState<LaunchPreset[]>(() => loadPresets());
+  const [customIdes, setCustomIdesState] = useState<CustomIde[]>(() => loadCustomIdes());
+  const [customIdeModalOpen, setCustomIdeModalOpen] = useState(false);
+  const [editingCustomIde, setEditingCustomIde] = useState<CustomIde | null>(null);
+  function handleSaveCustomIde(ide: CustomIde) {
+    const next = addCustomIde(customIdes, ide);
+    setCustomIdesState(next);
+    saveCustomIdes(next);
+    setCustomIdeModalOpen(false);
+    setEditingCustomIde(null);
+  }
+  function handleDeleteCustomIde(key: string) {
+    const target = customIdes.find(i => i.key === key);
+    if (!target) return;
+    if (!confirm(t('customIde.deleteConfirm', { name: target.name }))) return;
+    const next = removeCustomIde(customIdes, key);
+    setCustomIdesState(next);
+    saveCustomIdes(next);
+  }
   const updateProviders = (next: ProvidersState) => {
     setProviders(next);
     saveProviders(next);
@@ -1209,6 +1229,47 @@ function App() {
               );
             })}
           </div>
+
+          <section className="tools-custom-section">
+            <h3 className="admin-section__title">
+              <span>{t('customIde.addTitle')}</span>
+            </h3>
+            {customIdes.length === 0 ? (
+              <p className="admin-section__hint">{t('customIde.emptyState')}</p>
+            ) : (
+              <ul className="admin-custom-list">
+                {customIdes.map(ide => (
+                  <li key={ide.key} className="admin-custom-list__item">
+                    <span className="admin-custom-list__icon">{ide.iconEmoji || '▶'}</span>
+                    <span className="admin-custom-list__name">{ide.name}</span>
+                    <code className="admin-custom-list__key">{ide.key}</code>
+                    <span className="admin-custom-list__spacer" />
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => { setEditingCustomIde(ide); setCustomIdeModalOpen(true); }}
+                    >
+                      {t('common.edit')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => handleDeleteCustomIde(ide.key)}
+                    >
+                      {t('customIde.delete')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <button
+              type="button"
+              className="btn"
+              onClick={() => { setEditingCustomIde(null); setCustomIdeModalOpen(true); }}
+            >
+              {t('customIde.addBtn')}
+            </button>
+          </section>
           </div>
         </div>
       )}
@@ -1425,6 +1486,14 @@ function App() {
         args={args}
         directory={directory}
         onClose={() => setDryRunOpen(false)}
+      />
+
+      <CustomIdeModal
+        open={customIdeModalOpen}
+        editing={editingCustomIde}
+        existingKeys={customIdes.map(i => i.key)}
+        onSave={handleSaveCustomIde}
+        onCancel={() => { setCustomIdeModalOpen(false); setEditingCustomIde(null); }}
       />
 
       {toast && <div className="toast show">{toast}</div>}
