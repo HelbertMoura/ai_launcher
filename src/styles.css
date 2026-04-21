@@ -446,6 +446,15 @@ body {
 }
 
 .tool-icon svg { width: 100%; height: 100%; display: block; }
+.tool-icon__emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 22px;
+  line-height: 1;
+}
 .tool-name { font-size: 9px; font-weight: 700; }
 .tool-status { font-size: 8px; color: var(--muted); margin-top: 2px; margin-bottom: 6px; }
 

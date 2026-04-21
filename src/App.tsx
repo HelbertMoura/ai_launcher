@@ -11,7 +11,19 @@ import { Skeleton } from './Skeleton';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { CustomIdeModal } from './providers/CustomIdeModal';
+import { CliOverrideModal, type CliOverrideTarget } from './providers/CliOverrideModal';
 import { loadCustomIdes, saveCustomIdes, addCustomIde, removeCustomIde, CUSTOM_IDES_CHANGED_EVENT, type CustomIde } from './lib/customIdes';
+import {
+  loadIdeOverrides,
+  saveIdeOverrides,
+  setCliOverride,
+  clearCliOverride,
+  getEffectiveName as getEffectiveIdeName,
+  getEffectiveIcon as getEffectiveIdeIcon,
+  IDE_OVERRIDES_CHANGED_EVENT,
+  type CliOverrides,
+  type CliOverride,
+} from './lib/clisOverrides';
 import { loadAppSettings, SETTINGS_CHANGED_EVENT, type AppSettings } from './lib/appSettings';
 // commandTimeout is wired through invoke() calls in v7.1 (see installCli/updateSingleCli).
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
@@ -225,6 +237,9 @@ function App() {
   const [customIdes, setCustomIdesState] = useState<CustomIde[]>(() => loadCustomIdes());
   const [customIdeModalOpen, setCustomIdeModalOpen] = useState(false);
   const [editingCustomIde, setEditingCustomIde] = useState<CustomIde | null>(null);
+  // v7.1 built-in IDE overrides (name + icon).
+  const [ideOverrides, setIdeOverridesState] = useState<CliOverrides>(() => loadIdeOverrides());
+  const [ideOverrideTarget, setIdeOverrideTarget] = useState<CliOverrideTarget | null>(null);
   function handleSaveCustomIde(ide: CustomIde) {
     const next = addCustomIde(customIdes, ide);
     setCustomIdesState(next);
@@ -426,6 +441,7 @@ function App() {
     function onStorage(e: StorageEvent) {
       if (e.key === 'ai-launcher:app-settings') setAppSettings(loadAppSettings());
       if (e.key === 'ai-launcher:custom-ides') setCustomIdesState(loadCustomIdes());
+      if (e.key === 'ai-launcher:ide-overrides') setIdeOverridesState(loadIdeOverrides());
     }
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
@@ -444,13 +460,33 @@ function App() {
       const detail = (e as CustomEvent<CustomIde[]>).detail;
       setCustomIdesState(detail ?? loadCustomIdes());
     }
+    function onIdeOverridesChanged(e: Event) {
+      const detail = (e as CustomEvent<CliOverrides>).detail;
+      setIdeOverridesState(detail ?? loadIdeOverrides());
+    }
     window.addEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
     window.addEventListener(CUSTOM_IDES_CHANGED_EVENT, onCustomIdesChanged);
+    window.addEventListener(IDE_OVERRIDES_CHANGED_EVENT, onIdeOverridesChanged);
     return () => {
       window.removeEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
       window.removeEventListener(CUSTOM_IDES_CHANGED_EVENT, onCustomIdesChanged);
+      window.removeEventListener(IDE_OVERRIDES_CHANGED_EVENT, onIdeOverridesChanged);
     };
   }, []);
+
+  // v7.1 IDE override handlers (applied to built-in tool cards in the Tools tab).
+  function handleIdeOverrideSave(key: string, override: CliOverride) {
+    const next = setCliOverride(ideOverrides, key, override);
+    saveIdeOverrides(next);
+    setIdeOverridesState(next);
+    setIdeOverrideTarget(null);
+  }
+  function handleIdeOverrideClear(key: string) {
+    const next = clearCliOverride(ideOverrides, key);
+    saveIdeOverrides(next);
+    setIdeOverridesState(next);
+    setIdeOverrideTarget(null);
+  }
 
   // v7 preferences: auto-refresh CLI install state every N seconds (0 = disabled).
   useEffect(() => {
@@ -1293,10 +1329,29 @@ function App() {
           <div className="tools-grid">
             {tools.map(tool => {
               const info = toolsChecked[tool.key] || { installed: false, version: null };
+              const displayName = getEffectiveIdeName(tool.key, tool.name, ideOverrides);
+              const overrideEmoji = getEffectiveIdeIcon(tool.key, ideOverrides);
               return (
                 <div key={tool.key} className={`tool-card ${info.installed ? 'installed' : ''}`}>
-                  <div className="tool-icon"><ToolIcon toolKey={tool.key} size={48} /></div>
-                  <div className="tool-name">{tool.name}</div>
+                  <button
+                    type="button"
+                    className="tool-card__edit"
+                    aria-label={t('overrides.editBtnAria', { name: displayName })}
+                    title={t('overrides.editBtnAria', { name: displayName })}
+                    onClick={() => setIdeOverrideTarget({
+                      key: tool.key,
+                      builtinName: tool.name,
+                      builtinIcon: <ToolIcon toolKey={tool.key} size={48} />,
+                    })}
+                  >
+                    ✎
+                  </button>
+                  <div className="tool-icon">
+                    {overrideEmoji
+                      ? <span className="tool-icon__emoji" aria-hidden="true">{overrideEmoji}</span>
+                      : <ToolIcon toolKey={tool.key} size={48} />}
+                  </div>
+                  <div className="tool-name">{displayName}</div>
                   <div className="tool-status">{info.version || (info.installed ? t('toolsTab.available') : t('toolsTab.notInstalled'))}</div>
                   {info.installed ? (
                     <button className="tool-launch-btn" onClick={() => launchTool(tool.key)}>{t('toolsTab.open')}</button>
@@ -1579,6 +1634,16 @@ function App() {
         existingKeys={customIdes.map(i => i.key)}
         onSave={handleSaveCustomIde}
         onCancel={() => { setCustomIdeModalOpen(false); setEditingCustomIde(null); }}
+      />
+
+      <CliOverrideModal
+        open={!!ideOverrideTarget}
+        target={ideOverrideTarget}
+        current={ideOverrideTarget ? (ideOverrides[ideOverrideTarget.key] ?? {}) : {}}
+        onSave={handleIdeOverrideSave}
+        onClear={handleIdeOverrideClear}
+        onCancel={() => setIdeOverrideTarget(null)}
+        kind="ide"
       />
 
       {toast && <div className="toast show">{toast}</div>}
