@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./public/images/banner.png" alt="AI Launcher Pro" width="100%" />
+  <img src="./public/images/banner.svg" alt="AI Launcher Pro" width="100%" />
 
   <br />
   <br />
@@ -31,6 +31,14 @@
 <hr />
 
 **Language:** English · [Português](./README.pt-BR.md)
+
+<br />
+
+**Platforms:** Windows ✅ · macOS 🔜 · Linux 🔜
+
+> Windows 10/11 is fully supported. macOS and Linux builds are planned — follow the [releases page](https://github.com/HelbertMoura/caunasher/releases) or star the repo to get notified.
+
+<br />
 
 ## What it is
 

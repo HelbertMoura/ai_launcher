@@ -8,9 +8,17 @@
 ![Rust](https://img.shields.io/badge/Rust-2021-orange)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
-![AI Launcher Pro](./public/images/banner.png)
+![AI Launcher Pro](./public/images/banner.svg)
 
 **Idioma:** [English](./README.md) · Português
+
+<br />
+
+**Plataformas:** Windows ✅ · macOS 🔜 · Linux 🔜
+
+> Windows 10/11 é o único suporte oficial por enquanto. Builds macOS e Linux estão planejadas — acompanhe a [página de releases](https://github.com/HelbertMoura/ai_launcher/releases) ou dê star no repo pra ser notificado.
+
+<br />
 
 ---
 
