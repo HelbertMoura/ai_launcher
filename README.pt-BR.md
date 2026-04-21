@@ -84,18 +84,16 @@ Três pilares diferenciam o projeto: **terminal-native** (tipografia mono, promp
 
 ## Screenshots
 
-<div align="center">
-  <table>
-    <tr>
-      <td><img src="./docs/screenshots/launcher.png" alt="LauncherTab" width="100%" /></td>
-      <td><img src="./docs/screenshots/history.png" alt="HistoryTab" width="100%" /></td>
-    </tr>
-    <tr>
-      <td><img src="./docs/screenshots/costs.png" alt="CostsTab" width="100%" /></td>
-      <td><img src="./docs/screenshots/palette.png" alt="CommandPalette" width="100%" /></td>
-    </tr>
-  </table>
-</div>
+<p align="center">
+  <img src="./docs/screenshots/launcher-dark.svg" alt="Launcher — tema escuro (ilustração editorial)" width="48%" />
+  <img src="./docs/screenshots/history-timeline.svg" alt="Histórico estilo git-log (ilustração editorial)" width="48%" />
+</p>
+<p align="center">
+  <img src="./docs/screenshots/costs-sparklines.svg" alt="Custos com sparklines (ilustração editorial)" width="48%" />
+  <img src="./docs/screenshots/command-palette.svg" alt="Command palette preview (ilustração editorial)" width="48%" />
+</p>
+
+> As previews acima são ilustrações SVG editoriais — consistentes com o banner mas não réplicas pixel-perfect do app em execução. Screenshots reais chegam na v7.2.
 
 <br />
 
