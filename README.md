@@ -84,13 +84,15 @@ Where it differs from opening a terminal by hand: **keyboard-first from the grou
 ## Screenshots
 
 <p align="center">
-  <img src="./docs/screenshots/launcher-dark.png"     alt="Launcher — dark theme"    width="48%" />
-  <img src="./docs/screenshots/history-timeline.png"  alt="Git-log-style history"    width="48%" />
+  <img src="./docs/screenshots/launcher-dark.svg" alt="Launcher — dark theme (editorial illustration)" width="48%" />
+  <img src="./docs/screenshots/history-timeline.svg" alt="Git-log-style history (editorial illustration)" width="48%" />
 </p>
 <p align="center">
-  <img src="./docs/screenshots/costs-sparklines.png"  alt="Costs with sparklines"    width="48%" />
-  <img src="./docs/screenshots/command-palette.png"   alt="Command palette preview"  width="48%" />
+  <img src="./docs/screenshots/costs-sparklines.svg" alt="Costs with sparklines (editorial illustration)" width="48%" />
+  <img src="./docs/screenshots/command-palette.svg" alt="Command palette preview (editorial illustration)" width="48%" />
 </p>
+
+> Previews above are editorial SVG illustrations — consistent with the banner but not pixel-perfect replicas of the running app. Real screenshots land with v7.2.
 
 <br />
 
