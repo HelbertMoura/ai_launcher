@@ -497,3 +497,146 @@
   }
   .onb-cli-spinner { animation: none; }
 }
+
+/* ===== v5.5 — Terminal-themed 4-step onboarding ===== */
+
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: color-mix(in oklch, var(--bg-terminal) 92%, transparent);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.onboarding__inner {
+  max-width: 520px;
+  width: 100%;
+  font-family: var(--ff-mono);
+}
+
+.onboarding__progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  justify-content: center;
+}
+
+.onboarding__dot {
+  width: 28px;
+  height: 3px;
+  background: var(--border-dim);
+  border-radius: 2px;
+  transition: background 200ms var(--ease-terminal, ease-out);
+}
+
+.onboarding__dot.is-reached { background: var(--text-prompt); }
+.onboarding__dot.is-current { background: var(--text); }
+
+.onboarding-step {
+  padding: 24px;
+  color: var(--text);
+}
+
+.onboarding-step__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--fs-md, 18px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.onboarding-step__title svg { color: var(--text-prompt); }
+
+.onboarding-step__tagline {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  margin: 0 0 16px;
+  letter-spacing: 0.02em;
+}
+
+.onboarding-step__body {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0 0 20px;
+}
+
+.onboarding-step__prompt {
+  font-size: var(--fs-sm);
+  color: var(--text-prompt);
+  margin: 0 0 12px;
+}
+
+.onboarding-step__checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+}
+
+.onboarding-step__checklist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.onboarding-step__checklist svg { color: var(--text-prompt); }
+
+.onboarding-step__checklist code {
+  background: var(--bg-prompt, transparent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--text);
+}
+
+.onboarding-step__radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.onboarding-step__radios label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+
+.onboarding-step__radios label.is-active {
+  border-color: var(--text-prompt);
+  color: var(--text);
+}
+
+.onboarding-step__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.onboarding-step__actions .btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--ff-mono);
+  cursor: pointer;
+}
+
+.onboarding-step__actions .btn-ghost:hover { color: var(--text); }
