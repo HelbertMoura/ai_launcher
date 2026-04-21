@@ -5,6 +5,50 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] — 2026-04-21
+
+### 🌍 "More Providers" — Moonshot, Qwen (beta), OpenRouter
+
+Três novos provider seeds built-in. Expande `ProviderKind` de 4 para 7 membros.
+Zero breaking changes — usuários atuais mantêm seus perfis.
+
+### Added
+
+- **Moonshot / Kimi (oficial)** — `https://api.moonshot.ai/anthropic` (intl) +
+  `api.moonshot.cn/anthropic` (CN). Modelos: `kimi-k2-0905-preview` (main),
+  `kimi-k2-turbo-preview` (fast). Contexto: 256K. Tem plano "Kimi for Code"
+  oficial com suporte Claude Code.
+- **Qwen / DashScope (Alibaba)** ⚠️ **BETA** —
+  `https://dashscope-intl.aliyuncs.com/api/v2/apps/claude-code` (intl) +
+  endpoint CN. Modelos: `qwen3-coder-plus` (main), `qwen-plus` (fast).
+  Contexto: 256K. Integração Anthropic-compat ainda em rollout pela Alibaba;
+  endpoint pode sofrer ajuste.
+- **OpenRouter** (aggregator) — `https://openrouter.ai/api/v1`. Uma chave dá
+  acesso a dezenas de modelos (Anthropic, Moonshot, Qwen, GLM, Gemini, GPT,
+  Llama). Padrão configurado com slugs Anthropic (`anthropic/claude-sonnet-4`
+  + `anthropic/claude-haiku-4-5`); substituível por qualquer modelo suportado.
+- **Brand color tokens** — `--color-brand-moonshot/qwen/openrouter` em ambos
+  dark + light.
+- **HeaderBar dot colors + HistoryTab provider accents** — 3 novas classes.
+
+### Changed
+
+- **`ProviderKind` union** — agora com 7 membros (`anthropic | zai | minimax |
+  moonshot | qwen | openrouter | custom`). `docsLinks.ts` + `modelCatalog.ts`
+  expandidos para cobrir exhaustive Record<ProviderKind>.
+- **READMEs (EN + pt-BR)** — tabela de providers expandida pra 7 linhas,
+  seções "Regions / CN endpoints" e "API keys" com portals oficiais.
+
+### Notes
+
+- Env vars novas suportadas no build: `VITE_MOONSHOT_API_KEY`,
+  `VITE_QWEN_API_KEY`, `VITE_OPENROUTER_API_KEY` (todos opcionais).
+- Qwen endpoint flagged como ⚠️ BETA tanto no seed note quanto no README.
+  Alibaba ainda não documentou publicamente o path Anthropic-compat em inglês.
+- OpenRouter cobra pass-through + ~5% markup; tokens/context variam por slug.
+
+---
+
 ## [6.0.0] — 2026-04-21
 
 ### 🌐 "Bilingual" — Full internationalization (EN / pt-BR)
