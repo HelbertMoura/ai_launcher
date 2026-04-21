@@ -18,6 +18,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ['\u2318', '2..9'], description: 'Lançar presets 2 a 9' },
   { keys: ['F5'], description: 'Re-verificar CLIs instalados' },
   { keys: ['\u2318', '/'], description: 'Abrir esta ajuda' },
+  { keys: ['\u2318', '\u21E7', 'A'], description: 'Alternar admin mode (runtime)' },
   { keys: ['Esc'], description: 'Fechar modais' },
 ];
 

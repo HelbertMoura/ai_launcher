@@ -63,7 +63,44 @@ export interface LaunchProviderInfo {
   fastModel: string;
 }
 
-/** Gate admin — lido do import.meta.env em runtime. */
+/**
+ * Gate admin mode. Precedência:
+ *   1. Build-time flag `VITE_ADMIN_MODE=1` (sempre vence — admin-full build)
+ *   2. URL query `?admin=1` (liga) / `?admin=0` (desliga) — persistido
+ *   3. localStorage `ai-launcher:admin-mode` === '1'
+ *   4. Default: false
+ */
+export const ADMIN_STORAGE_KEY = 'ai-launcher:admin-mode';
+
+function readUrlAdminFlag(): '1' | '0' | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('admin');
+    if (v === '1' || v === '0') return v;
+  } catch { /* ignore */ }
+  return null;
+}
+
 export function isAdminMode(): boolean {
-  return import.meta.env.VITE_ADMIN_MODE === '1';
+  if (import.meta.env.VITE_ADMIN_MODE === '1') return true;
+  const url = readUrlAdminFlag();
+  if (url !== null) {
+    try { localStorage.setItem(ADMIN_STORAGE_KEY, url); } catch { /* ignore */ }
+    return url === '1';
+  }
+  try {
+    return localStorage.getItem(ADMIN_STORAGE_KEY) === '1';
+  } catch { /* ignore */ }
+  return false;
+}
+
+export function setAdminMode(enabled: boolean): void {
+  try { localStorage.setItem(ADMIN_STORAGE_KEY, enabled ? '1' : '0'); } catch { /* ignore */ }
+}
+
+export function toggleAdminMode(): boolean {
+  const next = !isAdminMode();
+  setAdminMode(next);
+  return next;
 }

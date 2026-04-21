@@ -141,9 +141,21 @@ Installers land in `src-tauri/target/release/bundle/`. Need local signing to sil
 | `⌘2..9`           | Launch presets 2 through 9   |
 | `F5`              | Re-scan installed CLIs       |
 | `⌘/`              | Open help                    |
+| `⌘⇧A`             | Toggle admin mode (runtime)  |
 | `Esc`             | Close modals                 |
 
 On Windows `⌘` is `Ctrl` and `⇧` is `Shift`.
+
+### Enabling admin mode
+
+Since v5.5.1, admin mode can be toggled at runtime — no rebuild needed. Three ways:
+
+1. Press `⌘⇧A` (or `Ctrl+Shift+A`) — toast confirms state.
+2. Open the app with URL param `?admin=1` (or `?admin=0`). Persists in `localStorage`.
+3. Build from source with `VITE_ADMIN_MODE=1 npm run build` — permanent admin-full.
+
+Admin mode unlocks the Providers + Backup panels. Tokens remain local-only; the
+gate exists to keep the default UI minimal.
 
 <br />
 
