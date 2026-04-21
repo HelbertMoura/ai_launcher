@@ -1,0 +1,393 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "copy": "Copy",
+    "default": "default",
+    "install": "Install",
+    "installing": "Installing...",
+    "refresh": "Refresh",
+    "yes": "Yes",
+    "no": "No",
+    "active": "ACTIVE",
+    "none": "(none)"
+  },
+  "header": {
+    "brand": "AI LAUNCHER",
+    "tabs": {
+      "launcher": "launch",
+      "install": "install",
+      "tools": "tools",
+      "orchestrator": "orchestrator",
+      "history": "history",
+      "updates": "updates",
+      "costs": "costs",
+      "help": "help",
+      "admin": "admin"
+    },
+    "actions": {
+      "commandPalette": "Open command palette",
+      "commandPaletteTitle": "Command palette",
+      "toggleThemeToLight": "Switch to light theme",
+      "toggleThemeToDark": "Switch to dark theme",
+      "toggleThemeTitle": "Toggle theme",
+      "refresh": "Re-check installed CLIs",
+      "refreshTitle": "Refresh (F5)",
+      "activeProvider": "Active provider: {{name}}",
+      "openAdminPanel": "Open admin panel"
+    },
+    "nav": "Primary navigation"
+  },
+  "launcher": {
+    "sectionClis": "AI CLIs",
+    "sectionMulti": "MULTIPLE CLIs",
+    "sectionDirectory": "DIRECTORY",
+    "sectionArgs": "ARGUMENTS",
+    "sectionPreview": "COMMAND",
+    "launch": "Launch",
+    "launchCtaTitle": "Launch CLI",
+    "launchCtaDisabled": "CLI not installed",
+    "startCli": "\u25B6 START {{name}}",
+    "startMulti": "\u25B6\u25B6 START {{count}} CLIs",
+    "docs": "Docs",
+    "docsTitle": "Open docs",
+    "installed": "\u25CF installed",
+    "missing": "\u25CB missing",
+    "update": "\u2191 update",
+    "updateTitle": "Update available",
+    "notInstalled": "not installed",
+    "flagLabel": "Flag: ",
+    "directoryPlaceholder": "C:\\your\\project (Ctrl+L to focus, or drag a folder)",
+    "pickFolder": "Pick folder",
+    "pickFolderLabel": "Choose",
+    "openInExplorer": "Open in Explorer",
+    "openInExplorerLabel": "Explore",
+    "removeFromHistory": "Remove from history",
+    "removeEntry": "Remove {{name}}",
+    "argsPlaceholder": "Ex: --verbose",
+    "noPerms": "Skip permission prompt",
+    "preview": "\uD83D\uDD2C Preview",
+    "previewTitle": "Preview: see CMD + envs without running",
+    "emptyTitle": "No CLI detected",
+    "emptySub": "Install your first AI CLI to get started.",
+    "emptyCta": "\uD83D\uDCE6 Install first CLI",
+    "cliDescriptions": {
+      "claude": "Anthropic official CLI",
+      "codex": "OpenAI Codex CLI",
+      "gemini": "Google Gemini CLI",
+      "qwen": "Alibaba Qwen CLI",
+      "kilocode": "Kilo Code agent",
+      "opencode": "OpenCode CLI",
+      "crush": "Crush CLI",
+      "droid": "Factory Droid CLI"
+    }
+  },
+  "history": {
+    "filterByCli": "Filter by CLI",
+    "filterEmpty": "no entries",
+    "providerLabel": "provider:",
+    "providerAll": "all",
+    "clearAll": "clear all",
+    "clearAllLabel": "Clear all history",
+    "clearAllConfirm": "Clear all history?",
+    "empty": "No launches yet.",
+    "emptyFiltered": "No entries match the current filters.",
+    "clearFilters": "clear filters",
+    "reRun": "re-run",
+    "reRunLabel": "Re-launch {{name}}",
+    "copyArgs": "copy args",
+    "copyArgsLabel": "Copy args of {{name}}",
+    "copied": "copied!",
+    "failed": "failed",
+    "providerDefault": "default"
+  },
+  "costs": {
+    "loading": "Loading usage data...",
+    "errorTitle": "Error reading stats:",
+    "tokensInToday": "Tokens IN today",
+    "tokensOutMonth": "Tokens OUT this month",
+    "totalCost": "Total estimated cost",
+    "byCli": "By CLI",
+    "topProjects": "Top projects (by cost)"
+  },
+  "palette": {
+    "ariaLabel": "Command palette",
+    "placeholder": "Type a command or search...",
+    "empty": "No results found.",
+    "sections": {
+      "pinned": "> pinned",
+      "recent": "> recent",
+      "all": "> all"
+    },
+    "preview": "preview",
+    "footer": {
+      "launch": "launch",
+      "copy": "copy",
+      "close": "close"
+    },
+    "commands": {
+      "launchCli": "Launch {{name}}",
+      "openTool": "Open {{name}}",
+      "navLauncher": "Go to Launcher",
+      "navInstall": "Go to Install",
+      "navTools": "Go to Tools",
+      "navHistory": "Go to History",
+      "navUpdates": "Go to Updates",
+      "navHelp": "Go to Help",
+      "updateAll": "Update all CLIs",
+      "reloadStatus": "Reload status",
+      "toggleTheme": "Toggle theme (dark/light)"
+    }
+  },
+  "statusbar": {
+    "tab": "tab: {{tab}}",
+    "updateAvailable": "{{tag}} available"
+  },
+  "helpModal": {
+    "title": "keyboard shortcuts",
+    "close": "Close help",
+    "closeHint": "Press {{key}} to close",
+    "shortcuts": {
+      "palette": "Open command palette",
+      "tabLauncher": "Launcher tab",
+      "tabInstall": "Install tab",
+      "tabHistory": "History tab",
+      "tabCosts": "Costs tab",
+      "preset1": "Launch preset 1",
+      "presetsRange": "Launch presets 2 through 9",
+      "refresh": "Re-check installed CLIs",
+      "help": "Open this help",
+      "adminToggle": "Toggle admin mode (runtime)",
+      "escape": "Close modals"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "brand": "AI LAUNCHER",
+      "tagline": "eight CLIs. one launcher.",
+      "body": "AI Launcher Pro detects your installed CLIs, switches providers in a click, and launches with the right environment — straight from the dramatic terminal.",
+      "start": "start",
+      "skip": "skip tour"
+    },
+    "detect": {
+      "prompt": "> detecting installed CLIs...",
+      "body": "The real list appears in the Launcher tab after you finish the tour.",
+      "continue": "continue"
+    },
+    "provider": {
+      "prompt": "> choose provider",
+      "optionAnthropic": "Anthropic (official)",
+      "optionZai": "Z.AI",
+      "optionMinimax": "MiniMax",
+      "body": "You configure tokens later in Admin \u2192 Providers. Tokens stay local only, zero telemetry.",
+      "continue": "continue"
+    },
+    "launch": {
+      "prompt": "> ready to launch",
+      "body": "Press <1>{{cmd}}</1> <2>{{k}}</2> to open the palette anytime, or go back to the Launcher tab and pick a CLI.",
+      "cta": "launch now"
+    }
+  },
+  "admin": {
+    "providerKinds": {
+      "anthropic": "Anthropic (official)",
+      "zai": "Z.AI (GLM)",
+      "minimax": "MiniMax",
+      "custom": "Custom (other)"
+    },
+    "toasts": {
+      "nameRequired": "Name is required.",
+      "builtinNotDeletable": "Built-in can't be deleted (only edited).",
+      "jsonCopied": "JSON copied to clipboard",
+      "providersReset": "Providers reset",
+      "configExported": "Config exported (secrets redacted)"
+    },
+    "testing": "Testing...",
+    "testConnection": "\uD83D\uDD0C Test connection",
+    "confirmReset": "Reset providers to built-ins? Custom profiles will be lost.",
+    "confirmResetClaude": "Clear Claude Code state?\n\nRemoves customApiKeyResponses, oauthAccount and model from ~/.claude.json\n\nUseful when Claude Code is \"stuck\" on an old provider.",
+    "confirmMerge": "Merge with current config? (Cancel = REPLACE)",
+    "copyJsonPrompt": "Copy the JSON below:",
+    "buttons": {
+      "export": "\u2B07 Export",
+      "exportTitle": "Copies JSON with all profiles",
+      "reset": "\u267B Reset",
+      "resetTitle": "Reverts to built-ins",
+      "resetClaudeTitle": "Clears customApiKeyResponses/oauthAccount/model from ~/.claude.json (makes backup)",
+      "resetClaudeLabel": "Reset Claude Code state"
+    },
+    "form": {
+      "newProfile": "New profile",
+      "editing": "Editing: {{name}}",
+      "namePlaceholder": "Z.AI dev, MiniMax prod, etc.",
+      "idPlaceholder": "auto from name",
+      "baseUrlPlaceholder": "https://api.z.ai/api/anthropic",
+      "apiKeyPlaceholder": "paste your key here",
+      "mainModelPlaceholder": "glm-5.1",
+      "smallModelPlaceholder": "glm-4.7",
+      "dailyBudgetPlaceholder": "e.g. 5 = alert above $5/day",
+      "notePlaceholder": "Free note (shown on card)",
+      "envKeyPlaceholder": "VAR_NAME",
+      "envValuePlaceholder": "value",
+      "removeEnvTitle": "Remove environment variable",
+      "removeEnvLabel": "Remove env {{key}}",
+      "deleteProfileTitle": "Delete profile",
+      "deleteProfileLabel": "Delete profile {{name}}"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "fontAria": "Display font",
+      "recommended": "recommended"
+    },
+    "mode": {
+      "on": "Admin mode ON \u2014 provider editing available",
+      "off": "Admin mode OFF"
+    }
+  },
+  "quickSwitch": {
+    "placeholder": "Filter provider... (\u2191\u2193 navigate, Enter activate, Esc close)",
+    "empty": "No results.",
+    "hint": "<1>Ctrl+P</1> opens \u00B7 <2>\u2191\u2193</2> navigate \u00B7 <3>Enter</3> activate \u00B7 <4>Esc</4> close",
+    "active": "ACTIVE"
+  },
+  "dryRun": {
+    "title": "\uD83D\uDD2C Launch preview",
+    "closeTitle": "Close preview",
+    "closeLabel": "Close launch preview",
+    "cli": "CLI",
+    "directory": "Directory",
+    "directoryFallback": "(current directory)",
+    "envVars": "Injected env vars",
+    "noEnvs": "No envs (uses {{cli}} default config).",
+    "copyScript": "\uD83D\uDCCB Copy as .bat script",
+    "copyPrompt": "Copy below:",
+    "close": "Close",
+    "cwdFallback": "(current)"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "recommended": "recommended"
+  },
+  "empty": {
+    "history": {
+      "title": "no history yet",
+      "sub": "Launch a CLI to see it here."
+    },
+    "presets": {
+      "title": "no presets yet",
+      "sub": "Save your current launcher config as a preset."
+    },
+    "cli": {
+      "title": "no CLI installed",
+      "sub": "Install from the Install tab to get started.",
+      "cta": "Install CLIs"
+    }
+  },
+  "toasts": {
+    "activeProvider": "\uD83D\uDD00 Active provider: {{name}}",
+    "trayHotkeyUpdated": "Global shortcut updated",
+    "trayHotkeyError": "Error saving shortcut: {{error}}",
+    "trayHotkeyReset": "Global shortcut reset",
+    "genericError": "Error: {{error}}",
+    "updatesAvailable": "{{count}} update(s) available",
+    "installed": "{{name}}: installed",
+    "failed": "Failed: {{error}}",
+    "updated": "{{name}}: updated",
+    "ready": "{{key}}: ready",
+    "openingDownload": "Opening download page",
+    "budgetExceeded": "\u26A0 Budget: ${{today}} / ${{budget}} today ({{name}})",
+    "launchedWith": "\u25B6 {{cli}} via {{provider}} \u00B7 envs: {{keys}}",
+    "presetSaved": "\uD83D\uDCBE Preset \"{{name}}\" saved",
+    "cliNotFound": "CLI \"{{key}}\" not found",
+    "launchedPreset": "\u25B6 {{emoji}} {{name}}",
+    "presetDeleted": "Preset deleted",
+    "openingTool": "Opening {{name}}",
+    "clearAllConfirm": "Clear ALL settings (directory, history, theme, welcome, API keys, install log)?\n\nThe app will reload.",
+    "settingsReset": "Settings reset",
+    "welcomeOnNext": "Welcome will be shown on next open"
+  },
+  "welcome": {
+    "loading": "Loading...",
+    "greeting": "Welcome to",
+    "brand": "AI Launcher",
+    "firstTimeTitle": "First time here?",
+    "firstTimeBody": "Click \"Validate System\" for the launcher to detect Node, Python, Git, Rust, installed CLIs, etc. Takes a few seconds and unlocks all features.",
+    "validating": "Validating system...",
+    "envDetected": "Detected environment",
+    "hideCheckbox": "Don't show this screen again (can re-enable in Help)"
+  },
+  "installTab": {
+    "sub": "Manage prerequisites and AI CLIs. Silent install with live log.",
+    "prereqTitle": "System prerequisites",
+    "cliNotInstalled": "CLIs not installed",
+    "installButton": "Install",
+    "logTitle": "Install log \u2014 {{cli}}",
+    "installing": "Installing..."
+  },
+  "toolsTab": {
+    "lastCheck": "Last: {{time}}",
+    "available": "Available",
+    "notInstalled": "Not installed",
+    "open": "Open",
+    "download": "Download"
+  },
+  "updatesTab": {
+    "updateAll": "\u2B06 Update all CLIs",
+    "updating": "Updating...",
+    "current": "Current: {{version}}",
+    "currentMissing": "Current: \u2014 (not installed)",
+    "currentDash": "Current: \u2014",
+    "updateViaNpm": "Update via npm global",
+    "updateCliLabel": "Update {{cli}}",
+    "openDownloadPage": "Opens the official download page",
+    "openDownloadLabel": "Open download page for {{cli}}",
+    "upToDate": "You're on the latest version",
+    "noComparison": "? no comparison",
+    "noComparisonTitle": "No public API to compare version",
+    "emptyPrereqs": "No prerequisites detected."
+  },
+  "helpTab": {
+    "sub": "Everything you need to know to use AI Launcher Pro.",
+    "whatIsTitle": "What is AI Launcher Pro?",
+    "whatIsBody": "Centralized hub to manage, install, update and launch AI CLIs (Claude, Codex, Gemini, Qwen, Kilo, OpenCode, Crush, Factory Droid) and dev tools (VS Code, Cursor, Windsurf, AntGravity). All in one place, no flashing terminals, with live progress.",
+    "installTitle": "How to install a CLI",
+    "installBody": "Tab \uD83D\uDCE6 Install \u2192 \"CLIs not installed\" section \u2192 click \"Install\". Installation is silent in the background, with a live log shown below. Missing prerequisites (Node, Git, Python, etc.) have their own install button.",
+    "factoryDroidBody": "Factory Droid: uses the official script, native on Windows. When you click Install, the launcher runs the script via PowerShell in the background.",
+    "launchTitle": "How to launch a CLI",
+    "launchStep1": "Tab \u26A1 Launcher \u2192 click the desired CLI card",
+    "launchStep2": "Choose the directory (Ctrl+L focuses the field)",
+    "launchStep3": "Add optional arguments (forbidden chars: ; & | ` $ > <)",
+    "launchStep4": "Click START (or Ctrl+K). Opens in Windows Terminal if available, else PowerShell, else cmd.",
+    "launchMulti": "To launch multiple, check boxes in the \"Multiple CLIs\" section and click the second button.",
+    "updatesTitle": "Check for updates",
+    "updatesBody": "Tab \uD83D\uDD14 Updates \u2192 \"Check all\" button. Queries in parallel:",
+    "updatesListCli": "CLIs: compares local version vs npm registry",
+    "updatesListPrereqs": "Prerequisites: local version + latest of npm packages (pnpm, yarn, tauri)",
+    "updatesNote": "Note: IDE updates (VS Code / Cursor / Windsurf) were removed \u2014 update inside the IDE itself.",
+    "updatesBulk": "When there are multiple CLI updates, use \"Update all\" to apply them in batch.",
+    "shortcutsTitle": "Keyboard shortcuts",
+    "securityTitle": "Security & virus alerts",
+    "troubleshootTitle": "Troubleshooting",
+    "welcomeTitle": "Welcome screen",
+    "welcomeBody": "The screen appears whenever you open the app, unless you check \"Don't show this screen again\". You can re-enable it at any time:",
+    "traySection": "The app keeps an icon next to the clock. Left click opens/focuses the window; right click shows a menu with quick CLI launches and access to the tabs.",
+    "trayMinimize": "Minimize to tray when closing (instead of quitting)",
+    "trayShortcut": "Global shortcut (open/close):",
+    "trayShortcutHelp": "Format: modifiers separated by +. Ex: CommandOrControl+Shift+L, Alt+F1. Conflicts with other apps (Raycast, AutoHotkey) may block registration \u2014 choose another combination if that happens.",
+    "resetTitle": "Reset all settings",
+    "resetBody": "Removes: saved directory, history, theme, welcome preference, install log. The app reloads.",
+    "supportTitle": "Support & contact",
+    "supportBody": "Developed by Helbert Moura. Brand DevManiac's.",
+    "currentVersion": "Current version: v{{version}}."
+  },
+  "footer": {
+    "by": "by Helbert Moura",
+    "poweredBy": "Powered by DevManiac's"
+  }
+}

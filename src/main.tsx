@@ -5,6 +5,8 @@ import './styles/tokens-light.css';  // light (overrides when [data-theme="light
 import './styles/motion.css';        // keyframes for tab transitions
 import './styles.css';
 
+import './i18n';
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
