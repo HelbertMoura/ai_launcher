@@ -640,3 +640,88 @@
 }
 
 .onboarding-step__actions .btn-ghost:hover { color: var(--text); }
+
+/* ===== v7.0 — Welcome typing caret ===== */
+
+@keyframes onb-typing-caret {
+  50% { opacity: 0; }
+}
+
+.onboarding-step__tagline--typing::after {
+  content: '_';
+  color: var(--text-prompt);
+  animation: onb-typing-caret 800ms steps(1) infinite;
+  margin-left: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-step__tagline--typing::after { animation: none; }
+}
+
+/* ===== v7.0 — Tour carousel (9 slides) ===== */
+
+.onboarding-tour__slide {
+  padding: 16px 0;
+  min-height: 120px;
+}
+
+.onboarding-tour__slide-title {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-md, 18px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.onboarding-tour__slide-body {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.onboarding-tour__dots {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 8px;
+  justify-content: center;
+}
+
+.onboarding-tour__slide-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--border-dim);
+  border-radius: 50%;
+  transition: background 200ms ease;
+}
+
+.onboarding-tour__slide-dot.is-reached {
+  background: var(--text-prompt);
+  opacity: 0.6;
+}
+
+.onboarding-tour__slide-dot.is-current {
+  background: var(--text);
+  opacity: 1;
+}
+
+.onboarding-tour__nav-hint {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  text-align: center;
+  margin: 8px 0;
+  opacity: 0.7;
+}
+
+.onboarding-tour__actions {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.onboarding-tour__actions .btn-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
