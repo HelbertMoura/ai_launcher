@@ -22,10 +22,13 @@ void i18n
       'en': { translation: en },
       'pt-BR': { translation: ptBR },
     },
+    lng: undefined, // let detector run
     fallbackLng: 'en',
-    supportedLngs: SUPPORTED_LOCALES,
+    supportedLngs: SUPPORTED_LOCALES as unknown as string[],
     nonExplicitSupportedLngs: false, // convertDetectedLanguage handles 'pt' => 'pt-BR'
     load: 'currentOnly', // avoid loading bare 'pt' separately
+    lowerCaseLng: false, // preserve 'pt-BR' exact case to match resources key
+    cleanCode: true,
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: LOCALE_STORAGE_KEY,
@@ -37,11 +40,20 @@ void i18n
     },
     interpolation: { escapeValue: false }, // React already escapes
     returnNull: false,
+    react: {
+      useSuspense: false, // avoid suspending on language change — fixes silent freeze of UI
+      bindI18n: 'languageChanged loaded',
+      bindI18nStore: 'added removed',
+    },
   });
 
-export function setLocale(locale: Locale): void {
-  void i18n.changeLanguage(locale);
+export function setLocale(locale: Locale): Promise<void> {
   try { localStorage.setItem(LOCALE_STORAGE_KEY, locale); } catch { /* ignore */ }
+  return i18n.changeLanguage(locale).then(() => {
+    try {
+      window.dispatchEvent(new CustomEvent('ai-launcher:locale-changed', { detail: locale }));
+    } catch { /* ignore */ }
+  });
 }
 
 export function getLocale(): Locale {
