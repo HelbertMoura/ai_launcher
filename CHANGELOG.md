@@ -5,6 +5,75 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] — 2026-04-21
+
+### 🎨 "Polish & Wire" — Bug fixes + custom launches + built-in overrides
+
+Minor release focused on fixing v7.0 rough edges and closing the custom-launch loop.
+Zero schema breaking; all v7.0 data carries over.
+
+### Added
+
+- **Custom CLI launch wiring** — `launch_custom_cli` Rust command mirrors
+  the built-in `launch_cli` spawn style (Windows Terminal → pwsh →
+  powershell → cmd fallback chain, PS-encoded args, env injection).
+  LauncherTab extracts binary from `installCmd` and invokes.
+- **Custom IDE launch wiring** — `launch_custom_ide` Rust command resolves
+  `<dir>` placeholder in `launchCmd`. Tools tab gets "Launch" button per
+  custom IDE row.
+- **Override built-in CLI/IDE name + icon** — hover reveals ✎ edit button
+  on each built-in card. Change display name + icon (emoji/text).
+  Storage: `ai-launcher:cli-overrides` / `ai-launcher:ide-overrides`.
+  Empty override auto-cleans (no stub keys). Reset restores defaults.
+- **Same-tab settings state sync** — `appSettings`, `customClis`,
+  `customIdes`, `cliOverrides`, `ideOverrides` all dispatch CustomEvents
+  on save. Consumers subscribe and update reactively — **no more reload
+  required** after Admin changes.
+- **`commandTimeout` wired to Rust** — `install_cli` and `update_cli`
+  wrapped with `tokio::time::timeout`. Default 300s, overridable via
+  `timeout_sec` arg. Frontend passes `appSettings.commandTimeout`.
+- **12 redesigned icons** — 8 CLI + 4 IDE SVGs under 500 B each,
+  minimalist 32×32 glyphs with brand colors preserved.
+- **Upgraded banner SVG** — realistic terminal mock: traffic lights with
+  glow, filename tab `ai-launcher — terminal — pt-BR`, 6-row prompt flow
+  with syntax-like coloring, cursor block, scanlines pattern, provider
+  badge, bottom status strip. 7.8 KB (was 4.2 KB).
+
+### Fixed
+
+- **Scroll in all tabs** — `.app` was missing `overflow: hidden`, and
+  `.tab-content` had no `flex:1` / `overflow-y:auto` / `min-height:0`.
+  All tabs now scroll independently with HeaderBar/StatusBar pinned.
+  Affected: Launcher, Install, Tools, History, Costs, Help, Updates.
+- **Language switcher not applying pt-BR** — root cause: react-i18next's
+  default `useSuspense: true` was silently swallowing `languageChanged`
+  events before child consumers re-rendered. Fix: `useSuspense: false`
+  + `bindI18n: 'languageChanged loaded'` + defensive force-rerender
+  listener in App.tsx. `setLocale` now awaits `changeLanguage` and
+  dispatches a custom event.
+- **HeaderBar reactive language display** — was imperative `getLocale()`,
+  now `i18n.resolvedLanguage` via `useTranslation()` subscription.
+
+### Changed
+
+- **Accent color token** — `--text-prompt` swapped from terminal-green
+  (`oklch(72% 0.15 160)`) to warm-red (`oklch(62% 0.210 25)`) in both
+  dark + light themes. Banner SVG prompt glyphs updated `#58D68D` →
+  `#E5514F`. Brand colors untouched.
+- Banner references `.svg` instead of `.png` (v7.0 leftover).
+
+### Notes
+
+- Windows-only launch commands for now. macOS/Linux return an error;
+  full platform support tracked for v7.2.
+- Override affects display only; CLI key/install command unchanged.
+- Custom CLI launch uses heuristic to extract binary from `installCmd`
+  (strips `npm install -g ` / `pip install ` prefix). Users with exotic
+  install patterns (cargo, winget) should use the key as binary name.
+  A dedicated `launchCmd` field is tracked for v7.2.
+
+---
+
 ## [7.0.0] — 2026-04-21
 
 ### 🧩 "Extensible" — Onboarding + FAQ + Custom CLIs/IDEs + Preferences
