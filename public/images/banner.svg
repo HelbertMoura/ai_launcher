@@ -12,10 +12,25 @@
       <stop offset="0" stop-color="#17171B"/>
       <stop offset="1" stop-color="#121216"/>
     </linearGradient>
+    <linearGradient id="titlebar-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A1A1F"/>
+      <stop offset="1" stop-color="#0F0F14"/>
+    </linearGradient>
     <linearGradient id="title-grad" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#F5F1E8"/>
       <stop offset="1" stop-color="#E3DED0"/>
     </linearGradient>
+    <radialGradient id="crt-glow" cx="0.5" cy="0.5" r="0.8">
+      <stop offset="0" stop-color="#E5514F" stop-opacity="0"/>
+      <stop offset="0.75" stop-color="#0A0A0C" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0A0A0C" stop-opacity="0.55"/>
+    </radialGradient>
+    <pattern id="scanlines" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="4" y2="0" stroke="#FFFFFF" stroke-width="0.5" opacity="0.05"/>
+    </pattern>
+    <clipPath id="term-clip">
+      <rect x="0" y="0" width="480" height="220" rx="10" ry="10"/>
+    </clipPath>
   </defs>
 
   <!-- Background -->
@@ -27,41 +42,88 @@
 
   <!-- Terminal mock on the left -->
   <g transform="translate(40,40)">
+    <!-- Window body -->
     <rect width="480" height="220" rx="10" ry="10" fill="url(#term-grad)" stroke="#2A2A30" stroke-width="1"/>
-    <!-- Title bar separator -->
-    <line x1="0" y1="40" x2="480" y2="40" stroke="#222228" stroke-width="1"/>
-    <!-- Traffic lights -->
-    <circle cx="22" cy="22" r="5.5" fill="#EC5545" opacity="0.9"/>
-    <circle cx="42" cy="22" r="5.5" fill="#EFBF38" opacity="0.9"/>
-    <circle cx="62" cy="22" r="5.5" fill="#55C658" opacity="0.9"/>
-    <!-- Title bar text -->
-    <text x="230" y="26" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="middle">ai_launcher — zsh — 120×24</text>
 
-    <!-- Prompt line 1 -->
-    <text x="22" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E5514F">&gt;</text>
-    <text x="42" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E8E4DB">ai_launcher --provider kimi</text>
+    <g clip-path="url(#term-clip)">
+      <!-- Title bar -->
+      <rect x="0" y="0" width="480" height="28" fill="url(#titlebar-grad)"/>
+      <line x1="0" y1="28" x2="480" y2="28" stroke="#2A2A30" stroke-width="1"/>
 
-    <!-- Output lines -->
-    <text x="22" y="110" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">[launching claude code via kimi-k2-0905]</text>
-    <text x="22" y="134" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">context: 256k  ·  cost: $0.60/M in</text>
-    <text x="22" y="158" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#7A7670">ok — session ready in 184ms</text>
+      <!-- Traffic lights with subtle glow -->
+      <circle cx="18" cy="14" r="5.5" fill="#EC5545" opacity="0.35"/>
+      <circle cx="18" cy="14" r="4.5" fill="#EC5545"/>
+      <circle cx="36" cy="14" r="5.5" fill="#EFBF38" opacity="0.35"/>
+      <circle cx="36" cy="14" r="4.5" fill="#EFBF38"/>
+      <circle cx="54" cy="14" r="5.5" fill="#55C658" opacity="0.35"/>
+      <circle cx="54" cy="14" r="4.5" fill="#55C658"/>
 
-    <!-- Prompt line with blinking cursor (static) -->
-    <text x="22" y="194" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E5514F">&gt;</text>
-    <rect x="42" y="181" width="10" height="16" fill="#E8E4DB" opacity="0.85"/>
+      <!-- Filename tab pill (centered) -->
+      <rect x="150" y="6" width="220" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.5"/>
+      <text x="260" y="17" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">ai-launcher — terminal — pt-BR</text>
+
+      <!-- Scanlines overlay inside body -->
+      <rect x="0" y="28" width="480" height="192" fill="url(#scanlines)" pointer-events="none"/>
+      <!-- CRT vignette -->
+      <rect x="0" y="28" width="480" height="192" fill="url(#crt-glow)" pointer-events="none"/>
+
+      <!-- Body lines -->
+      <!-- Line 1: prompt + command -->
+      <text x="16" y="56" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
+      <text x="30" y="56" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E8E4DB">ai_launcher --provider kimi</text>
+
+      <!-- Line 2: provider dot + meta -->
+      <circle cx="21" cy="75" r="4" fill="#E5514F"/>
+      <text x="30" y="80" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#AFAAA0">kimi.moonshot · kimi-k2-0905-preview</text>
+
+      <!-- Line 3: muted body -->
+      <text x="30" y="100" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#6D6A68">context 256k · pricing $0.60/M in</text>
+
+      <!-- Line 4: prompt + command -->
+      <text x="16" y="128" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
+      <text x="30" y="128" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E8E4DB">launch claude</text>
+
+      <!-- Keycap hints to the right of the command -->
+      <g transform="translate(170,116)">
+        <rect x="0" y="0" width="28" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
+        <text x="14" y="12" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">⌘K</text>
+        <rect x="34" y="0" width="36" height="16" rx="3" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
+        <text x="52" y="12" text-anchor="middle" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="10" fill="#AFAAA0">⌘⇧A</text>
+      </g>
+
+      <!-- Line 5: running status -->
+      <rect x="16" y="142" width="10" height="12" fill="#E5514F"/>
+      <text x="30" y="152" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#AFAAA0">running · pid 44892 · session ready in 184ms</text>
+
+      <!-- Line 6: active empty prompt with cursor block -->
+      <text x="16" y="180" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F">&gt;</text>
+      <rect x="32" y="168" width="9" height="15" fill="#E5514F" opacity="0.9"/>
+
+      <!-- Bottom faint status strip -->
+      <line x1="0" y1="200" x2="480" y2="200" stroke="#2A2A30" stroke-width="0.5" opacity="0.7"/>
+      <text x="16" y="212" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="9" fill="#5A565A">zsh · utf-8 · 120×24</text>
+      <text x="464" y="212" text-anchor="end" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="9" fill="#5A565A">● online</text>
+    </g>
+  </g>
+
+  <!-- Provider indicator badge above wordmark -->
+  <g transform="translate(560,78)">
+    <rect width="184" height="22" rx="4" fill="#16161A" stroke="#2A2A30" stroke-width="0.8"/>
+    <circle cx="14" cy="11" r="4" fill="#E5514F"/>
+    <text x="26" y="15" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="11" fill="#AFAAA0">kimi-k2 · 256k · v7.1</text>
   </g>
 
   <!-- Wordmark on the right -->
   <g transform="translate(560,128)">
     <!-- Small caret badge -->
-    <text x="0" y="-32" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F" letter-spacing="2">&gt; launcher.exec</text>
+    <text x="0" y="-16" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F" letter-spacing="2">&gt; launcher.exec</text>
 
     <!-- Main title -->
-    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="60" font-weight="800" letter-spacing="4" fill="url(#title-grad)">AI LAUNCHER</text>
+    <text x="0" y="22" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="60" font-weight="800" letter-spacing="4" fill="url(#title-grad)">AI LAUNCHER</text>
 
     <!-- Taglines -->
-    <text x="2" y="40" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="20" fill="#AFAAA0">eight AI CLIs. one launcher.</text>
-    <text x="2" y="68" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" font-style="italic" fill="#7A7670">bilingual · local-first · terminal-native</text>
+    <text x="2" y="62" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="20" fill="#AFAAA0">eight AI CLIs. one launcher.</text>
+    <text x="2" y="90" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" font-style="italic" fill="#7A7670">bilingual · local-first · terminal-native</text>
   </g>
 
   <!-- Bottom hairline -->
@@ -69,6 +131,6 @@
 
   <!-- Version tag bottom-right -->
   <g transform="translate(1160,278)">
-    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="end">v7.0+  ·  tauri v2  ·  react 19</text>
+    <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="end">v7.1  ·  tauri v2  ·  react 19</text>
   </g>
 </svg>
