@@ -5,6 +5,38 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.1] — 2026-04-21
+
+### 🔓 Runtime Admin Toggle
+
+Admin mode passa a ser alternável em runtime — qualquer usuário do release pode
+ativar sem recompilar. Tokens continuam local-only; admin UI só edita `localStorage`.
+
+### Added
+
+- **Runtime admin toggle** — atalho global `⌘⇧A` (ou `Ctrl+Shift+A`) alterna
+  o admin mode; estado persistido em `localStorage['ai-launcher:admin-mode']`.
+- **URL param override** — `?admin=1` / `?admin=0` na URL liga/desliga e persiste.
+- **Toast feedback** — ao alternar, toast confirma `Admin mode ON/OFF`.
+- **HelpModal** — entrada `⌘⇧A — Alternar admin mode (runtime)` adicionada.
+
+### Changed
+
+- `isAdminMode()` agora lê de três fontes em ordem de precedência:
+  1. Build flag `VITE_ADMIN_MODE=1` (vence sempre — admin-full build)
+  2. URL query `?admin=1|0` (persiste em localStorage)
+  3. `localStorage['ai-launcher:admin-mode'] === '1'`
+- `App.tsx` — `adminMode` agora é `useState` reativo em vez de constante de render.
+
+### Notes
+
+- Release binários publicados desta versão (`.msi`/`.exe`) permitem ativar admin
+  sem rebuild. Build local com `VITE_ADMIN_MODE=1` continua funcionando como
+  "admin-full" (não pode ser desligado via toggle).
+- Schema de localStorage inalterado (nova chave é aditiva).
+
+---
+
 ## [5.5.0] — 2026-04-21
 
 ### 🖥️ "Terminal Dramático" — redesign visual completo para estética terminal-native

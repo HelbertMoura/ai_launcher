@@ -9,7 +9,7 @@ import { Skeleton } from './Skeleton';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
-import { isAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
+import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
 import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
 import type { LaunchPreset } from './presets/types';
@@ -198,7 +198,8 @@ function App() {
   const [minimizeToTray, setMinimizeToTray] = useState<boolean>(false);
 
   // Admin: providers Anthropic-compatible (Z.AI, MiniMax, etc.)
-  const adminMode = isAdminMode();
+  // Runtime toggle via ⌘⇧A — persisted in localStorage. VITE_ADMIN_MODE=1 build wins regardless.
+  const [adminMode, setAdminModeState] = useState<boolean>(() => isAdminMode());
   const [providers, setProviders] = useState<ProvidersState>(() => loadProviders());
   const [quickSwitchOpen, setQuickSwitchOpen] = useState(false);
   const [dryRunOpen, setDryRunOpen] = useState(false);
@@ -456,6 +457,31 @@ function App() {
         '4': 'costs',
       };
       setActiveTab(map[e.key]);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Admin mode runtime toggle (⌘⇧A / Ctrl+Shift+A)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (!e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== 'a') return;
+      const target = document.activeElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      e.preventDefault();
+      setAdminModeState((prev) => {
+        const next = !prev;
+        setAdminMode(next);
+        showToast(next ? 'Admin mode ON — provider editing available' : 'Admin mode OFF');
+        return next;
+      });
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
