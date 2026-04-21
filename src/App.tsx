@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18nInstance from './i18n';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -142,8 +143,21 @@ function formatTimestamp(epochSecStr: string): string {
 
 function App() {
   const { t } = useTranslation();
+  const [, forceRerenderOnLangChange] = useState(0);
   const [activeTab, setActiveTab] = useState<HeaderTabId>('launcher');
   const [bootReady, setBootReady] = useState(false);
+
+  // Defensive: force re-render across the entire tree when the language changes.
+  // useTranslation() should already subscribe consumers, but some nested
+  // components (tabs, modals) may hold stale closures. This guarantees
+  // propagation on every languageChanged event.
+  useEffect(() => {
+    const onLangChange = () => forceRerenderOnLangChange(n => n + 1);
+    i18nInstance.on('languageChanged', onLangChange);
+    return () => {
+      i18nInstance.off('languageChanged', onLangChange);
+    };
+  }, []);
 
   // Welcome: visível OU oculta. Usuário controla.
   // - Primeira vez (!hasChecked): visível OBRIGATÓRIA
@@ -528,7 +542,7 @@ function App() {
       e.preventDefault();
       const current = getLocale();
       const next: Locale = current === 'en' ? 'pt-BR' : 'en';
-      setLocale(next);
+      void setLocale(next);
       showToast(`Language: ${LOCALE_LABELS[next].native}`);
     }
     window.addEventListener('keydown', onKey);

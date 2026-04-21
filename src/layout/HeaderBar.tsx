@@ -93,7 +93,7 @@ export function HeaderBar({
   }, [langOpen]);
 
   function handleLocaleSelect(lng: Locale) {
-    setLocale(lng);
+    void setLocale(lng);
     setLangOpen(false);
   }
 
