@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -134,6 +135,7 @@ function formatTimestamp(epochSecStr: string): string {
 // ==================== APP ====================
 
 function App() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<HeaderTabId>('launcher');
   const [bootReady, setBootReady] = useState(false);
 
@@ -361,7 +363,7 @@ function App() {
             const next = setActive(prev, id);
             saveProviders(next);
             const name = next.profiles.find(p => p.id === id)?.name || id;
-            showToast(`🔀 Provider ativo: ${name}`);
+            showToast(t('toasts.activeProvider', { name }));
             return next;
           });
         });
@@ -391,9 +393,9 @@ function App() {
   async function saveTrayHotkey() {
     try {
       await invoke('set_tray_hotkey', { hotkey: trayHotkey });
-      showToast('Atalho global atualizado');
+      showToast(t('toasts.trayHotkeyUpdated'));
     } catch (e) {
-      showToast(`Erro ao salvar atalho: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.trayHotkeyError', { error: String(e).slice(0, 120) }));
     }
   }
 
@@ -402,9 +404,9 @@ function App() {
     setTrayHotkey(def);
     try {
       await invoke('set_tray_hotkey', { hotkey: def });
-      showToast('Atalho global resetado');
+      showToast(t('toasts.trayHotkeyReset'));
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     }
   }
 
@@ -413,7 +415,7 @@ function App() {
     try {
       await invoke('set_minimize_to_tray', { enabled });
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     }
   }
 
@@ -479,7 +481,7 @@ function App() {
       setAdminModeState((prev) => {
         const next = !prev;
         setAdminMode(next);
-        showToast(next ? 'Admin mode ON — provider editing available' : 'Admin mode OFF');
+        showToast(next ? t('admin.mode.on') : t('admin.mode.off'));
         return next;
       });
     }
@@ -629,11 +631,11 @@ function App() {
       const summary = await invoke<UpdatesSummary>('check_all_updates');
       setUpdatesSummary(summary);
       if (!silent && summary.total_with_updates > 0) {
-        showToast(`${summary.total_with_updates} atualização(ões) disponível(eis)`);
+        showToast(t('toasts.updatesAvailable', { count: summary.total_with_updates }));
       }
     } catch (e) {
       console.error(e);
-      if (!silent) showToast(`Erro: ${String(e).slice(0, 120)}`);
+      if (!silent) showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     } finally { setCheckingAllUpdates(false); }
   }
 
@@ -645,10 +647,10 @@ function App() {
     setInstallLog(prev => ({ ...prev, [cliKey]: [] }));
     try {
       await invoke<string>('install_cli', { cliKey });
-      showToast(`${clis.find(c => c.key === cliKey)?.name || cliKey}: instalado`);
+      showToast(t('toasts.installed', { name: clis.find(c => c.key === cliKey)?.name || cliKey }));
       await checkInstalled();
     } catch (e: unknown) {
-      showToast(`Falhou: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.failed', { error: String(e).slice(0, 120) }));
     } finally {
       installingRef.current = null;
       setInstallingCli(null);
@@ -662,12 +664,12 @@ function App() {
     setInstallLog(prev => ({ ...prev, [cliKey]: [] }));
     try {
       await invoke('update_cli', { cliKey });
-      showToast(`${clis.find(c => c.key === cliKey)?.name || cliKey}: atualizado`);
+      showToast(t('toasts.updated', { name: clis.find(c => c.key === cliKey)?.name || cliKey }));
       markJustUpdated(cliKey);
       await checkInstalled();
       await checkAllUpdates(true);
     } catch (e: unknown) {
-      showToast(`Falhou: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.failed', { error: String(e).slice(0, 120) }));
     } finally {
       installingRef.current = null;
       setUpdatingCli(null);
@@ -683,7 +685,7 @@ function App() {
       await checkInstalled();
       await checkAllUpdates(true);
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     } finally { setUpdatingAll(false); }
   }
 
@@ -707,7 +709,7 @@ function App() {
         await checkAllUpdates(true);
       }
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     } finally {
       // Para browser: mantém o spinner por 1.2s pra dar feedback visual
       if (!isNpm) {
@@ -731,10 +733,10 @@ function App() {
     }
     try {
       await invoke('install_prerequisite', { key });
-      showToast(`${key}: pronto`);
+      showToast(t('toasts.ready', { key }));
       if (!isBrowser) await checkEnvironment();
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0,120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0,120) }));
     } finally {
       if (!isBrowser) {
         installingRef.current = null;
@@ -746,8 +748,8 @@ function App() {
   async function installToolViaUrl(toolKey: string) {
     try {
       await invoke('install_tool', { toolKey });
-      showToast(`Abrindo página de download`);
-    } catch (e) { showToast(`Erro: ${String(e).slice(0, 120)}`); }
+      showToast(t('toasts.openingDownload'));
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0, 120) })); }
   }
 
   // ============= LAUNCH =============
@@ -760,7 +762,11 @@ function App() {
       const report = await invoke<{ entries: Array<{ date: string; cli: string; model: string | null; tokens_in: number; tokens_out: number; cost_estimate_usd: number }> }>('read_usage_stats');
       const spend = computeTodaySpend(report.entries || [], active);
       if (shouldAlert(spend, active.dailyBudget)) {
-        showToast(`⚠ Budget: $${spend.usd.toFixed(2)} / $${active.dailyBudget.toFixed(2)} hoje (${active.name})`);
+        showToast(t('toasts.budgetExceeded', {
+          today: spend.usd.toFixed(2),
+          budget: active.dailyBudget.toFixed(2),
+          name: active.name,
+        }));
       }
     } catch { /* sem usage ainda = sem alerta */ }
   }
@@ -779,7 +785,7 @@ function App() {
       if (envVars && providerInfo) {
         const red = redactEnv(envVars);
         const keys = Object.keys(red).join(', ');
-        showToast(`▶ ${cli.name} via ${providerInfo.providerName} · envs: ${keys}`);
+        showToast(t('toasts.launchedWith', { cli: cli.name, provider: providerInfo.providerName, keys }));
       }
       if (directory) pushRecent(directory);
       const newItem: HistoryItem = {
@@ -793,7 +799,7 @@ function App() {
       const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
       setHistory(newHistory);
       saveConfig({ history: newHistory });
-    } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
   }
 
   async function relaunchFromHistory(item: HistoryItem) {
@@ -806,11 +812,11 @@ function App() {
         noPerms: true, envVars,
       });
       if (item.directory) pushRecent(item.directory);
-    } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
   }
 
   function clearHistory() {
-    if (confirm('Limpar todo o histórico?')) {
+    if (confirm(t('history.clearAllConfirm'))) {
       setHistory([]);
       saveConfig({ history: [] });
     }
@@ -828,7 +834,7 @@ function App() {
       createdAt: new Date().toISOString(),
     };
     setPresets(prev => addPreset(prev, preset));
-    showToast(`💾 Preset "${name}" salvo`);
+    showToast(t('toasts.presetSaved', { name }));
   }
 
   async function launchFromPreset(p: LaunchPreset) {
@@ -844,7 +850,7 @@ function App() {
       saveProviders(stateForLaunch);
     }
     const cli = clis.find(c => c.key === p.cliKey);
-    if (!cli) { showToast(`CLI "${p.cliKey}" não encontrado`); return; }
+    if (!cli) { showToast(t('toasts.cliNotFound', { key: p.cliKey })); return; }
     try {
       const envVars = p.cliKey === 'claude' ? buildLaunchEnv(stateForLaunch) : undefined;
       const providerInfo = p.cliKey === 'claude' ? (() => {
@@ -868,15 +874,15 @@ function App() {
       const newHistory = [newItem, ...history.slice(0, 49)];
       setHistory(newHistory);
       saveConfig({ history: newHistory });
-      showToast(`▶ ${p.emoji || '⚡'} ${p.name}`);
+      showToast(t('toasts.launchedPreset', { emoji: p.emoji || '⚡', name: p.name }));
     } catch (e) {
-      showToast(`Erro: ${String(e).slice(0, 120)}`);
+      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
     }
   }
 
   function removePresetById(id: string) {
     setPresets(prev => removePreset(prev, id));
-    showToast('Preset excluído');
+    showToast(t('toasts.presetDeleted'));
   }
 
   function renamePreset(id: string, name: string) {
@@ -893,14 +899,14 @@ function App() {
         envVars,
       });
       if (directory) pushRecent(directory);
-    } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
   }
 
   async function launchTool(toolKey: string) {
     try {
       await invoke('launch_tool', { toolKey });
-      showToast(`Abrindo ${tools.find(t => t.key === toolKey)?.name || toolKey}`);
-    } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+      showToast(t('toasts.openingTool', { name: tools.find(tl => tl.key === toolKey)?.name || toolKey }));
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
   }
 
   function toggleMultiCli(key: string) {
@@ -945,20 +951,20 @@ function App() {
 
   // ============= RESET =============
   async function resetAllConfig() {
-    if (!confirm('Limpar TODAS as configurações (diretório, histórico, tema, welcome, API keys, log de instalação)?\n\nO app vai recarregar.')) return;
+    if (!confirm(t('toasts.clearAllConfirm'))) return;
     try {
       await invoke('reset_all_config');
       localStorage.removeItem('ai-launcher-config');
-      showToast('Configurações resetadas');
+      showToast(t('toasts.settingsReset'));
       setTimeout(() => window.location.reload(), 500);
-    } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+    } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
   }
 
   // ==================== RENDER ====================
 
   // Loading
   if (!bootReady) {
-    return <div className="welcome-screen"><div className="welcome-box"><div className="spinner" /><p style={{marginTop:12}}>Carregando...</p></div></div>;
+    return <div className="welcome-screen"><div className="welcome-box"><div className="spinner" /><p style={{marginTop:12}}>{t('welcome.loading')}</p></div></div>;
   }
 
   // Welcome: visível (primeira vez OU usuário não ocultou)
@@ -974,21 +980,21 @@ function App() {
               <path d="M10 10h4M10 14h4" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </div>
-          <h1>{isFirstTime ? 'Bem-vindo ao' : ''} AI Launcher <span>Pro</span></h1>
+          <h1>{isFirstTime ? `${t('welcome.greeting')} ` : ''}{t('welcome.brand')} <span>Pro</span></h1>
           <p className="welcome-version">v{APP_VERSION}</p>
-          <p className="welcome-brand">by Helbert Moura • Powered by DevManiac's</p>
+          <p className="welcome-brand">{t('footer.by')} • {t('footer.poweredBy')}</p>
 
           {isFirstTime && (
             <p className="welcome-note">
-              <strong>Primeira vez aqui?</strong> Clique em "Validar Sistema" para o launcher detectar Node, Python, Git, Rust, CLIs instalados, etc. Leva poucos segundos e libera todas as funcionalidades.
+              <strong>{t('welcome.firstTimeTitle')}</strong> {t('welcome.firstTimeBody')}
             </p>
           )}
 
           {checkingEnv ? (
-            <div className="welcome-loading"><div className="spinner" /><p>Validando sistema...</p></div>
+            <div className="welcome-loading"><div className="spinner" /><p>{t('welcome.validating')}</p></div>
           ) : envChecks.length > 0 ? (
             <div className="welcome-env">
-              <div className="welcome-env-title">Ambiente Detectado</div>
+              <div className="welcome-env-title">{t('welcome.envDetected')}</div>
               <div className="env-grid">
                 {envChecks.map((check) => (
                   <div key={check.name} className={`env-item ${check.installed ? 'ok' : 'missing'}`}>
@@ -1028,7 +1034,7 @@ function App() {
               setHideWelcome(e.target.checked);
               saveConfig({ hideWelcome: e.target.checked });
             }} />
-            <span>Não mostrar esta tela novamente (pode reativar em Ajuda)</span>
+            <span>{t('welcome.hideCheckbox')}</span>
           </label>
         </div>
       </div>
@@ -1104,7 +1110,7 @@ function App() {
           saveConfigDirectory={(dir) => saveConfig({ directory: dir })}
           openInExplorer={async (path) => {
             try { await invoke('open_in_explorer', { path }); }
-            catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+            catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
           }}
         />
       )}
@@ -1114,8 +1120,8 @@ function App() {
         <div className="tab-scroll">
           <div className="tab-pad">
           <div className="tab-section-header">
-            <h2>📦 Instalar</h2>
-            <p className="tab-section-sub">Gerencie pré-requisitos e CLIs de IA. Instalação silenciosa com log ao vivo.</p>
+            <h2>{t('header.tabs.install')}</h2>
+            <p className="tab-section-sub">{t('installTab.sub')}</p>
           </div>
           <div className="install-top-actions">
             <button className="btn" onClick={checkEnvironment} disabled={checkingEnv}>
@@ -1125,7 +1131,7 @@ function App() {
 
           {envChecks.length > 0 && (
             <div className="prereq-section">
-              <div className="prereq-title">Pré-requisitos do sistema</div>
+              <div className="prereq-title">{t('installTab.prereqTitle')}</div>
               <div className="prereq-grid">
                 {envChecks.map(check => {
                   const pKey = prereqKeyFor(check.name);
@@ -1136,9 +1142,9 @@ function App() {
                       {check.version && <span className="prereq-ver">{check.version}</span>}
                       {!check.installed && pKey && (
                         installingCli === pKey ? (
-                          <span className="installing-badge"><span className="spinner-sm" /> Instalando...</span>
+                          <span className="installing-badge"><span className="spinner-sm" /> {t('installTab.installing')}</span>
                         ) : (
-                          <button className="btn-prereq-install" disabled={!!installingCli} onClick={() => installPrerequisite(pKey)}>Instalar</button>
+                          <button className="btn-prereq-install" disabled={!!installingCli} onClick={() => installPrerequisite(pKey)}>{t('installTab.installButton')}</button>
                         )
                       )}
                     </div>
@@ -1150,7 +1156,7 @@ function App() {
 
           {notInstalledClis.length > 0 && (
             <div className="install-highlight">
-              <div className="install-highlight-title">⚠️ CLIs não instalados ({notInstalledClis.length})</div>
+              <div className="install-highlight-title">{t('installTab.cliNotInstalled')} ({notInstalledClis.length})</div>
               <div className="install-list">
                 {notInstalledClis.map(cli => (
                   <div key={cli.key} className="install-item missing" style={{ borderLeftColor: CLI_COLORS[cli.key] || '#8B1E2A' }}>
@@ -1163,7 +1169,7 @@ function App() {
                       {installingCli === cli.key ? (
                         <span className="installing-badge"><span className="spinner-sm" /> Instalando...</span>
                       ) : (
-                        <button className="btn-install" onClick={() => installCli(cli.key)} disabled={!!installingCli}>Instalar</button>
+                        <button className="btn-install" onClick={() => installCli(cli.key)} disabled={!!installingCli}>{t('installTab.installButton')}</button>
                       )}
                     </div>
                   </div>
@@ -1183,7 +1189,7 @@ function App() {
                       <div className="install-icon"><CliIcon cliKey={cli.key} size={32} /></div>
                       <div className="install-info">
                         <div className="install-name">{cli.name}</div>
-                        <div className="install-version">{info?.version || 'instalado'}</div>
+                        <div className="install-version">{info?.version || t('launcher.installed')}</div>
                       </div>
                       <div className="install-action">
                         <span className="installed-badge">✓ Instalado</span>
@@ -1197,7 +1203,7 @@ function App() {
 
           {installingCli && currentInstallingLog.length > 0 && (
             <div className="install-log">
-              <div className="install-log-title">Log de instalação — {installingCli}</div>
+              <div className="install-log-title">{t('installTab.logTitle', { cli: installingCli })}</div>
               <div className="install-log-body">
                 {currentInstallingLog.slice(-40).map((line, i) => (
                   <div key={i} className={`log-line log-${line.phase}`}>{line.line}</div>
@@ -1214,12 +1220,12 @@ function App() {
         <div className="tab-scroll">
           <div className="tab-pad">
           <div className="tools-header">
-            <h2>🛠️ Ferramentas & IDEs</h2>
+            <h2>{t('header.tabs.tools')}</h2>
             <div className="tools-header-actions">
               <button className="btn" onClick={checkToolsInstalled} disabled={checkingTools}>
                 {checkingTools ? <><span className="spinner-sm" /> <Skeleton width={60} height={10} /></> : '🔄 Re-verificar'}
               </button>
-              {lastToolsCheck && <span className="last-check">Última: {lastToolsCheck}</span>}
+              {lastToolsCheck && <span className="last-check">{t('toolsTab.lastCheck', { time: lastToolsCheck })}</span>}
             </div>
           </div>
           <div className="tools-grid">
@@ -1229,11 +1235,11 @@ function App() {
                 <div key={tool.key} className={`tool-card ${info.installed ? 'installed' : ''}`}>
                   <div className="tool-icon"><ToolIcon toolKey={tool.key} size={48} /></div>
                   <div className="tool-name">{tool.name}</div>
-                  <div className="tool-status">{info.version || (info.installed ? 'Disponível' : 'Não instalado')}</div>
+                  <div className="tool-status">{info.version || (info.installed ? t('toolsTab.available') : t('toolsTab.notInstalled'))}</div>
                   {info.installed ? (
-                    <button className="tool-launch-btn" onClick={() => launchTool(tool.key)}>Abrir</button>
+                    <button className="tool-launch-btn" onClick={() => launchTool(tool.key)}>{t('toolsTab.open')}</button>
                   ) : (
-                    <button className="tool-launch-btn install" onClick={() => installToolViaUrl(tool.key)}>Baixar</button>
+                    <button className="tool-launch-btn install" onClick={() => installToolViaUrl(tool.key)}>{t('toolsTab.download')}</button>
                   )}
                 </div>
               );
@@ -1257,7 +1263,7 @@ function App() {
         <div className="tab-scroll">
           <div className="tab-pad">
           <div className="updates-global-header">
-            <h2>🔔 Atualizações</h2>
+            <h2>{t('header.tabs.updates')}</h2>
             <div className="updates-global-actions">
               {updatesSummary && (
                 <span className="updates-timestamp">
@@ -1269,7 +1275,7 @@ function App() {
               </button>
               {updatesSummary && updatesSummary.cli_updates.some(u => u.has_update) && (
                 <button className="btn btn-primary" onClick={updateAllClis} disabled={updatingAll || !!installingCli}>
-                  {updatingAll ? <><span className="spinner-sm" /> Atualizando...</> : '⬆ Atualizar todos os CLIs'}
+                  {updatingAll ? <><span className="spinner-sm" /> {t('updatesTab.updating')}</> : t('updatesTab.updateAll')}
                 </button>
               )}
             </div>
@@ -1302,7 +1308,7 @@ function App() {
                         <div className="update-info">
                           <div className="update-name">{u.cli}</div>
                           <div className="update-versions">
-                            <span className="update-current">Atual: {u.current || '— (não instalado)'}</span>
+                            <span className="update-current">{u.current ? t('updatesTab.current', { version: u.current }) : t('updatesTab.currentMissing')}</span>
                             {u.has_update && (<><span className="update-sep">→</span><span className="update-latest">{u.latest}</span></>)}
                             {!u.has_update && u.current && <span className="badge-uptodate-inline">✓</span>}
                           </div>
@@ -1334,7 +1340,7 @@ function App() {
                 </summary>
                 <div className="updates-list">
                   {updatesSummary.env_updates.length === 0 ? (
-                    <p className="empty-inline">Nenhum pré-requisito detectado.</p>
+                    <p className="empty-inline">{t('updatesTab.emptyPrereqs')}</p>
                   ) : updatesSummary.env_updates.map((u) => {
                     const prereqKey = u.key || prereqKeyFor(u.cli);
                     const isUpdatingThis = updatingPrereq === prereqKey;
@@ -1346,7 +1352,7 @@ function App() {
                         <div className="update-info">
                           <div className="update-name">{u.cli}</div>
                           <div className="update-versions">
-                            <span className="update-current">Atual: {u.current || '—'}</span>
+                            <span className="update-current">{u.current ? t('updatesTab.current', { version: u.current }) : t('updatesTab.currentDash')}</span>
                             {u.latest && (<><span className="update-sep">→</span><span className="update-latest">{u.latest}</span></>)}
                           </div>
                         </div>
@@ -1356,8 +1362,8 @@ function App() {
                               className="btn-update"
                               onClick={() => updatePrereq(prereqKey, 'npm')}
                               disabled={isUpdatingThis || !!installingCli}
-                              title="Atualizar via npm global"
-                              aria-label={`Atualizar ${u.cli}`}
+                              title={t('updatesTab.updateViaNpm')}
+                              aria-label={t('updatesTab.updateCliLabel', { cli: u.cli })}
                             >
                               {isUpdatingThis ? <><span className="spinner-sm" /> ...</> : '⬆ Atualizar'}
                             </button>
@@ -1366,15 +1372,15 @@ function App() {
                               className="btn btn-ghost"
                               onClick={() => updatePrereq(prereqKey, effectiveMethod)}
                               disabled={isUpdatingThis}
-                              title="Abre a página oficial de download"
-                              aria-label={`Abrir página de download de ${u.cli}`}
+                              title={t('updatesTab.openDownloadPage')}
+                              aria-label={t('updatesTab.openDownloadLabel', { cli: u.cli })}
                             >
                               {isUpdatingThis ? <><span className="spinner-sm" /> abrindo...</> : '🌐 Abrir página'}
                             </button>
                           ) : u.latest ? (
-                            <span className="badge-uptodate" title="Você está na versão mais recente">✓</span>
+                            <span className="badge-uptodate" title={t('updatesTab.upToDate')}>✓</span>
                           ) : (
-                            <span className="badge-neutral" title="Sem API pública para comparar versão">? sem comparação</span>
+                            <span className="badge-neutral" title={t('updatesTab.noComparisonTitle')}>{t('updatesTab.noComparison')}</span>
                           )}
                         </div>
                       </div>
@@ -1421,62 +1427,62 @@ function App() {
           <div className="tab-pad help-v2">
           <div className="help-v2-content">
             <div className="tab-section-header">
-              <h2>❓ Ajuda & FAQ</h2>
-              <p className="tab-section-sub">Tudo que você precisa saber para usar o AI Launcher Pro.</p>
+              <h2>{t('header.tabs.help')}</h2>
+              <p className="tab-section-sub">{t('helpTab.sub')}</p>
             </div>
 
             <section id="help-intro">
-              <h3>O que é o AI Launcher Pro?</h3>
-              <p>Hub centralizado para gerenciar, instalar, atualizar e lançar CLIs de IA (Claude, Codex, Gemini, Qwen, Kilo, OpenCode, Crush, Factory Droid) e ferramentas de desenvolvimento (VS Code, Cursor, Windsurf, AntGravity). Tudo num único lugar, sem terminal piscando, com progress ao vivo.</p>
+              <h3>{t('helpTab.whatIsTitle')}</h3>
+              <p>{t('helpTab.whatIsBody')}</p>
             </section>
 
             <section id="help-install">
-              <h3>Como instalar um CLI</h3>
-              <p>Aba <strong>📦 Instalar</strong> → seção <strong>"CLIs não instalados"</strong> → clique em <strong>"Instalar"</strong>. A instalação é silenciosa em background, com log ao vivo exibido abaixo. Pré-requisitos ausentes (Node, Git, Python, etc.) têm botão de instalação próprio.</p>
-              <p><strong>Factory Droid</strong>: usa o script oficial (<code>irm https://app.factory.ai/cli/windows | iex</code>), nativo Windows. Ao clicar em Instalar, o launcher executa o script via PowerShell em background.</p>
+              <h3>{t('helpTab.installTitle')}</h3>
+              <p>{t('helpTab.installBody')}</p>
+              <p>{t('helpTab.factoryDroidBody')}</p>
             </section>
 
             <section id="help-launch">
-              <h3>Como lançar um CLI</h3>
+              <h3>{t('helpTab.launchTitle')}</h3>
               <ol>
-                <li>Aba <strong>⚡ Launcher</strong> → clique no card do CLI desejado</li>
-                <li>Escolha o diretório (<kbd>Ctrl+L</kbd> foca o campo)</li>
-                <li>Adicione argumentos opcionais (caracteres proibidos: <code>; & | ` $ &gt; &lt;</code>)</li>
-                <li>Clique <strong>INICIAR</strong> (ou <kbd>Ctrl+K</kbd>). Abre em Windows Terminal se disponível, senão PowerShell, senão cmd.</li>
+                <li>{t('helpTab.launchStep1')}</li>
+                <li>{t('helpTab.launchStep2')}</li>
+                <li>{t('helpTab.launchStep3')}</li>
+                <li>{t('helpTab.launchStep4')}</li>
               </ol>
-              <p>Para lançar <strong>múltiplos</strong>, marque checkboxes na seção "Múltiplos CLIs" e clique no segundo botão.</p>
+              <p>{t('helpTab.launchMulti')}</p>
             </section>
 
             <section id="help-updates">
-              <h3>Verificar atualizações</h3>
-              <p>Aba <strong>🔔 Atualizações</strong> → botão <strong>"Verificar tudo"</strong>. Consulta em paralelo:</p>
+              <h3>{t('helpTab.updatesTitle')}</h3>
+              <p>{t('helpTab.updatesBody')}</p>
               <ul>
-                <li><strong>CLIs</strong>: compara versão local vs npm registry</li>
-                <li><strong>Pré-requisitos</strong>: versão local + latest de pacotes npm (pnpm, yarn, tauri)</li>
+                <li>{t('helpTab.updatesListCli')}</li>
+                <li>{t('helpTab.updatesListPrereqs')}</li>
               </ul>
-              <p><small>Nota: updates de IDE (VS Code / Cursor / Windsurf) foram removidos — faça direto na IDE.</small></p>
-              <p>Quando houver múltiplos updates de CLI, use <strong>"Atualizar todos"</strong> para aplicar em lote.</p>
+              <p><small>{t('helpTab.updatesNote')}</small></p>
+              <p>{t('helpTab.updatesBulk')}</p>
             </section>
 
             <section id="help-shortcuts">
-              <h3>Atalhos de teclado</h3>
+              <h3>{t('helpTab.shortcutsTitle')}</h3>
               <table className="shortcut-table">
                 <tbody>
-                  <tr><td><kbd>F5</kbd></td><td>Re-verificar CLIs instalados</td></tr>
-                  <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>Focar campo de diretório (Launcher)</td></tr>
-                  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Iniciar CLI selecionado (Launcher)</td></tr>
+                  <tr><td><kbd>F5</kbd></td><td>{t('helpModal.shortcuts.refresh')}</td></tr>
+                  <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>{t('launcher.sectionDirectory')}</td></tr>
+                  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>{t('launcher.launch')}</td></tr>
                 </tbody>
               </table>
             </section>
 
             <section id="help-security">
-              <h3>Segurança & alertas de vírus</h3>
+              <h3>{t('helpTab.securityTitle')}</h3>
               <p>Se o Windows Defender ou SmartScreen sinalizar o app: é falso-positivo típico de binários novos. O app é assinado com um cert self-signed (DevManiacs). Para eliminar o alerta nesta máquina, o cert já foi instalado no Trusted Root. Em outras máquinas, o usuário precisa importar o <code>.cer</code> manualmente, OU o autor precisa comprar cert real (Sectigo, DigiCert, SSL.com ou Azure Trusted Signing).</p>
               <p>Todo install/update agora roda via <code>tokio::process</code> direto, sem <code>cmd /C</code> intermediário — isso elimina a heurística "processo oculto → cmd invisível → baixa da internet" que disparava o Defender.</p>
             </section>
 
             <section id="help-troubleshoot">
-              <h3>Solução de problemas</h3>
+              <h3>{t('helpTab.troubleshootTitle')}</h3>
               <details><summary>Um CLI aparece como "detectado" mas sem versão</summary>
                 <p>O binário existe no PATH mas o comando <code>--version</code> retornou output não parseável. Geralmente é benigno — o CLI funciona. Tente rodar o comando manualmente no terminal para confirmar.</p>
               </details>
@@ -1489,12 +1495,12 @@ function App() {
             </section>
 
             <section id="help-welcome">
-              <h3>Tela de boas-vindas</h3>
-              <p>A tela aparece sempre que você abre o app, a menos que você marque "Não mostrar esta tela novamente" nela. Você pode reativar a qualquer momento:</p>
+              <h3>{t('helpTab.welcomeTitle')}</h3>
+              <p>{t('helpTab.welcomeBody')}</p>
               <button className="btn" onClick={() => {
                 setHideWelcome(false);
                 saveConfig({ hideWelcome: false });
-                showToast('Welcome será mostrada na próxima abertura');
+                showToast(t('toasts.welcomeOnNext'));
               }} disabled={!hideWelcome}>
                 {hideWelcome ? '👋 Reativar welcome na próxima abertura' : '✓ Welcome já está ativa'}
               </button>
@@ -1504,18 +1510,18 @@ function App() {
             </section>
 
             <section id="help-tray">
-              <h3>🖥️ System Tray & Atalho global</h3>
-              <p>O app fica com um ícone ao lado do relógio. Clique esquerdo abre/foca a janela; clique direito mostra menu com lançamento rápido de CLIs e acesso às abas.</p>
+              <h3>🖥️ System Tray</h3>
+              <p>{t('helpTab.traySection')}</p>
               <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
                 <input
                   type="checkbox"
                   checked={minimizeToTray}
                   onChange={(e) => toggleMinimizeToTray(e.target.checked)}
                 />
-                <span>Minimizar para a bandeja ao fechar (em vez de sair)</span>
+                <span>{t('helpTab.trayMinimize')}</span>
               </label>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
-                <label style={{ minWidth: 160 }}>Atalho global (abrir/fechar):</label>
+                <label style={{ minWidth: 160 }}>{t('helpTab.trayShortcut')}</label>
                 <input
                   className="input"
                   style={{ flex: 1, minWidth: 220 }}
@@ -1528,7 +1534,7 @@ function App() {
                 <button className="btn" onClick={resetTrayHotkey}>↺ Reset</button>
               </div>
               <p className="help-text" style={{ marginTop: 6, opacity: 0.75, fontSize: '0.85em' }}>
-                Formato: modificadores separados por <code>+</code>. Ex: <code>CommandOrControl+Shift+L</code>, <code>Alt+F1</code>. Conflitos com outros apps (Raycast, AutoHotkey) podem impedir registro — escolha outra combinação se acontecer.
+                {t('helpTab.trayShortcutHelp')}
               </p>
             </section>
 
@@ -1539,15 +1545,15 @@ function App() {
             </section>
 
             <section id="help-reset">
-              <h3>Resetar todas as configurações</h3>
-              <p>Remove: diretório salvo, histórico, tema, preferência de welcome, log de instalação. O app recarrega.</p>
+              <h3>{t('helpTab.resetTitle')}</h3>
+              <p>{t('helpTab.resetBody')}</p>
               <button className="btn btn-danger" onClick={resetAllConfig}>🗑️ Resetar tudo</button>
             </section>
 
             <section id="help-support">
-              <h3>Suporte & contato</h3>
-              <p>Desenvolvido por <strong>Helbert Moura</strong>. Marca <strong>DevManiac's</strong>.</p>
-              <p>Versão atual: <strong>v{APP_VERSION}</strong>.</p>
+              <h3>{t('helpTab.supportTitle')}</h3>
+              <p>{t('helpTab.supportBody')}</p>
+              <p>{t('helpTab.currentVersion', { version: APP_VERSION })}</p>
             </section>
           </div>
           </div>
@@ -1615,7 +1621,7 @@ function App() {
               const newHistory = isDup ? history : [newItem, ...history.slice(0, 49)];
               setHistory(newHistory);
               saveConfig({ history: newHistory });
-            } catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+            } catch (e) { showToast(t('toasts.genericError', { error: String(e).slice(0,120) })); }
           })();
         }}
         onLaunchTool={(key) => { launchTool(key); }}
@@ -1632,8 +1638,8 @@ function App() {
       <HelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
 
       <footer className="footer">
-        <span>✓ {clis.filter(c => installed[c.key]?.installed).length}/{clis.length} CLIs{updateCount > 0 && <span className="footer-updates"> · {updateCount} atualização(ões)</span>}</span>
-        <span>by <span>Helbert Moura</span> • Powered by DevManiac's</span>
+        <span>✓ {clis.filter(c => installed[c.key]?.installed).length}/{clis.length} CLIs{updateCount > 0 && <span className="footer-updates"> · {t('toasts.updatesAvailable', { count: updateCount })}</span>}</span>
+        <span>{t('footer.by')} • {t('footer.poweredBy')}</span>
       </footer>
     </div>
   );
