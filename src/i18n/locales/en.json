@@ -639,7 +639,7 @@
       "detectCmd": "Detect command",
       "detectCmdHint": "e.g. code --version",
       "launchCmd": "Launch command",
-      "launchCmdHint": "e.g. code {{dir}}",
+      "launchCmdHint": "e.g. code <dir>",
       "docsUrl": "Docs URL",
       "iconEmoji": "Icon"
     },
