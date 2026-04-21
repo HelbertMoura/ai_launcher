@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Terminal, Command, Moon, Sun, RefreshCw, Globe } from '../icons';
 import { KeyCap } from '../shared/KeyCap';
 import type { ProvidersState, ProviderKind } from '../providers/types';
-import { SUPPORTED_LOCALES, LOCALE_LABELS, setLocale, getLocale, type Locale } from '../i18n';
+import { SUPPORTED_LOCALES, LOCALE_LABELS, setLocale, type Locale } from '../i18n';
 import './HeaderBar.css';
 
 export type HeaderTabId =
@@ -70,13 +70,16 @@ export function HeaderBar({
   updateCount,
   onOpenPalette,
 }: HeaderBarProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const visibleTabs = TABS.filter(t => !t.adminOnly || adminMode);
   const activeProvider = adminMode ? resolveActiveProvider(providers) : null;
 
   const [langOpen, setLangOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
-  const currentLocale = getLocale();
+  const resolved = i18n.resolvedLanguage ?? i18n.language ?? 'en';
+  const currentLocale: Locale = (SUPPORTED_LOCALES as readonly string[]).includes(resolved)
+    ? (resolved as Locale)
+    : 'en';
 
   useEffect(() => {
     if (!langOpen) return;
