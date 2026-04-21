@@ -19,6 +19,7 @@ import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
 import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
 import { StatusBar } from './layout/StatusBar';
+import { HelpModal } from './layout/HelpModal';
 import { applyFontStack, FONT_STORAGE_KEY, type FontId } from './providers/AppearanceSection';
 import './providers/providers.css';
 
@@ -177,6 +178,7 @@ function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
 
   // Onboarding: visível na primeira execução, reabrível via Ajuda.
   const [showOnboarding, setShowOnboarding] = useState<boolean>(
@@ -454,6 +456,25 @@ function App() {
         '4': 'costs',
       };
       setActiveTab(map[e.key]);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Help modal toggle (⌘/ or ⌘?)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key !== '/' && e.key !== '?') return;
+      const target = document.activeElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      e.preventDefault();
+      setHelpModalOpen((prev) => !prev);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1581,6 +1602,8 @@ function App() {
         onReloadStatus={checkInstalled}
         onUpdateAll={updateAllClis}
       />
+
+      <HelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
 
       <footer className="footer">
         <span>✓ {clis.filter(c => installed[c.key]?.installed).length}/{clis.length} CLIs{updateCount > 0 && <span className="footer-updates"> · {updateCount} atualização(ões)</span>}</span>

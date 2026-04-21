@@ -1,0 +1,95 @@
+.helpmodal {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  background: color-mix(in oklch, var(--bg-terminal) 80%, transparent);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: helpmodal-fade 180ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+@keyframes helpmodal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.helpmodal__frame {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-terminal);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md, 8px);
+  font-family: var(--ff-mono);
+  color: var(--text);
+  box-shadow: var(--shadow-floating, 0 16px 48px -12px oklch(0% 0 0 / 0.4));
+  overflow: hidden;
+}
+.helpmodal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.helpmodal__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin: 0;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.helpmodal__prompt { color: var(--text-prompt); }
+.helpmodal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 150ms;
+}
+.helpmodal__close:hover { border-color: var(--border-bright); color: var(--text); }
+.helpmodal__close:focus-visible { outline: 1px solid var(--text-prompt); outline-offset: 2px; }
+.helpmodal__list {
+  list-style: none;
+  padding: 12px 16px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.helpmodal__row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+.helpmodal__keys { display: inline-flex; justify-content: flex-start; }
+.helpmodal__desc {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+}
+.helpmodal__footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-dim);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+@media (max-width: 560px) {
+  .helpmodal__row { grid-template-columns: 1fr; gap: 4px; }
+}
