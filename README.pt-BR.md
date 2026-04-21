@@ -1,235 +1,353 @@
-# AI Launcher Pro
+<div align="center">
+  <img src="./public/images/banner.svg" alt="AI Launcher Pro" width="100%" />
 
-**Oito CLIs de IA. Um launcher terminal-native.**
+  <br />
 
-![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
-![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB)
-![React](https://img.shields.io/badge/React-19-61DAFB)
-![Rust](https://img.shields.io/badge/Rust-2021-orange)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+  <h1>AI Launcher Pro</h1>
 
-![AI Launcher Pro](./public/images/banner.svg)
+  <p>
+    <strong>O launcher terminal-native para todas as CLIs de IA.</strong>
+  </p>
+
+  <p>
+    Oito CLIs built-in. Seis providers Anthropic-compatible. CLIs e IDEs custom. Bilíngue. Local-first. Zero telemetria.
+  </p>
+
+  <p>
+    <a href="https://github.com/HelbertMoura/ai_launcher/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/HelbertMoura/ai_launcher?style=flat-square&color=0a0a0a&labelColor=0a0a0a" /></a>
+    <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-0a0a0a?style=flat-square&labelColor=0a0a0a" /></a>
+    <img alt="Tauri" src="https://img.shields.io/badge/tauri-v2-ffc131?style=flat-square&labelColor=0a0a0a" />
+    <img alt="React" src="https://img.shields.io/badge/react-19-61dafb?style=flat-square&labelColor=0a0a0a" />
+    <img alt="Platform" src="https://img.shields.io/badge/platform-windows-0078d6?style=flat-square&labelColor=0a0a0a" />
+  </p>
+</div>
+
+<hr />
 
 **Idioma:** [English](./README.md) · Português
 
-<br />
-
 **Plataformas:** Windows ✅ · macOS 🔜 · Linux 🔜
 
-> Windows 10/11 é o único suporte oficial por enquanto. Builds macOS e Linux estão planejadas — acompanhe a [página de releases](https://github.com/HelbertMoura/ai_launcher/releases) ou dê star no repo pra ser notificado.
-
 <br />
-
----
 
 ## O que é
 
-**AI Launcher Pro** é um aplicativo desktop construído com Tauri v2 para centralizar o dia a dia de quem usa ferramentas CLI de IA para programar. Em vez de memorizar comandos, variáveis de ambiente e endpoints por provider, você tem um painel terminal-native que detecta, instala, configura e executa cada CLI com um atalho.
+AI Launcher Pro é um app desktop keyboard-first que unifica todas as CLIs de coding com IA em uma única janela. Em vez de abrir terminais soltos, memorizar comandos de instalação por CLI e gerenciar tokens espalhados em arquivos `.env`, você roda, atualiza e monitora cada ferramenta a partir de um painel consistente — com histórico, custos e perfis de provider lado a lado. A stack é Tauri v2 + React 19 + Rust, binário nativo, janela única com ~113 KB de JS gzipped.
 
-Oito CLIs são suportadas de fábrica — Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot e outras — com troca dinâmica entre providers (Anthropic oficial, Z.AI, MiniMax e qualquer base URL customizada). Tudo roda local: histórico, presets, tokens e custos ficam no seu disco. Zero telemetria, zero sincronização remota.
+O app se encaixa no workflow de quem troca entre Claude Code, Codex, Cursor, Gemini e outras CLIs ao longo do dia. O LauncherTab detecta o que já está instalado, a aba Install resolve o que falta com output ao vivo do `npm install -g` / `pip install` dentro da UI (sem terminal piscando), e o Admin Panel permite trocar do provider Anthropic oficial para Z.AI (GLM), MiniMax, Moonshot (Kimi), Qwen, OpenRouter ou qualquer endpoint Anthropic-compatible custom — sem recompilar nada. Presets salvam combinações CLI + provider + diretório + args pra launch de um atalho só.
 
----
+Três pilares diferenciam o projeto: **terminal-native** (tipografia mono, prompt `>`, histórico estilo git-log, sparklines de custo), **bilíngue** (interface EN e pt-BR com troca em runtime, zero reload), e **extensível** (adicione suas próprias CLIs e IDEs em 30 segundos via formulário, ou substitua nome e icon de qualquer built-in sem tocar no código). Tudo local, zero telemetria, zero login, zero analytics — se quiser auditar, compile do código-fonte e inspecione o binário Rust.
+
+<br />
+
+## Destaques
+
+### Launch & gerenciamento
+
+- 8 CLIs built-in (Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot CLI, Kilo, Crush, Droid, OpenCode) detectadas ou instaladas pelo app
+- Adicione sua própria CLI em 30 segundos — só preencher nome, comando de install, version check e icon
+- Histórico estilo git-log com re-run, copiar args e contexto de provider
+- 9 abas keyboard-first (⌘K paleta, ⌘⇧1-4 abas primárias, ⌘/ help)
+- Cadeia de fallback no launch: Windows Terminal → pwsh → powershell → cmd
+- Install silencioso com output ao vivo na UI — sem janelas piscando
+- Botão "Reset Claude state" pra desbloquear CLI travada em provider antigo
+
+### Multi-provider
+
+- 6 providers Anthropic-compatible seeded: **Anthropic**, **Z.AI (GLM)**, **MiniMax**, **Moonshot / Kimi**, **Qwen / DashScope (beta)**, **OpenRouter**
+- Troca de provider ativo num clique no Admin ou via `Ctrl+P` quick-switch
+- Override de modelo por perfil + tracking de budget diário com alerta
+- Perfis custom pra qualquer endpoint Anthropic-compatible
+- Teste de conexão via backend Rust (sem CORS) com diagnóstico por status HTTP
+- Env vars custom por perfil injetadas no launch (redacted em logs e toasts)
+- Preview do comando: gera `.bat` equivalente copiável antes de disparar
+
+### UX
+
+- Linguagem visual terminal-native — tipografia mono, prompt `>`, listas git-log, sparklines de custo
+- **Interface bilíngue** — auto-detecta EN ou pt-BR do navegador, troca em runtime via dropdown globo ou ⌘⇧L
+- Agregação de custo em tempo real com budget diário + sparkline 7-dias por CLI
+- Command palette com painel de preview, pinned/recent, ícones lucide, footer com keycaps
+- HistoryTab com multi-select de CLIs, filtros de provider e rail vertical tracejado estilo git
+- StatusBar com versão, provider ativo, aba atual e link pra update disponível
+
+### Polish
+
+- 5 opções de fonte (JetBrains Mono padrão, IBM Plex, Cascadia, Berkeley, System)
+- Temas claro/escuro com suporte a `prefers-reduced-motion`
+- Customize nome e icon de qualquer CLI ou IDE built-in (hover ✎)
+- Checker de update in-app via GitHub Releases
+- Modal de ajuda (`⌘/`) com todos os atalhos
+- Onboarding 5-step com tour de 9 slides
+
+<br />
 
 ## Screenshots
 
-<table>
-  <tr>
-    <td><img src="./docs/screenshots/launcher.png" alt="Aba Launcher" /></td>
-    <td><img src="./docs/screenshots/history.png" alt="Aba Histórico" /></td>
-  </tr>
-  <tr>
-    <td><img src="./docs/screenshots/costs.png" alt="Aba Custos" /></td>
-    <td><img src="./docs/screenshots/palette.png" alt="Command Palette" /></td>
-  </tr>
-</table>
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="./docs/screenshots/launcher.png" alt="LauncherTab" width="100%" /></td>
+      <td><img src="./docs/screenshots/history.png" alt="HistoryTab" width="100%" /></td>
+    </tr>
+    <tr>
+      <td><img src="./docs/screenshots/costs.png" alt="CostsTab" width="100%" /></td>
+      <td><img src="./docs/screenshots/palette.png" alt="CommandPalette" width="100%" /></td>
+    </tr>
+  </table>
+</div>
 
----
-
-## Features
-
-- **Interface terminal-native** com tipografia monoespaçada, prompts `>` e painéis inspirados em tmux.
-- **Multi-CLI launcher** com 8+ CLIs detectadas ou instaláveis in-app (Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot e mais).
-- **Switch de provider** — Anthropic, Z.AI, MiniMax, **Moonshot/Kimi, Qwen (beta), OpenRouter** e base URLs custom, sem reabrir o terminal.
-- **Presets** com diretório de trabalho e argumentos salvos, prontos pra lançar com um atalho.
-- **Histórico estilo git-log** com filtros por CLI e preset, re-run em um clique e cópia dos args originais.
-- **Agregação de custo** com orçamento diário configurável e sparklines de 7 dias por CLI.
-- **Command palette** com painel de preview contextual e seções de pinned/recent.
-- **Font picker** (JetBrains Mono, IBM Plex Mono, Cascadia Code, Berkeley Mono, System UI).
-- **Checker de update in-app** usando a GitHub Releases API — notifica sem depender de auto-updater.
-- **Modal de ajuda** acessível via `⌘/` com todos os atalhos documentados.
-- **Toggle admin em runtime** via chord (`⌘⇧A`) ou query string (`?admin=1`) — **v5.5.1+**.
-- **Interface bilíngue (EN / pt-BR)** com detecção automática do idioma do sistema — **v6.0+**.
-- **Temas claro e escuro** com respeito total a `prefers-reduced-motion`.
-
----
+<br />
 
 ## Instalação
 
-### Para usuário final
+### Usuário final
 
-1. Baixe o instalador mais recente na página de [Releases](https://github.com/HelbertMoura/ai_launcher/releases).
-2. Execute o `.msi` (Windows), `.dmg` (macOS) ou `.AppImage` (Linux).
-3. Abra o AI Launcher Pro e configure seu primeiro provider na aba **Admin** (ou via atalho `⌘⇧A` se a build for pública).
+Baixe o `.msi` ou `.exe` mais recente na [página de releases](https://github.com/HelbertMoura/ai_launcher/releases/latest).
 
-### A partir do código-fonte
+O Windows SmartScreen pode avisar em builds não-assinadas. Clique **Mais informações → Executar mesmo assim** ou compile do código-fonte pra auditoria completa.
 
-Pré-requisitos: Node.js 20+, Rust 1.77+, toolchain Tauri v2.
+### A partir do código
 
 ```bash
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
 npm install
-npm run tauri dev
+npm run tauri dev             # dev com hot-reload
+npm run tauri build           # installers em src-tauri/target/release/bundle/
+VITE_ADMIN_MODE=1 npm run tauri build  # build admin-sempre-ativo
 ```
 
-Para gerar um build de produção:
+**Pré-requisitos:** Node 18+, Rust stable, Windows 10/11, Visual Studio Build Tools com o workload "Desktop development with C++".
 
-```bash
-npm run tauri build
-```
+<br />
 
-Os artefatos ficam em `src-tauri/target/release/bundle/`.
+## CLIs suportadas
 
----
+| CLI | Install (comando detectado) | Auto-detect |
+|---|---|---|
+| Claude Code | `npm install -g @anthropic-ai/claude-code` | ✅ |
+| Codex CLI | `npm install -g @openai/codex` | ✅ |
+| Gemini CLI | `npm install -g @google/gemini-cli` | ✅ |
+| Qwen Code | `npm install -g @qwen-code/qwen-code` | ✅ |
+| iFlow CLI | `npm install -g @iflow-ai/iflow-cli` | ✅ |
+| Kilo Code | `npm install -g kilocode` | ✅ |
+| Crush | `npm install -g crush` | ✅ |
+| Droid | `npm install -g @factoryai/droid` | ✅ |
+| OpenCode | `npm install -g opencode-ai` | ✅ |
+| Cursor CLI | via installer oficial | ✅ |
+| GitHub Copilot CLI | `gh extension install github/gh-copilot` | ✅ |
 
-## Atalhos de teclado
-
-| Teclas       | Ação                                                  |
-| ------------ | ----------------------------------------------------- |
-| `⌘K`         | Abre a paleta de comandos                             |
-| `⌘⇧1`–`⌘⇧4`  | Alterna entre abas (Launcher / Install / Histórico / Custos) |
-| `⌘1`–`⌘9`    | Lança um preset pelo índice                           |
-| `⌘/`         | Abre o modal de ajuda                                 |
-| `⌘⇧A`        | Alterna o admin mode em runtime                       |
-| `⌘⇧L`        | Troca o idioma (EN ↔ pt-BR)                          |
-| `F5`         | Re-verifica quais CLIs estão instaladas               |
-| `Esc`        | Fecha modais e overlays                               |
-
-> No Windows/Linux `⌘` = `Ctrl`, `⇧` = `Shift`.
-
----
-
-## Idioma
-
-O AI Launcher Pro auto-detecta o idioma do navegador/sistema e carrega **pt-BR** quando aplicável, com fallback para **EN**. Você pode forçar a troca de duas formas:
-
-- pelo dropdown do globo no **HeaderBar**;
-- pelo atalho `⌘⇧L`.
-
-A preferência é persistida em `localStorage['ai-launcher:locale']` e respeitada em todas as aberturas subsequentes.
-
----
-
-## Modo admin
-
-A aba **Admin** expõe CRUD completo de providers e presets, além de controles sensíveis (limpeza de histórico, exportação de dados). Existem três formas de ativá-la:
-
-1. **Chord de runtime:** pressione `⌘⇧A` a qualquer momento na build pública.
-2. **Query string:** abra o launcher com `?admin=1` na URL (útil para sessões temporárias).
-3. **Flag de build:** gere uma build com `VITE_ADMIN_MODE=1` para deixar o modo sempre ligado.
-
-Veja as [release notes da v5.5.1](./CHANGELOG.md) para detalhes sobre a implementação do toggle runtime.
-
----
+<br />
 
 ## Providers
 
-O AI Launcher Pro aponta qualquer CLI Anthropic-compatible para um backend diferente injetando as env vars certas no launch. Seeds built-in (todas editáveis/removíveis em Admin → Providers):
+### Seeds built-in
 
-| Provider              | Tipo       | Base URL (intl)                                        | Modelo principal            | Contexto | Notas |
-| :-------------------- | :--------- | :----------------------------------------------------- | :-------------------------- | :------- | :---- |
-| Anthropic             | oficial    | —                                                      | `claude-opus-4-7`           | 1M       | Config padrão — sem override de env |
-| Z.AI (GLM)            | nativa     | `api.z.ai/api/anthropic`                               | `glm-5.1`                   | 200K     | Mapeia opus/sonnet → glm-5.1, haiku → glm-4.7 |
-| MiniMax               | nativa     | `api.minimax.io/anthropic`                             | `MiniMax-M2.7`              | 200K     | China: `api.minimaxi.com/anthropic` |
-| **Moonshot / Kimi**   | nativa     | `api.moonshot.ai/anthropic`                            | `kimi-k2-0905-preview`      | 256K     | Plano oficial "Kimi for Code". China: `api.moonshot.cn/anthropic` |
-| **Qwen / DashScope**  | **beta**   | `dashscope-intl.aliyuncs.com/api/v2/apps/claude-code`  | `qwen3-coder-plus`          | 256K     | ⚠️ Integração Claude Code ainda em validação. Endpoint pode mudar durante rollout |
-| **OpenRouter**        | aggregator | `openrouter.ai/api/v1`                                 | qualquer slug (ex: `anthropic/claude-sonnet-4`) | varia    | Uma chave, dezenas de modelos (Anthropic, Moonshot, Qwen, GLM, Gemini, GPT) |
-| Custom                | custom     | qualquer URL Anthropic-compat                          | —                           | —        | Roll your own |
-
-Tokens ficam local only. Sem telemetria, sem conta, sem relay. Cada provider injeta `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY` + overrides de modelo quando selecionado.
+| Provider | Tipo | Base URL (intl) | Modelo principal | Contexto | Notas |
+|---|---|---|---|---|---|
+| **Anthropic** | Oficial | `https://api.anthropic.com` | `claude-sonnet-4` | 200K | Padrão; suporte Claude Code nativo |
+| **Z.AI (GLM)** | Anthropic-compat | `https://api.z.ai/api/anthropic` | `glm-5.1` | 128K | Alternativa CN com `glm-5.1` + `glm-4.7` |
+| **MiniMax** | Anthropic-compat | `https://api.minimax.io/anthropic` | `MiniMax-M2.7` | 200K | Endpoint intl; use `api.minimaxi.com` em CN |
+| **Moonshot / Kimi** | Anthropic-compat | `https://api.moonshot.ai/anthropic` | `kimi-k2-0905-preview` | 256K | Plano oficial "Kimi for Code" com suporte Claude Code |
+| **Qwen / DashScope** ⚠️ beta | Anthropic-compat | `https://dashscope-intl.aliyuncs.com/api/v2/apps/claude-code` | `qwen3-coder-plus` | 256K | Integração Anthropic-compat ainda em rollout; endpoint pode mudar |
+| **OpenRouter** | Aggregator | `https://openrouter.ai/api/v1` | `anthropic/claude-sonnet-4` | varia | Uma chave → dezenas de modelos (Anthropic, Moonshot, Qwen, GLM, etc.) |
+| **Custom** | Qualquer Anthropic-compat | livre | livre | livre | Para endpoints self-hosted ou providers futuros |
 
 ### Regiões / endpoints CN
 
-- **MiniMax** — internacional `api.minimax.io/anthropic`, China `api.minimaxi.com/anthropic`
-- **Moonshot** — internacional `api.moonshot.ai/anthropic`, China `api.moonshot.cn/anthropic`
-- **Qwen** — internacional `dashscope-intl.aliyuncs.com/...`, China `dashscope.aliyuncs.com/...`
+Alguns providers chineses expõem endpoints distintos para contas intl e contas CN:
 
-### Chaves de API
+- **MiniMax** — intl `api.minimax.io/anthropic` · CN `api.minimaxi.com/anthropic`
+- **Moonshot** — intl `api.moonshot.ai/anthropic` · CN `api.moonshot.cn/anthropic`
+- **Qwen** — intl `dashscope-intl.aliyuncs.com` · CN `dashscope.aliyuncs.com`
 
-Obtenha uma chave em:
+Edite a `baseUrl` no Admin Panel para alternar entre regiões.
 
-- **Anthropic** — https://console.anthropic.com/
-- **Z.AI** — https://z.ai/model-api
-- **MiniMax** (Intl) — https://platform.minimax.io/ · (CN) — https://api.minimaxi.com/
-- **Moonshot** (Intl) — https://platform.moonshot.ai/ · (CN) — https://platform.moonshot.cn/
-- **Qwen (DashScope)** (Intl) — https://dashscope-intl.console.aliyun.com/ · (CN) — https://bailian.console.aliyun.com/
-- **OpenRouter** — https://openrouter.ai/keys
+### Portals de API key
 
----
+- Anthropic — https://console.anthropic.com/settings/keys
+- Z.AI — https://z.ai/manage-apikey/apikey-list
+- MiniMax — https://www.minimax.io/platform/user-center/basic-information/interface-key
+- Moonshot — https://platform.moonshot.ai/console/api-keys
+- Qwen / DashScope — https://bailian.console.aliyun.com
+- OpenRouter — https://openrouter.ai/keys
+
+<br />
+
+## Exemplo de terminal
+
+```text
+$ ai_launcher --provider kimi
+● kimi.moonshot · kimi-k2-0905-preview
+  contexto 256k · pricing $0.60/M in
+> lançar claude em ./meu-projeto
+  running · pid 44892 · sessão pronta em 184ms
+  env injetado: ANTHROPIC_BASE_URL + 2 vars
+  entrada de histórico salva com atribuição de provider
+
+$ ai_launcher
+[abre GUI no browser padrão; launcher keyboard-first pronto]
+```
+
+<br />
+
+## Atalhos de teclado
+
+| Atalho | Ação |
+|---|---|
+| `⌘K` / `Ctrl+K` | Abre command palette |
+| `⌘⇧1` ... `⌘⇧4` | Troca entre abas primárias (Launcher / Install / Tools / History) |
+| `Ctrl+1` ... `Ctrl+9` | Dispara preset de launch |
+| `⌘L` / `Ctrl+L` | Foca campo de diretório |
+| `⌘P` / `Ctrl+P` | Abre quick-switch de provider |
+| `⌘⇧A` / `Ctrl+Shift+A` | Alterna admin mode em runtime |
+| `⌘⇧L` / `Ctrl+Shift+L` | Cicla idioma EN ↔ pt-BR |
+| `⌘/` / `Ctrl+/` | Abre modal de ajuda (cheatsheet completo) |
+| `Esc` | Fecha modal ativo |
+
+<br />
+
+## Idioma
+
+A interface auto-detecta inglês ou português do Brasil a partir de `navigator.language` e persiste a escolha em `localStorage['ai-launcher:locale']`. Qualquer variante `pt*` (`pt`, `pt-BR`, `pt-br`, `pt-PT`) resolve para `pt-BR`; o resto cai no fallback `en`.
+
+Troque em runtime via dropdown do globo na HeaderBar ou pelo chord `⌘⇧L` — sem reload, sem rebuild. Todos os textos visíveis (abas, modais, toasts, onboarding, ajuda, seeds de provider, command palette, Admin Panel) passam pelo `react-i18next` com 520+ chaves por locale e paridade zero entre EN e pt-BR.
+
+Conteúdo digitado pelo usuário (nomes de preset, entradas de histórico, displayName de perfis, overrides de CLI/IDE) permanece como foi inserido — não é traduzido. O inglês é a língua-primária pra strings novas a partir da v6.0; o catálogo pt-BR preserva o copy original verbatim onde existia antes.
+
+<br />
+
+## Modo admin
+
+| Método | Como | Persistência |
+|---|---|---|
+| **Chord em runtime** | `⌘⇧A` / `Ctrl+Shift+A` | `localStorage['ai-launcher:admin-mode']` |
+| **Query na URL** | `?admin=1` ou `?admin=0` | Persistido em localStorage |
+| **Build flag** | `VITE_ADMIN_MODE=1 npm run tauri build` | Permanente (admin-sempre-ativo; chord não desliga) |
+
+Ordem de precedência: build flag vence sempre, URL override persiste, chord alterna. Tokens de API ficam em `localStorage` no escopo da app; nada é enviado pra servidor — o admin UI só edita dados locais.
+
+<br />
+
+## Customizar
+
+### Adicionar sua própria CLI
+
+Admin → **Add Custom CLI** abre um formulário com nome, key, comando de install, comando de version check, argumentos de launch, URL de docs e emoji. O card renderiza no LauncherTab com borda tracejada e dispara via `launch_custom_cli` com a mesma cadeia de fallback dos built-ins (Windows Terminal → pwsh → powershell → cmd).
+
+### Adicionar seu próprio IDE
+
+Tools → **Add Custom IDE** segue o mesmo padrão — nome, key, comando de detecção, comando de launch com placeholder `<dir>`, URL de docs e emoji. Persistido em `ai-launcher:custom-ides`, disparado via `launch_custom_ide`.
+
+### Override do nome + icon de CLIs/IDEs built-in
+
+Hover num card de CLI ou IDE built-in revela o botão ✎. Troque o nome de exibição ou substitua o icon (emoji/texto). Override vazio limpa automaticamente; "Reset" volta ao padrão. O código-fonte e a chave interna ficam intocados — o comando de install segue funcionando.
+
+### Preferências (Admin → Preferências)
+
+- **Max de entradas no histórico** (padrão 50)
+- **Intervalo de auto-refresh** em segundos (padrão 0 = manual)
+- **Timeout de comando** em segundos (padrão 300s para installs/updates)
+- **Reset-to-defaults** num clique
+
+<br />
 
 ## Modos de build
 
-| Modo             | Comando                                    | Admin disponível?                     |
-| ---------------- | ------------------------------------------ | ------------------------------------- |
-| Release público  | `npm run tauri build`                      | Sim — via toggle runtime (`⌘⇧A`)     |
-| Admin-full       | `VITE_ADMIN_MODE=1 npm run tauri build`    | Sempre ligado, sem possibilidade de desligar |
+| Modo | Comando | Quando usar |
+|---|---|---|
+| Dev (hot-reload) | `npm run tauri dev` | Desenvolvimento local |
+| Release padrão | `npm run tauri build` | Distribuição pra usuário final |
+| Release admin-full | `VITE_ADMIN_MODE=1 npm run tauri build` | Builds internas com admin sempre ligado |
+| Release signed | Ver `scripts/sign-build.ps1` | Distribuição com cert self-signed ou EV |
 
-Use o modo **Admin-full** em ambientes internos ou para o seu próprio setup; use o **Release público** para distribuição.
+Env vars opcionais de build:
 
----
+- `VITE_ADMIN_MODE=1` — força admin mode sempre ligado
+- `VITE_ANTHROPIC_API_KEY` — pre-fill da chave no onboarding
+- `VITE_ZAI_API_KEY`, `VITE_MINIMAX_API_KEY`, `VITE_MOONSHOT_API_KEY`, `VITE_QWEN_API_KEY`, `VITE_OPENROUTER_API_KEY` — opcionais
 
-## Arquitetura
+Nenhuma dessas vars é obrigatória; o Admin Panel permite adicionar as chaves em runtime.
 
-- Shell desktop em **Tauri v2** (Rust 2021 + `tokio` no backend).
-- Frontend em **React 19 + TypeScript strict**, build com **Vite 8**.
-- CSS 100% escrito à mão com design tokens (sem utility-first framework).
-- Command menu via **cmdk**, ícones via **lucide-react**.
-- IPC via `@tauri-apps/api` (`invoke()` + event channel).
-- Persistência local em `localStorage` e arquivos JSON no diretório de dados do usuário.
+<br />
 
-Para o mapa completo de diretórios, comandos IPC e fluxos de estado, consulte [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
+## Arquitetura em resumo
 
----
+```text
+ai_launcher/
+├── src/                       # React 19 + TypeScript + Vite 8
+│   ├── App.tsx                # Router de abas + estado global
+│   ├── tabs/                  # LauncherTab, InstallTab, ToolsTab, HistoryTab,
+│   │                          # CostsTab, HelpTab, AdminTab, UpdatesTab
+│   ├── components/            # HeaderBar, StatusBar, CommandPalette, modals
+│   ├── shared/                # TerminalFrame, PromptLine, KeyCap, Sparkline
+│   ├── lib/                   # customClis, customIdes, appSettings, storage,
+│   │                          # providers, seeds, testConnection, i18n
+│   ├── icons/                 # Curated lucide-react re-exports
+│   ├── locales/               # en.json, pt-BR.json (520+ keys cada)
+│   └── styles/                # tokens.css, tokens-dark.css, tokens-light.css
+├── src-tauri/                 # Rust + Tauri v2
+│   ├── src/main.rs            # Comandos: launch_cli, launch_custom_cli,
+│   │                          # launch_custom_ide, install_cli, update_cli,
+│   │                          # test_provider_connection, check_latest_release,
+│   │                          # reset_claude_state, open_external_url
+│   └── Cargo.toml
+└── public/images/             # banner.svg, ícones, assets
+```
+
+Veja [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) para fluxo de launch, comandos Rust, schema do localStorage.
+
+<br />
 
 ## Sistema visual
 
-Tokens de cor, tipografia, espaçamento, movimento e regras de contraste estão documentados em [`docs/VISUAL_SYSTEM.md`](./docs/VISUAL_SYSTEM.md).
+Tipografia mono-first (JetBrains Mono padrão, 4 weights self-hosted, ~87 KB total), paleta oklch, grade de 4px, motion coreografada com suporte a `prefers-reduced-motion`. Ícones `lucide-react` em vez de emoji.
 
----
+Design tokens vivem em `src/styles/tokens.css` (compartilhados) + `tokens-dark.css` / `tokens-light.css` (overrides por tema). Accent color atual: warm-red `oklch(62% 0.210 25)` em ambos os temas. O budget de bundle é 300 KB gzipped pra JS; a release atual consome ~113 KB.
+
+Veja [`docs/VISUAL_SYSTEM.md`](./docs/VISUAL_SYSTEM.md) pra paleta completa, escala tipográfica e referência de motion.
+
+<br />
+
+## Privacidade & segurança
+
+- **Zero telemetria, zero analytics, zero login.** O app não faz nenhuma chamada pra servidor do autor.
+- **Tokens locais.** Chaves de API ficam em `localStorage` no escopo da app; nunca saem da máquina exceto quando o CLI chamado decide usar pra falar com o provider.
+- **Redacted em toda UI.** Toasts, logs, preview de comando e export de config mostram chaves mascaradas.
+- **`.env.local` no `.gitignore`.** Exemplos ficam em `.env.example`; segredos reais nunca são commitados.
+- **Backend direto.** Teste de conexão passa por comando Rust via `ureq` (sem CORS, sem proxy terceiro).
+- **Updates opt-in.** Checker consulta GitHub Releases API com cache de 6h; nenhum ping automático pra servidor proprietário.
+
+<br />
 
 ## Contribuir
 
-Issues e pull requests são bem-vindos. Antes de abrir um PR, leia o [`CONTRIBUTING.md`](./CONTRIBUTING.md) para entender o fluxo de desenvolvimento, padrões de commit e requisitos de testes.
+PRs bem-vindos. Veja [`CONTRIBUTING.md`](./CONTRIBUTING.md) pra setup, convenções, formato de commit.
 
----
+<br />
 
 ## Changelog
 
-A história completa está em [`CHANGELOG.md`](./CHANGELOG.md). Destaques recentes:
+Veja [`CHANGELOG.md`](./CHANGELOG.md). Destaques recentes:
 
-- **v6.1.0** — Mais providers (Moonshot, Qwen beta, OpenRouter).
-- **v6.0** — Interface bilíngue (EN / pt-BR) com detecção automática.
-- **v5.5.1** — Toggle de admin em runtime (chord + query string + flag de build).
-- **v5.5.0** — Redesign terminal-native: painéis estilo tmux, prompts `>`, typography mono-first.
+| Versão | Tema |
+|---|---|
+| **v7.1.0** | Polish & Wire — bug fixes, custom launches, override built-ins |
+| **v7.0.0** | Extensible — CLIs custom, IDEs custom, aba FAQ, preferências admin |
+| **v6.1.0** | More providers — Moonshot, Qwen beta, OpenRouter |
+| **v6.0.0** | Bilingual — EN / pt-BR com troca em runtime |
+| **v5.5.1** | Runtime admin toggle |
+| **v5.5.0** | Terminal Dramático — redesign visual completo |
 
----
+<br />
 
 ## Licença
 
-Distribuído sob licença **MIT**. Veja [`LICENSE`](./LICENSE) para o texto completo.
+MIT. Veja [LICENSE](./LICENSE). Copyright © 2026 Helbert Moura | DevManiac's.
 
-Copyright © 2026 Helbert Moura | DevManiac's
-
----
+<br />
 
 ## Créditos
 
-Construído com:
-
-- [Tauri](https://tauri.app/) — shell desktop cross-platform
-- [React](https://react.dev/) — UI declarativa
-- [Vite](https://vitejs.dev/) — bundler e dev server
-- [lucide-react](https://lucide.dev/) — biblioteca de ícones
-- [cmdk](https://cmdk.paco.me/) — command menu
-- [JetBrains Mono](https://www.jetbrains.com/lp/mono/) — tipografia monoespaçada padrão
-- [react-i18next](https://react.i18next.com/) — internacionalização
+Feito com [Tauri v2](https://v2.tauri.app), [React 19](https://react.dev), [Vite 8](https://vite.dev), [lucide-react](https://lucide.dev), [cmdk](https://cmdk.paco.me), [JetBrains Mono](https://www.jetbrains.com/lp/mono), [react-i18next](https://react.i18next.com).
