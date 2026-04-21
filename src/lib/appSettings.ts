@@ -20,6 +20,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 const STORAGE_KEY = 'ai-launcher:app-settings';
 
+// Custom DOM event for same-tab sync. The native `storage` event only fires in
+// OTHER tabs, so changes made inside the same window (e.g. AdminPanel saving
+// preferences) require this bus for live updates.
+export const SETTINGS_CHANGED_EVENT = 'ai-launcher:settings-changed';
+
 export function loadAppSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -47,6 +52,11 @@ export function loadAppSettings(): AppSettings {
 export function saveAppSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    try {
+      window.dispatchEvent(new CustomEvent(SETTINGS_CHANGED_EVENT, { detail: settings }));
+    } catch {
+      /* ignore — non-DOM environments (SSR/tests) */
+    }
   } catch (e) {
     console.error('[settings]', e);
   }
@@ -58,5 +68,11 @@ export function resetAppSettings(): AppSettings {
   } catch {
     /* ignore */
   }
-  return { ...DEFAULT_SETTINGS };
+  const defaults: AppSettings = { ...DEFAULT_SETTINGS };
+  try {
+    window.dispatchEvent(new CustomEvent(SETTINGS_CHANGED_EVENT, { detail: defaults }));
+  } catch {
+    /* ignore */
+  }
+  return defaults;
 }

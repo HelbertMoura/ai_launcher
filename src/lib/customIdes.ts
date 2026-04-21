@@ -17,6 +17,9 @@ export interface CustomIde {
 
 const STORAGE_KEY = 'ai-launcher:custom-ides';
 
+// Same-tab sync bus. Mirrors customClis.ts semantics.
+export const CUSTOM_IDES_CHANGED_EVENT = 'ai-launcher:custom-ides-changed';
+
 export function loadCustomIdes(): CustomIde[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -36,6 +39,11 @@ export function loadCustomIdes(): CustomIde[] {
 export function saveCustomIdes(ides: CustomIde[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ides));
+    try {
+      window.dispatchEvent(new CustomEvent(CUSTOM_IDES_CHANGED_EVENT, { detail: ides }));
+    } catch {
+      /* ignore */
+    }
   } catch (e) {
     console.error('[customIdes] save failed', e);
   }

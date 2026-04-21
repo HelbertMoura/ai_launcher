@@ -10,9 +10,9 @@ import { Skeleton } from './Skeleton';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { CustomIdeModal } from './providers/CustomIdeModal';
-import { loadCustomIdes, saveCustomIdes, addCustomIde, removeCustomIde, type CustomIde } from './lib/customIdes';
-import { loadAppSettings } from './lib/appSettings';
-// commandTimeout: reserved for Tauri backend wiring in v7.1
+import { loadCustomIdes, saveCustomIdes, addCustomIde, removeCustomIde, CUSTOM_IDES_CHANGED_EVENT, type CustomIde } from './lib/customIdes';
+import { loadAppSettings, SETTINGS_CHANGED_EVENT, type AppSettings } from './lib/appSettings';
+// commandTimeout is wired through invoke() calls in v7.1 (see installCli/updateSingleCli).
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
@@ -406,14 +406,36 @@ function App() {
   }, [bootReady, hasChecked, clis.length]);
 
   // v7 preferences: cross-tab sync via storage event.
-  // Note: `storage` only fires in OTHER tabs — same-tab AdminPanel changes
-  // require reload to take effect. v7.1 TODO: replace with event bus.
+  // Note: `storage` only fires in OTHER tabs — same-tab sync is handled by the
+  // CustomEvent listeners below (v7.1).
   useEffect(() => {
     function onStorage(e: StorageEvent) {
       if (e.key === 'ai-launcher:app-settings') setAppSettings(loadAppSettings());
+      if (e.key === 'ai-launcher:custom-ides') setCustomIdesState(loadCustomIdes());
     }
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // v7.1 same-tab sync: AdminPanel/other surfaces saving preferences or custom
+  // definitions inside this window dispatch CustomEvents that we subscribe to
+  // here so the app reacts live (no reload required).
+  useEffect(() => {
+    function onSettingsChanged(e: Event) {
+      const detail = (e as CustomEvent<AppSettings>).detail;
+      if (detail) setAppSettings(detail);
+      else setAppSettings(loadAppSettings());
+    }
+    function onCustomIdesChanged(e: Event) {
+      const detail = (e as CustomEvent<CustomIde[]>).detail;
+      setCustomIdesState(detail ?? loadCustomIdes());
+    }
+    window.addEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
+    window.addEventListener(CUSTOM_IDES_CHANGED_EVENT, onCustomIdesChanged);
+    return () => {
+      window.removeEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged);
+      window.removeEventListener(CUSTOM_IDES_CHANGED_EVENT, onCustomIdesChanged);
+    };
   }, []);
 
   // v7 preferences: auto-refresh CLI install state every N seconds (0 = disabled).

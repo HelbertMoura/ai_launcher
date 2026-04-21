@@ -1391,59 +1391,94 @@ fn log_event(phase: &str, msg: &str) {
     }
 }
 
+// v7.1: install/update timeout wrapper.
+// Default: 300s (5min). Overridable per-call via the optional `timeout_sec`
+// argument sent by the frontend (sourced from AppSettings.commandTimeout).
+// `browser` path short-circuits (no process spawned → no timeout needed).
+const DEFAULT_INSTALL_TIMEOUT_SEC: u64 = 300;
+
 #[tauri::command]
-async fn install_cli(app: tauri::AppHandle, cli_key: String) -> Result<String, String> {
+async fn install_cli(
+    app: tauri::AppHandle,
+    cli_key: String,
+    timeout_sec: Option<u64>,
+) -> Result<String, String> {
     let clis = get_cli_definitions();
     let cli = clis
         .iter()
         .find(|c| c.key == cli_key)
         .ok_or_else(|| format!("CLI não encontrado: {}", cli_key))?;
 
-    match cli.install_method.as_str() {
-        "npm" => {
-            let npm_pkg = cli.npm_pkg.as_ref().ok_or("Pacote npm ausente")?;
-            stream_install(
-                app,
-                cli_key.clone(),
-                "npm".into(),
-                vec!["install".into(), "-g".into(), npm_pkg.clone()],
-            )
-            .await
-        }
-        "pip" => {
-            let pip_pkg = cli.pip_pkg.as_ref().ok_or("Pacote pip ausente")?;
-            stream_install(
-                app,
-                cli_key.clone(),
-                "pip".into(),
-                vec!["install".into(), pip_pkg.clone()],
-            )
-            .await
-        }
-        "script" => {
-            // Factory Droid: `irm https://app.factory.ai/cli/windows | iex` via PowerShell
-            stream_install(
-                app,
-                cli_key.clone(),
-                "pwsh".into(),
-                vec!["-Command".into(), cli.install_cmd.clone()],
-            )
-            .await
-        }
-        "browser" => {
-            if let Some(ref url) = cli.install_url {
-                open::that(url).map_err(|e| e.to_string())?;
-                Ok(format!("Abrindo {}", url))
-            } else {
-                Err("URL de instalação ausente".into())
+    let key_for_work = cli_key.clone();
+    let install_method = cli.install_method.clone();
+    let npm_pkg = cli.npm_pkg.clone();
+    let pip_pkg = cli.pip_pkg.clone();
+    let install_cmd = cli.install_cmd.clone();
+    let install_url = cli.install_url.clone();
+
+    let secs = timeout_sec.unwrap_or(DEFAULT_INSTALL_TIMEOUT_SEC);
+    let work = async move {
+        match install_method.as_str() {
+            "npm" => {
+                let pkg = npm_pkg.ok_or("Pacote npm ausente")?;
+                stream_install(
+                    app,
+                    key_for_work,
+                    "npm".into(),
+                    vec!["install".into(), "-g".into(), pkg],
+                )
+                .await
             }
+            "pip" => {
+                let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pip".into(),
+                    vec!["install".into(), pkg],
+                )
+                .await
+            }
+            "script" => {
+                // Factory Droid: `irm https://app.factory.ai/cli/windows | iex` via PowerShell
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pwsh".into(),
+                    vec!["-Command".into(), install_cmd],
+                )
+                .await
+            }
+            "browser" => {
+                if let Some(url) = install_url {
+                    open::that(&url).map_err(|e| e.to_string())?;
+                    Ok(format!("Abrindo {}", url))
+                } else {
+                    Err("URL de instalação ausente".into())
+                }
+            }
+            other => Err(format!("Método desconhecido: {}", other)),
         }
-        _ => Err(format!("Método desconhecido: {}", cli.install_method)),
+    };
+
+    match tokio::time::timeout(std::time::Duration::from_secs(secs), work).await {
+        Ok(result) => result,
+        Err(_) => {
+            log_event(
+                "install_cli",
+                &format!("timeout key={} after {}s", cli_key, secs),
+            );
+            Err(format!("Comando excedeu o tempo limite de {}s", secs))
+        }
     }
 }
 
 #[tauri::command]
-async fn update_cli(app: tauri::AppHandle, cli_key: String) -> Result<String, String> {
+async fn update_cli(
+    app: tauri::AppHandle,
+    cli_key: String,
+    timeout_sec: Option<u64>,
+) -> Result<String, String> {
     log_event("update_cli", &format!("start key={}", cli_key));
     let clis = get_cli_definitions();
     let cli = clis
@@ -1451,41 +1486,58 @@ async fn update_cli(app: tauri::AppHandle, cli_key: String) -> Result<String, St
         .find(|c| c.key == cli_key)
         .ok_or_else(|| format!("CLI não encontrado: {}", cli_key))?;
 
-    match cli.install_method.as_str() {
-        "npm" => {
-            let npm_pkg = cli.npm_pkg.as_ref().ok_or("Pacote npm ausente")?;
-            stream_install(
-                app,
-                cli_key.clone(),
-                "npm".into(),
-                vec!["install".into(), "-g".into(), format!("{}@latest", npm_pkg)],
-            )
-            .await
+    let key_for_work = cli_key.clone();
+    let install_method = cli.install_method.clone();
+    let npm_pkg = cli.npm_pkg.clone();
+    let pip_pkg = cli.pip_pkg.clone();
+    let install_cmd = cli.install_cmd.clone();
+
+    let secs = timeout_sec.unwrap_or(DEFAULT_INSTALL_TIMEOUT_SEC);
+    let work = async move {
+        match install_method.as_str() {
+            "npm" => {
+                let pkg = npm_pkg.ok_or("Pacote npm ausente")?;
+                stream_install(
+                    app,
+                    key_for_work,
+                    "npm".into(),
+                    vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
+                )
+                .await
+            }
+            "pip" => {
+                let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pip".into(),
+                    vec!["install".into(), "--upgrade".into(), pkg],
+                )
+                .await
+            }
+            "script" => {
+                // Re-executa o script de install (Droid se atualiza via mesmo comando)
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pwsh".into(),
+                    vec!["-Command".into(), install_cmd],
+                )
+                .await
+            }
+            other => Err(format!("Atualização via '{}' não suportada", other)),
         }
-        "pip" => {
-            let pip_pkg = cli.pip_pkg.as_ref().ok_or("Pacote pip ausente")?;
-            stream_install(
-                app,
-                cli_key.clone(),
-                "pip".into(),
-                vec!["install".into(), "--upgrade".into(), pip_pkg.clone()],
-            )
-            .await
+    };
+
+    match tokio::time::timeout(std::time::Duration::from_secs(secs), work).await {
+        Ok(result) => result,
+        Err(_) => {
+            log_event(
+                "update_cli",
+                &format!("timeout key={} after {}s", cli_key, secs),
+            );
+            Err(format!("Comando excedeu o tempo limite de {}s", secs))
         }
-        "script" => {
-            // Re-executa o script de install (Droid se atualiza via mesmo comando)
-            stream_install(
-                app,
-                cli_key.clone(),
-                "pwsh".into(),
-                vec!["-Command".into(), cli.install_cmd.clone()],
-            )
-            .await
-        }
-        _ => Err(format!(
-            "Atualização via '{}' não suportada",
-            cli.install_method
-        )),
     }
 }
 
@@ -1513,7 +1565,7 @@ async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
                 continue;
             }
         }
-        match update_cli(app.clone(), cli.key.clone()).await {
+        match update_cli(app.clone(), cli.key.clone(), None).await {
             Ok(_) => count += 1,
             Err(e) => errors.push(format!("{}: {}", cli.name, e)),
         }
