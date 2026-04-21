@@ -20,6 +20,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  min-height: 0;
+  overflow: hidden;
   padding: 8px;
 }
 
@@ -1699,10 +1701,9 @@ body {
    ============================================================ */
 
 .tab-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  /* v5.5.1: parent .tab-content owns vertical scroll; this wrapper
+     is now just a presentational container so we don't create
+     nested scrollbars. */
   background: var(--bg);
   border-radius: 8px;
 }

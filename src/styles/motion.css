@@ -16,6 +16,10 @@
 }
 
 .tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   animation: page-enter var(--d-page-enter) var(--ease-terminal);
   will-change: opacity, transform;
 }
