@@ -1,13 +1,13 @@
 <div align="center">
-  <img src="./public/images/banner.png" alt="AI Launcher Banner" width="100%" />
+  <img src="./public/images/banner.png" alt="AI Launcher Pro" width="100%" />
 
   <br />
   <br />
 
-  <h1>🚀 AI Launcher</h1>
+  <h1>AI Launcher Pro</h1>
 
   <p>
-    <strong>Your ultimate desktop hub for AI coding CLIs. Built for speed, flexibility, and productivity.</strong>
+    <strong>eight CLIs. one launcher.</strong>
   </p>
 
   <p>
@@ -20,6 +20,7 @@
     <a href="https://github.com/HelbertMoura/ai_launcher/releases">
       <img src="https://img.shields.io/github/downloads/HelbertMoura/ai_launcher/total?style=for-the-badge&color=brightgreen&label=downloads" alt="Downloads" />
     </a>
+    <img src="https://img.shields.io/badge/tauri-v2-24C8DB?style=for-the-badge&logo=tauri" alt="Tauri v2" />
     <img src="https://img.shields.io/badge/platform-windows%2010%20%2F%2011-0078D4?style=for-the-badge&logo=windows" alt="Platform" />
   </p>
   <p>
@@ -35,248 +36,196 @@
     <a href="https://github.com/HelbertMoura/ai_launcher/issues">
       <img src="https://img.shields.io/github/issues/HelbertMoura/ai_launcher?style=for-the-badge&color=red" alt="Issues" />
     </a>
-    <a href="https://github.com/HelbertMoura/ai_launcher/blob/main/.github/dependabot.yml">
-      <img src="https://img.shields.io/badge/dependabot-enabled-025E8C?style=for-the-badge&logo=dependabot" alt="Dependabot" />
-    </a>
   </p>
-
-  <h3>
-    <a href="#-português">🇧🇷 Português</a>
-    <span> | </span>
-    <a href="#-english">🇬🇧 English</a>
-  </h3>
 </div>
 
 <hr />
 
-## 🇧🇷 Português
+<p align="center">
+  <img src="./docs/screenshots/hero-dark.png" alt="AI Launcher Pro — v5.5 Terminal Dramatico" width="100%" />
+</p>
 
-O **AI Launcher** é o seu hub definitivo e de código aberto para Command Line Interfaces (CLIs) de Inteligência Artificial no Windows. Descubra, instale, atualize e gerencie suas ferramentas de IA favoritas — como **Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush e Droid** — tudo a partir de uma interface moderna, rápida e incrivelmente intuitiva.
+## What is it
 
-Além de gerenciar suas IAs, ele oferece atalhos de um clique para editores populares como **VS Code, Cursor, Windsurf e AntGravity**. Diga adeus às telas pretas piscando, buscas intermináveis por comandos `npm install -g` específicos e dores de cabeça com a configuração de variáveis de ambiente. Tudo está aqui, em um único lugar! ✨
+AI Launcher Pro is a Tauri v2 desktop app that collapses every AI coding CLI you use — Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot and friends — into a single, keyboard-first launcher with a terminal aesthetic.
 
-Construído com ❤️ usando **Tauri v2**, **React 18** e **Rust**, com foco em extrema otimização para Windows 10 e 11.
+It installs what's missing, detects what's already there, swaps providers on the fly (Anthropic, Z.AI, MiniMax, custom base URLs), tracks cost per day with inline sparklines, and keeps a git-log-style history of every run you do.
 
-<br />
-
-### ✨ Principais Funcionalidades
-
-- 📦 **Instalação e Atualização Sem Complicações**
-  O AI Launcher detecta o que falta no seu ambiente. Ele executa `npm install -g` ou `pip install` em segundo plano com uma interface limpa que mostra o progresso em tempo real. O sistema compara suas versões locais com as mais recentes das CLIs, IDEs e pré-requisitos (Node.js, Python, Git, Rust).
-
-- 🚀 **Execução Inteligente**
-  Abra suas CLIs diretamente no Windows Terminal (se disponível), com fallback automático para PowerShell 7 ou `cmd`. A melhor parte? Ele **aplica automaticamente as flags de permissão corretas** (como `--dangerously-skip-permissions` ou `--yolo`) para que você foque apenas no código.
-
-- 📊 **Rastreamento Avançado (Orquestrador)**
-  Mantenha um histórico detalhado de execuções por projeto, consolide o uso de tokens (ex.: Claude Code) e gerencie a execução de múltiplas CLIs lado a lado no mesmo diretório através da poderosa aba **Orquestrador**.
+v5.5 "Terminal Dramatico" is a full visual rewrite: mono typography end-to-end, terminal-pane cards, a command palette with live preview, a font picker, an update checker wired to GitHub releases, and a four-step onboarding for fresh installs.
 
 <br />
 
-### 🤖 CLIs de IA Suportadas
+## Features
 
-| CLI de IA | Comando Base de Instalação | Flag Automática Injetada |
-| :--- | :--- | :--- |
-| **Claude Code** | `npm install -g @anthropic-ai/claude-code` | `--dangerously-skip-permissions` |
-| **Codex** | `npm install -g @openai/codex` | `--dangerously-bypass-approvals-and-sandbox` |
-| **Gemini CLI** | `npm install -g @google/gemini-cli` | `--yolo` |
-| **Qwen** | `npm install -g qwen-ai` | `--yolo` |
-| **Kilo Code** | `pip install kilo-code` | `--yolo` |
-| **Crush** | `npm install -g crush-cli` | `--yolo` |
-| **Droid** | `npm install -g droid` | — |
-| **OpenCode** | `npm install -g opencode-ai` | — |
-
-<br />
-
-### 🛠 IDEs & Editores Compatíveis
-
-Suporte nativo e detecção automática para: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop e Codex Desktop**. O launcher identifica as instalações e permite que você abra o diretório de trabalho atual na sua IDE favorita com apenas um clique.
+- Multi-CLI launcher for Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot and more
+- Multi-provider switching — Anthropic, Z.AI (GLM), MiniMax, and custom base URLs with env-var injection
+- Launch presets — CLI + provider + directory + args saved as a chip, bound to a number key
+- Git-log-style history tab with filters by CLI, provider, project, exit code
+- Cost aggregation with per-day sparklines and a configurable daily budget
+- Command palette with live preview and pinned/recent entries
+- Font picker — JetBrains Mono, IBM Plex Mono, Cascadia Code, Berkeley Mono, System
+- Update checker wired to GitHub releases, in-app notification when a new version ships
+- Keyboard-first — `⌘K` palette, `⌘⇧1..4` tabs, `⌘1..9` preset launches, `⌘/` help
+- Light and dark themes with `prefers-reduced-motion` honored
+- Four-step onboarding for first launch
+- Admin build with provider CRUD, appearance controls and backup (`VITE_ADMIN_MODE=1`)
 
 <br />
 
-### ⚙️ Como Compilar e Instalar (Recomendado)
+## Supported CLIs
 
-Para garantir máxima segurança e evitar alertas incômodos do Windows SmartScreen (muito comuns em executáveis que não são assinados com certificados pagos), recomendamos fortemente que você construa o **AI Launcher** diretamente a partir do código-fonte. É um processo rápido e transparente!
+| CLI              | Install command                                 | Auto-injected flag                             |
+| :--------------- | :---------------------------------------------- | :--------------------------------------------- |
+| Claude Code      | `npm install -g @anthropic-ai/claude-code`      | `--dangerously-skip-permissions`               |
+| Codex            | `npm install -g @openai/codex`                  | `--dangerously-bypass-approvals-and-sandbox`   |
+| Cursor           | detected from system install                    | —                                              |
+| Gemini CLI       | `npm install -g @google/gemini-cli`             | `--yolo`                                       |
+| Qwen             | `npm install -g qwen-ai`                        | `--yolo`                                       |
+| iFlow            | detected from system install                    | —                                              |
+| Copilot CLI      | detected from system install                    | —                                              |
+| Kilo Code        | `pip install kilo-code`                         | `--yolo`                                       |
+| Crush            | `npm install -g crush-cli`                      | `--yolo`                                       |
+| Droid            | `npm install -g droid`                          | —                                              |
+| OpenCode         | `npm install -g opencode-ai`                    | —                                              |
 
-Por ser totalmente open-source, **você pode compilar seu próprio `.msi` ou `.exe` localmente**. Isso é perfeito para assegurar integridade ou para customizar a ferramenta para as necessidades da sua empresa!
+IDEs detected out of the box: VS Code, Cursor, Windsurf, AntGravity, Claude Desktop, Codex Desktop.
 
-#### Pré-requisitos:
+<br />
+
+## Installation
+
+### End users
+
+Grab the latest `.msi` or `.exe` from the [releases page](https://github.com/HelbertMoura/ai_launcher/releases/latest). Run it and you're done.
+
+Windows SmartScreen may warn on unsigned builds — either click "More info → Run anyway", or build from source (below) for full provenance.
+
+### From source
+
+Prerequisites:
+
 - Node.js 18+
-- [Rust (Stable)](https://rustup.rs/)
-- Windows 10 ou 11
-- Visual Studio Build Tools (Carga de trabalho requerida: **Desenvolvimento para desktop com C++** para compilação do Tauri).
-
-```bash
-# 1. Clone o repositório
-git clone https://github.com/HelbertMoura/ai_launcher.git
-cd ai_launcher
-
-# 2. Instale as dependências Node
-npm install
-
-# 3. (Opcional) Execute o ambiente de desenvolvimento (Hot Reload)
-npm run tauri dev
-
-# 4. Compile os seus próprios instaladores! (Gera MSI e NSIS)
-npm run tauri build
-```
-
-🎉 Os instaladores gerados estarão disponíveis em `src-tauri/target/release/bundle/`. Basta executar o `.msi` ou `.exe` gerado para instalar o AI Launcher.
-
-> _**Dica:** Deseja assinar os binários localmente para remover completamente avisos do Windows? Confira os scripts `gen-cert.ps1` e `sign-build.ps1` localizados na pasta `/scripts/`._
-
-<br />
-
-### 🧪 Recursos avançados (v5.0+)
-
-O AI Launcher v5.0 introduz recursos opcionais de power-user que ficam **ocultos por padrão** e só aparecem quando você cria um arquivo `.env.local` com `VITE_ADMIN_MODE=1`. Nenhum desses recursos quebra o fluxo padrão da v4.
-
-- **Providers alternativos (Claude Code)** — Lance o Claude Code apontando para endpoints Anthropic-compatible como **Z.AI (GLM)** ou **MiniMax**, com CRUD completo, teste de conexão e mapeamento automático de modelos (`opus/sonnet → glm-5.1`, `haiku → glm-4.7`).
-- **Launch Presets** — Salve combinações CLI + provider + diretório + args como chips clicáveis. Atalhos `Ctrl+1..9` para lançar instantaneamente.
-- **Quick Switch** — `Ctrl+P` abre busca fuzzy de providers; alterne sem abrir o painel.
-- **Preview (dry-run)** — Veja o comando e as env vars que serão injetadas antes de executar. Exporta script `.bat` reprodutível.
-- **Cost-aware tracking** — A aba Custos reestima valores usando os preços configurados no Admin quando o modelo não é reconhecido pela tabela padrão.
-- **Budget diário** — Configure um limite por provider e receba alerta quando o gasto do dia ultrapassar.
-- **Tray quick-switch** — Submenu no system tray para trocar provider sem abrir a janela principal.
-
-Copie `.env.example` para `.env.local` e remova o `#` da linha `VITE_ADMIN_MODE=1` para ativar.
-
-> **⚠️ Nota MiniMax — regiões**: o seed built-in aponta para o endpoint **internacional**
-> (`https://api.minimax.io/anthropic`) e usa o modelo **`MiniMax-M2.7`**. Se você tem conta
-> **na China**, edite o perfil no Admin Panel e troque a baseUrl para
-> `https://api.minimaxi.com/anthropic`. Chaves:
-> [internacional](https://platform.minimax.io/user-center/basic-information/interface-key) ·
-> [china](https://platform.minimaxi.com/user-center/basic-information/interface-key).
-
-<br />
-
-### 🤝 Contribua Conosco!
-
-A força do Open Source está na comunidade! Toda ajuda é super bem-vinda. Se você tem uma ideia para adicionar uma nova CLI, melhorar a interface de usuário (UI/UX) ou encontrou um bug:
-
-1. Dê uma lida atenta no nosso guia de contribuição: [CONTRIBUTING.md](./CONTRIBUTING.md).
-2. Reporte problemas, debata arquitetura ou sugira funcionalidades através das [Issues no GitHub](https://github.com/HelbertMoura/ai_launcher/issues).
-
-<br />
-
-### 📄 Licença
-
-Este projeto é orgulhosamente distribuído sob a licença [MIT](./LICENSE).
-<br />
-Copyright © 2026 Helbert Moura | DevManiac's.
-
-<br /><br />
-<hr />
-<br /><br />
-
-## 🇬🇧 English
-
-**AI Launcher** is your ultimate, fully open-source hub for AI Command Line Interfaces (CLIs) on Windows. Discover, install, update, and seamlessly manage your favorite AI tools like **Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, and Droid**, all within a sleek, modern, and highly intuitive UI.
-
-Additionally, it provides rapid one-click shortcuts for popular editors such as **VS Code, Cursor, Windsurf, and AntGravity**. Say goodbye to flashing `cmd` windows, digging through docs for specific `npm install -g` commands, or dealing with tedious environment path setups. It’s all here, in one place! ✨
-
-Built passionately with **Tauri v2**, **React 18**, and **Rust**, it is deeply optimized for Windows 10 and 11.
-
-<br />
-
-### ✨ Core Features
-
-- 📦 **Painless Install & Update**
-  AI Launcher automatically detects missing prerequisites in your environment. It runs `npm install -g` or `pip install` securely in-process with a beautiful live progress bar. The built-in system checks keep your CLIs, IDEs, and base requirements (Node.js, Python, Git, Rust) always up-to-date.
-
-- 🚀 **Smart Launching**
-  Instantly fire up CLIs in Windows Terminal (if available), automatically falling back to PowerShell 7 or standard `cmd`. Best of all? It **automatically injects the correct security/permission flags** (like `--dangerously-skip-permissions` or `--yolo`) so you don't have to memorize them.
-
-- 📊 **Advanced Tracking (Orchestrator)**
-  Maintain detailed per-project run histories, aggregate your token usage (e.g., for Claude Code), and safely run multiple CLIs side-by-side on the same directory workspace using the powerful **Orchestrator** tab.
-
-<br />
-
-### 🤖 Supported AI CLIs
-
-| AI CLI | Base Install Command | Auto-Injected Flag |
-| :--- | :--- | :--- |
-| **Claude Code** | `npm install -g @anthropic-ai/claude-code` | `--dangerously-skip-permissions` |
-| **Codex** | `npm install -g @openai/codex` | `--dangerously-bypass-approvals-and-sandbox` |
-| **Gemini CLI** | `npm install -g @google/gemini-cli` | `--yolo` |
-| **Qwen** | `npm install -g qwen-ai` | `--yolo` |
-| **Kilo Code** | `pip install kilo-code` | `--yolo` |
-| **Crush** | `npm install -g crush-cli` | `--yolo` |
-| **Droid** | `npm install -g droid` | — |
-| **OpenCode** | `npm install -g opencode-ai` | — |
-
-<br />
-
-### 🛠 Supported IDEs & Editors
-
-Out-of-the-box native detection for: **VS Code, Cursor, Windsurf, AntGravity, Claude Desktop, and Codex Desktop**. Open your current workspace in your preferred editor with just one click directly from the UI.
-
-<br />
-
-### ⚙️ How to Build and Install (Recommended)
-
-To ensure maximum security and avoid pesky Windows SmartScreen warnings (which are common with executables not signed with expensive paid EV certificates), we highly recommend building **AI Launcher** directly from the source code. It's quick, transparent, and easy!
-
-Because we are fully open-source, **you can seamlessly build the `.msi` or `.exe` installers directly on your own machine**. This is perfect if you want to ensure absolute binary integrity or customize the application for your enterprise!
-
-#### Prerequisites:
-- Node.js 18+
-- [Rust (Stable)](https://rustup.rs/)
+- [Rust (stable)](https://rustup.rs/)
 - Windows 10 or 11
-- Visual Studio Build Tools (Required workload: **Desktop development with C++** — needed by Tauri for C++ linking).
+- Visual Studio Build Tools with **Desktop development with C++** workload (required by Tauri)
 
 ```bash
-# 1. Clone the repository
+# 1. Clone
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
 
-# 2. Install Node dependencies
+# 2. Install deps
 npm install
 
-# 3. (Optional) Run the dev environment with Hot Reload enabled
+# 3. Run dev (hot reload)
 npm run tauri dev
 
-# 4. Generate your very own release installers! (Builds MSI & NSIS)
+# 4. Build installers
 npm run tauri build
 ```
 
-🎉 Your freshly built installers will be waiting for you in `src-tauri/target/release/bundle/`. From there, simply run the generated `.msi` or `.exe` to install AI Launcher.
-
-> _**Pro-Tip:** Need local code signing to stop Windows warnings completely? Check out the `gen-cert.ps1` and `sign-build.ps1` scripts located inside the `/scripts/` folder!_
+Installers land in `src-tauri/target/release/bundle/`. Need local signing to silence SmartScreen? See `scripts/gen-cert.ps1` and `scripts/sign-build.ps1`.
 
 <br />
 
-### 🧪 Advanced features (v5.0+)
+## Keyboard shortcuts
 
-AI Launcher v5.0 ships with optional power-user features that stay **hidden by default** and only show up when you create a `.env.local` file with `VITE_ADMIN_MODE=1`. None of them disrupt the v4 default flow.
+| Keys              | Action                       |
+| :---------------- | :--------------------------- |
+| `⌘K`              | Open command palette         |
+| `⌘⇧1`             | Go to Launcher tab           |
+| `⌘⇧2`             | Go to Install tab            |
+| `⌘⇧3`             | Go to History tab            |
+| `⌘⇧4`             | Go to Costs tab              |
+| `⌘1`              | Launch preset 1              |
+| `⌘2..9`           | Launch presets 2 through 9   |
+| `F5`              | Re-scan installed CLIs       |
+| `⌘/`              | Open help                    |
+| `Esc`             | Close modals                 |
 
-- **Alternative providers (Claude Code)** — Launch Claude Code pointing to Anthropic-compatible endpoints like **Z.AI (GLM)** or **MiniMax**, with full CRUD, connection test and automatic model mapping (`opus/sonnet → glm-5.1`, `haiku → glm-4.7`).
-- **Launch Presets** — Save CLI + provider + directory + args combos as clickable chips. `Ctrl+1..9` shortcuts for instant launches.
-- **Quick Switch** — `Ctrl+P` opens a fuzzy provider picker; switch without opening the admin panel.
-- **Preview (dry-run)** — See the exact command and env vars that will be injected before running. Exports a reproducible `.bat` script.
-- **Cost-aware tracking** — The Costs tab restates values using the prices configured in Admin when the model is not recognized by the default table.
-- **Daily budget** — Set a per-provider limit; get a toast when today's spend exceeds it.
-- **Tray quick-switch** — System tray submenu to change provider without opening the main window.
+On Windows `⌘` is `Ctrl` and `⇧` is `Shift`.
 
-Copy `.env.example` to `.env.local` and uncomment `VITE_ADMIN_MODE=1` to enable.
+<br />
 
-> **⚠️ MiniMax note — regions**: the built-in seed points to the **international** endpoint
-> (`https://api.minimax.io/anthropic`) with model **`MiniMax-M2.7`**. If your account is in
-> **China**, edit the profile in Admin Panel and switch baseUrl to
-> `https://api.minimaxi.com/anthropic`. API keys:
+## Providers setup
+
+AI Launcher Pro can point any Anthropic-compatible CLI at a different backend by injecting the right env vars at launch time.
+
+Ships with built-in seeds for:
+
+- **Anthropic** — official endpoint
+- **Z.AI (GLM)** — automatic model mapping `opus/sonnet → glm-5.1`, `haiku → glm-4.7`
+- **MiniMax** — international (`https://api.minimax.io/anthropic`) and China (`https://api.minimaxi.com/anthropic`) endpoints
+
+To add or edit providers, build with admin mode enabled (see **Build modes** below), then open the Admin tab → Providers. Each provider stores a base URL, an API key, and an optional model map.
+
+Keys are stored locally (Tauri's OS-level store). They are never sent anywhere except to the provider you configure.
+
+> **MiniMax — regions.** The built-in seed targets the international endpoint. Chinese accounts need the `minimaxi.com` base URL. Keys:
 > [international](https://platform.minimax.io/user-center/basic-information/interface-key) ·
 > [china](https://platform.minimaxi.com/user-center/basic-information/interface-key).
 
-### 🤝 Contributing
+<br />
 
-The strength of Open Source is its community! We absolutely love contributions. Whether you're adding a new CLI configuration, tweaking the user interface, or squashing bugs:
+## Architecture at a glance
 
-1. Please take a moment to read our contribution guide: [CONTRIBUTING.md](./CONTRIBUTING.md).
-2. File bugs, discuss architecture, or suggest new features via the [GitHub Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+React 19 + Vite 8 frontend on TypeScript strict, Rust backend exposed through Tauri v2 commands. Storage is local JSON via the Tauri store plugin. No server, no telemetry.
+
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for the full layout — commands, events, state shape, module boundaries.
 
 <br />
 
-### 📄 License
+## Visual system
 
-This project is proudly distributed under the [MIT License](./LICENSE).
+v5.5 "Terminal Dramatico" is built on a mono-first design language: JetBrains Mono as default, terminal panes in place of generic cards, ASCII framing, typed caret affordances, and a disciplined palette.
+
+Tokens, type scale, motion rules and component anatomy live in [docs/VISUAL_SYSTEM.md](./docs/VISUAL_SYSTEM.md).
+
 <br />
+
+## Build modes
+
+| Mode   | Command                                | What's visible                                          |
+| :----- | :------------------------------------- | :------------------------------------------------------ |
+| Public | `npm run build`                        | Launcher, Install, History, Costs, palette, help        |
+| Admin  | `VITE_ADMIN_MODE=1 npm run build`      | Public + Admin tab (provider CRUD, appearance, backup)  |
+
+On Windows PowerShell: `$env:VITE_ADMIN_MODE='1'; npm run build`.
+
+Admin mode is gated at build time and strips from the bundle when disabled — there's no runtime toggle.
+
+<br />
+
+## Contributing
+
+PRs, issues and CLI additions are welcome. Start here:
+
+1. Read [CONTRIBUTING.md](./CONTRIBUTING.md).
+2. File bugs or propose features in [GitHub Issues](https://github.com/HelbertMoura/ai_launcher/issues).
+
+<br />
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for the full history. Current line: **v5.5 "Terminal Dramatico"**.
+
+<br />
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
 Copyright © 2026 Helbert Moura | DevManiac's.
+
+<br />
+
+## Credits
+
+Built by **Helbert Moura** / **DevManiac's**.
+
+Standing on the shoulders of:
+
+- [Tauri](https://tauri.app) — Rust-powered desktop shell
+- [React](https://react.dev) + [Vite](https://vitejs.dev) — frontend runtime
+- [lucide-react](https://lucide.dev) — icon set
+- [cmdk](https://cmdk.paco.me) — command palette primitive
+- [JetBrains Mono](https://www.jetbrains.com/lp/mono/), [IBM Plex Mono](https://www.ibm.com/plex/), [Cascadia Code](https://github.com/microsoft/cascadia-code) — mono typefaces
