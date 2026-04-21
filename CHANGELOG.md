@@ -5,6 +5,73 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] — 2026-04-21
+
+### 🧩 "Extensible" — Onboarding + FAQ + Custom CLIs/IDEs + Preferences
+
+Major release focused on user extensibility. You can now add your own CLIs and
+IDEs, search the FAQ, tune preferences, and take a 9-slide tour on first run.
+**Zero schema breaking changes.** New banner SVG. Windows-only today; macOS &
+Linux planned.
+
+### Added
+
+- **Onboarding v7** — 5 steps (was 4):
+  - Typing-caret animation on welcome tagline (respects `prefers-reduced-motion`)
+  - New `autoDetect` step reading `VITE_ANTHROPIC_API_KEY` from env
+  - New 9-slide `tour` carousel covering every tab (launcher/install/tools/
+    history/costs/palette/admin/help/updates) with arrow-key nav
+- **HelpTab refactor** — extracted from App.tsx into `src/tabs/HelpTab.tsx`:
+  - 2-pane layout (sidebar sections + content accordion)
+  - Global FAQ search filters across all Q&A items
+  - 10 Q&A entries across 5 sections (Getting Started / Providers /
+    Shortcuts / Troubleshooting / Privacy)
+  - Inline actions: reopen onboarding, re-enable welcome, reset all
+  - App.tsx loses ~185 lines of inline help JSX
+- **Custom CLI add** (Admin → Add Custom CLI):
+  - New `src/lib/customClis.ts` with localStorage persistence
+  - `CustomCliModal` form (name, key, installCmd, versionCmd, launchArgs,
+    docsUrl, iconEmoji) with per-field validation
+  - Rendered in LauncherTab with dashed border variant
+  - Storage key `ai-launcher:custom-clis` (additive)
+  - Launch wiring deferred to v7.1 (currently alert placeholder)
+- **Custom IDE add** (Tools tab → Add Custom IDE):
+  - New `src/lib/customIdes.ts` mirroring CustomCli pattern
+  - `CustomIdeModal` form (name, key, detectCmd, launchCmd, docsUrl, iconEmoji)
+  - Storage key `ai-launcher:custom-ides`
+  - Placeholder `<dir>` in launch command (was `{{dir}}` — escaped to avoid
+    i18next interpolation)
+- **Admin Preferences section** — 3 new settings:
+  - `maxHistory` (default: 50) — limits history array size
+  - `refreshInterval` (seconds, default: 0 = manual) — auto re-check CLIs
+  - `commandTimeout` (seconds, default: 30) — persisted for v7.1 Rust wiring
+  - Reset-to-defaults button
+  - `src/lib/appSettings.ts` + localStorage key `ai-launcher:app-settings`
+- **New banner SVG** (`public/images/banner.svg`) — terminal-themed 1200×300
+  vector with prompt mock, mono wordmark, dual-language tagline hint
+- **Platform notice in READMEs** — Windows ✅ · macOS 🔜 · Linux 🔜
+- **~100 new i18n keys** — 520 total per locale (en + pt-BR), parity 0
+
+### Changed
+
+- `App.tsx` — 1672 → ~1470 lines after HelpTab extraction (net -200)
+- `Onboarding.tsx` — STEPS tuple now 5 entries; dropped static `provider` step
+  (tour's `admin` slide covers it)
+- Banner reference in READMEs switched from `.png` to `.svg`
+- History slice logic now consumes `appSettings.maxHistory` across 3 call sites
+  (launch, launchFromPreset, CommandPalette onLaunchCli)
+
+### Notes
+
+- Custom CLI / IDE launch wiring pending for v7.1 (backend changes needed)
+- Same-tab settings state sync pending for v7.1 (cross-tab works via `storage`)
+- macOS and Linux builds planned — follow the releases page for announcements
+- Provider seeds from v6.1 (Moonshot, Qwen beta, OpenRouter) carry over
+- Runtime admin toggle from v5.5.1 continues to work (`⌘⇧A`)
+- Bilingual UI from v6.0 continues to work (`⌘⇧L`, globe dropdown)
+
+---
+
 ## [6.1.0] — 2026-04-21
 
 ### 🌍 "More Providers" — Moonshot, Qwen (beta), OpenRouter
