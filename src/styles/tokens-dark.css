@@ -42,6 +42,9 @@
   --color-brand-google: oklch(68% 0.170 235);
   --color-brand-zai: oklch(70% 0.130 288);
   --color-brand-minimax: oklch(68% 0.165 16);
+  --color-brand-moonshot:   oklch(72% 0.160 32);   /* warm orange */
+  --color-brand-qwen:       oklch(68% 0.140 245);  /* blue */
+  --color-brand-openrouter: oklch(70% 0.120 155);  /* teal */
 
   /* -- Shadows (oklch pra consistência perceptiva) -- */
   --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.28);

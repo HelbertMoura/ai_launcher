@@ -23,6 +23,28 @@ export const MODEL_CATALOG: Record<ProviderKind, ModelHints> = {
     main: ['MiniMax-M2.7', 'MiniMax-M2', 'MiniMax-abab6.5', 'MiniMax-Text-01'],
     fast: ['MiniMax-M2.7', 'MiniMax-M2', 'MiniMax-abab6.5-s'],
   },
+  moonshot: {
+    main: ['kimi-k2-0905-preview', 'kimi-k2-turbo-preview', 'kimi-k2'],
+    fast: ['kimi-k2-turbo-preview', 'kimi-k2'],
+  },
+  qwen: {
+    main: ['qwen3-coder-plus', 'qwen3-coder', 'qwen-max', 'qwen-plus'],
+    fast: ['qwen-plus', 'qwen-turbo', 'qwen-flash'],
+  },
+  openrouter: {
+    main: [
+      'anthropic/claude-sonnet-4',
+      'anthropic/claude-opus-4',
+      'moonshotai/kimi-k2',
+      'zhipuai/glm-4-plus',
+      'qwen/qwen3-coder-plus',
+    ],
+    fast: [
+      'anthropic/claude-haiku-4-5',
+      'moonshotai/kimi-k2-turbo',
+      'qwen/qwen-plus',
+    ],
+  },
   custom: {
     main: [],
     fast: [],
