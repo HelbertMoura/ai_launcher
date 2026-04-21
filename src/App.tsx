@@ -19,6 +19,7 @@ import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
 import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
+import { getLocale, setLocale, LOCALE_LABELS, type Locale } from './i18n';
 import { StatusBar } from './layout/StatusBar';
 import { HelpModal } from './layout/HelpModal';
 import { applyFontStack, FONT_STORAGE_KEY, type FontId } from './providers/AppearanceSection';
@@ -484,6 +485,29 @@ function App() {
         showToast(next ? t('admin.mode.on') : t('admin.mode.off'));
         return next;
       });
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Language cycle (⌘⇧L / Ctrl+Shift+L)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (!e.shiftKey || e.altKey) return;
+      if (e.key.toLowerCase() !== 'l') return;
+      const target = document.activeElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      e.preventDefault();
+      const current = getLocale();
+      const next: Locale = current === 'en' ? 'pt-BR' : 'en';
+      setLocale(next);
+      showToast(`Language: ${LOCALE_LABELS[next].native}`);
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

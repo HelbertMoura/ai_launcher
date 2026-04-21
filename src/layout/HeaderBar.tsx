@@ -1,7 +1,9 @@
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal, Command, Moon, Sun, RefreshCw } from '../icons';
+import { Terminal, Command, Moon, Sun, RefreshCw, Globe } from '../icons';
 import { KeyCap } from '../shared/KeyCap';
 import type { ProvidersState, ProviderKind } from '../providers/types';
+import { SUPPORTED_LOCALES, LOCALE_LABELS, setLocale, getLocale, type Locale } from '../i18n';
 import './HeaderBar.css';
 
 export type HeaderTabId =
@@ -72,6 +74,26 @@ export function HeaderBar({
   const visibleTabs = TABS.filter(t => !t.adminOnly || adminMode);
   const activeProvider = adminMode ? resolveActiveProvider(providers) : null;
 
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+  const currentLocale = getLocale();
+
+  useEffect(() => {
+    if (!langOpen) return;
+    function onDocClick(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [langOpen]);
+
+  function handleLocaleSelect(lng: Locale) {
+    setLocale(lng);
+    setLangOpen(false);
+  }
+
   return (
     <header className="headerbar">
       <div className="headerbar__top">
@@ -110,6 +132,38 @@ export function HeaderBar({
             <Command size={14} strokeWidth={1.5} />
             <KeyCap keys={['\u2318', 'K']} dimmed />
           </button>
+
+          <div className="headerbar__lang" ref={langRef}>
+            <button
+              type="button"
+              className="headerbar__btn headerbar__lang-trigger"
+              onClick={() => setLangOpen(v => !v)}
+              aria-haspopup="menu"
+              aria-expanded={langOpen}
+              aria-label={`Language: ${LOCALE_LABELS[currentLocale].native}`}
+              title="Language"
+            >
+              <Globe size={14} strokeWidth={1.5} />
+              <span className="headerbar__lang-short">{LOCALE_LABELS[currentLocale].short}</span>
+            </button>
+            {langOpen && (
+              <div className="headerbar__lang-menu" role="menu">
+                {SUPPORTED_LOCALES.map(lng => (
+                  <button
+                    key={lng}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={lng === currentLocale}
+                    className={`headerbar__lang-option${lng === currentLocale ? ' is-current' : ''}`}
+                    onClick={() => handleLocaleSelect(lng)}
+                  >
+                    <span className="headerbar__lang-native">{LOCALE_LABELS[lng].native}</span>
+                    <span className="headerbar__lang-code">{LOCALE_LABELS[lng].short}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <button
             type="button"
