@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { loadProviders } from './providers/storage';
 import type { ProviderProfile } from './providers/types';
+import { Sparkline } from './shared/Sparkline';
 import './CostAggregator.css';
 
 /**
@@ -105,7 +106,13 @@ export default function CostAggregator() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showWarnings, setShowWarnings] = useState<boolean>(false);
-  const [providerProfiles] = useState(() => loadProviders().profiles);
+  const [providersState] = useState(() => loadProviders());
+  const providerProfiles = providersState.profiles;
+  const activeProfile = useMemo(
+    () => providerProfiles.find(p => p.id === providersState.activeId),
+    [providerProfiles, providersState.activeId],
+  );
+  const budget = activeProfile?.dailyBudget ?? 0;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -141,6 +148,39 @@ export default function CostAggregator() {
       .filter((e) => e.date.startsWith(monthPrefix))
       .reduce((sum, e) => sum + e.tokens_out, 0);
   }, [report, monthPrefix]);
+
+  const totalToday = useMemo(() => {
+    if (!report) return 0;
+    return report.entries
+      .filter((e) => e.date === today)
+      .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
+  }, [report, today]);
+
+  // Últimos 7 dias por CLI (array de custo diário, mais antigo -> mais recente).
+  // Deriva de report.entries porque o backend não expõe série temporal direta.
+  const last7DaysByCli = useMemo<Record<string, number[]>>(() => {
+    if (!report) return {};
+    const days: string[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      days.push(`${yyyy}-${mm}-${dd}`);
+    }
+    const acc: Record<string, number[]> = {};
+    for (const cli of Object.keys(report.by_cli)) {
+      acc[cli] = days.map(() => 0);
+    }
+    for (const e of report.entries) {
+      const idx = days.indexOf(e.date);
+      if (idx < 0) continue;
+      if (!acc[e.cli]) acc[e.cli] = days.map(() => 0);
+      acc[e.cli][idx] += e.cost_estimate_usd;
+    }
+    return acc;
+  }, [report]);
 
   const maxCliCost = useMemo(() => {
     if (!report) return 0;
@@ -245,6 +285,25 @@ export default function CostAggregator() {
 
       {hasData && (
         <>
+          {/* ===== Hero: total hoje + barra de orçamento ===== */}
+          <section className="costs-hero">
+            <h1 className="costs-hero__value">$ {totalToday.toFixed(2)}</h1>
+            <span className="costs-hero__label">total hoje</span>
+            {budget > 0 && (
+              <div className="costs-budget">
+                <div className="costs-budget__track">
+                  <div
+                    className="costs-budget__fill"
+                    style={{ width: `${Math.min((totalToday / budget) * 100, 100)}%` }}
+                  />
+                </div>
+                <span className="costs-budget__label">
+                  ${totalToday.toFixed(2)} / ${budget.toFixed(2)} daily
+                </span>
+              </div>
+            )}
+          </section>
+
           {/* ===== Cards de resumo ===== */}
           <div className="cost-cards">
             <div className="cost-card">
@@ -301,6 +360,11 @@ export default function CostAggregator() {
                         {s.entries} req · {formatTokens(s.tokens_in + s.tokens_out)} tok
                       </span>
                     </div>
+                    {last7DaysByCli[k] && last7DaysByCli[k].length > 0 && (
+                      <span className="costs-sparkline" aria-hidden="true">
+                        <Sparkline points={last7DaysByCli[k]} stroke="var(--text-prompt)" />
+                      </span>
+                    )}
                   </div>
                 );
               })}

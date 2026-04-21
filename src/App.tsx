@@ -3,23 +3,29 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
 import CommandPalette from './CommandPalette';
-import CostAggregator from './CostAggregator';
 import Orchestrator from './Orchestrator';
 import { Onboarding } from './Onboarding';
 import { Skeleton } from './Skeleton';
-import { EmptyState } from './EmptyState';
-import { AdminPanel } from './providers/AdminPanel';
-import { ProviderBadge } from './providers/ProviderBadge';
-import { ProviderSelector } from './providers/ProviderSelector';
 import { QuickSwitchModal } from './providers/QuickSwitchModal';
 import { DryRunModal } from './providers/DryRunModal';
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
-import { PresetsBar } from './presets/PresetsBar';
 import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
 import type { LaunchPreset } from './presets/types';
+import { LauncherTab } from './tabs/LauncherTab';
+import { HistoryTab } from './tabs/HistoryTab';
+import { CostsTab } from './tabs/CostsTab';
+import { AdminTab } from './tabs/AdminTab';
+import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
+import { StatusBar } from './layout/StatusBar';
+import { HelpModal } from './layout/HelpModal';
+import { applyFontStack, FONT_STORAGE_KEY, type FontId } from './providers/AppearanceSection';
 import './providers/providers.css';
+
+// Boot-time font restore (prevents FOUT on reload). Runs once at module load.
+const savedFont = typeof localStorage !== 'undefined' ? localStorage.getItem(FONT_STORAGE_KEY) : null;
+if (savedFont) applyFontStack(savedFont as FontId);
 
 // ==================== TYPES ====================
 
@@ -67,7 +73,7 @@ interface ProgressEvent { key: string; phase: 'start' | 'stdout' | 'stderr' | 'd
 
 const APP_VERSION = __APP_VERSION__;
 
-const CLI_COLORS: Record<string, string> = {
+export const CLI_COLORS: Record<string, string> = {
   claude: '#CC785C',
   codex: '#10A37F',
   gemini: '#4285F4',
@@ -80,7 +86,7 @@ const CLI_COLORS: Record<string, string> = {
 
 // ==================== ÍCONES ====================
 
-function CliIcon({ cliKey, size = 32 }: { cliKey: string; size?: number }) {
+export function CliIcon({ cliKey, size = 32 }: { cliKey: string; size?: number }) {
   const fileName = cliKey === 'kilocode' ? 'kilo' : cliKey;
   return <img src={`/icons/cli/${fileName}.svg`} width={size} height={size} alt={cliKey} style={{ display: 'block' }} />;
 }
@@ -128,7 +134,7 @@ function formatTimestamp(epochSecStr: string): string {
 // ==================== APP ====================
 
 function App() {
-  const [activeTab, setActiveTab] = useState('launcher');
+  const [activeTab, setActiveTab] = useState<HeaderTabId>('launcher');
   const [bootReady, setBootReady] = useState(false);
 
   // Welcome: visível OU oculta. Usuário controla.
@@ -172,6 +178,7 @@ function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [helpModalOpen, setHelpModalOpen] = useState(false);
 
   // Onboarding: visível na primeira execução, reabrível via Ajuda.
   const [showOnboarding, setShowOnboarding] = useState<boolean>(
@@ -340,7 +347,7 @@ function App() {
           setActiveTab('launcher');
         });
         const u2 = await listen<string>('tray-open-tab', (e) => {
-          if (e.payload) setActiveTab(e.payload);
+          if (e.payload) setActiveTab(e.payload as HeaderTabId);
         });
         const u3 = await listen<null>('tray-update-all', () => {
           setActiveTab('updates');
@@ -428,6 +435,51 @@ function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // Global ⌘/Ctrl+Shift+1-4 tab switch (skip when typing in inputs)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (!e.shiftKey || e.altKey) return;
+      if (!['1', '2', '3', '4'].includes(e.key)) return;
+      const target = document.activeElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      e.preventDefault();
+      const map: Record<string, HeaderTabId> = {
+        '1': 'launcher',
+        '2': 'install',
+        '3': 'history',
+        '4': 'costs',
+      };
+      setActiveTab(map[e.key]);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Help modal toggle (⌘/ or ⌘?)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key !== '/' && e.key !== '?') return;
+      const target = document.activeElement;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) return;
+      e.preventDefault();
+      setHelpModalOpen((prev) => !prev);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -458,7 +510,7 @@ function App() {
         setQuickSwitchOpen(v => !v);
         return;
       }
-      // Ctrl+1..9 = dispara preset N
+      // Ctrl+1..9 = dispara preset N (tab switching uses Ctrl+Shift+1..4)
       if (e.ctrlKey && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
         const idx = parseInt(e.key, 10) - 1;
         const target = presets[idx];
@@ -960,7 +1012,6 @@ function App() {
   // ==================== MAIN APP ====================
 
   const selectedCliData = clis.find(c => c.key === selectedCli);
-  const cliInfo = installed[selectedCli] || { installed: false, version: null };
   const notInstalledClis = clis.filter(c => !installed[c.key]?.installed);
   const installedClis = clis.filter(c => installed[c.key]?.installed);
   const currentInstallingLog = installingCli ? (installLog[installingCli] || []) : [];
@@ -969,234 +1020,67 @@ function App() {
   return (
     <div className={`app${isDragging ? ' dragging' : ''}`}>
       {showOnboarding && <Onboarding onClose={closeOnboarding} />}
-      <header className="header">
-        <div className="logo">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" width="20" height="20">
-              <rect width="24" height="24" rx="5" fill="#8B1E2A" />
-              <path d="M7 7l-3 5 3 5M17 7l3 5-3 5" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-            </svg>
-          </div>
-          <div>
-            <div className="logo-title">
-              AI Launcher <span>Pro</span>
-              <small className="logo-ver">v{APP_VERSION}</small>
-              {/^\d+\.\d+\.\d+-(alpha|beta|rc)/i.test(APP_VERSION) && (
-                <small className="logo-badge logo-badge-beta">BETA</small>
-              )}
-            </div>
-            <div className="logo-sub">by Helbert Moura • Powered by DevManiac's</div>
-          </div>
-        </div>
-        <div className="header-actions">
-          {adminMode && (
-            <ProviderBadge
-              state={providers}
-              onClick={() => setActiveTab('admin')}
-            />
-          )}
-          <button
-            className="theme-btn"
-            onClick={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
-            title="Alternar tema"
-            aria-label={theme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button
-            className="btn"
-            onClick={checkInstalled}
-            title="Re-verificar CLIs (F5)"
-            aria-label="Re-verificar CLIs instalados"
-          >🔄</button>
-        </div>
-      </header>
+      <HeaderBar
+        activeTab={activeTab}
+        onSelectTab={(tabId: HeaderTabId) => {
+          setActiveTab(tabId);
+          if (tabId === 'install' && envChecks.length === 0) checkEnvironment();
+          if (tabId === 'tools' && Object.keys(toolsChecked).length === 0) checkToolsInstalled();
+          if (tabId === 'updates' && !updatesSummary) checkAllUpdates(false);
+        }}
+        onThemeToggle={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
+        onRefresh={checkInstalled}
+        theme={theme}
+        version={APP_VERSION}
+        adminMode={adminMode}
+        providers={providers}
+        updateCount={updateCount}
+        onOpenPalette={() => setCommandPaletteOpen(true)}
+      />
 
-      <div className="tabs">
-        <div className={`tab ${activeTab === 'launcher' ? 'active' : ''}`} onClick={() => setActiveTab('launcher')}>⚡ Launcher</div>
-        <div className={`tab ${activeTab === 'install' ? 'active' : ''}`} onClick={() => { setActiveTab('install'); if (envChecks.length === 0) checkEnvironment(); }}>📦 Instalar</div>
-        <div className={`tab ${activeTab === 'tools' ? 'active' : ''}`} onClick={() => { setActiveTab('tools'); if (Object.keys(toolsChecked).length === 0) checkToolsInstalled(); }}>🛠️ Ferramentas</div>
-        <div className={`tab ${activeTab === 'orchestrator' ? 'active' : ''}`} onClick={() => setActiveTab('orchestrator')}>🎛️ Orquestrador</div>
-        <div className={`tab ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>📜 Histórico</div>
-        <div className={`tab ${activeTab === 'updates' ? 'active' : ''}`} onClick={() => { setActiveTab('updates'); if (!updatesSummary) checkAllUpdates(false); }}>
-          🔔 Atualizações
-          {updateCount > 0 && <span className="tab-badge">{updateCount}</span>}
-        </div>
-        <div className={`tab ${activeTab === 'costs' ? 'active' : ''}`} onClick={() => setActiveTab('costs')}>💰 Custos</div>
-        <div className={`tab ${activeTab === 'help' ? 'active' : ''}`} onClick={() => setActiveTab('help')}>❓ Ajuda</div>
-        {adminMode && (
-          <div className={`tab tab-admin ${activeTab === 'admin' ? 'active' : ''}`} onClick={() => setActiveTab('admin')}>
-            ⚙️ Admin
-          </div>
-        )}
-      </div>
-
+      <main key={activeTab} className="tab-content">
       {/* ========== LAUNCHER ========== */}
-      {activeTab === 'launcher' && bootReady && hasChecked && installedClis.length === 0 && clis.length > 0 && (
-        <div className="content">
-          <div style={{ flex: 1 }}>
-            <EmptyState onInstallClick={() => setActiveTab('install')} />
-          </div>
-        </div>
-      )}
-      {activeTab === 'launcher' && !(bootReady && hasChecked && installedClis.length === 0 && clis.length > 0) && (
-        <div className="content">
-          <div className="left-col">
-            <PresetsBar
-              presets={presets}
-              onLaunch={launchFromPreset}
-              onRemove={removePresetById}
-              onSave={savePresetFromCurrent}
-              onRename={renamePreset}
-            />
-            <div className="section">
-              <div className="section-title">CLIs DE IA</div>
-              <div className="cli-grid">
-                {clis.map(cli => {
-                  const info = installed[cli.key] || { installed: false, version: null };
-                  const hasUpdate = updatesSummary?.cli_updates.find(u => {
-                    const k = clis.find(c => c.name === u.cli)?.key;
-                    return k === cli.key && u.has_update;
-                  });
-                  return (
-                    <div
-                      key={cli.key}
-                      className={`cli-card ${selectedCli === cli.key ? 'selected' : ''} ${!info.installed ? 'not-installed' : ''}`}
-                      style={{ '--c': CLI_COLORS[cli.key] || '#8B1E2A' } as React.CSSProperties}
-                      onClick={() => setSelectedCli(cli.key)}
-                    >
-                      <div className="cli-icon-wrap">
-                        <CliIcon cliKey={cli.key} size={40} />
-                        {hasUpdate && <span className="cli-update-dot" />}
-                      </div>
-                      <div className="cli-name">{cli.name}</div>
-                      <div className="cli-version">
-                        {!hasChecked
-                          ? <Skeleton width={60} height={10} />
-                          : (info.version || (info.installed ? 'instalado' : 'não instalado'))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="section">
-              <div className="section-title">MÚLTIPLOS CLIs</div>
-              <div className="multi-list">
-                {clis.map(cli => {
-                  const canUse = installed[cli.key]?.installed || false;
-                  return (
-                    <label key={cli.key} className={`multi-item ${!canUse ? 'disabled' : ''}`}>
-                      <input type="checkbox"
-                        checked={multiSelected.includes(cli.key)}
-                        onChange={() => canUse ? toggleMultiCli(cli.key) : undefined}
-                        disabled={!canUse} />
-                      <span>{cli.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="right-col">
-            <div className="section">
-              <div className="section-title">DIRETÓRIO</div>
-              <div className="dir-row">
-                <input ref={directoryInputRef} className="input" value={directory} onChange={e => setDirectory(e.target.value)} placeholder={`C:\\seu\\projeto (Ctrl+L para focar, ou arraste uma pasta)`} />
-                <button className="btn btn-labeled" onClick={pickDir} title="Escolher pasta">
-                  <span>📂</span><small>Escolher</small>
-                </button>
-                <button className="btn btn-labeled" onClick={async () => {
-                  if (directory) {
-                    try { await invoke('open_in_explorer', { path: directory }); }
-                    catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
-                  }
-                }} title="Abrir no Explorer">
-                  <span>📁</span><small>Explorar</small>
-                </button>
-              </div>
-              {recentProjects.length > 0 && (
-                <div className="recent-list">
-                  {recentProjects.map(p => (
-                    <span key={p} className="recent-pill" title={p}>
-                      <button
-                        className="recent-pill-main"
-                        onClick={() => { setDirectory(p); saveConfig({ directory: p }); }}
-                      >
-                        📁 {basenameOf(p)}
-                      </button>
-                      <button
-                        className="recent-pill-x"
-                        onClick={() => removeRecent(p)}
-                        title="Remover do histórico"
-                        aria-label={`Remover ${basenameOf(p)}`}
-                      >✕</button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="section">
-              <div className="section-title">ARGUMENTOS</div>
-              <input className="input" placeholder="Ex: --verbose" value={args} onChange={e => setArgs(e.target.value)} />
-            </div>
-
-            <div className="section">
-              <label className="checkbox">
-                <input type="checkbox" checked={noPerms} onChange={e => setNoPerms(e.target.checked)} />
-                <span>Sem pedir permissão</span>
-              </label>
-            </div>
-
-            {adminMode && (
-              <ProviderSelector
-                state={providers}
-                onChange={updateProviders}
-                selectedCli={selectedCli}
-              />
-            )}
-
-            {selectedCliData && (
-              <div className="cli-info" style={{ '--c': CLI_COLORS[selectedCli] || '#8B1E2A' } as React.CSSProperties}>
-                <div className="cli-info-header">
-                  <div className="cli-icon-lg"><CliIcon cliKey={selectedCli} size={48} /></div>
-                  <div>
-                    <div className="cli-info-name">{selectedCliData.name}</div>
-                    <div className="cli-info-version">
-                      {installed[selectedCli]?.version || 'não instalado'}
-                    </div>
-                  </div>
-                </div>
-                <div className="cli-info-flag">Flag: <code>{selectedCliData.flag || '(nenhuma)'}</code></div>
-              </div>
-            )}
-
-            <div className="preview">
-              <div className="preview-title">COMANDO</div>
-              <code>{selectedCliData?.command} {args} {noPerms && selectedCliData?.flag}</code>
-            </div>
-
-            <div className="launch-row">
-              <button className="launch-btn" onClick={launch} disabled={!cliInfo.installed}>
-                ▶ INICIAR {selectedCliData?.name?.toUpperCase()} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
-              </button>
-              <button
-                className="btn btn-preview"
-                onClick={() => setDryRunOpen(true)}
-                title="Preview: ver CMD + envs sem executar"
-              >🔬 Preview</button>
-            </div>
-
-            {multiSelected.length > 0 && (
-              <button className="launch-btn multi" onClick={launchMulti}>
-                ▶▶ INICIAR {multiSelected.length} CLIs
-              </button>
-            )}
-          </div>
-        </div>
+      {activeTab === 'launcher' && (
+        <LauncherTab
+          bootReady={bootReady}
+          hasChecked={hasChecked}
+          adminMode={adminMode}
+          clis={clis}
+          installed={installed}
+          installedClis={installedClis}
+          updatesSummary={updatesSummary}
+          selectedCli={selectedCli}
+          setSelectedCli={setSelectedCli}
+          directory={directory}
+          setDirectory={setDirectory}
+          args={args}
+          setArgs={setArgs}
+          noPerms={noPerms}
+          setNoPerms={setNoPerms}
+          multiSelected={multiSelected}
+          toggleMultiCli={toggleMultiCli}
+          directoryInputRef={directoryInputRef}
+          recentProjects={recentProjects}
+          removeRecent={removeRecent}
+          basenameOf={basenameOf}
+          providers={providers}
+          updateProviders={updateProviders}
+          presets={presets}
+          launchFromPreset={launchFromPreset}
+          removePresetById={removePresetById}
+          savePresetFromCurrent={savePresetFromCurrent}
+          renamePreset={renamePreset}
+          pickDir={pickDir}
+          launch={launch}
+          launchMulti={launchMulti}
+          setDryRunOpen={setDryRunOpen}
+          setActiveTab={(t) => setActiveTab(t as HeaderTabId)}
+          saveConfigDirectory={(dir) => saveConfig({ directory: dir })}
+          openInExplorer={async (path) => {
+            try { await invoke('open_in_explorer', { path }); }
+            catch (e) { showToast(`Erro: ${String(e).slice(0,120)}`); }
+          }}
+        />
       )}
 
       {/* ========== INSTALL ========== */}
@@ -1335,39 +1219,11 @@ function App() {
 
       {/* ========== HISTORY ========== */}
       {activeTab === 'history' && (
-        <div className="tab-scroll">
-          <div className="tab-pad">
-          <div className="history-header">
-            <h2>📜 Histórico</h2>
-            {history.length > 0 && <button className="btn btn-danger" onClick={clearHistory}>🗑️ Limpar</button>}
-          </div>
-          <div className="history-list">
-            {history.length === 0 ? (
-              <p className="empty">Nenhuma execução ainda.</p>
-            ) : (
-              history.map((item, i) => (
-                <div key={i} className="history-item">
-                  <div className="history-left">
-                    <span className="history-cli">{item.cli}</span>
-                    <span className="history-dir">{item.directory}</span>
-                    {item.args && <span className="history-args">{item.args}</span>}
-                    {item.provider && (
-                      <span className={`history-provider kind-${item.provider.providerKind}`}
-                            title={`Provider: ${item.provider.providerName}`}>
-                        via {item.provider.providerName} · {item.provider.mainModel}
-                      </span>
-                    )}
-                  </div>
-                  <div className="history-right">
-                    <span className="history-time">{item.timestamp}</span>
-                    <button className="btn-relaunch" onClick={() => relaunchFromHistory(item)} title="Relançar">▶</button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          </div>
-        </div>
+        <HistoryTab
+          history={history}
+          clearHistory={clearHistory}
+          relaunchFromHistory={relaunchFromHistory}
+        />
       )}
 
       {/* ========== UPDATES (reformulado v3.2.1) ========== */}
@@ -1522,18 +1378,15 @@ function App() {
         />
       )}
 
-      {activeTab === 'costs' && <CostAggregator />}
+      {activeTab === 'costs' && <CostsTab />}
 
-      {activeTab === 'admin' && adminMode && (
-        <div className="tab-scroll">
-          <div className="tab-pad">
-            <AdminPanel
-              state={providers}
-              onChange={updateProviders}
-              onToast={showToast}
-            />
-          </div>
-        </div>
+      {activeTab === 'admin' && (
+        <AdminTab
+          adminMode={adminMode}
+          providers={providers}
+          updateProviders={updateProviders}
+          showToast={showToast}
+        />
       )}
 
       {/* ========== HELP (reformulado v3.2.1 sem sidebar) ========== */}
@@ -1674,6 +1527,13 @@ function App() {
           </div>
         </div>
       )}
+      </main>
+
+      <StatusBar
+        version={APP_VERSION}
+        provider={currentProviderInfo()?.providerName}
+        activeTab={activeTab}
+      />
 
       {adminMode && (
         <QuickSwitchModal
@@ -1733,7 +1593,7 @@ function App() {
           })();
         }}
         onLaunchTool={(key) => { launchTool(key); }}
-        onOpenTab={setActiveTab}
+        onOpenTab={(t) => setActiveTab(t as HeaderTabId)}
         onToggleTheme={() => {
           const t = theme === 'dark' ? 'light' : 'dark';
           setTheme(t);
@@ -1742,6 +1602,8 @@ function App() {
         onReloadStatus={checkInstalled}
         onUpdateAll={updateAllClis}
       />
+
+      <HelpModal open={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
 
       <footer className="footer">
         <span>✓ {clis.filter(c => installed[c.key]?.installed).length}/{clis.length} CLIs{updateCount > 0 && <span className="footer-updates"> · {updateCount} atualização(ões)</span>}</span>

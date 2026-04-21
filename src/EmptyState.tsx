@@ -1,14 +1,71 @@
+import type { JSX } from 'react';
 import './EmptyState.css';
+import {
+  EmptyHistoryIllustration,
+  EmptyPresetsIllustration,
+  EmptyCliIllustration,
+} from './EmptyState.illustrations';
+
+type Variant = 'history' | 'presets' | 'cli';
 
 interface EmptyStateProps {
-  onInstallClick: () => void;
+  /** Legacy CTA handler — used by LauncherTab's "no CLI detected" screen. */
+  onInstallClick?: () => void;
+  /** Optional new API: select a terminal-themed illustration. */
+  variant?: Variant;
+  /** Optional title override for the new variant-based API. */
+  title?: string;
+  /** Optional subtitle/description for the new variant-based API. */
+  sub?: string;
+  /** Optional CTA label for the new variant-based API. */
+  ctaLabel?: string;
+  /** Optional CTA handler for the new variant-based API. */
+  onCta?: () => void;
 }
 
+const ILLUSTRATIONS: Record<Variant, () => JSX.Element> = {
+  history: EmptyHistoryIllustration,
+  presets: EmptyPresetsIllustration,
+  cli: EmptyCliIllustration,
+};
+
 /**
- * EmptyState — exibido quando nenhuma CLI foi detectada.
- * CTA leva o usuário direto para a aba Instalar.
+ * EmptyState — backward compatible.
+ *
+ * Legacy usage (unchanged): <EmptyState onInstallClick={...} />
+ *   → renders the original "Nenhuma CLI detectada" screen with the classic SVG.
+ *
+ * New usage: <EmptyState variant="history" title="..." sub="..." ctaLabel="..." onCta={...} />
+ *   → renders a terminal-themed illustration with custom copy.
  */
-export function EmptyState({ onInstallClick }: EmptyStateProps) {
+export function EmptyState({
+  onInstallClick,
+  variant,
+  title,
+  sub,
+  ctaLabel,
+  onCta,
+}: EmptyStateProps) {
+  // New variant-based rendering
+  if (variant) {
+    const Illustration = ILLUSTRATIONS[variant];
+    return (
+      <div className="empty-wrap empty-state" role="status">
+        <div className="empty-state__illustration" aria-hidden="true">
+          <Illustration />
+        </div>
+        {title && <h3 className="empty-state__title">{title}</h3>}
+        {sub && <p className="empty-state__sub">{sub}</p>}
+        {ctaLabel && onCta && (
+          <button type="button" className="empty-state__cta" onClick={onCta}>
+            {ctaLabel}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // Legacy rendering — preserved verbatim for existing callers.
   return (
     <div className="empty-wrap" role="status">
       <div className="empty-illu" aria-hidden="true">
@@ -30,9 +87,11 @@ export function EmptyState({ onInstallClick }: EmptyStateProps) {
       </div>
       <h3 className="empty-title">Nenhuma CLI detectada</h3>
       <p className="empty-sub">Instale sua primeira CLI de IA pra começar.</p>
-      <button className="empty-cta" onClick={onInstallClick}>
-        📦 Instalar primeiro CLI
-      </button>
+      {onInstallClick && (
+        <button className="empty-cta" onClick={onInstallClick}>
+          📦 Instalar primeiro CLI
+        </button>
+      )}
     </div>
   );
 }

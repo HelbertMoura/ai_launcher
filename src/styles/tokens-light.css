@@ -1,0 +1,47 @@
+/* ============================================================================
+ * AI Launcher Pro — Light theme tokens
+ *
+ * Override opt-in via [data-theme="light"]. O app é dark-first; este tema
+ * ativa apenas quando o atributo é definido pelo toggle legado.
+ * ============================================================================ */
+
+[data-theme="light"] {
+  /* -- Neutral surfaces (light) — preservados do tokens.css original -- */
+  --color-bg-0: oklch(98% 0.002 260);
+  --color-bg-1: oklch(100% 0 0);
+  --color-bg-2: oklch(96% 0.003 260);
+  --color-border: oklch(88% 0.005 260);
+  --color-border-strong: oklch(78% 0.008 260);
+
+  /* -- Text scale (light) — preservados -- */
+  --color-text: oklch(18% 0.010 260);
+  --color-text-soft: oklch(34% 0.010 260);
+  --color-text-muted: oklch(52% 0.012 260);
+  --color-text-dim: oklch(68% 0.010 260);
+
+  /* -- Texto sobre accent (light) — preservado -- */
+  --color-accent-on: oklch(98% 0.002 260);
+
+  /* -- Shadows (light) — preservados -- */
+  --shadow-sm: 0 1px 2px 0 oklch(20% 0 260 / 0.06);
+  --shadow-md: 0 4px 12px 0 oklch(20% 0 260 / 0.10);
+  --shadow-lg: 0 12px 32px 0 oklch(20% 0 260 / 0.16);
+
+  /* -- v5.5 Terminal surfaces (light) -- */
+  --bg-terminal:       oklch(98% 0.005 80);
+  --bg-surface-raised: oklch(100% 0 0);
+  --bg-prompt:         oklch(96% 0.005 80);
+  --border-dim:        oklch(88% 0.005 80);
+  --border-bright:     oklch(70% 0.030 180);
+  --text-dim:          oklch(55% 0.010 250);
+  --text-prompt:       oklch(35% 0.150 160);
+
+  /* -- v5.5 Elevation (light) -- */
+  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.1);
+  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.08);
+
+  /* -- Brand colors (light) — slightly darker for contrast on light surfaces -- */
+  --color-brand-anthropic: oklch(55% 0.155 52);
+  --color-brand-zai:       oklch(50% 0.130 288);
+  --color-brand-minimax:   oklch(52% 0.165 16);
+}

@@ -1,0 +1,39 @@
+/* ==========================================================================
+   Motion keyframes — v5.5 Terminal Dramático
+   Page enter + staggered children on tab change.
+   Tokens (--ease-terminal, --d-page-enter, --d-base, --d-stagger) live in
+   tokens.css and are already neutralized by prefers-reduced-motion there.
+   ========================================================================== */
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stagger-item {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content {
+  animation: page-enter var(--d-page-enter) var(--ease-terminal);
+  will-change: opacity, transform;
+}
+
+.tab-content > * {
+  animation: stagger-item var(--d-base) var(--ease-terminal) both;
+}
+
+.tab-content > *:nth-child(1) { animation-delay: calc(var(--d-stagger) * 0); }
+.tab-content > *:nth-child(2) { animation-delay: calc(var(--d-stagger) * 1); }
+.tab-content > *:nth-child(3) { animation-delay: calc(var(--d-stagger) * 2); }
+.tab-content > *:nth-child(4) { animation-delay: calc(var(--d-stagger) * 3); }
+.tab-content > *:nth-child(5) { animation-delay: calc(var(--d-stagger) * 4); }
+.tab-content > *:nth-child(6) { animation-delay: calc(var(--d-stagger) * 5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-content,
+  .tab-content > * {
+    animation: none !important;
+  }
+}

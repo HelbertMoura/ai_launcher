@@ -1,0 +1,261 @@
+/* ==========================================================================
+   HeaderBar — v5.5 Terminal Dramático
+   Sticky terminal-themed bar with keycaps, tabs, and provider dot.
+   ========================================================================== */
+
+.headerbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg-terminal);
+  font-family: var(--ff-mono);
+}
+
+/* ---------- top row ---------- */
+.headerbar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.headerbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.headerbar__brand-icon {
+  display: inline-flex;
+  color: var(--text-prompt);
+}
+
+.headerbar__wordmark {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text);
+}
+
+.headerbar__version {
+  margin-left: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+/* ---------- status (right side) ---------- */
+.headerbar__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerbar__provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: border-color var(--d-fast) var(--ease-terminal),
+              color var(--d-fast) var(--ease-terminal);
+}
+
+.headerbar__provider:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.headerbar__provider:focus-visible {
+  outline: 1px solid var(--text-prompt);
+  outline-offset: 2px;
+}
+
+.headerbar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.headerbar__dot--anthropic {
+  background: oklch(65% 0.15 30);
+  color: oklch(65% 0.15 30);
+}
+
+.headerbar__dot--zai {
+  background: oklch(70% 0.18 200);
+  color: oklch(70% 0.18 200);
+}
+
+.headerbar__dot--minimax {
+  background: oklch(70% 0.18 300);
+  color: oklch(70% 0.18 300);
+}
+
+.headerbar__dot--custom {
+  background: var(--text-muted);
+  color: var(--text-muted);
+}
+
+.headerbar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  transition: border-color var(--d-fast) var(--ease-terminal),
+              color var(--d-fast) var(--ease-terminal),
+              background var(--d-fast) var(--ease-terminal);
+}
+
+.headerbar__btn:hover {
+  border-color: var(--border-bright);
+  color: var(--text);
+}
+
+.headerbar__btn:focus-visible {
+  outline: 1px solid var(--text-prompt);
+  outline-offset: 2px;
+}
+
+.headerbar__btn svg {
+  display: block;
+}
+
+/* ---------- tabs row ---------- */
+.headerbar__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 16px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.headerbar__tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.headerbar__tabs::-webkit-scrollbar-thumb {
+  background: var(--border-dim);
+  border-radius: 2px;
+}
+
+.headerbar__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--d-fast) var(--ease-terminal),
+              border-color var(--d-fast) var(--ease-terminal);
+}
+
+.headerbar__tab:hover {
+  color: var(--text);
+}
+
+.headerbar__tab:focus-visible {
+  outline: 1px solid var(--text-prompt);
+  outline-offset: -2px;
+}
+
+.headerbar__tab--active {
+  color: var(--text-prompt);
+  border-bottom-color: var(--text-prompt);
+}
+
+.headerbar__tab--active .headerbar__tab-prompt {
+  color: var(--text-prompt);
+}
+
+.headerbar__tab-prompt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.headerbar__tab-label {
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+.headerbar__tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--text-prompt);
+  color: var(--bg-terminal);
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.headerbar__tab--admin {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+.headerbar__tab--admin.headerbar__tab--active {
+  color: var(--text-prompt);
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 720px) {
+  .headerbar__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .headerbar__status {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .headerbar__tabs {
+    padding: 0 8px;
+  }
+
+  .headerbar__tab {
+    padding: 10px 8px;
+    font-size: var(--fs-xs);
+  }
+
+  .headerbar__tab--admin {
+    margin-left: 0;
+  }
+}
