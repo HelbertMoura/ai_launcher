@@ -24,7 +24,8 @@ void i18n
     },
     fallbackLng: 'en',
     supportedLngs: SUPPORTED_LOCALES,
-    nonExplicitSupportedLngs: true, // 'pt' => 'pt-BR'
+    nonExplicitSupportedLngs: false, // convertDetectedLanguage handles 'pt' => 'pt-BR'
+    load: 'currentOnly', // avoid loading bare 'pt' separately
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: LOCALE_STORAGE_KEY,
