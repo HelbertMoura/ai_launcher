@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
 import { EmptyState } from '../EmptyState';
 import { Skeleton } from '../Skeleton';
@@ -12,7 +13,7 @@ import { PresetsBar } from '../presets/PresetsBar';
 import { ProviderSelector } from '../providers/ProviderSelector';
 import { CliIcon, CLI_COLORS } from '../App';
 import { Play, ExternalLink } from '../icons';
-import { loadCustomClis } from '../lib/customClis';
+import { loadCustomClis, type CustomCli } from '../lib/customClis';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
 import './LauncherTab.css';
@@ -147,6 +148,27 @@ export function LauncherTab(props: LauncherTabProps) {
 
   function cliDescription(key: string): string {
     return t(`launcher.cliDescriptions.${key}`, { defaultValue: '' });
+  }
+
+  // v7.1: Wire custom CLI launch to Rust backend.
+  // Heuristic: the install command usually looks like "npm install -g my-cli"
+  // or "pip install my-cli". We strip the install prefix and take the first
+  // token as the actual binary. If that doesn't match convention, fall back
+  // to the slug (c.key). A dedicated launchCmd field is tracked for v7.2.
+  async function handleLaunchCustom(c: CustomCli): Promise<void> {
+    const bin =
+      c.installCmd.replace(/^\s*(npm install -g |pip install )/i, '').split(/\s+/)[0] ||
+      c.key;
+    try {
+      await invoke('launch_custom_cli', {
+        command: bin,
+        args: c.launchArgs || '',
+        directory: directory || '',
+        env: {},
+      });
+    } catch (e) {
+      alert(t('toasts.customLaunchFailed', { error: String(e).slice(0, 180) }));
+    }
   }
 
   const selectedCliData = clis.find(c => c.key === selectedCli);
@@ -288,8 +310,7 @@ export function LauncherTab(props: LauncherTabProps) {
                     className="btn-cli-primary"
                     onClick={e => {
                       e.stopPropagation();
-                      // TODO(v7.1): wire custom CLI launch via backend
-                      alert(t('launcher.launch') + ' — ' + c.name + ' (v7.1)');
+                      handleLaunchCustom(c);
                     }}
                     title={t('launcher.launchCtaTitle')}
                   >

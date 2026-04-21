@@ -433,7 +433,9 @@
     "openingTool": "Abrindo {{name}}",
     "clearAllConfirm": "Limpar TODAS as configurações (diretório, histórico, tema, welcome, API keys, log de instalação)?\n\nO app vai recarregar.",
     "settingsReset": "Configurações resetadas",
-    "welcomeOnNext": "Welcome será mostrada na próxima abertura"
+    "welcomeOnNext": "Welcome será mostrada na próxima abertura",
+    "customLaunchFailed": "Falha ao lançar: {{error}}",
+    "customLaunched": "Lançado: {{name}}"
   },
   "welcome": {
     "loading": "Carregando...",

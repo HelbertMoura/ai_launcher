@@ -218,6 +218,17 @@ function App() {
     setCustomIdeModalOpen(false);
     setEditingCustomIde(null);
   }
+  async function handleLaunchCustomIde(ide: CustomIde) {
+    try {
+      await invoke('launch_custom_ide', {
+        launchCmd: ide.launchCmd,
+        directory: directory || '',
+      });
+      showToast(t('toasts.customLaunched', { name: ide.name }));
+    } catch (e) {
+      showToast(t('toasts.customLaunchFailed', { error: String(e).slice(0, 120) }));
+    }
+  }
   function handleDeleteCustomIde(key: string) {
     const target = customIdes.find(i => i.key === key);
     if (!target) return;
@@ -1275,6 +1286,13 @@ function App() {
                     <span className="admin-custom-list__name">{ide.name}</span>
                     <code className="admin-custom-list__key">{ide.key}</code>
                     <span className="admin-custom-list__spacer" />
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => handleLaunchCustomIde(ide)}
+                    >
+                      {t('launcher.launch')}
+                    </button>
                     <button
                       type="button"
                       className="btn"
