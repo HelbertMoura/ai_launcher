@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Terminal, Command, Moon, Sun, RefreshCw } from '../icons';
 import { KeyCap } from '../shared/KeyCap';
 import type { ProvidersState, ProviderKind } from '../providers/types';
@@ -29,21 +30,20 @@ interface HeaderBarProps {
 
 interface TabDef {
   id: HeaderTabId;
-  label: string;
   keycap?: string[];
   adminOnly?: boolean;
 }
 
 const TABS: TabDef[] = [
-  { id: 'launcher', label: 'launch', keycap: ['\u2318', '\u21E7', '1'] },
-  { id: 'install', label: 'install', keycap: ['\u2318', '\u21E7', '2'] },
-  { id: 'tools', label: 'tools' },
-  { id: 'orchestrator', label: 'orchestrator' },
-  { id: 'history', label: 'history', keycap: ['\u2318', '\u21E7', '3'] },
-  { id: 'updates', label: 'updates' },
-  { id: 'costs', label: 'costs', keycap: ['\u2318', '\u21E7', '4'] },
-  { id: 'help', label: 'help' },
-  { id: 'admin', label: 'admin', adminOnly: true },
+  { id: 'launcher', keycap: ['\u2318', '\u21E7', '1'] },
+  { id: 'install', keycap: ['\u2318', '\u21E7', '2'] },
+  { id: 'tools' },
+  { id: 'orchestrator' },
+  { id: 'history', keycap: ['\u2318', '\u21E7', '3'] },
+  { id: 'updates' },
+  { id: 'costs', keycap: ['\u2318', '\u21E7', '4'] },
+  { id: 'help' },
+  { id: 'admin', adminOnly: true },
 ];
 
 function resolveActiveProvider(
@@ -68,6 +68,7 @@ export function HeaderBar({
   updateCount,
   onOpenPalette,
 }: HeaderBarProps) {
+  const { t } = useTranslation();
   const visibleTabs = TABS.filter(t => !t.adminOnly || adminMode);
   const activeProvider = adminMode ? resolveActiveProvider(providers) : null;
 
@@ -78,7 +79,7 @@ export function HeaderBar({
           <span className="headerbar__brand-icon" aria-hidden="true">
             <Terminal size={18} strokeWidth={1.5} />
           </span>
-          <span className="headerbar__wordmark">AI LAUNCHER</span>
+          <span className="headerbar__wordmark">{t('header.brand')}</span>
           <span className="headerbar__version">v{version}</span>
         </div>
 
@@ -88,8 +89,8 @@ export function HeaderBar({
               type="button"
               className="headerbar__provider"
               onClick={() => onSelectTab('admin')}
-              aria-label={`Active provider: ${activeProvider.name}`}
-              title="Open admin panel"
+              aria-label={t('header.actions.activeProvider', { name: activeProvider.name })}
+              title={t('header.actions.openAdminPanel')}
             >
               <span
                 className={`headerbar__dot headerbar__dot--${activeProvider.kind}`}
@@ -103,8 +104,8 @@ export function HeaderBar({
             type="button"
             className="headerbar__btn"
             onClick={() => onOpenPalette?.()}
-            aria-label="Open command palette"
-            title="Command palette"
+            aria-label={t('header.actions.commandPalette')}
+            title={t('header.actions.commandPaletteTitle')}
           >
             <Command size={14} strokeWidth={1.5} />
             <KeyCap keys={['\u2318', 'K']} dimmed />
@@ -114,8 +115,8 @@ export function HeaderBar({
             type="button"
             className="headerbar__btn"
             onClick={onThemeToggle}
-            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-            title="Toggle theme"
+            aria-label={theme === 'dark' ? t('header.actions.toggleThemeToLight') : t('header.actions.toggleThemeToDark')}
+            title={t('header.actions.toggleThemeTitle')}
           >
             {theme === 'dark' ? (
               <Sun size={14} strokeWidth={1.5} />
@@ -128,15 +129,15 @@ export function HeaderBar({
             type="button"
             className="headerbar__btn"
             onClick={onRefresh}
-            aria-label="Re-check installed CLIs"
-            title="Refresh (F5)"
+            aria-label={t('header.actions.refresh')}
+            title={t('header.actions.refreshTitle')}
           >
             <RefreshCw size={14} strokeWidth={1.5} />
           </button>
         </div>
       </div>
 
-      <nav className="headerbar__tabs" aria-label="Primary navigation">
+      <nav className="headerbar__tabs" aria-label={t('header.nav')}>
         {visibleTabs.map(tab => {
           const isActive = activeTab === tab.id;
           const tabClasses = [
@@ -156,7 +157,7 @@ export function HeaderBar({
               aria-current={isActive ? 'true' : undefined}
             >
               <span className="headerbar__tab-prompt" aria-hidden="true">&gt;</span>
-              <span className="headerbar__tab-label">{tab.label}</span>
+              <span className="headerbar__tab-label">{t(`header.tabs.${tab.id}`)}</span>
               {tab.id === 'updates' && updateCount > 0 && (
                 <span className="headerbar__tab-badge">{updateCount}</span>
               )}

@@ -3,6 +3,7 @@
 // Extraído de App.tsx (Task 8 do split). JSX IDÊNTICO ao original.
 // ==============================================================================
 
+import { useTranslation } from 'react-i18next';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
 import { EmptyState } from '../EmptyState';
 import { Skeleton } from '../Skeleton';
@@ -13,20 +14,6 @@ import { Play, ExternalLink } from '../icons';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
 import './LauncherTab.css';
-
-function cliDescription(key: string): string {
-  const map: Record<string, string> = {
-    claude: 'Anthropic official CLI',
-    codex: 'OpenAI Codex CLI',
-    gemini: 'Google Gemini CLI',
-    qwen: 'Alibaba Qwen CLI',
-    kilocode: 'Kilo Code agent',
-    opencode: 'OpenCode CLI',
-    crush: 'Crush CLI',
-    droid: 'Factory Droid CLI',
-  };
-  return map[key] ?? '';
-}
 
 // Tipos compartilhados com App.tsx — duplicados aqui pra não criar arquivo
 // shared ainda (pode ser extraído em task futura).
@@ -153,6 +140,12 @@ export function LauncherTab(props: LauncherTabProps) {
     openInExplorer,
   } = props;
 
+  const { t } = useTranslation();
+
+  function cliDescription(key: string): string {
+    return t(`launcher.cliDescriptions.${key}`, { defaultValue: '' });
+  }
+
   const selectedCliData = clis.find(c => c.key === selectedCli);
   const cliInfo = installed[selectedCli] || { installed: false, version: null };
 
@@ -178,7 +171,7 @@ export function LauncherTab(props: LauncherTabProps) {
           onRename={renamePreset}
         />
         <div className="section">
-          <div className="section-title">CLIs DE IA</div>
+          <div className="section-title">{t('launcher.sectionClis')}</div>
           <div className="launcher-cli-grid">
             {clis.map(cli => {
               const info = installed[cli.key] || { installed: false, version: null };
@@ -219,13 +212,13 @@ export function LauncherTab(props: LauncherTabProps) {
                   <div className="launcher-cli-card__status-row">
                     <span
                       className="launcher-cli-card__status"
-                      aria-label={info.installed ? 'installed' : 'missing'}
+                      aria-label={info.installed ? t('launcher.installed') : t('launcher.missing')}
                     >
-                      {info.installed ? '● installed' : '○ missing'}
+                      {info.installed ? t('launcher.installed') : t('launcher.missing')}
                     </span>
                     {hasUpdate && (
-                      <span className="launcher-cli-card__update" title="Atualização disponível">
-                        ↑ update
+                      <span className="launcher-cli-card__update" title={t('launcher.updateTitle')}>
+                        {t('launcher.update')}
                       </span>
                     )}
                   </div>
@@ -240,10 +233,10 @@ export function LauncherTab(props: LauncherTabProps) {
                         setSelectedCli(cli.key);
                         launch();
                       }}
-                      title={info.installed ? 'Launch CLI' : 'CLI não instalado'}
+                      title={info.installed ? t('launcher.launchCtaTitle') : t('launcher.launchCtaDisabled')}
                     >
                       <Play size={12} strokeWidth={1.5} />
-                      <span>Launch</span>
+                      <span>{t('launcher.launch')}</span>
                     </button>
                     {cli.install_url && (
                       <button
@@ -257,10 +250,10 @@ export function LauncherTab(props: LauncherTabProps) {
                             });
                           }
                         }}
-                        title="Abrir docs"
+                        title={t('launcher.docsTitle')}
                       >
                         <ExternalLink size={12} strokeWidth={1.5} />
-                        <span>Docs</span>
+                        <span>{t('launcher.docs')}</span>
                       </button>
                     )}
                   </div>
@@ -271,7 +264,7 @@ export function LauncherTab(props: LauncherTabProps) {
         </div>
 
         <div className="section">
-          <div className="section-title">MÚLTIPLOS CLIs</div>
+          <div className="section-title">{t('launcher.sectionMulti')}</div>
           <div className="multi-list">
             {clis.map(cli => {
               const canUse = installed[cli.key]?.installed || false;
@@ -291,18 +284,18 @@ export function LauncherTab(props: LauncherTabProps) {
 
       <div className="right-col">
         <div className="section">
-          <div className="section-title">DIRETÓRIO</div>
+          <div className="section-title">{t('launcher.sectionDirectory')}</div>
           <div className="dir-row">
-            <input ref={directoryInputRef} className="input" value={directory} onChange={e => setDirectory(e.target.value)} placeholder={`C:\\seu\\projeto (Ctrl+L para focar, ou arraste uma pasta)`} />
-            <button className="btn btn-labeled" onClick={pickDir} title="Escolher pasta">
-              <span>📂</span><small>Escolher</small>
+            <input ref={directoryInputRef} className="input" value={directory} onChange={e => setDirectory(e.target.value)} placeholder={t('launcher.directoryPlaceholder')} />
+            <button className="btn btn-labeled" onClick={pickDir} title={t('launcher.pickFolder')}>
+              <span>📂</span><small>{t('launcher.pickFolderLabel')}</small>
             </button>
             <button className="btn btn-labeled" onClick={() => {
               if (directory) {
                 openInExplorer(directory);
               }
-            }} title="Abrir no Explorer">
-              <span>📁</span><small>Explorar</small>
+            }} title={t('launcher.openInExplorer')}>
+              <span>📁</span><small>{t('launcher.openInExplorerLabel')}</small>
             </button>
           </div>
           {recentProjects.length > 0 && (
@@ -318,8 +311,8 @@ export function LauncherTab(props: LauncherTabProps) {
                   <button
                     className="recent-pill-x"
                     onClick={() => removeRecent(p)}
-                    title="Remover do histórico"
-                    aria-label={`Remover ${basenameOf(p)}`}
+                    title={t('launcher.removeFromHistory')}
+                    aria-label={t('launcher.removeEntry', { name: basenameOf(p) })}
                   >✕</button>
                 </span>
               ))}
@@ -328,14 +321,14 @@ export function LauncherTab(props: LauncherTabProps) {
         </div>
 
         <div className="section">
-          <div className="section-title">ARGUMENTOS</div>
-          <input className="input" placeholder="Ex: --verbose" value={args} onChange={e => setArgs(e.target.value)} />
+          <div className="section-title">{t('launcher.sectionArgs')}</div>
+          <input className="input" placeholder={t('launcher.argsPlaceholder')} value={args} onChange={e => setArgs(e.target.value)} />
         </div>
 
         <div className="section">
           <label className="checkbox">
             <input type="checkbox" checked={noPerms} onChange={e => setNoPerms(e.target.checked)} />
-            <span>Sem pedir permissão</span>
+            <span>{t('launcher.noPerms')}</span>
           </label>
         </div>
 
@@ -354,33 +347,33 @@ export function LauncherTab(props: LauncherTabProps) {
               <div>
                 <div className="cli-info-name">{selectedCliData.name}</div>
                 <div className="cli-info-version">
-                  {installed[selectedCli]?.version || 'não instalado'}
+                  {installed[selectedCli]?.version || t('launcher.notInstalled')}
                 </div>
               </div>
             </div>
-            <div className="cli-info-flag">Flag: <code>{selectedCliData.flag || '(nenhuma)'}</code></div>
+            <div className="cli-info-flag">{t('launcher.flagLabel')}<code>{selectedCliData.flag || t('common.none')}</code></div>
           </div>
         )}
 
         <div className="preview">
-          <div className="preview-title">COMANDO</div>
+          <div className="preview-title">{t('launcher.sectionPreview')}</div>
           <code>{selectedCliData?.command} {args} {noPerms && selectedCliData?.flag}</code>
         </div>
 
         <div className="launch-row">
           <button className="launch-btn" onClick={launch} disabled={!cliInfo.installed}>
-            ▶ INICIAR {selectedCliData?.name?.toUpperCase()} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
+            {t('launcher.startCli', { name: selectedCliData?.name?.toUpperCase() ?? '' })} <small style={{opacity:0.6, marginLeft:8}}>Ctrl+K</small>
           </button>
           <button
             className="btn btn-preview"
             onClick={() => setDryRunOpen(true)}
-            title="Preview: ver CMD + envs sem executar"
-          >🔬 Preview</button>
+            title={t('launcher.previewTitle')}
+          >{t('launcher.preview')}</button>
         </div>
 
         {multiSelected.length > 0 && (
           <button className="launch-btn multi" onClick={launchMulti}>
-            ▶▶ INICIAR {multiSelected.length} CLIs
+            {t('launcher.startMulti', { count: multiSelected.length })}
           </button>
         )}
       </div>
