@@ -18,6 +18,7 @@ import { LauncherTab } from './tabs/LauncherTab';
 import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
+import { HelpTab } from './tabs/HelpTab';
 import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
 import { getLocale, setLocale, LOCALE_LABELS, type Locale } from './i18n';
 import { StatusBar } from './layout/StatusBar';
@@ -196,10 +197,6 @@ function App() {
     setShowOnboarding(true);
   };
 
-  // System Tray / Hotkey global
-  const [trayHotkey, setTrayHotkey] = useState<string>('CommandOrControl+Alt+Space');
-  const [minimizeToTray, setMinimizeToTray] = useState<boolean>(false);
-
   // Admin: providers Anthropic-compatible (Z.AI, MiniMax, etc.)
   // Runtime toggle via ⌘⇧A — persisted in localStorage. VITE_ADMIN_MODE=1 build wins regardless.
   const [adminMode, setAdminModeState] = useState<boolean>(() => isAdminMode());
@@ -324,20 +321,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Tray: carregar config inicial (hotkey + minimize-to-tray)
-  useEffect(() => {
-    (async () => {
-      try {
-        const hk = await invoke<string>('get_tray_hotkey');
-        if (hk) setTrayHotkey(hk);
-      } catch { /* ignore */ }
-      try {
-        const m = await invoke<boolean>('get_minimize_to_tray');
-        setMinimizeToTray(Boolean(m));
-      } catch { /* ignore */ }
-    })();
-  }, []);
-
   // Tray: listeners de eventos emitidos pelo backend (menu do tray)
   useEffect(() => {
     const unlisteners: Array<() => void> = [];
@@ -376,49 +359,6 @@ function App() {
     return () => { unlisteners.forEach(u => u()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Tray: carrega hotkey/minimize flag do backend no boot
-  useEffect(() => {
-    (async () => {
-      try {
-        const hk = await invoke<string>('get_tray_hotkey').catch(() => 'CommandOrControl+Alt+Space');
-        if (hk) setTrayHotkey(hk);
-        const mm = await invoke<boolean>('get_minimize_to_tray').catch(() => false);
-        setMinimizeToTray(Boolean(mm));
-      } catch {
-        /* silencioso — defaults permanecem */
-      }
-    })();
-  }, []);
-
-  async function saveTrayHotkey() {
-    try {
-      await invoke('set_tray_hotkey', { hotkey: trayHotkey });
-      showToast(t('toasts.trayHotkeyUpdated'));
-    } catch (e) {
-      showToast(t('toasts.trayHotkeyError', { error: String(e).slice(0, 120) }));
-    }
-  }
-
-  async function resetTrayHotkey() {
-    const def = 'CommandOrControl+Alt+Space';
-    setTrayHotkey(def);
-    try {
-      await invoke('set_tray_hotkey', { hotkey: def });
-      showToast(t('toasts.trayHotkeyReset'));
-    } catch (e) {
-      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
-    }
-  }
-
-  async function toggleMinimizeToTray(enabled: boolean) {
-    setMinimizeToTray(enabled);
-    try {
-      await invoke('set_minimize_to_tray', { enabled });
-    } catch (e) {
-      showToast(t('toasts.genericError', { error: String(e).slice(0, 120) }));
-    }
-  }
 
   // Auto-check updates ao ter clis carregados + checked
   useEffect(() => {
@@ -1445,143 +1385,18 @@ function App() {
         />
       )}
 
-      {/* ========== HELP (reformulado v3.2.1 sem sidebar) ========== */}
+      {/* ========== HELP (v7.0 2-pane FAQ) ========== */}
       {activeTab === 'help' && (
-        <div className="tab-scroll">
-          <div className="tab-pad help-v2">
-          <div className="help-v2-content">
-            <div className="tab-section-header">
-              <h2>{t('header.tabs.help')}</h2>
-              <p className="tab-section-sub">{t('helpTab.sub')}</p>
-            </div>
-
-            <section id="help-intro">
-              <h3>{t('helpTab.whatIsTitle')}</h3>
-              <p>{t('helpTab.whatIsBody')}</p>
-            </section>
-
-            <section id="help-install">
-              <h3>{t('helpTab.installTitle')}</h3>
-              <p>{t('helpTab.installBody')}</p>
-              <p>{t('helpTab.factoryDroidBody')}</p>
-            </section>
-
-            <section id="help-launch">
-              <h3>{t('helpTab.launchTitle')}</h3>
-              <ol>
-                <li>{t('helpTab.launchStep1')}</li>
-                <li>{t('helpTab.launchStep2')}</li>
-                <li>{t('helpTab.launchStep3')}</li>
-                <li>{t('helpTab.launchStep4')}</li>
-              </ol>
-              <p>{t('helpTab.launchMulti')}</p>
-            </section>
-
-            <section id="help-updates">
-              <h3>{t('helpTab.updatesTitle')}</h3>
-              <p>{t('helpTab.updatesBody')}</p>
-              <ul>
-                <li>{t('helpTab.updatesListCli')}</li>
-                <li>{t('helpTab.updatesListPrereqs')}</li>
-              </ul>
-              <p><small>{t('helpTab.updatesNote')}</small></p>
-              <p>{t('helpTab.updatesBulk')}</p>
-            </section>
-
-            <section id="help-shortcuts">
-              <h3>{t('helpTab.shortcutsTitle')}</h3>
-              <table className="shortcut-table">
-                <tbody>
-                  <tr><td><kbd>F5</kbd></td><td>{t('helpModal.shortcuts.refresh')}</td></tr>
-                  <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>{t('launcher.sectionDirectory')}</td></tr>
-                  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>{t('launcher.launch')}</td></tr>
-                </tbody>
-              </table>
-            </section>
-
-            <section id="help-security">
-              <h3>{t('helpTab.securityTitle')}</h3>
-              <p>{t('helpTab.securityBody1')}</p>
-              <p>{t('helpTab.securityBody2')}</p>
-            </section>
-
-            <section id="help-troubleshoot">
-              <h3>{t('helpTab.troubleshootTitle')}</h3>
-              <details><summary>{t('helpTab.troubleshootItem1Title')}</summary>
-                <p>{t('helpTab.troubleshootItem1Body')}</p>
-              </details>
-              <details><summary>{t('helpTab.troubleshootItem2Title')}</summary>
-                <p>{t('helpTab.troubleshootItem2Body')}</p>
-              </details>
-              <details><summary>{t('helpTab.troubleshootItem3Title')}</summary>
-                <p>{t('helpTab.troubleshootItem3Body')}</p>
-              </details>
-            </section>
-
-            <section id="help-welcome">
-              <h3>{t('helpTab.welcomeTitle')}</h3>
-              <p>{t('helpTab.welcomeBody')}</p>
-              <button className="btn" onClick={() => {
-                setHideWelcome(false);
-                saveConfig({ hideWelcome: false });
-                showToast(t('toasts.welcomeOnNext'));
-              }} disabled={!hideWelcome}>
-                {hideWelcome ? t('helpTab.reenableWelcome') : t('helpTab.welcomeAlreadyActive')}
-              </button>
-              <button className="btn" style={{marginLeft: 8}} onClick={() => setWelcomeVisible(true)}>
-                {t('helpTab.backToWelcome')}
-              </button>
-            </section>
-
-            <section id="help-tray">
-              <h3>{t('helpTab.trayTitle')}</h3>
-              <p>{t('helpTab.traySection')}</p>
-              <label style={{ display: 'flex', gap: 8, alignItems: 'center', margin: '8px 0' }}>
-                <input
-                  type="checkbox"
-                  checked={minimizeToTray}
-                  onChange={(e) => toggleMinimizeToTray(e.target.checked)}
-                />
-                <span>{t('helpTab.trayMinimize')}</span>
-              </label>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
-                <label style={{ minWidth: 160 }}>{t('helpTab.trayShortcut')}</label>
-                <input
-                  className="input"
-                  style={{ flex: 1, minWidth: 220 }}
-                  type="text"
-                  value={trayHotkey}
-                  onChange={(e) => setTrayHotkey(e.target.value)}
-                  onBlur={saveTrayHotkey}
-                  placeholder="CommandOrControl+Alt+Space"
-                />
-                <button className="btn" onClick={resetTrayHotkey}>{t('helpTab.resetTrayHotkey')}</button>
-              </div>
-              <p className="help-text" style={{ marginTop: 6, opacity: 0.75, fontSize: '0.85em' }}>
-                {t('helpTab.trayShortcutHelp')}
-              </p>
-            </section>
-
-            <section id="help-onboarding">
-              <h3>{t('helpTab.onboardingTitle')}</h3>
-              <p>{t('helpTab.onboardingBody')}</p>
-              <button className="btn" onClick={reopenOnboarding}>{t('helpTab.reopenOnboarding')}</button>
-            </section>
-
-            <section id="help-reset">
-              <h3>{t('helpTab.resetTitle')}</h3>
-              <p>{t('helpTab.resetBody')}</p>
-              <button className="btn btn-danger" onClick={resetAllConfig}>{t('helpTab.resetAll')}</button>
-            </section>
-
-            <section id="help-support">
-              <h3>{t('helpTab.supportTitle')}</h3>
-              <p>{t('helpTab.supportBody')}</p>
-              <p>{t('helpTab.currentVersion', { version: APP_VERSION })}</p>
-            </section>
-          </div>
-          </div>
-        </div>
+        <HelpTab
+          onReopenOnboarding={reopenOnboarding}
+          onReenableWelcome={() => {
+            setHideWelcome(false);
+            saveConfig({ hideWelcome: false });
+            showToast(t('toasts.welcomeOnNext'));
+          }}
+          welcomeActive={!hideWelcome}
+          onResetAll={resetAllConfig}
+        />
       )}
       </main>
 
