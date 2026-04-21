@@ -5,6 +5,64 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] — 2026-04-21
+
+### 🌐 "Bilingual" — Full internationalization (EN / pt-BR)
+
+Major release. All UI strings now flow through `react-i18next` with complete
+English and Portuguese (Brazil) catalogs. Language auto-detects from browser,
+persists in `localStorage`, and can be switched at runtime via HeaderBar
+dropdown or `⌘⇧L` chord. **Zero schema migrations.**
+
+### Added
+
+- **react-i18next integration** — `i18next@^24` + `react-i18next@^15` +
+  `i18next-browser-languagedetector@^8`. Library overhead ~25 KB gzipped.
+- **Complete translation catalogs** — 410 keys each in `en.json` and
+  `pt-BR.json`, covering every visible string (tabs, tabs inline content,
+  modals, toasts, providers, onboarding, help).
+- **Language auto-detection** — reads navigator.language (pt*  → pt-BR,
+  else → en). Persisted in `localStorage['ai-launcher:locale']`.
+- **HeaderBar language switcher** — globe icon dropdown with `> current`
+  prompt indicator and native/short labels (English / EN, Português / PT).
+- **Global chord `⌘⇧L` / `Ctrl+Shift+L`** — cycles EN ↔ pt-BR with
+  confirmation toast. Guards against typing in inputs.
+- **`README.pt-BR.md`** — Portuguese README mirror alongside the English
+  primary `README.md`. Language switcher link at top of each.
+
+### Changed
+
+- **README.md** — rewritten for v6 bilingual. Primary English with link to
+  Portuguese counterpart. Features list includes v5.5.1 runtime admin +
+  v6.0 bilingual.
+- All UI components now use `t()` from `useTranslation()`. 300+ hardcoded
+  strings replaced; no invented keys (everything flows through the catalogs).
+- `onboarding.launch.body` and `quickSwitch.hint` use `<Trans>` with
+  `<kbd>` component slots to preserve inline markup.
+- HeaderBar tab labels derived from `header.tabs.*` keys (no hardcoded labels).
+
+### Notes
+
+- English is the primary language for new strings going forward. pt-BR
+  catalog preserves original Portuguese copy verbatim for continuity.
+- Custom user content (preset names, history entries, provider display
+  names the user typed) is NOT translated — stays as entered.
+- Browser locale detection supports `pt`, `pt-BR`, `pt-br`, `pt-PT` — all
+  resolve to `pt-BR`. Any other → `en` fallback.
+- Admin toggle, font picker, command palette, help modal, onboarding,
+  history filters, cost aggregation — all bilingual.
+
+### Known follow-ups
+
+- Translate CHANGELOG descriptions for pt-BR readers (low priority — release
+  notes stay static in their era's dominant language).
+- Date/number formatting currently uses hardcoded locale strings — future
+  release can route through `Intl.DateTimeFormat(currentLocale)`.
+- Pluralization keys (e.g., `"{{n}} update(s)"`) use formulaic `_one/_other`
+  patterns in pt-BR; full i18next plural rules would be a cleanup task.
+
+---
+
 ## [5.5.1] — 2026-04-21
 
 ### 🔓 Runtime Admin Toggle
