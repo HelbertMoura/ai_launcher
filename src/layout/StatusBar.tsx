@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
 import { ArrowUpRight } from '../icons';
@@ -29,6 +30,7 @@ interface StatusBarProps {
 }
 
 export function StatusBar({ version, provider, activeTab }: StatusBarProps) {
+  const { t } = useTranslation();
   const [latest, setLatest] = useState<LatestRelease | null>(null);
 
   useEffect(() => {
@@ -70,11 +72,11 @@ export function StatusBar({ version, provider, activeTab }: StatusBarProps) {
     <footer className="statusbar" aria-label="Status bar">
       <span className="statusbar__item">[ai-launcher {version}]</span>
       {provider && <span className="statusbar__item">● {provider}</span>}
-      <span className="statusbar__item statusbar__tab">tab: {activeTab}</span>
+      <span className="statusbar__item statusbar__tab">{t('statusbar.tab', { tab: activeTab })}</span>
       <span className="statusbar__spacer" aria-hidden="true" />
       {updateAvailable && latest && (
         <a href="#" className="statusbar__update" onClick={openRelease}>
-          <ArrowUpRight size={12} /> {latest.tag_name} available
+          <ArrowUpRight size={12} /> {t('statusbar.updateAvailable', { tag: latest.tag_name })}
         </a>
       )}
     </footer>

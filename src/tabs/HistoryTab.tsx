@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshCw, Copy } from '../icons';
 import type { LaunchProviderInfo } from '../providers/types';
 import './HistoryTab.css';
@@ -28,6 +29,7 @@ function entryKey(item: HistoryItem): string {
 }
 
 export function HistoryTab({ history, clearHistory, relaunchFromHistory }: HistoryTabProps) {
+  const { t } = useTranslation();
   const [cliFilter, setCliFilter] = useState<Set<string>>(new Set());
   const [providerFilter, setProviderFilter] = useState<string>('');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -91,9 +93,9 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
     <div className="tab-scroll">
       <div className="tab-pad">
         <div className="history-filters">
-          <div className="history-filter-group" role="group" aria-label="Filtrar por CLI">
+          <div className="history-filter-group" role="group" aria-label={t('history.filterByCli')}>
             {uniqueClis.length === 0 ? (
-              <span className="history-filter-hint">sem entradas</span>
+              <span className="history-filter-hint">{t('history.filterEmpty')}</span>
             ) : uniqueClis.map(({ key, label }) => {
               const active = cliFilter.has(key);
               return (
@@ -107,10 +109,10 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
           </div>
           {uniqueProviders.length > 0 && (
             <label className="history-filter-label">
-              <span className="history-filter-label__text">provider:</span>
+              <span className="history-filter-label__text">{t('history.providerLabel')}</span>
               <select className="history-filter-select" value={providerFilter}
                       onChange={(e) => setProviderFilter(e.target.value)}>
-                <option value="">all</option>
+                <option value="">{t('history.providerAll')}</option>
                 {uniqueProviders.map(({ id, name }) => (
                   <option key={id} value={id}>{name}</option>
                 ))}
@@ -119,8 +121,8 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
           )}
           {history.length > 0 && (
             <button type="button" className="history-clear-btn"
-                    onClick={clearHistory} aria-label="Limpar todo o histórico">
-              clear all
+                    onClick={clearHistory} aria-label={t('history.clearAllLabel')}>
+              {t('history.clearAll')}
             </button>
           )}
         </div>
@@ -129,12 +131,12 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
           <div className="history-empty">
             <p>
               {history.length === 0
-                ? 'Nenhuma execução ainda.'
-                : 'Nenhuma entrada corresponde aos filtros atuais.'}
+                ? t('history.empty')
+                : t('history.emptyFiltered')}
             </p>
             {filtersActive && (
               <button type="button" className="history-empty__action" onClick={clearFilters}>
-                clear filters
+                {t('history.clearFilters')}
               </button>
             )}
           </div>
@@ -153,7 +155,7 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
                       <span className="history-entry__prompt" aria-hidden="true">&gt;</span>
                       <strong className="history-entry__cli">{item.cli}</strong>
                       <span className={`history-entry__provider${providerClass}`}>
-                        @ {item.provider?.providerName ?? 'default'}
+                        @ {item.provider?.providerName ?? t('history.providerDefault')}
                       </span>
                       <time className="history-entry__time">{item.timestamp}</time>
                     </header>
@@ -166,20 +168,20 @@ export function HistoryTab({ history, clearHistory, relaunchFromHistory }: Histo
                     <div className="history-entry__actions">
                       <button type="button" className="history-entry__action"
                               onClick={() => relaunchFromHistory(item)}
-                              aria-label={`Relançar ${item.cli}`}>
-                        <RefreshCw size={12} /><span>re-run</span>
+                              aria-label={t('history.reRunLabel', { name: item.cli })}>
+                        <RefreshCw size={12} /><span>{t('history.reRun')}</span>
                       </button>
                       {item.args && (
                         <button type="button" className="history-entry__action"
                                 onClick={() => copyArgs(item)}
-                                aria-label={`Copiar argumentos de ${item.cli}`}>
+                                aria-label={t('history.copyArgsLabel', { name: item.cli })}>
                           <Copy size={12} />
                           <span>
                             {copyState === 'copied'
-                              ? 'copied!'
+                              ? t('history.copied')
                               : copyState === 'failed'
-                                ? 'failed'
-                                : 'copy args'}
+                                ? t('history.failed')
+                                : t('history.copyArgs')}
                           </span>
                         </button>
                       )}

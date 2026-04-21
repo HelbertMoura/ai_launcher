@@ -1,25 +1,26 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from '../icons';
 import { KeyCap } from '../shared/KeyCap';
 import './HelpModal.css';
 
 interface Shortcut {
   keys: string[];
-  description: string;
+  descriptionKey: string;
 }
 
 const SHORTCUTS: Shortcut[] = [
-  { keys: ['\u2318', 'K'], description: 'Abrir paleta de comandos' },
-  { keys: ['\u2318', '\u21E7', '1'], description: 'Tab Launcher' },
-  { keys: ['\u2318', '\u21E7', '2'], description: 'Tab Install' },
-  { keys: ['\u2318', '\u21E7', '3'], description: 'Tab History' },
-  { keys: ['\u2318', '\u21E7', '4'], description: 'Tab Costs' },
-  { keys: ['\u2318', '1'], description: 'Lançar preset 1' },
-  { keys: ['\u2318', '2..9'], description: 'Lançar presets 2 a 9' },
-  { keys: ['F5'], description: 'Re-verificar CLIs instalados' },
-  { keys: ['\u2318', '/'], description: 'Abrir esta ajuda' },
-  { keys: ['\u2318', '\u21E7', 'A'], description: 'Alternar admin mode (runtime)' },
-  { keys: ['Esc'], description: 'Fechar modais' },
+  { keys: ['\u2318', 'K'], descriptionKey: 'helpModal.shortcuts.palette' },
+  { keys: ['\u2318', '\u21E7', '1'], descriptionKey: 'helpModal.shortcuts.tabLauncher' },
+  { keys: ['\u2318', '\u21E7', '2'], descriptionKey: 'helpModal.shortcuts.tabInstall' },
+  { keys: ['\u2318', '\u21E7', '3'], descriptionKey: 'helpModal.shortcuts.tabHistory' },
+  { keys: ['\u2318', '\u21E7', '4'], descriptionKey: 'helpModal.shortcuts.tabCosts' },
+  { keys: ['\u2318', '1'], descriptionKey: 'helpModal.shortcuts.preset1' },
+  { keys: ['\u2318', '2..9'], descriptionKey: 'helpModal.shortcuts.presetsRange' },
+  { keys: ['F5'], descriptionKey: 'helpModal.shortcuts.refresh' },
+  { keys: ['\u2318', '/'], descriptionKey: 'helpModal.shortcuts.help' },
+  { keys: ['\u2318', '\u21E7', 'A'], descriptionKey: 'helpModal.shortcuts.adminToggle' },
+  { keys: ['Esc'], descriptionKey: 'helpModal.shortcuts.escape' },
 ];
 
 interface HelpModalProps {
@@ -28,6 +29,8 @@ interface HelpModalProps {
 }
 
 export function HelpModal({ open, onClose }: HelpModalProps) {
+  const { t } = useTranslation();
+
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -48,9 +51,9 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
         <header className="helpmodal__header">
           <h2 id="helpmodal-title" className="helpmodal__title">
             <span className="helpmodal__prompt" aria-hidden="true">&gt;</span>
-            keyboard shortcuts
+            {t('helpModal.title')}
           </h2>
-          <button type="button" className="helpmodal__close" onClick={onClose} aria-label="Close help">
+          <button type="button" className="helpmodal__close" onClick={onClose} aria-label={t('helpModal.close')}>
             <X size={14} strokeWidth={1.5} />
           </button>
         </header>
@@ -60,12 +63,21 @@ export function HelpModal({ open, onClose }: HelpModalProps) {
               <span className="helpmodal__keys">
                 <KeyCap keys={s.keys} />
               </span>
-              <span className="helpmodal__desc">{s.description}</span>
+              <span className="helpmodal__desc">{t(s.descriptionKey)}</span>
             </li>
           ))}
         </ul>
         <footer className="helpmodal__footer">
-          <span>Pressione <KeyCap keys={['Esc']} dimmed /> para fechar</span>
+          {(() => {
+            const parts = t('helpModal.closeHint', { key: '\u0000' }).split('\u0000');
+            return (
+              <span>
+                {parts[0]}
+                <KeyCap keys={['Esc']} dimmed />
+                {parts[1]}
+              </span>
+            );
+          })()}
         </footer>
       </div>
     </div>
