@@ -114,7 +114,25 @@
     "tokensOutMonth": "Tokens OUT no mês",
     "totalCost": "Custo estimado total",
     "byCli": "Por CLI",
-    "topProjects": "Top projetos (por custo)"
+    "topProjects": "Top projetos (por custo)",
+    "header": {
+      "title": "Custos & Uso dos CLIs",
+      "sub": "Leitura local dos arquivos de uso do Claude Code, Codex e Gemini. Nada é enviado para fora da sua máquina."
+    },
+    "empty": {
+      "body": "Nenhum dado de uso encontrado. Rode algum CLI (Claude / Codex / Gemini) primeiro para gerar os arquivos de telemetria local."
+    },
+    "hero": {
+      "totalToday": "total hoje"
+    },
+    "dailyLabel": "diário",
+    "providerSection": {
+      "title": "Por Provider (reestimado com preços do Admin)",
+      "totalAdjusted": "Total ajustado:",
+      "backendCompare": "(vs. {{total}} do backend)"
+    },
+    "warnings": "Avisos ({{n}})",
+    "footer": "Estimativa baseada em tabela de preços hardcoded — não é cobrança oficial. Atualize price_per_mtoken em main.rs quando a tabela de preços dos provedores mudar."
   },
   "palette": {
     "ariaLabel": "Paleta de comandos",
@@ -206,14 +224,56 @@
       "builtinNotDeletable": "Built-in não pode ser excluído (só editado).",
       "jsonCopied": "JSON copiado pro clipboard",
       "providersReset": "Providers resetados",
-      "configExported": "Config exportada (secrets redacted)"
+      "configExported": "Config exportada (secrets redacted)",
+      "profileSaved": "Perfil \"{{name}}\" salvo",
+      "profileDeleted": "Perfil \"{{name}}\" excluído",
+      "activeSet": "Provider ativo: {{name}}",
+      "importOk": "Importado {{count}} perfis",
+      "importError": "Erro no import: {{error}}",
+      "importBackupOk": "Import OK. {{count}} secret(s) redacted - edite manualmente. Reload p/ aplicar.",
+      "exportError": "Erro no export: {{error}}",
+      "importBackupFailed": "Import falhou: {{error}}",
+      "backupImportError": "Erro no import: {{error}}",
+      "resetClaudeError": "Erro: {{error}}"
     },
     "testing": "Testando...",
     "testConnection": "\uD83D\uDD0C Testar conexão",
     "confirmReset": "Resetar providers para os built-ins? Perfis custom serão perdidos.",
     "confirmResetClaude": "Limpar estado do Claude Code?\n\nRemove customApiKeyResponses, oauthAccount e model do ~/.claude.json\n\nÚtil quando o Claude Code está \"travado\" em provider antigo.",
     "confirmMerge": "Merge com config atual? (Cancel = REPLACE)",
+    "confirmDelete": "Excluir perfil \"{{name}}\"?",
     "copyJsonPrompt": "Copie o JSON abaixo:",
+    "header": {
+      "title": "Painel Admin \u2014 Providers",
+      "sub": "Gerencia perfis de provider Anthropic-compatible (Z.AI, MiniMax, etc.). Perfil ativo:"
+    },
+    "actions": {
+      "newProfile": "Novo perfil",
+      "import": "Importar",
+      "resetClaude": "Reset Claude state"
+    },
+    "import": {
+      "title": "Colar JSON de import",
+      "placeholder": "{\"version\":1,\"profiles\":[...],\"activeId\":\"anthropic\"}",
+      "submit": "Importar",
+      "cancel": "Cancelar"
+    },
+    "cardActions": {
+      "activate": "Ativar",
+      "edit": "Editar",
+      "test": "Testar",
+      "docs": "Docs"
+    },
+    "cardBody": {
+      "baseUrl": "baseUrl",
+      "opusSonnet": "opus/sonnet \u2192",
+      "haiku": "haiku \u2192",
+      "context": "context",
+      "contextUnit": "{{n}} tokens",
+      "costSession": "custo ~sessão (50k in + 10k out)",
+      "officialAnthropic": "(oficial Anthropic)",
+      "builtIn": "built-in"
+    },
     "buttons": {
       "export": "\u2B07 Exportar",
       "exportTitle": "Copia JSON com todos os perfis",
@@ -238,7 +298,34 @@
       "removeEnvTitle": "Remover variável de ambiente",
       "removeEnvLabel": "Remover env {{key}}",
       "deleteProfileTitle": "Excluir perfil",
-      "deleteProfileLabel": "Excluir perfil {{name}}"
+      "deleteProfileLabel": "Excluir perfil {{name}}",
+      "labels": {
+        "name": "Nome",
+        "kind": "Tipo",
+        "id": "ID (slug, opcional)",
+        "baseUrl": "Base URL",
+        "apiKey": "API Key",
+        "mainModel": "Modelo principal (opus/sonnet \u2192)",
+        "fastModel": "Modelo fast (haiku \u2192)",
+        "contextWindow": "Context window (tokens)",
+        "priceInput": "Preço input ($/1M)",
+        "priceOutput": "Preço output ($/1M)",
+        "dailyBudget": "Budget diário (USD, 0 = sem limite)",
+        "note": "Observação"
+      },
+      "extraEnvTitle": "Env vars extras (Fase 4)",
+      "addEnv": "+ Adicionar env",
+      "cancel": "Cancelar",
+      "save": "Salvar",
+      "envPreviewTitle": "Envs que serão injetadas no próximo launch",
+      "noEnvs": "Nenhuma env injetada (usa config default do Claude Code).",
+      "emptyPlaceholder": "(vazio)"
+    },
+    "backup": {
+      "title": "Backup",
+      "hint": "Export/import da config completa em JSON. Secrets (apiKey, tokens, keys) sao redacted no arquivo exportado.",
+      "exportBtn": "export JSON",
+      "importBtn": "import JSON"
     },
     "appearance": {
       "title": "Aparência",
@@ -320,7 +407,11 @@
     "firstTimeBody": "Clique em \"Validar Sistema\" para o launcher detectar Node, Python, Git, Rust, CLIs instalados, etc. Leva poucos segundos e libera todas as funcionalidades.",
     "validating": "Validando sistema...",
     "envDetected": "Ambiente Detectado",
-    "hideCheckbox": "Não mostrar esta tela novamente (pode reativar em Ajuda)"
+    "hideCheckbox": "Não mostrar esta tela novamente (pode reativar em Ajuda)",
+    "continueToLauncher": "Continuar para o Launcher",
+    "validateSystem": "Validar Sistema",
+    "goDirectly": "Ir direto para o Launcher",
+    "skipValidation": "Pular validação"
   },
   "installTab": {
     "sub": "Gerencie pré-requisitos e CLIs de IA. Instalação silenciosa com log ao vivo.",
@@ -328,14 +419,18 @@
     "cliNotInstalled": "CLIs não instalados",
     "installButton": "Instalar",
     "logTitle": "Log de instalação \u2014 {{cli}}",
-    "installing": "Instalando..."
+    "installing": "Instalando...",
+    "recheckPrereqs": "Re-verificar Pré-requisitos",
+    "installedSection": "Instalados ({{n}})",
+    "installedBadge": "Instalado"
   },
   "toolsTab": {
     "lastCheck": "Última: {{time}}",
     "available": "Disponível",
     "notInstalled": "Não instalado",
     "open": "Abrir",
-    "download": "Baixar"
+    "download": "Baixar",
+    "recheck": "Re-verificar"
   },
   "updatesTab": {
     "updateAll": "\u2B06 Atualizar todos os CLIs",
@@ -350,7 +445,17 @@
     "upToDate": "Você está na versão mais recente",
     "noComparison": "? sem comparação",
     "noComparisonTitle": "Sem API pública para comparar versão",
-    "emptyPrereqs": "Nenhum pré-requisito detectado."
+    "emptyPrereqs": "Nenhum pré-requisito detectado.",
+    "lastCheck": "Última: {{time}} \u00B7 {{n}} com update",
+    "checkAll": "Verificar tudo",
+    "aiClisGroup": "CLIs de IA",
+    "prereqsGroup": "Pré-requisitos",
+    "counter": "{{n}} com update / {{total}}",
+    "updateBtn": "Atualizar",
+    "notInstalledBadge": "não instalado",
+    "upToDateBadge": "Atualizado",
+    "openPage": "Abrir página",
+    "opening": "abrindo..."
   },
   "helpTab": {
     "sub": "Tudo que você precisa saber para usar o AI Launcher Pro.",
@@ -373,21 +478,39 @@
     "updatesBulk": "Quando houver múltiplos updates de CLI, use \"Atualizar todos\" para aplicar em lote.",
     "shortcutsTitle": "Atalhos de teclado",
     "securityTitle": "Segurança & alertas de vírus",
+    "securityBody1": "Se o Windows Defender ou SmartScreen sinalizar o app: é falso-positivo típico de binários novos. O app é assinado com um cert self-signed (DevManiacs). Para eliminar o alerta nesta máquina, o cert já foi instalado no Trusted Root. Em outras máquinas, o usuário precisa importar o .cer manualmente, OU o autor precisa comprar cert real (Sectigo, DigiCert, SSL.com ou Azure Trusted Signing).",
+    "securityBody2": "Todo install/update agora roda via tokio::process direto, sem cmd /C intermediário \u2014 isso elimina a heurística \"processo oculto \u2192 cmd invisível \u2192 baixa da internet\" que disparava o Defender.",
     "troubleshootTitle": "Solução de problemas",
+    "troubleshootItem1Title": "Um CLI aparece como \"detectado\" mas sem versão",
+    "troubleshootItem1Body": "O binário existe no PATH mas o comando --version retornou output não parseável. Geralmente é benigno \u2014 o CLI funciona. Tente rodar o comando manualmente no terminal para confirmar.",
+    "troubleshootItem2Title": "Instalação trava ou falha",
+    "troubleshootItem2Body": "Veja o log ao vivo na aba Instalar (painel embaixo). Log persistente em %APPDATA%/ai-launcher/install.log. Causas comuns: falta de permissão pro npm global, proxy corporativo, Defender bloqueando npm.",
+    "troubleshootItem3Title": "\"Diretório não existe\" ao lançar",
+    "troubleshootItem3Body": "O caminho digitado não existe no disco ou foi deletado. Use o botão Escolher para selecionar uma pasta válida.",
     "welcomeTitle": "Tela de boas-vindas",
     "welcomeBody": "A tela aparece sempre que você abre o app, a menos que você marque \"Não mostrar esta tela novamente\" nela. Você pode reativar a qualquer momento:",
+    "reenableWelcome": "Reativar welcome na próxima abertura",
+    "welcomeAlreadyActive": "Welcome já está ativa",
+    "backToWelcome": "Voltar para welcome agora",
     "traySection": "O app fica com um ícone ao lado do relógio. Clique esquerdo abre/foca a janela; clique direito mostra menu com lançamento rápido de CLIs e acesso às abas.",
+    "trayTitle": "System Tray",
     "trayMinimize": "Minimizar para a bandeja ao fechar (em vez de sair)",
     "trayShortcut": "Atalho global (abrir/fechar):",
     "trayShortcutHelp": "Formato: modificadores separados por +. Ex: CommandOrControl+Shift+L, Alt+F1. Conflitos com outros apps (Raycast, AutoHotkey) podem impedir registro \u2014 escolha outra combinação se acontecer.",
+    "resetTrayHotkey": "Reset",
+    "onboardingTitle": "Onboarding",
+    "onboardingBody": "Reveja o tour de boas-vindas com atalhos e instalação guiada.",
+    "reopenOnboarding": "Reabrir onboarding",
     "resetTitle": "Resetar todas as configurações",
     "resetBody": "Remove: diretório salvo, histórico, tema, preferência de welcome, log de instalação. O app recarrega.",
+    "resetAll": "Resetar tudo",
     "supportTitle": "Suporte & contato",
     "supportBody": "Desenvolvido por Helbert Moura. Marca DevManiac's.",
     "currentVersion": "Versão atual: v{{version}}."
   },
   "footer": {
     "by": "by Helbert Moura",
-    "poweredBy": "Powered by DevManiac's"
+    "poweredBy": "Powered by DevManiac's",
+    "clisCount": "\u2713 {{n}}/{{total}} CLIs"
   }
 }
