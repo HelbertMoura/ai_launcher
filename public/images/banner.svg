@@ -23,7 +23,7 @@
   <rect width="1200" height="300" fill="url(#dots)" opacity="0.35"/>
 
   <!-- Accent hairline at top-left -->
-  <line x1="0" y1="0" x2="520" y2="0" stroke="#58D68D" stroke-width="2" opacity="0.25"/>
+  <line x1="0" y1="0" x2="520" y2="0" stroke="#E5514F" stroke-width="2" opacity="0.25"/>
 
   <!-- Terminal mock on the left -->
   <g transform="translate(40,40)">
@@ -38,7 +38,7 @@
     <text x="230" y="26" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="12" fill="#5A565A" text-anchor="middle">ai_launcher — zsh — 120×24</text>
 
     <!-- Prompt line 1 -->
-    <text x="22" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#58D68D">&gt;</text>
+    <text x="22" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E5514F">&gt;</text>
     <text x="42" y="78" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E8E4DB">ai_launcher --provider kimi</text>
 
     <!-- Output lines -->
@@ -47,14 +47,14 @@
     <text x="22" y="158" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="13" fill="#7A7670">ok — session ready in 184ms</text>
 
     <!-- Prompt line with blinking cursor (static) -->
-    <text x="22" y="194" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#58D68D">&gt;</text>
+    <text x="22" y="194" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="16" fill="#E5514F">&gt;</text>
     <rect x="42" y="181" width="10" height="16" fill="#E8E4DB" opacity="0.85"/>
   </g>
 
   <!-- Wordmark on the right -->
   <g transform="translate(560,128)">
     <!-- Small caret badge -->
-    <text x="0" y="-32" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#58D68D" letter-spacing="2">&gt; launcher.exec</text>
+    <text x="0" y="-32" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="14" fill="#E5514F" letter-spacing="2">&gt; launcher.exec</text>
 
     <!-- Main title -->
     <text x="0" y="0" font-family="JetBrains Mono, Consolas, ui-monospace, monospace" font-size="60" font-weight="800" letter-spacing="4" fill="url(#title-grad)">AI LAUNCHER</text>
