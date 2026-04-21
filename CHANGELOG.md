@@ -5,6 +5,96 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] — 2026-04-21
+
+### 🖥️ "Terminal Dramático" — redesign visual completo para estética terminal-native
+
+Redesign visual completo de brand-centric para terminal-native. Tipografia mono,
+abas com prefixo de prompt, histórico estilo git-log, sparklines de custo,
+command palette atualizada e navegação keyboard-first. **Zero migrações de schema.**
+
+### Added
+
+- **HeaderBar** — header sticky terminal-themed com wordmark mono, dot de provider,
+  keycaps `⌘⇧1-4` nas abas primárias, badge de update preservado.
+- **LauncherTab cards** — redesenhados como painéis de terminal: prompt `>`, ícone,
+  nome em uppercase, versão, dot de status, descrição, botões Launch + Docs.
+- **HistoryTab timeline** — estilo git-log com rail vertical tracejado + marcadores `●`,
+  linhas `CLI @ provider`, re-run e copy args inline, multi-select de CLIs + filtros
+  de provider.
+- **CostsTab hero + sparklines** — valor grande do total de hoje, barra de progresso
+  do orçamento, sparkline 7 dias por CLI.
+- **CommandPalette preview pane** — pane lateral de preview do comando selecionado,
+  seções pinned/recent/all, ícones lucide, footer com keycaps.
+- **AppearanceSection** — font picker (JetBrains Mono, IBM Plex, Cascadia, Berkeley,
+  System) com preview ao vivo + restore no boot.
+- **StatusBar** — footer com versão, provider, aba ativa, link de update disponível
+  via GitHub (cache de 6h).
+- **HelpModal** — atalho global `⌘/` abre cheatsheet de shortcuts.
+- **Onboarding** — fluxo de 4 passos terminal-themed (welcome / detect / provider /
+  launch) com progress dots.
+- **EmptyState illustrations** — 3 variantes SVG inline (history / presets / cli)
+  com prop `variant`.
+- **Skeleton variants** — `SkeletonCliCard`, `SkeletonHistoryRow`, `SkeletonCostBar`.
+- **Sparkline** — novo componente SVG inline zero-dep em `src/shared/`.
+- **KeyCap** — componente compartilhado usado em HeaderBar/HelpModal/CommandPalette/etc.
+- **TerminalFrame + PromptLine** — surfaces terminais compartilhados.
+- **Motion** — page-enter + staggered children no troca de aba, respeita
+  `prefers-reduced-motion`.
+- **Config export/import** — seção Admin → Backup, dump JSON com secrets redacted.
+- **Comando Rust `check_latest_release`** — consulta GitHub Releases API via `ureq`.
+- **Brand color tokens** — `--color-brand-anthropic/zai/minimax` adicionados nos
+  dois temas (dark + light).
+
+### Changed
+
+- **Vite 5 → 8, React 18 → 19** — upgrade das foundations.
+- **Tipografia** — JetBrains Mono self-hosted (4 weights subset-latin woff2, ~87 KB
+  total), sem CDN de fontes externas.
+- **Ícones** — migração de emoji inline para `lucide-react` (37 exports curados em
+  `src/icons/index.ts`).
+- **Tokens** — split em `tokens.css` (compartilhados), `tokens-dark.css`, `tokens-light.css`.
+- **Split de tabs** — extraídos `LauncherTab`, `HistoryTab`, `CostsTab`, `AdminTab`,
+  `HeaderBar` do `App.tsx` (1754 → 1552 linhas).
+- **Tab shortcuts** — `Ctrl+Shift+1-4` troca de aba; handler de preset `Ctrl+1-9`
+  preservado.
+
+### Fixed
+
+- Tipagem do prop `activeTab` apertada de `string` para `HeaderTabId` (safety em
+  compile-time).
+- Keyboard guards agora cobrem `HTMLSelectElement` e elementos `contenteditable`.
+- Feedback de clipboard no copy args do histórico (estado visível `copied!` / `failed`).
+- Keys React estáveis em entries de histórico (`timestamp|cliKey|directory`).
+- Rings `focus-visible` em abas, chip de provider, chips de filtro, botões de ação.
+- Semântica `aria-current` corrigida em tabs de navegação.
+- Accent colors de provider usam tokens `--color-brand-*` (consistente dark + light).
+
+### Docs
+
+- `docs/VISUAL_SYSTEM.md` — design tokens, paleta, tipografia, referência de motion.
+- `docs/ARCHITECTURE.md` — stack, mapa de diretórios, data flow, comandos Rust,
+  chaves de localStorage.
+- `CONTRIBUTING.md` — setup, build modes, convenções, processo de PR.
+- `README.md` — reescrito para v5.5.
+
+### Guardrails
+
+- JS bundle gzip: **~113 KB** (budget 300 KB).
+- CSS bundle gzip: ~21 KB.
+- `npx tsc --noEmit`: clean.
+- `cargo clippy -- -D warnings`: clean.
+- Schema do localStorage: inalterado (zero migrações).
+- Zero secrets no diff.
+
+### Notes
+
+- **Não quebra nada da v5.1.** Perfis, presets, históricos e budgets salvos em
+  `localStorage` continuam funcionando identicamente.
+- Plano executável desta release: `docs/superpowers/plans/2026-04-20-v5.5-terminal-dramatico-plan.md`.
+
+---
+
 ## [5.1.0] — 2026-04-20
 
 ### 🎨 "Terminal Refinado" — fix MiniMax + refatoração visual completa
