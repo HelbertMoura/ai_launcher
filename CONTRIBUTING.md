@@ -1,145 +1,200 @@
-# 🤝 Contributing to AI Launcher
+# Contributing to AI Launcher Pro
 
-First of all, **thank you so much** for taking the time to look at **AI Launcher**! 🎉
-Open-source thrives because of awesome people like you.
-
-This document covers how to get a dev environment running, the project layout, and the conventions used when sending a pull request. We want to make contributing as easy and fun as possible!
-
----
-
-## 💻 Platform Support
-
-Currently, AI Launcher is strictly **Windows 10+**.
-Cross-platform support is not on the roadmap right now because the Rust backend heavily utilizes Windows-specific APIs (like Windows Terminal detection, `CREATE_NO_WINDOW`, `%USERPROFILE%`, and Start Menu scanning) that would require a massive rewrite to port.
-
-## 🛠️ Prerequisites
-
-To get your development environment ready, you will need:
-- **Node.js 18+**
-- **Rust stable** (install via [rustup](https://rustup.rs/))
-- **Windows 10+** with [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) (already present on Windows 11 and most Windows 10 machines)
-- **Visual Studio Build Tools** with the "Desktop development with C++" workload (Tauri needs this to link everything together on Windows)
+Thanks for taking the time to dig into the code. This guide covers how to run the
+app locally, the conventions we expect in pull requests, and the pre-merge gates
+every change has to clear.
 
 ---
 
-## 🚀 Running in Development
+## 1. Prerequisites
 
-Getting the app running locally is simple:
+| Tool        | Minimum | Notes                                                     |
+| ----------- | ------- | --------------------------------------------------------- |
+| Node.js     | 20.x    | Use an LTS line; the repo has been verified on 20 and 22. |
+| npm         | 10.x    | Ships with Node 20+. No pnpm/yarn configuration today.    |
+| Rust        | 1.75+   | Via [`rustup`](https://rustup.rs). Needs the MSVC toolchain on Windows. |
+| Tauri CLI   | v2      | Installed via `npm install` (`@tauri-apps/cli`).          |
 
-```powershell
-git clone https://github.com/HelbertMoura/ai_launcher.git
-cd ai_launcher
+Windows is the primary development platform; the bundler targets an `.msi`/`.exe`
+installer. Cross-platform support is tracked but not guaranteed on every release.
+
+---
+
+## 2. Setup
+
+```bash
+# From repo root
 npm install
+
+# Dev loop — public build (no admin UI)
 npm run tauri dev
+
+# Dev loop — admin build (provider CRUD + diagnostics)
+VITE_ADMIN_MODE=1 npm run tauri dev
 ```
 
-The `npm run tauri dev` command builds the Rust backend, starts Vite on port `5173`, and opens the desktop window with **hot reloading enabled on both sides**.
-
-> **💡 Pro Tip:** If you only want to iterate on the frontend (HTML/CSS/React) without waiting for a full Tauri Rust rebuild, just use `npm run dev`. It starts Vite alone in your browser. Note that Tauri-specific `invoke()` calls will fail, but you can style components quickly!
+The first `tauri dev` will invoke `cargo` and download Rust crates. Budget 5-10
+minutes on a cold cache.
 
 ---
 
-## 📦 Producing a Release Build
+## 3. Build
 
-Want to generate your very own `.exe` and `.msi` installers?
+```bash
+# Frontend-only (Vite) bundle
+npm run build
 
-```powershell
+# Admin frontend bundle
+VITE_ADMIN_MODE=1 npm run build
+
+# Full app installer (Windows .msi/.exe)
 npm run tauri build
 ```
 
-Your freshly baked artifacts will land in `src-tauri/target/release/bundle/`:
-- `msi/AI Launcher_<version>_x64_pt-BR.msi` — MSI installer
-- `nsis/AI Launcher_<version>_x64-setup.exe` — NSIS installer
+The admin bundle and the public bundle are **separate artifacts**. Never ship an
+admin bundle to a public release channel.
 
 ---
 
-## 🗺️ Project Layout
+## 4. Coding conventions
 
-Here's a quick map of the repository to help you navigate:
+### TypeScript
 
-```text
-src/                   Frontend (React 18 + TypeScript, Vite-bundled)
-  App.tsx              Main window: tabs, state, every invoke() call
-  main.tsx             React entry point
-  styles.css           All CSS (dark + light themes, component styles)
-  CommandPalette.*     Ctrl+K launcher
-  CostAggregator.*     Token/cost aggregator tab
-  EmptyState.*         Empty list helper
-  ErrorBoundary.*      Top-level React error boundary
-  Onboarding.*         First-run wizard
-  Orchestrator.*       Multi-CLI runner tab
-  Skeleton.*           Loading-state placeholders
+- Strict mode is on; no `any`. Use `unknown` + narrowing for untrusted input.
+- Prefer union literal types (`type HeaderTabId = 'launcher' | 'history' | ...`)
+  over free-form strings.
+- Exported functions carry explicit parameter and return types; local inference
+  is fine for obvious cases.
+- React components use a named `interface …Props`; don't use `React.FC`.
 
-src-tauri/             Backend (Rust, compiled by Tauri CLI)
-  src/main.rs          Every #[tauri::command], CLI catalog, process spawn
-  Cargo.toml           Rust dependencies
-  tauri.conf.json      Tauri app metadata, bundle targets, window config
-  capabilities/        Tauri v2 permission config
-  icons/               App + installer icons
+### File organization
 
-scripts/               Helper scripts
-  gen-cert.ps1         Create a self-signed cert for local code signing
-  sign-build.ps1       Sign the built .msi / .exe / installer
-  certs/               (gitignored) generated .pfx lives here
+- Files under **800 lines**. Extract modules when you see a file pushing that cap.
+- Co-locate `.css` next to its `.tsx` (see `src/layout/HeaderBar.{tsx,css}`).
+- Feature folders (`providers/`, `presets/`, `tabs/`) own their types, storage,
+  and view.
 
-.github/
-  workflows/build.yml  CI: builds MSI + NSIS on push and on tag
+### Immutability
+
+- Never mutate props or store state — use spread (`{ ...state, foo: 1 }`) and
+  `new Set(prev)` style updates.
+- Providers state in particular is written with immutable patterns end to end;
+  follow the precedent.
+
+### Styling
+
+- Design tokens only. No literal colors outside provider brand dots in
+  `src/providers/*.tsx`.
+- The mono stack is the default. Only reach for `--ff-ui` when copy is clearly
+  marketing/long-form.
+- UI copy is lowercase (except brand names). No emoji in product chrome.
+
+### Accessibility
+
+- Every `<button>` has `type="button"` unless it is a real form submit.
+- Icon-only buttons carry an `aria-label`. Reach for the icons in
+  `src/icons/index.ts`; never import `lucide-react` directly.
+- `:focus-visible` styles use the `--ring` token; don't override with a
+  bespoke outline.
+- Headings (`<h1>..<h4>`) are real headings, not styled spans.
+
+### Logging
+
+- No `console.log` in merged code. Temporary debug output must be stripped
+  before commit.
+
+---
+
+## 5. Commit convention
+
+We follow Conventional Commits. Scope is optional but encouraged:
+
+```
+<type>(<scope>): <subject>
+
+<body wrapped at 72 cols, explaining why (not what)>
 ```
 
-**Note:** Both `src/App.tsx` (~1600 lines) and `src-tauri/src/main.rs` (~2600 lines) are monolithic by design. Splitting either into multiple modules is a deliberate architectural change and should be discussed in an Issue first.
+Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
+
+Examples:
+
+```
+feat(launcher): redesign CLI cards as terminal panes
+refactor(split): extract HeaderBar from App.tsx
+docs: add VISUAL_SYSTEM + ARCHITECTURE + CONTRIBUTING for v5.5
+```
+
+Do not squash unrelated changes into a single commit. Each commit should stand
+on its own.
 
 ---
 
-## ✨ Adding a New CLI
+## 6. Pull request process
 
-We love adding support for new AI tools! To add a new CLI, you need to update two places:
+1. Branch from `main` with a descriptive name (`feat/costs-sparkline`,
+   `fix/tray-hotkey-empty`).
+2. If the PR maps to a task in `docs/superpowers/plans/...`, reference the task
+   number in the PR body.
+3. Run the full gate locally before pushing (see [§7](#7-pre-commit-checks)).
+4. UI-visible changes must attach screenshots (both dark and light themes where
+   the change affects both).
+5. Describe what the user will notice, not just what the diff does.
 
-1. **Rust (Backend):** Open `src-tauri/src/main.rs`. Add a `CliDef { ... }` entry to the list returned by `get_cli_definitions()`. Make sure to set the `install_cmd`, `update_cmd`, `version_cmd`, and the appropriate permission flag.
-2. **React (Frontend):** Open `src/App.tsx`. Add an entry to the `CLI_ICONS` and `CLI_COLORS` constants at the top of the file so the UI displays a beautiful icon and accent color.
-
-_IDE tools follow the exact same pattern but utilize `get_tool_definitions()`._
-
----
-
-## 🎨 Code Style
-
-We keep things simple. There is no strict linter or formatter enforced right now, just try to match the surrounding code!
-
-- **TypeScript:** 2-space indent, single quotes, trailing commas in multi-line literals.
-- **Rust:** Just use standard `cargo fmt` defaults.
-- **Commit Messages:** Short imperative subject lines, with an optional body. Prefixes like `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, and `ci:` are highly preferred but not heavily enforced.
+Merge strategy: rebase-merge preferred, to keep `main` linear.
 
 ---
 
-## 🔄 Sending a Pull Request
+## 7. Pre-commit checks
 
-Ready to share your code? Awesome!
+Every PR must pass these four gates locally before requesting review:
 
-1. Fork the repo and create a feature branch off `main`.
-2. Make focused, logical commits.
-3. **Important Check:** Run `cargo check --manifest-path src-tauri/Cargo.toml` AND `npm run build` locally before opening the PR. Both must pass!
-4. Open the PR! Describe what changed and how you tested it. Screenshots or GIFs are highly encouraged for UI changes! 📸
-5. The CI will run on Windows and must pass before we can merge it.
+```bash
+# 1. TypeScript — strict, no errors
+npx tsc --noEmit
+
+# 2. Frontend build — Vite must produce both public and admin bundles
+npm run build
+VITE_ADMIN_MODE=1 npm run build
+
+# 3. Rust lint — no warnings
+cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+# 4. Rust compile
+cargo check --manifest-path src-tauri/Cargo.toml
+```
+
+Additional guardrails enforced by the v5.5 plan:
+
+- No literal colors outside provider brand dots.
+- No direct `lucide-react` imports (always via `src/icons/index.ts`).
+- No `console.log` in merged code.
+- No new emoji in product chrome.
+- Files stay under 800 lines.
+
+Secrets check: if you touched anything under `src/providers/`, grep the diff for
+`sk-`, `Bearer`, or hardcoded tokens before pushing.
 
 ---
 
-## 🐛 Reporting Bugs & Issues
+## 8. Areas that welcome contributions
 
-Found a bug? Use the "Bug report" issue template on GitHub.
-Please include:
-- Your Windows version (10 / 11 / Server)
-- The Launcher version (visible in the app header)
-- What you were trying to do when it broke
-- If a CLI install/launch failed, grab the diagnostics from the Actions tab inside the app!
+Open lanes for the next milestones:
 
----
+- **More providers.** New `ProviderKind` entries with seeds and docs links.
+  See `src/providers/seeds.ts` + `docsLinks.ts`.
+- **More CLIs / tools.** Registered in `get_cli_definitions()` /
+  `get_tool_definitions()` in `src-tauri/src/main.rs`.
+- **Theme work.** Alternative light variants or a true high-contrast theme —
+  all new tokens land in `src/styles/tokens-*.css`.
+- **Tests.** There are no unit tests today. A Vitest scaffold around
+  `providers/costEstimator.ts`, `providers/budget.ts`, `providers/storage.ts`,
+  and `lib/configIO.ts` would pay off immediately.
+- **Accessibility audit.** Keyboard traps, focus order on modals, screen-reader
+  landmarks. Automation via Playwright + `@axe-core/playwright` is welcome.
+- **Rust module split.** `src-tauri/src/main.rs` is a single file by historical
+  accident. Extracting `commands/`, `cli_defs/`, and `tray.rs` is tracked in
+  the v5.5 retrospective.
 
-## 🔒 Security
-
-If you discover a sensitive security issue (for example, a way to achieve arbitrary code execution via installed CLI paths or environment variables), **please do not open a public issue.**
-
-Instead, please review our [SECURITY.md](./SECURITY.md) and open a **Private Security Advisory** on GitHub. We take security very seriously and will work with you to patch it safely.
-
----
-
-**Once again, thank you for making AI Launcher better! Happy coding!** 🚀
+Before starting a non-trivial contribution, open an issue or a draft PR so we
+can align on direction.
