@@ -18,6 +18,7 @@ import { HistoryTab } from './tabs/HistoryTab';
 import { CostsTab } from './tabs/CostsTab';
 import { AdminTab } from './tabs/AdminTab';
 import { HeaderBar, type HeaderTabId } from './layout/HeaderBar';
+import { StatusBar } from './layout/StatusBar';
 import { applyFontStack, FONT_STORAGE_KEY, type FontId } from './providers/AppearanceSection';
 import './providers/providers.css';
 
@@ -1506,6 +1507,12 @@ function App() {
         </div>
       )}
       </main>
+
+      <StatusBar
+        version={APP_VERSION}
+        provider={currentProviderInfo()?.providerName}
+        activeTab={activeTab}
+      />
 
       {adminMode && (
         <QuickSwitchModal

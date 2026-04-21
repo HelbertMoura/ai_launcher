@@ -694,6 +694,24 @@ fn fetch_github_latest(repo: &str) -> Option<String> {
         .map(|s| s.trim_start_matches('v').to_string())
 }
 
+/// Verifica a última release no repositório oficial no GitHub.
+/// Usado pela StatusBar para indicar disponibilidade de update.
+#[tauri::command]
+fn check_latest_release() -> Result<serde_json::Value, String> {
+    let agent = http_agent();
+    let url = "https://api.github.com/repos/HelbertMoura/ai_launcher/releases/latest";
+    let resp = agent
+        .get(url)
+        .set(
+            "User-Agent",
+            &format!("ai-launcher/{}", env!("CARGO_PKG_VERSION")),
+        )
+        .call()
+        .map_err(|e| format!("fetch error: {e}"))?;
+    let json: serde_json::Value = resp.into_json().map_err(|e| e.to_string())?;
+    Ok(json)
+}
+
 /// Resolve o caminho absoluto de um CLI (ex: `claude` → `C:\Users\X\AppData\Roaming\npm\claude.cmd`).
 /// Evita depender do PATH da sessão do launcher, que pode estar stale.
 ///
@@ -2802,6 +2820,7 @@ fn main() {
             open_crash_dir,
             test_provider_connection,
             reset_claude_state,
+            check_latest_release,
         ])
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
