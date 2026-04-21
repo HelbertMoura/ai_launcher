@@ -3,6 +3,7 @@
 // Extraído de App.tsx (Task 8 do split). JSX IDÊNTICO ao original.
 // ==============================================================================
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
 import { EmptyState } from '../EmptyState';
@@ -11,6 +12,7 @@ import { PresetsBar } from '../presets/PresetsBar';
 import { ProviderSelector } from '../providers/ProviderSelector';
 import { CliIcon, CLI_COLORS } from '../App';
 import { Play, ExternalLink } from '../icons';
+import { loadCustomClis } from '../lib/customClis';
 import type { LaunchPreset } from '../presets/types';
 import type { ProvidersState } from '../providers/types';
 import './LauncherTab.css';
@@ -141,6 +143,7 @@ export function LauncherTab(props: LauncherTabProps) {
   } = props;
 
   const { t } = useTranslation();
+  const [customClis] = useState(() => loadCustomClis());
 
   function cliDescription(key: string): string {
     return t(`launcher.cliDescriptions.${key}`, { defaultValue: '' });
@@ -260,6 +263,60 @@ export function LauncherTab(props: LauncherTabProps) {
                 </article>
               );
             })}
+            {customClis.map(c => (
+              <article
+                key={`custom-${c.key}`}
+                className="launcher-cli-card launcher-cli-card--custom is-installed"
+              >
+                <header className="launcher-cli-card__head">
+                  <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
+                  <span className="launcher-cli-card__icon" aria-hidden="true">
+                    {c.iconEmoji || '\u25B6'}
+                  </span>
+                  <h3 className="launcher-cli-card__name">{c.name.toUpperCase()}</h3>
+                  <span className="launcher-cli-card__version">{t('customCli.customBadge')}</span>
+                </header>
+                <div className="launcher-cli-card__status-row">
+                  <span className="launcher-cli-card__status">{t('customCli.customBadge')}</span>
+                </div>
+                <p className="launcher-cli-card__desc">
+                  <code>{c.installCmd}</code>
+                </p>
+                <div className="launcher-cli-card__actions">
+                  <button
+                    type="button"
+                    className="btn-cli-primary"
+                    onClick={e => {
+                      e.stopPropagation();
+                      // TODO(v7.1): wire custom CLI launch via backend
+                      alert(t('launcher.launch') + ' — ' + c.name + ' (v7.1)');
+                    }}
+                    title={t('launcher.launchCtaTitle')}
+                  >
+                    <Play size={12} strokeWidth={1.5} />
+                    <span>{t('launcher.launch')}</span>
+                  </button>
+                  {c.docsUrl && (
+                    <button
+                      type="button"
+                      className="btn-cli-ghost"
+                      onClick={e => {
+                        e.stopPropagation();
+                        if (c.docsUrl) {
+                          openUrl(c.docsUrl).catch(() => {
+                            /* silently fail */
+                          });
+                        }
+                      }}
+                      title={t('launcher.docsTitle')}
+                    >
+                      <ExternalLink size={12} strokeWidth={1.5} />
+                      <span>{t('launcher.docs')}</span>
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
           </div>
         </div>
 

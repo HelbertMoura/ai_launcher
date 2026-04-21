@@ -14,8 +14,11 @@ import { testProviderConnection } from './testConnection';
 import { hintsFor } from './modelCatalog';
 import { DOCS_LINKS } from './docsLinks';
 import { AppearanceSection } from './AppearanceSection';
+import { CustomCliModal } from './CustomCliModal';
 import { Download, Upload } from '../icons';
 import { downloadConfigJson, importConfig } from '../lib/configIO';
+import type { CustomCli } from '../lib/customClis';
+import { addCustomCli, loadCustomClis, removeCustomCli, saveCustomClis } from '../lib/customClis';
 
 interface AdminPanelProps {
   state: ProvidersState;
@@ -68,6 +71,9 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
   const [testResult, setTestResult] = useState<string | null>(null);
   const [importText, setImportText] = useState('');
   const [showImport, setShowImport] = useState(false);
+  const [customClis, setCustomClis] = useState<CustomCli[]>(() => loadCustomClis());
+  const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [editingCustomCli, setEditingCustomCli] = useState<CustomCli | null>(null);
 
   const baseline = useMemo(() => state.profiles.find(p => p.id === 'anthropic'), [state.profiles]);
   const activeProfile = useMemo(() => state.profiles.find(p => p.id === state.activeId), [state.profiles, state.activeId]);
@@ -236,6 +242,38 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       delete next[key];
       return { ...d, extraEnv: next };
     });
+  }
+
+  function handleSaveCustomCli(cli: CustomCli) {
+    const next = addCustomCli(customClis, cli);
+    setCustomClis(next);
+    saveCustomClis(next);
+    setCustomModalOpen(false);
+    setEditingCustomCli(null);
+  }
+
+  function handleDeleteCustomCli(key: string) {
+    const target = customClis.find(c => c.key === key);
+    if (!target) return;
+    if (!confirm(t('customCli.deleteConfirm', { name: target.name }))) return;
+    const next = removeCustomCli(customClis, key);
+    setCustomClis(next);
+    saveCustomClis(next);
+  }
+
+  function openAddCustomCli() {
+    setEditingCustomCli(null);
+    setCustomModalOpen(true);
+  }
+
+  function openEditCustomCli(cli: CustomCli) {
+    setEditingCustomCli(cli);
+    setCustomModalOpen(true);
+  }
+
+  function closeCustomCliModal() {
+    setCustomModalOpen(false);
+    setEditingCustomCli(null);
   }
 
   return (
@@ -472,6 +510,53 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
       </div>
 
       <AppearanceSection />
+
+      <section className="admin-section admin-custom-clis">
+        <h3 className="admin-section__title">
+          <span>{t('customCli.addTitle')}</span>
+        </h3>
+        {customClis.length === 0 ? (
+          <p className="admin-section__hint">{t('customCli.emptyState')}</p>
+        ) : (
+          <ul className="admin-custom-list">
+            {customClis.map(c => (
+              <li key={c.key} className="admin-custom-list__item">
+                <span className="admin-custom-list__icon" aria-hidden="true">{c.iconEmoji || '\u25B6'}</span>
+                <span className="admin-custom-list__name">{c.name}</span>
+                <code className="admin-custom-list__key">{c.key}</code>
+                <span className="admin-custom-list__spacer" />
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  onClick={() => openEditCustomCli(c)}
+                >
+                  {t('common.edit')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-danger"
+                  onClick={() => handleDeleteCustomCli(c.key)}
+                >
+                  {t('customCli.delete')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="admin-custom-list__actions">
+          <button type="button" className="btn" onClick={openAddCustomCli}>
+            {t('customCli.addBtn')}
+          </button>
+        </div>
+      </section>
+
+      <CustomCliModal
+        open={customModalOpen}
+        editing={editingCustomCli}
+        existingKeys={customClis.map(c => c.key)}
+        onSave={handleSaveCustomCli}
+        onCancel={closeCustomCliModal}
+      />
 
       <section className="admin-section admin-backup">
         <h3 className="admin-section__title">
