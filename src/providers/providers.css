@@ -492,6 +492,49 @@
 }
 
 /* ==============================================================================
+   Preferences section (v7.0) — maxHistory / refreshInterval / commandTimeout
+   ============================================================================== */
+.admin-settings { margin-top: 16px; }
+.admin-settings__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.admin-settings__field {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 8px 16px;
+  align-items: center;
+}
+.admin-settings__label {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.admin-settings__input {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  padding: 6px 10px;
+  background: var(--bg-prompt, var(--bg-terminal));
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  width: 100%;
+}
+.admin-settings__input:focus {
+  outline: none;
+  border-color: var(--text-prompt);
+}
+.admin-settings__hint {
+  grid-column: 1 / -1;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  opacity: 0.8;
+  margin-top: -4px;
+}
+
+/* ==============================================================================
    Custom CLIs list (v7.0)
    ============================================================================== */
 .admin-custom-clis { margin-top: 16px; }
