@@ -78,7 +78,7 @@
   --border-dim:        oklch(25% 0.010 250);
   --border-bright:     oklch(40% 0.020 180);
   --text-dim:          oklch(50% 0.010 250);
-  --text-prompt:       oklch(72% 0.150 160);
+  --text-prompt:       oklch(62% 0.210 25);
 
   /* -- v5.5 Elevation (dark) -- */
   --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.6);
