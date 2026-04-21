@@ -210,6 +210,32 @@
       "prompt": "> ready to launch",
       "body": "Press <1>{{cmd}}</1> <2>{{k}}</2> to open the palette anytime, or go back to the Launcher tab and pick a CLI.",
       "cta": "launch now"
+    },
+    "autoDetect": {
+      "prompt": "> scanning environment...",
+      "found": "Found {{key}} in environment. Use it?",
+      "notFound": "No provider key in environment.",
+      "useBtn": "use this key",
+      "skipBtn": "skip"
+    },
+    "tour": {
+      "title": "9 tabs, one keyboard",
+      "body": "Press \u2192 to skip ahead, \u2190 to go back, enter to move on.",
+      "next": "next",
+      "prev": "prev",
+      "skip": "skip tour",
+      "done": "done",
+      "slides": {
+        "launcher": { "title": "Launcher", "body": "Eight CLIs detected, one click away." },
+        "install": { "title": "Install", "body": "Install what's missing from npm or pip." },
+        "tools": { "title": "Tools", "body": "Node, Python, Git, IDEs \u2014 verified locally." },
+        "history": { "title": "History", "body": "Git-log timeline with re-run + copy args." },
+        "costs": { "title": "Costs", "body": "Per-CLI 7-day sparklines + daily budget." },
+        "palette": { "title": "Palette", "body": "\u2318K opens a live-preview command list." },
+        "admin": { "title": "Admin", "body": "Switch providers, edit tokens, backup config." },
+        "help": { "title": "Help", "body": "\u2318/ shows every shortcut." },
+        "updates": { "title": "Updates", "body": "CLI versions tracked \u2014 update in one click." }
+      }
     }
   },
   "admin": {
@@ -335,6 +361,16 @@
     "mode": {
       "on": "Admin mode ON \u2014 provider editing available",
       "off": "Admin mode OFF"
+    },
+    "settings": {
+      "title": "Preferences",
+      "maxHistory": "Max history entries",
+      "maxHistoryHint": "Default: 50. Increase if you want longer memory.",
+      "refreshInterval": "CLI refresh interval (seconds)",
+      "refreshIntervalHint": "Default: 0 (manual). Set to 60+ for background auto-refresh.",
+      "commandTimeout": "Command timeout (seconds)",
+      "commandTimeoutHint": "Default: 30. Increase for slow networks or large installs.",
+      "resetBtn": "reset to defaults"
     }
   },
   "quickSwitch": {
@@ -506,7 +542,114 @@
     "resetAll": "Reset everything",
     "supportTitle": "Support & contact",
     "supportBody": "Developed by Helbert Moura. Brand DevManiac's.",
-    "currentVersion": "Current version: v{{version}}."
+    "currentVersion": "Current version: v{{version}}.",
+    "searchPlaceholder": "search help...",
+    "sectionsAria": "Help sections",
+    "sections": {
+      "gettingStarted": "Getting Started",
+      "providers": "Providers",
+      "shortcuts": "Shortcuts",
+      "troubleshooting": "Troubleshooting",
+      "privacy": "Privacy & Data"
+    },
+    "faq": {
+      "whatIs": {
+        "q": "What is AI Launcher Pro?",
+        "a": "A desktop launcher that manages AI coding CLIs (Claude Code, Codex, Cursor\u2026) from a single keyboard-first surface. Local-only, no telemetry."
+      },
+      "whichCLIs": {
+        "q": "Which CLIs are supported?",
+        "a": "Eight built-in: Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot CLI, plus Kilo / Crush / Droid / OpenCode. Custom CLIs can be added from Admin \u2192 Add Custom CLI."
+      },
+      "switchProvider": {
+        "q": "How do I switch provider?",
+        "a": "Open Admin \u2192 Providers, click 'Activate' on any profile. The active provider's base URL and API key are injected into the next CLI launch."
+      },
+      "addProvider": {
+        "q": "Can I add a provider not in the list?",
+        "a": "Yes. Admin \u2192 Providers \u2192 '+ New profile'. Set `kind: custom` with the Anthropic-compatible base URL and paste your API key."
+      },
+      "adminUnlock": {
+        "q": "How do I enable admin mode?",
+        "a": "Press \u2318\u21E7A (Ctrl+Shift+A on Windows/Linux). Or launch with ?admin=1 URL param. Or build from source with VITE_ADMIN_MODE=1."
+      },
+      "tokensSafe": {
+        "q": "Where are my API tokens stored?",
+        "a": "In your browser's localStorage, local to this machine. Never transmitted to any third party except the provider you configured."
+      },
+      "exportConfig": {
+        "q": "Can I export my config?",
+        "a": "Admin \u2192 Backup \u2192 Export JSON. Secrets are redacted in the exported file; you re-enter them after import."
+      },
+      "changeLanguage": {
+        "q": "How do I change language?",
+        "a": "Click the globe icon in the header, or press \u2318\u21E7L to cycle EN \u2194 pt-BR."
+      },
+      "firstProvider": {
+        "q": "Which provider should I start with?",
+        "a": "If you have an Anthropic subscription, use Anthropic (default). For Chinese-friendly pricing, try Z.AI, Moonshot, or Qwen. For aggregator access, OpenRouter."
+      },
+      "platforms": {
+        "q": "Which platforms are supported?",
+        "a": "Windows 10/11 today. macOS and Linux builds are planned \u2014 follow the GitHub releases page."
+      }
+    },
+    "noResults": "No matching help entries.",
+    "openDocs": "Open full docs"
+  },
+  "customCli": {
+    "addTitle": "Add custom CLI",
+    "editTitle": "Edit custom CLI",
+    "fields": {
+      "name": "Display name",
+      "nameHint": "e.g. My CLI Tool",
+      "key": "Key (slug)",
+      "keyHint": "lowercase, letters/numbers/dashes only",
+      "installCmd": "Install command",
+      "installCmdHint": "e.g. npm install -g my-cli",
+      "versionCmd": "Version check command",
+      "versionCmdHint": "e.g. my-cli --version",
+      "launchArgs": "Default launch args",
+      "launchArgsHint": "optional \u2014 e.g. --yolo --no-color",
+      "docsUrl": "Docs URL",
+      "iconEmoji": "Icon (emoji or short text)",
+      "iconHint": "Use an emoji, 1-2 chars, or leave blank for default"
+    },
+    "save": "save",
+    "cancel": "cancel",
+    "delete": "delete",
+    "deleteConfirm": "Delete custom CLI \"{{name}}\"?",
+    "validation": {
+      "nameRequired": "Name is required",
+      "keyRequired": "Key is required",
+      "keyInvalid": "Key must be lowercase letters, numbers, and dashes only",
+      "keyDuplicate": "Key \"{{key}}\" already exists",
+      "installCmdRequired": "Install command is required"
+    },
+    "emptyState": "No custom CLIs yet.",
+    "addBtn": "+ Add custom CLI",
+    "customBadge": "custom"
+  },
+  "customIde": {
+    "addTitle": "Add custom IDE",
+    "editTitle": "Edit custom IDE",
+    "fields": {
+      "name": "IDE name",
+      "key": "Key (slug)",
+      "detectCmd": "Detect command",
+      "detectCmdHint": "e.g. code --version",
+      "launchCmd": "Launch command",
+      "launchCmdHint": "e.g. code {{dir}}",
+      "docsUrl": "Docs URL",
+      "iconEmoji": "Icon"
+    },
+    "save": "save",
+    "cancel": "cancel",
+    "delete": "delete",
+    "deleteConfirm": "Delete custom IDE \"{{name}}\"?",
+    "emptyState": "No custom IDEs yet.",
+    "addBtn": "+ Add custom IDE",
+    "customBadge": "custom"
   },
   "footer": {
     "by": "by Helbert Moura",
