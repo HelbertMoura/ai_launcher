@@ -9,6 +9,7 @@ dist/
 dist-ssr/
 dist-public/
 dist-admin/
+dist-installers/
 .vite/
 *.tsbuildinfo
 
