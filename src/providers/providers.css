@@ -450,3 +450,43 @@
   .admin-panel .admin-actions { width: 100%; }
   .preset-chip-kbd { display: none; }
 }
+
+/* ============================================================================
+   BACKUP SECTION — export/import config JSON
+   ============================================================================ */
+.admin-backup {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-dim);
+}
+.admin-backup .admin-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.admin-backup .admin-section__title svg {
+  color: var(--text-prompt);
+}
+.admin-backup .admin-section__hint {
+  margin: 0 0 12px;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+.admin-backup__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.admin-backup__actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

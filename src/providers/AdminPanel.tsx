@@ -13,11 +13,14 @@ import { testProviderConnection } from './testConnection';
 import { hintsFor } from './modelCatalog';
 import { DOCS_LINKS } from './docsLinks';
 import { AppearanceSection } from './AppearanceSection';
+import { Download, Upload } from '../icons';
+import { downloadConfigJson, importConfig } from '../lib/configIO';
 
 interface AdminPanelProps {
   state: ProvidersState;
   onChange: (next: ProvidersState) => void;
   onToast: (msg: string) => void;
+  appVersion?: string;
 }
 
 const PROVIDER_KIND_OPTIONS: Array<{ value: ProviderProfile['kind']; label: string }> = [
@@ -55,7 +58,7 @@ async function openDocs(url: string) {
   }
 }
 
-export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
+export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ProviderProfile | null>(null);
   const [showKey, setShowKey] = useState(false);
@@ -172,6 +175,40 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
     } catch (e) {
       onToast(`Erro: ${e instanceof Error ? e.message : String(e)}`);
     }
+  }
+
+  function handleBackupExport() {
+    try {
+      downloadConfigJson(appVersion ?? 'unknown');
+      onToast('Config exportada (secrets redacted)');
+    } catch (e: unknown) {
+      onToast(`Erro no export: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  function handleBackupImport() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const mode = confirm('Merge com config atual? (Cancel = REPLACE)') ? 'merge' : 'replace';
+        const result = importConfig(text, mode);
+        if (!result.ok) {
+          onToast(`Import falhou: ${result.error}`);
+          return;
+        }
+        onToast(
+          `Import OK. ${result.redactedCount} secret(s) redacted - edite manualmente. Reload p/ aplicar.`,
+        );
+      } catch (err: unknown) {
+        onToast(`Erro no import: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    input.click();
   }
 
   function updateDraft<K extends keyof ProviderProfile>(key: K, value: ProviderProfile[K]) {
@@ -440,6 +477,24 @@ export function AdminPanel({ state, onChange, onToast }: AdminPanelProps) {
       </div>
 
       <AppearanceSection />
+
+      <section className="admin-section admin-backup">
+        <h3 className="admin-section__title">
+          <Download size={14} strokeWidth={1.5} aria-hidden="true" />
+          <span>Backup</span>
+        </h3>
+        <p className="admin-section__hint">
+          Export/import da config completa em JSON. Secrets (apiKey, tokens, keys) sao redacted no arquivo exportado.
+        </p>
+        <div className="admin-backup__actions">
+          <button type="button" className="btn" onClick={handleBackupExport}>
+            <Download size={12} strokeWidth={1.5} aria-hidden="true" /> export JSON
+          </button>
+          <button type="button" className="btn" onClick={handleBackupImport}>
+            <Upload size={12} strokeWidth={1.5} aria-hidden="true" /> import JSON
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
