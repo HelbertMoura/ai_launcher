@@ -57,7 +57,7 @@ It runs fully local. No accounts, no telemetry, no server. Provider tokens live 
 
 - Terminal-native UI with mono-first typography and terminal-pane cards
 - Multi-CLI launcher covering 8+ CLIs, detected or installed from the app
-- Multi-provider switching — Anthropic, Z.AI (GLM), MiniMax and custom base URLs
+- Multi-provider switching — Anthropic, Z.AI, MiniMax, **Moonshot/Kimi, Qwen (beta), OpenRouter** and custom base URLs
 - Launch presets with CLI + provider + working directory + args, bound to number keys
 - Git-log-style history with filters, re-run and copy-args
 - Cost aggregation with a configurable daily budget and per-CLI 7-day sparklines
@@ -156,22 +156,36 @@ See the [v5.5.1 release notes](https://github.com/HelbertMoura/ai_launcher/relea
 
 ## Providers
 
-AI Launcher Pro points any Anthropic-compatible CLI at a different backend by injecting the right env vars at launch.
+AI Launcher Pro points any Anthropic-compatible CLI at a different backend by injecting the right env vars at launch. Built-in seeds (all edit/delete-able from Admin → Providers):
 
-Built-in seeds:
+| Provider              | Type       | Base URL (intl)                                        | Main model                  | Context | Notes |
+| :-------------------- | :--------- | :----------------------------------------------------- | :-------------------------- | :------ | :---- |
+| Anthropic             | official   | —                                                      | `claude-opus-4-7`           | 1M      | Default config — no env override |
+| Z.AI (GLM)            | native     | `api.z.ai/api/anthropic`                               | `glm-5.1`                   | 200K    | Maps opus/sonnet → glm-5.1, haiku → glm-4.7 |
+| MiniMax               | native     | `api.minimax.io/anthropic`                             | `MiniMax-M2.7`              | 200K    | China: `api.minimaxi.com/anthropic` |
+| **Moonshot / Kimi**   | native     | `api.moonshot.ai/anthropic`                            | `kimi-k2-0905-preview`      | 256K    | Official "Kimi for Code" plan. China: `api.moonshot.cn/anthropic` |
+| **Qwen / DashScope**  | **beta**   | `dashscope-intl.aliyuncs.com/api/v2/apps/claude-code`  | `qwen3-coder-plus`          | 256K    | ⚠️ Claude Code integration in validation. Endpoint may change during rollout |
+| **OpenRouter**        | aggregator | `openrouter.ai/api/v1`                                 | any slug (ex: `anthropic/claude-sonnet-4`) | varies  | One key, dozens of models (Anthropic, Moonshot, Qwen, GLM, Gemini, GPT) |
+| Custom                | custom     | any Anthropic-compat URL                               | —                           | —       | Roll your own |
 
-| Provider   | Notes                                                                 |
-| :--------- | :-------------------------------------------------------------------- |
-| Anthropic  | Official endpoint                                                     |
-| Z.AI (GLM) | Auto model map — `opus/sonnet → glm-5.1`, `haiku → glm-4.7`           |
-| MiniMax    | International and China endpoints (see below)                         |
-| Custom     | Any base URL + API key + optional model map                           |
+Tokens are local-only. No telemetry, no account, no relay. Each provider injects `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY` + model overrides when selected.
 
-To add or edit providers, enable admin mode, then open **Admin → Providers**. Each provider stores a base URL, an API key, and an optional model map. Keys are stored locally in the Tauri OS-level store and never leave your machine except to the provider you configure.
+### Regions / CN endpoints
 
-> **MiniMax — regions.** The built-in seed targets the international endpoint. Chinese accounts need the `minimaxi.com` base URL.
-> - International: `https://api.minimax.io/anthropic` · [get key](https://platform.minimax.io/user-center/basic-information/interface-key)
-> - China: `https://api.minimaxi.com/anthropic` · [get key](https://platform.minimaxi.com/user-center/basic-information/interface-key)
+- **MiniMax** — international `api.minimax.io/anthropic`, China `api.minimaxi.com/anthropic`
+- **Moonshot** — international `api.moonshot.ai/anthropic`, China `api.moonshot.cn/anthropic`
+- **Qwen** — international `dashscope-intl.aliyuncs.com/...`, China `dashscope.aliyuncs.com/...`
+
+### API keys
+
+Get a key from:
+
+- **Anthropic** — https://console.anthropic.com/
+- **Z.AI** — https://z.ai/model-api
+- **MiniMax** (Intl) — https://platform.minimax.io/ · (CN) — https://api.minimaxi.com/
+- **Moonshot** (Intl) — https://platform.moonshot.ai/ · (CN) — https://platform.moonshot.cn/
+- **Qwen (DashScope)** (Intl) — https://dashscope-intl.console.aliyun.com/ · (CN) — https://bailian.console.aliyun.com/
+- **OpenRouter** — https://openrouter.ai/keys
 
 <br />
 
@@ -217,6 +231,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for the full history. Recent highlights:
 
 | Version | Theme                                                       |
 | :------ | :---------------------------------------------------------- |
+| v6.1.0  | More providers (Moonshot, Qwen beta, OpenRouter)            |
 | v6.0    | Bilingual interface (EN / pt-BR) with runtime switching     |
 | v5.5.1  | Runtime admin toggle — no rebuild required                  |
 | v5.5.0  | "Terminal Dramatico" visual rewrite                         |

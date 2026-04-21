@@ -41,7 +41,7 @@ Oito CLIs são suportadas de fábrica — Claude Code, Codex, Cursor, Gemini, Qw
 
 - **Interface terminal-native** com tipografia monoespaçada, prompts `>` e painéis inspirados em tmux.
 - **Multi-CLI launcher** com 8+ CLIs detectadas ou instaláveis in-app (Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot e mais).
-- **Switch de provider** entre Anthropic, Z.AI, MiniMax ou base URLs personalizadas, sem reabrir o terminal.
+- **Switch de provider** — Anthropic, Z.AI, MiniMax, **Moonshot/Kimi, Qwen (beta), OpenRouter** e base URLs custom, sem reabrir o terminal.
 - **Presets** com diretório de trabalho e argumentos salvos, prontos pra lançar com um atalho.
 - **Histórico estilo git-log** com filtros por CLI e preset, re-run em um clique e cópia dos args originais.
 - **Agregação de custo** com orçamento diário configurável e sparklines de 7 dias por CLI.
@@ -126,14 +126,36 @@ Veja as [release notes da v5.5.1](./CHANGELOG.md) para detalhes sobre a implemen
 
 ## Providers
 
-O launcher suporta os quatro tipos de provider abaixo. Todos os tokens ficam armazenados localmente e nunca são transmitidos fora do processo da CLI que você invoca.
+O AI Launcher Pro aponta qualquer CLI Anthropic-compatible para um backend diferente injetando as env vars certas no launch. Seeds built-in (todas editáveis/removíveis em Admin → Providers):
 
-- **Anthropic** — endpoint oficial com API key.
-- **Z.AI** — rota compatível com a API Anthropic.
-- **MiniMax** — dois endpoints regionais:
-  - **Internacional:** `https://api.minimax.io`
-  - **China continental:** `https://api.minimaxi.com`
-- **Customizado** — qualquer base URL compatível com o protocolo Anthropic.
+| Provider              | Tipo       | Base URL (intl)                                        | Modelo principal            | Contexto | Notas |
+| :-------------------- | :--------- | :----------------------------------------------------- | :-------------------------- | :------- | :---- |
+| Anthropic             | oficial    | —                                                      | `claude-opus-4-7`           | 1M       | Config padrão — sem override de env |
+| Z.AI (GLM)            | nativa     | `api.z.ai/api/anthropic`                               | `glm-5.1`                   | 200K     | Mapeia opus/sonnet → glm-5.1, haiku → glm-4.7 |
+| MiniMax               | nativa     | `api.minimax.io/anthropic`                             | `MiniMax-M2.7`              | 200K     | China: `api.minimaxi.com/anthropic` |
+| **Moonshot / Kimi**   | nativa     | `api.moonshot.ai/anthropic`                            | `kimi-k2-0905-preview`      | 256K     | Plano oficial "Kimi for Code". China: `api.moonshot.cn/anthropic` |
+| **Qwen / DashScope**  | **beta**   | `dashscope-intl.aliyuncs.com/api/v2/apps/claude-code`  | `qwen3-coder-plus`          | 256K     | ⚠️ Integração Claude Code ainda em validação. Endpoint pode mudar durante rollout |
+| **OpenRouter**        | aggregator | `openrouter.ai/api/v1`                                 | qualquer slug (ex: `anthropic/claude-sonnet-4`) | varia    | Uma chave, dezenas de modelos (Anthropic, Moonshot, Qwen, GLM, Gemini, GPT) |
+| Custom                | custom     | qualquer URL Anthropic-compat                          | —                           | —        | Roll your own |
+
+Tokens ficam local only. Sem telemetria, sem conta, sem relay. Cada provider injeta `ANTHROPIC_BASE_URL` + `ANTHROPIC_API_KEY` + overrides de modelo quando selecionado.
+
+### Regiões / endpoints CN
+
+- **MiniMax** — internacional `api.minimax.io/anthropic`, China `api.minimaxi.com/anthropic`
+- **Moonshot** — internacional `api.moonshot.ai/anthropic`, China `api.moonshot.cn/anthropic`
+- **Qwen** — internacional `dashscope-intl.aliyuncs.com/...`, China `dashscope.aliyuncs.com/...`
+
+### Chaves de API
+
+Obtenha uma chave em:
+
+- **Anthropic** — https://console.anthropic.com/
+- **Z.AI** — https://z.ai/model-api
+- **MiniMax** (Intl) — https://platform.minimax.io/ · (CN) — https://api.minimaxi.com/
+- **Moonshot** (Intl) — https://platform.moonshot.ai/ · (CN) — https://platform.moonshot.cn/
+- **Qwen (DashScope)** (Intl) — https://dashscope-intl.console.aliyun.com/ · (CN) — https://bailian.console.aliyun.com/
+- **OpenRouter** — https://openrouter.ai/keys
 
 ---
 
@@ -177,6 +199,7 @@ Issues e pull requests são bem-vindos. Antes de abrir um PR, leia o [`CONTRIBUT
 
 A história completa está em [`CHANGELOG.md`](./CHANGELOG.md). Destaques recentes:
 
+- **v6.1.0** — Mais providers (Moonshot, Qwen beta, OpenRouter).
 - **v6.0** — Interface bilíngue (EN / pt-BR) com detecção automática.
 - **v5.5.1** — Toggle de admin em runtime (chord + query string + flag de build).
 - **v5.5.0** — Redesign terminal-native: painéis estilo tmux, prompts `>`, typography mono-first.
