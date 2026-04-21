@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ProvidersState } from './types';
 import { buildLaunchEnv, redactEnv } from './storage';
 
@@ -22,6 +23,7 @@ interface DryRunModalProps {
 export function DryRunModal({
   open, state, selectedCli, command, flag, noPerms, args, directory, onClose,
 }: DryRunModalProps) {
+  const { t } = useTranslation();
   const envVars = useMemo(
     () => (selectedCli === 'claude' ? buildLaunchEnv(state) : undefined),
     [state, selectedCli],
@@ -40,47 +42,47 @@ export function DryRunModal({
     const envBlock = Object.entries(envVars || {}).map(([k, v]) => `set ${k}=${v}`).join('\r\n');
     const txt = [
       envBlock,
-      `cd /d "${directory || '(atual)'}"`,
+      `cd /d "${directory || t('dryRun.cwdFallback')}"`,
       fullCmd,
     ].filter(Boolean).join('\r\n');
-    navigator.clipboard?.writeText(txt).catch(() => prompt('Copie abaixo:', txt));
+    navigator.clipboard?.writeText(txt).catch(() => prompt(t('dryRun.copyPrompt'), txt));
   }
 
   return (
     <div className="dryrun-overlay" onClick={onClose}>
       <div className="dryrun-modal" onClick={e => e.stopPropagation()}>
         <div className="dryrun-head">
-          <h3>🔬 Preview do launch</h3>
+          <h3>{t('dryRun.title')}</h3>
           <button
             className="btn btn-sm"
             onClick={onClose}
-            title="Fechar preview"
-            aria-label="Fechar preview de launch"
+            title={t('dryRun.closeTitle')}
+            aria-label={t('dryRun.closeLabel')}
           >✕</button>
         </div>
         <div className="dryrun-body">
           <div>
-            <div className="section-title">CLI</div>
+            <div className="section-title">{t('dryRun.cli')}</div>
             <code className="dryrun-code">{fullCmd}</code>
           </div>
           <div>
-            <div className="section-title">Diretório</div>
-            <code className="dryrun-code">{directory || '(diretório atual)'}</code>
+            <div className="section-title">{t('dryRun.directory')}</div>
+            <code className="dryrun-code">{directory || t('dryRun.directoryFallback')}</code>
           </div>
           <div>
-            <div className="section-title">Env vars injetadas</div>
+            <div className="section-title">{t('dryRun.envVars')}</div>
             {envVars
               ? (
                 <pre className="dryrun-env">
                   {Object.entries(redacted).map(([k, v]) => `${k}=${v}`).join('\n')}
                 </pre>
               )
-              : <div className="admin-note">Nenhuma env (usa config default do {selectedCli}).</div>}
+              : <div className="admin-note">{t('dryRun.noEnvs', { cli: selectedCli })}</div>}
           </div>
         </div>
         <div className="dryrun-actions">
-          <button className="btn" onClick={copyAll}>📋 Copiar como script .bat</button>
-          <button className="btn" onClick={onClose}>Fechar</button>
+          <button className="btn" onClick={copyAll}>{t('dryRun.copyScript')}</button>
+          <button className="btn" onClick={onClose}>{t('dryRun.close')}</button>
         </div>
       </div>
     </div>

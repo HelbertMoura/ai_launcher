@@ -1,4 +1,5 @@
 import type { JSX } from 'react';
+import { useTranslation } from 'react-i18next';
 import './EmptyState.css';
 import {
   EmptyHistoryIllustration,
@@ -46,6 +47,7 @@ export function EmptyState({
   ctaLabel,
   onCta,
 }: EmptyStateProps) {
+  const { t } = useTranslation();
   // New variant-based rendering
   if (variant) {
     const Illustration = ILLUSTRATIONS[variant];
@@ -85,11 +87,11 @@ export function EmptyState({
           </g>
         </svg>
       </div>
-      <h3 className="empty-title">Nenhuma CLI detectada</h3>
-      <p className="empty-sub">Instale sua primeira CLI de IA pra começar.</p>
+      <h3 className="empty-title">{t('empty.cli.title')}</h3>
+      <p className="empty-sub">{t('empty.cli.sub')}</p>
       {onInstallClick && (
         <button className="empty-cta" onClick={onInstallClick}>
-          📦 Instalar primeiro CLI
+          {t('empty.cli.cta')}
         </button>
       )}
     </div>

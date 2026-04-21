@@ -5,6 +5,7 @@
 // ==============================================================================
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Type } from '../icons';
 import './AppearanceSection.css';
 
@@ -34,6 +35,7 @@ export function applyFontStack(id: FontId): void {
 }
 
 export function AppearanceSection() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<FontId>(() => {
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(FONT_STORAGE_KEY) : null;
     return (saved as FontId) || 'jetbrains';
@@ -50,9 +52,9 @@ export function AppearanceSection() {
     <section className="admin-section appearance-section">
       <h3 className="appearance-section__title">
         <Type size={14} strokeWidth={1.5} aria-hidden="true" />
-        <span>Aparência</span>
+        <span>{t('admin.appearance.title')}</span>
       </h3>
-      <div role="radiogroup" aria-label="Display font" className="appearance-options">
+      <div role="radiogroup" aria-label={t('admin.appearance.fontAria')} className="appearance-options">
         {FONT_OPTIONS.map(opt => (
           <label key={opt.id} className={`appearance-option${selected === opt.id ? ' is-active' : ''}`}>
             <input
@@ -63,7 +65,7 @@ export function AppearanceSection() {
               onChange={() => setSelected(opt.id as FontId)}
             />
             <span className="appearance-option__name">{opt.name}</span>
-            {opt.recommended && <span className="appearance-option__badge">recomendado</span>}
+            {opt.recommended && <span className="appearance-option__badge">{t('admin.appearance.recommended')}</span>}
           </label>
         ))}
       </div>

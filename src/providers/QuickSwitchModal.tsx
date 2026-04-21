@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import type { ProvidersState } from './types';
 import { setActive } from './storage';
 
@@ -15,6 +16,7 @@ interface QuickSwitchModalProps {
 }
 
 export function QuickSwitchModal({ open, state, onChange, onClose }: QuickSwitchModalProps) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [cursor, setCursor] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,13 +60,13 @@ export function QuickSwitchModal({ open, state, onChange, onClose }: QuickSwitch
         <input
           ref={inputRef}
           className="input quick-switch-input"
-          placeholder="Filtrar provider... (↑↓ navega, Enter ativa, Esc fecha)"
+          placeholder={t('quickSwitch.placeholder')}
           value={query}
           onChange={e => { setQuery(e.target.value); setCursor(0); }}
           onKeyDown={handleKey}
         />
         <div className="quick-switch-list">
-          {filtered.length === 0 && <div className="quick-switch-empty">Sem resultados.</div>}
+          {filtered.length === 0 && <div className="quick-switch-empty">{t('quickSwitch.empty')}</div>}
           {filtered.map((p, idx) => (
             <button
               key={p.id}
@@ -75,13 +77,16 @@ export function QuickSwitchModal({ open, state, onChange, onClose }: QuickSwitch
               <span className="quick-switch-name">{p.name}</span>
               <span className="quick-switch-meta">
                 <code>{p.mainModel}</code>
-                {p.id === state.activeId && <span className="admin-tag admin-tag-active" style={{ marginLeft: 8 }}>ATIVO</span>}
+                {p.id === state.activeId && <span className="admin-tag admin-tag-active" style={{ marginLeft: 8 }}>{t('quickSwitch.active')}</span>}
               </span>
             </button>
           ))}
         </div>
         <div className="quick-switch-hint">
-          <kbd>Ctrl+P</kbd> abre · <kbd>↑↓</kbd> navega · <kbd>Enter</kbd> ativa · <kbd>Esc</kbd> fecha
+          <Trans
+            i18nKey="quickSwitch.hint"
+            components={{ 1: <kbd />, 2: <kbd />, 3: <kbd />, 4: <kbd /> }}
+          />
         </div>
       </div>
     </div>

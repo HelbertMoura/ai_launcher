@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Command } from 'cmdk';
 import {
   Play,
@@ -128,6 +129,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     history, directory,
   } = props;
 
+  const { t } = useTranslation();
   const [selectedValue, setSelectedValue] = useState<string>('');
 
   // ESC fecha (redundante com cmdk, mas garante comportamento consistente)
@@ -161,7 +163,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
       list.push({
         id: `launch-${cli.key}`,
         value: `lancar launch ${cli.name} ${cli.key}`,
-        label: `Lançar ${cli.name}`,
+        label: t('palette.commands.launchCli', { name: cli.name }),
         type: 'launch',
         section: 'all',
         icon: 'launch',
@@ -178,7 +180,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
         list.push({
           id: `tool-${tool.key}`,
           value: `abrir tool ${tool.name} ${tool.key}`,
-          label: `Abrir ${tool.name}`,
+          label: t('palette.commands.openTool', { name: tool.name }),
           type: 'tool',
           section: 'all',
           icon: 'tool',
@@ -190,12 +192,12 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
     // Navigation
     const navItems: Array<{ id: string; value: string; label: string; icon: PaletteCommand['icon'] }> = [
-      { id: 'nav-launcher', value: 'ir para launcher status',        label: 'Ir para Launcher',      icon: 'launch'  },
-      { id: 'nav-install',  value: 'ir para instalar install',       label: 'Ir para Instalar',      icon: 'install' },
-      { id: 'nav-tools',    value: 'ir para ferramentas tools',      label: 'Ir para Ferramentas',   icon: 'terminal'},
-      { id: 'nav-history',  value: 'ir para historico history',      label: 'Ir para Histórico',     icon: 'nav'     },
-      { id: 'nav-updates',  value: 'ir para atualizacoes updates',   label: 'Ir para Atualizações',  icon: 'updates' },
-      { id: 'nav-help',     value: 'ir para ajuda help config',      label: 'Ir para Ajuda',         icon: 'help'    },
+      { id: 'nav-launcher', value: 'ir para launcher status',        label: t('palette.commands.navLauncher'), icon: 'launch'  },
+      { id: 'nav-install',  value: 'ir para instalar install',       label: t('palette.commands.navInstall'),  icon: 'install' },
+      { id: 'nav-tools',    value: 'ir para ferramentas tools',      label: t('palette.commands.navTools'),    icon: 'terminal'},
+      { id: 'nav-history',  value: 'ir para historico history',      label: t('palette.commands.navHistory'),  icon: 'nav'     },
+      { id: 'nav-updates',  value: 'ir para atualizacoes updates',   label: t('palette.commands.navUpdates'),  icon: 'updates' },
+      { id: 'nav-help',     value: 'ir para ajuda help config',      label: t('palette.commands.navHelp'),     icon: 'help'    },
     ];
     for (const n of navItems) {
       const tabKey = n.id.replace('nav-', '');
@@ -215,7 +217,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     list.push({
       id: 'action-update-all',
       value: 'atualizar todos clis update all',
-      label: 'Atualizar todos os CLIs',
+      label: t('palette.commands.updateAll'),
       type: 'action',
       section: 'all',
       icon: 'updates',
@@ -225,7 +227,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     list.push({
       id: 'action-reload',
       value: 'recarregar status verificar',
-      label: 'Recarregar status',
+      label: t('palette.commands.reloadStatus'),
       type: 'action',
       section: 'all',
       icon: 'reload',
@@ -235,7 +237,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     list.push({
       id: 'action-theme',
       value: 'alternar tema escuro claro theme',
-      label: 'Alternar tema (escuro/claro)',
+      label: t('palette.commands.toggleTheme'),
       type: 'action',
       section: 'all',
       icon: 'theme',
@@ -244,7 +246,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     });
 
     return list;
-  }, [clis, tools, installed, onLaunchTool, onLaunchCli, onOpenTab, onToggleTheme, onReloadStatus, onUpdateAll, run, directory]);
+  }, [t, clis, tools, installed, onLaunchTool, onLaunchCli, onOpenTab, onToggleTheme, onReloadStatus, onUpdateAll, run, directory]);
 
   // Build a synthetic "recent" section from history (max 5), mapped to existing launch commands when possible.
   const recentCommands = useMemo<PaletteCommand[]>(() => {
@@ -293,7 +295,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     <div
       className="cmdk-ail-overlay"
       role="dialog"
-      aria-label="Paleta de comandos"
+      aria-label={t('palette.ariaLabel')}
       aria-modal="true"
       onClick={(e) => {
         if (e.target === e.currentTarget) onOpenChange(false);
@@ -301,7 +303,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
     >
       <div className="cmdk-ail-panel palette-panel--wide">
         <Command
-          label="Paleta de comandos"
+          label={t('palette.ariaLabel')}
           shouldFilter={true}
           className="cmdk-ail-root"
           value={selectedValue}
@@ -309,19 +311,19 @@ export default function CommandPalette(props: CommandPaletteProps) {
         >
           <Command.Input
             className="cmdk-ail-input"
-            placeholder="Digite um comando ou pesquise..."
+            placeholder={t('palette.placeholder')}
             autoFocus
           />
 
           <div className="palette-layout">
             <Command.List className="cmdk-ail-list palette-list">
               <Command.Empty className="cmdk-ail-empty">
-                Nenhum resultado encontrado.
+                {t('palette.empty')}
               </Command.Empty>
 
               {pinnedCommands.length > 0 && (
                 <Command.Group
-                  heading="> pinned"
+                  heading={t('palette.sections.pinned')}
                   className="cmdk-ail-group palette-group--terminal"
                 >
                   {pinnedCommands.map(cmd => (
@@ -332,7 +334,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
               {recentCommands.length > 0 && (
                 <Command.Group
-                  heading="> recent"
+                  heading={t('palette.sections.recent')}
                   className="cmdk-ail-group palette-group--terminal"
                 >
                   {recentCommands.map(cmd => (
@@ -343,7 +345,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
 
               {restCommands.length > 0 && (
                 <Command.Group
-                  heading="> all"
+                  heading={t('palette.sections.all')}
                   className="cmdk-ail-group palette-group--terminal"
                 >
                   {restCommands.map(cmd => (
@@ -354,7 +356,7 @@ export default function CommandPalette(props: CommandPaletteProps) {
             </Command.List>
 
             <aside className="palette-preview" aria-live="polite">
-              <span className="palette-preview__label">preview</span>
+              <span className="palette-preview__label">{t('palette.preview')}</span>
               <code className="palette-preview__cmd">
                 {selected ? selected.preview : '—'}
               </code>
@@ -365,9 +367,9 @@ export default function CommandPalette(props: CommandPaletteProps) {
           </div>
 
           <footer className="palette-footer">
-            <span><KeyCap keys={['\u21B5']} dimmed /> launch</span>
-            <span><KeyCap keys={['\u2318', '\u21E7', 'C']} dimmed /> copy</span>
-            <span><KeyCap keys={['esc']} dimmed /> close</span>
+            <span><KeyCap keys={['\u21B5']} dimmed /> {t('palette.footer.launch')}</span>
+            <span><KeyCap keys={['\u2318', '\u21E7', 'C']} dimmed /> {t('palette.footer.copy')}</span>
+            <span><KeyCap keys={['esc']} dimmed /> {t('palette.footer.close')}</span>
           </footer>
         </Command>
       </div>
