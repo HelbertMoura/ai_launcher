@@ -1,0 +1,30 @@
+.statusbar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 16px;
+  background: var(--bg-prompt, var(--bg-terminal));
+  border-top: 1px solid var(--border-dim);
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  z-index: 50;
+}
+.statusbar__item { white-space: nowrap; }
+.statusbar__spacer { flex: 1; }
+.statusbar__update {
+  color: var(--text-prompt);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.statusbar__update:hover { text-decoration: underline; }
+.statusbar__update:focus-visible { outline: 1px solid var(--text-prompt); outline-offset: 2px; }
+@media (max-width: 720px) {
+  .statusbar { gap: 10px; padding: 6px 10px; flex-wrap: wrap; }
+  .statusbar__tab { display: none; }
+}

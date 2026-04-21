@@ -1,0 +1,192 @@
+/* ==============================================================================
+   LauncherTab — Terminal Dramático (v5.5 direction D)
+   CLI cards como "terminal panes" monospace.
+   ============================================================================== */
+
+/* Sobrescreve grid do styles.css global — mais largos, menos colunas */
+.launcher-cli-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.launcher-cli-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 16px 18px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  font-family: var(--ff-mono);
+  cursor: pointer;
+  transition: border-color var(--d-base) var(--ease-terminal),
+              transform var(--d-base) var(--ease-terminal),
+              background-color var(--d-base) var(--ease-terminal);
+}
+
+.launcher-cli-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-1px);
+}
+
+.launcher-cli-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--text-prompt) 40%, transparent);
+}
+
+.launcher-cli-card.is-selected {
+  border-color: var(--text-prompt);
+  background: color-mix(in oklch, var(--text-prompt) 6%, var(--bg-surface-raised));
+}
+
+.launcher-cli-card.is-missing {
+  opacity: 0.72;
+}
+
+.launcher-cli-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  min-width: 0;
+}
+
+.launcher-cli-card__prompt {
+  color: var(--text-prompt);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  line-height: 1;
+}
+
+.launcher-cli-card__icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.launcher-cli-card__icon svg {
+  display: block;
+  border-radius: 4px;
+}
+
+.launcher-cli-card__name {
+  flex: 1;
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.launcher-cli-card__version {
+  flex: 0 0 auto;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-family: var(--ff-mono);
+}
+
+.launcher-cli-card__status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.launcher-cli-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-dim);
+}
+
+.launcher-cli-card.is-installed .launcher-cli-card__status {
+  color: var(--text-prompt);
+}
+
+.launcher-cli-card.is-missing .launcher-cli-card__status {
+  color: var(--text-muted);
+}
+
+.launcher-cli-card__update {
+  font-size: var(--fs-xs);
+  color: var(--yellow, #f5a623);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--yellow, #f5a623) 12%, transparent);
+  border: 1px solid color-mix(in oklch, var(--yellow, #f5a623) 35%, transparent);
+}
+
+.launcher-cli-card__desc {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  min-height: 1.45em;
+}
+
+.launcher-cli-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.launcher-cli-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: filter var(--d-fast, 120ms) var(--ease-terminal),
+              transform var(--d-fast, 120ms) var(--ease-terminal),
+              border-color var(--d-fast, 120ms) var(--ease-terminal),
+              color var(--d-fast, 120ms) var(--ease-terminal),
+              background-color var(--d-fast, 120ms) var(--ease-terminal);
+}
+
+.launcher-cli-card__actions .btn-cli-primary {
+  background: var(--text-prompt);
+  color: var(--bg-terminal);
+  border: 1px solid var(--text-prompt);
+}
+
+.launcher-cli-card__actions .btn-cli-primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.launcher-cli-card__actions .btn-cli-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.launcher-cli-card__actions .btn-cli-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-dim);
+}
+
+.launcher-cli-card__actions .btn-cli-ghost:hover {
+  color: var(--text);
+  border-color: var(--border-bright);
+}
+
+@media (max-width: 720px) {
+  .launcher-cli-grid {
+    grid-template-columns: 1fr;
+  }
+}

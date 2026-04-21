@@ -1,305 +1,122 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { useState } from 'react';
+import { TerminalFrame } from './shared/TerminalFrame';
+import { Terminal, CheckCircle2, ArrowUpRight } from './icons';
 import './Onboarding.css';
 
-// ==================== TYPES ====================
-
-type StepNum = 1 | 2 | 3 | 4;
-
-interface CliCatalogItem {
-  key: string;
-  name: string;
-}
-
-// Catálogo mínimo embutido — mesmos keys/nomes de get_cli_definitions no backend.
-// Usamos nomes amigáveis em pt-BR aqui; ícones vêm dos SVGs em /icons/cli.
-const CLI_CATALOG: CliCatalogItem[] = [
-  { key: 'claude', name: 'Claude Code' },
-  { key: 'codex', name: 'Codex' },
-  { key: 'gemini', name: 'Gemini' },
-  { key: 'qwen', name: 'Qwen' },
-  { key: 'kilocode', name: 'Kilo Code' },
-  { key: 'opencode', name: 'OpenCode' },
-  { key: 'crush', name: 'Crush' },
-  { key: 'droid', name: 'Droid' },
-];
+const STEPS = ['welcome', 'detect', 'provider', 'launch'] as const;
+type Step = typeof STEPS[number];
 
 interface OnboardingProps {
   onClose: () => void;
 }
 
-// ==================== COMPONENT ====================
-
 export function Onboarding({ onClose }: OnboardingProps) {
-  const [step, setStep] = useState<StepNum>(1);
-  const firstFocusableRef = useRef<HTMLButtonElement>(null);
+  const [step, setStep] = useState<Step>('welcome');
 
-  // Step 2 — CLIs selecionadas
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [installing, setInstalling] = useState(false);
-  const [installingKey, setInstallingKey] = useState<string | null>(null);
-  const [installResult, setInstallResult] = useState<{ ok: number; fail: number } | null>(null);
-  const [installLog, setInstallLog] = useState<string[]>([]);
-
-  // Foco inicial no primeiro botão a cada step
-  useEffect(() => {
-    const t = setTimeout(() => {
-      firstFocusableRef.current?.focus();
-    }, 30);
-    return () => clearTimeout(t);
-  }, [step]);
-
-  // ESC não fecha — onboarding é obrigatório até "Começar a usar".
-  // Bloqueia scroll do body enquanto aberto.
-  useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prevOverflow; };
-  }, []);
-
-  // ============= Navegação =============
-
-  const nextStep = useCallback(() => {
-    setStep(curr => {
-      if (curr === 1) return 2;
-      if (curr === 2) return 4;
-      if (curr === 3) return 4;
-      return curr;
-    });
-  }, []);
-
-  const prevStep = useCallback(() => {
-    setStep(curr => {
-      if (curr === 4) return 2;
-      if (curr === 3) return 2;
-      if (curr === 2) return 1;
-      return curr;
-    });
-  }, []);
-
-  const finish = useCallback(() => {
+  function handleFinish() {
+    try { localStorage.setItem('ai-launcher:hide-welcome', '1'); } catch {}
     onClose();
-  }, [onClose]);
+  }
 
-  // ============= Step 2 — Instalação =============
-
-  const toggleCli = (key: string) => {
-    setSelected(s => ({ ...s, [key]: !s[key] }));
-  };
-
-  const selectedKeys = CLI_CATALOG.filter(c => selected[c.key]).map(c => c.key);
-
-  const runInstall = async () => {
-    if (installing || selectedKeys.length === 0) return;
-    setInstalling(true);
-    setInstallResult(null);
-    setInstallLog([]);
-    let ok = 0;
-    let fail = 0;
-    for (const key of selectedKeys) {
-      setInstallingKey(key);
-      const name = CLI_CATALOG.find(c => c.key === key)?.name || key;
-      setInstallLog(log => [...log, `Instalando ${name}...`]);
-      try {
-        await invoke<string>('install_cli', { cliKey: key });
-        ok += 1;
-        setInstallLog(log => [...log, `✓ ${name} instalado`]);
-      } catch (e) {
-        fail += 1;
-        const msg = String(e).slice(0, 120);
-        setInstallLog(log => [...log, `✗ ${name} falhou: ${msg}`]);
-      }
-    }
-    setInstallingKey(null);
-    setInstalling(false);
-    setInstallResult({ ok, fail });
-  };
-
-  // ============= Render =============
-
-  // Total de passos: 3
-  const totalSteps = 3;
-  // Índice visual: step 1 -> 1, step 2 -> 2, step 4 -> 3
-  const visualIndex = (() => {
-    if (step === 1) return 1;
-    if (step === 2) return 2;
-    return 3;
-  })();
+  function next() {
+    const idx = STEPS.indexOf(step);
+    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+    else handleFinish();
+  }
 
   return (
-    <div className="onb-overlay" role="dialog" aria-modal="true" aria-labelledby="onb-title">
-      <div className="onb-modal" role="document">
-        <div className="onb-progress">
-          {Array.from({ length: totalSteps }).map((_, i) => {
-            const active = i + 1 === visualIndex;
-            const done = i + 1 < visualIndex;
-            return (
-              <span
-                key={i}
-                className={`onb-dot${active ? ' onb-dot--active' : ''}${done ? ' onb-dot--done' : ''}`}
-                aria-hidden="true"
-              />
-            );
-          })}
-          <span className="onb-progress-label">{visualIndex} / {totalSteps}</span>
+    <div className="onboarding">
+      <div className="onboarding__inner">
+        <div className="onboarding__progress" aria-hidden="true">
+          {STEPS.map((s, i) => (
+            <span
+              key={s}
+              className={`onboarding__dot${STEPS.indexOf(step) >= i ? ' is-reached' : ''}${step === s ? ' is-current' : ''}`}
+            />
+          ))}
         </div>
-
-        {step === 1 && (
-          <section className="onb-step">
-            <div className="onb-hero">
-              <div className="onb-hero-emoji" aria-hidden="true">🚀</div>
-              <h1 id="onb-title" className="onb-title">Bem-vindo ao AI Launcher Pro</h1>
-              <p className="onb-subtitle">Tudo fica na sua máquina. Zero telemetria.</p>
-            </div>
-            <ul className="onb-bullets">
-              <li><span className="onb-bullet-icon">🔒</span> <span>Sem coleta de dados — nada sai do seu PC</span></li>
-              <li><span className="onb-bullet-icon">👤</span> <span>Sem login, sem conta, sem servidor</span></li>
-              <li><span className="onb-bullet-icon">🛠️</span> <span>Open-source — código auditável</span></li>
-              <li><span className="onb-bullet-icon">📁</span> <span>Config local em <code>%APPDATA%</code></span></li>
-            </ul>
-            <div className="onb-actions onb-actions--end">
-              <button ref={firstFocusableRef} className="onb-btn onb-btn--primary" onClick={nextStep}>
-                Próximo →
-              </button>
-            </div>
-          </section>
-        )}
-
-        {step === 2 && (
-          <section className="onb-step">
-            <h1 id="onb-title" className="onb-title">Quais CLIs você quer?</h1>
-            <p className="onb-subtitle">Selecione as que deseja instalar agora. Você pode pular e instalar depois.</p>
-
-            <div className="onb-cli-grid">
-              {CLI_CATALOG.map(cli => {
-                const isSel = !!selected[cli.key];
-                const isCurrent = installingKey === cli.key;
-                const fileName = cli.key === 'kilocode' ? 'kilo' : cli.key;
-                return (
-                  <label
-                    key={cli.key}
-                    className={`onb-cli-item${isSel ? ' onb-cli-item--selected' : ''}${isCurrent ? ' onb-cli-item--busy' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSel}
-                      disabled={installing}
-                      onChange={() => toggleCli(cli.key)}
-                    />
-                    <img
-                      src={`/icons/cli/${fileName}.svg`}
-                      width={28}
-                      height={28}
-                      alt=""
-                      aria-hidden="true"
-                      className="onb-cli-icon"
-                    />
-                    <span className="onb-cli-name">{cli.name}</span>
-                    {isCurrent && <span className="onb-cli-spinner" aria-hidden="true" />}
-                  </label>
-                );
-              })}
-            </div>
-
-            {installLog.length > 0 && (
-              <div className="onb-install-log" aria-live="polite">
-                {installLog.slice(-4).map((line, i) => (
-                  <div key={i} className="onb-install-line">{line}</div>
-                ))}
-              </div>
-            )}
-
-            {installResult && (
-              <div className="onb-install-summary" role="status">
-                {installResult.ok} instalado(s){installResult.fail > 0 ? `, ${installResult.fail} falhou` : ''}.
-              </div>
-            )}
-
-            <div className="onb-actions onb-actions--split">
-              <button className="onb-btn onb-btn--ghost" onClick={prevStep} disabled={installing}>
-                ← Voltar
-              </button>
-              <div className="onb-actions-right">
-                <button className="onb-btn onb-btn--ghost" onClick={nextStep} disabled={installing}>
-                  Pular
-                </button>
-                {installResult ? (
-                  <button ref={firstFocusableRef} className="onb-btn onb-btn--primary" onClick={nextStep}>
-                    Próximo →
-                  </button>
-                ) : (
-                  <button
-                    ref={firstFocusableRef}
-                    className="onb-btn onb-btn--primary"
-                    onClick={runInstall}
-                    disabled={installing || selectedKeys.length === 0}
-                  >
-                    {installing
-                      ? `Instalando${installingKey ? ` ${CLI_CATALOG.find(c => c.key === installingKey)?.name || installingKey}` : ''}...`
-                      : `Instalar marcados (${selectedKeys.length})`}
-                  </button>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-
-        {step === 4 && (
-          <section className="onb-step">
-            <h1 id="onb-title" className="onb-title">Atalhos essenciais</h1>
-            <p className="onb-subtitle">Memorize esses cinco. Tudo fica mais rápido.</p>
-
-            <div className="onb-shortcuts">
-              <div className="onb-shortcut">
-                <kbd className="onb-kbd">Ctrl</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">Shift</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">P</kbd>
-                <span className="onb-shortcut-desc">Command Palette</span>
-              </div>
-              <div className="onb-shortcut">
-                <kbd className="onb-kbd">Ctrl</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">Alt</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">Space</kbd>
-                <span className="onb-shortcut-desc">Mostrar/ocultar app (global, configurável em Ajuda)</span>
-              </div>
-              <div className="onb-shortcut">
-                <kbd className="onb-kbd">Ctrl</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">L</kbd>
-                <span className="onb-shortcut-desc">Lançar CLI selecionada</span>
-              </div>
-              <div className="onb-shortcut">
-                <kbd className="onb-kbd">Ctrl</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">R</kbd>
-                <span className="onb-shortcut-desc">Recarregar detecção</span>
-              </div>
-              <div className="onb-shortcut">
-                <kbd className="onb-kbd">Ctrl</kbd>
-                <span className="onb-plus">+</span>
-                <kbd className="onb-kbd">U</kbd>
-                <span className="onb-shortcut-desc">Verificar atualizações</span>
-              </div>
-            </div>
-
-            <div className="onb-actions onb-actions--split">
-              <button className="onb-btn onb-btn--ghost" onClick={prevStep}>
-                ← Voltar
-              </button>
-              <button ref={firstFocusableRef} className="onb-btn onb-btn--primary" onClick={finish}>
-                Começar a usar ✓
-              </button>
-            </div>
-          </section>
-        )}
+        <TerminalFrame>
+          {step === 'welcome' && <WelcomeStep onNext={next} onSkip={handleFinish} />}
+          {step === 'detect' && <DetectStep onNext={next} />}
+          {step === 'provider' && <ProviderStep onNext={next} />}
+          {step === 'launch' && <LaunchStep onFinish={handleFinish} />}
+        </TerminalFrame>
       </div>
     </div>
   );
 }
 
-export default Onboarding;
+function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
+  return (
+    <div className="onboarding-step">
+      <h1 className="onboarding-step__title">
+        <Terminal size={20} strokeWidth={1.5} /> AI LAUNCHER
+      </h1>
+      <p className="onboarding-step__tagline">eight CLIs. one launcher.</p>
+      <p className="onboarding-step__body">
+        O AI Launcher Pro detecta as CLIs instaladas, alterna providers num clique
+        e lança com o ambiente certo — direto do terminal dramático.
+      </p>
+      <div className="onboarding-step__actions">
+        <button type="button" className="btn btn-primary" onClick={onNext}>start</button>
+        <button type="button" className="btn-ghost" onClick={onSkip}>skip tour</button>
+      </div>
+    </div>
+  );
+}
+
+function DetectStep({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="onboarding-step">
+      <p className="onboarding-step__prompt">&gt; detecting installed CLIs...</p>
+      <ul className="onboarding-step__checklist">
+        <li><CheckCircle2 size={14}/> <code>claude</code></li>
+        <li><CheckCircle2 size={14}/> <code>codex</code></li>
+        <li><CheckCircle2 size={14}/> <code>cursor-agent</code></li>
+      </ul>
+      <p className="onboarding-step__body">
+        A lista real aparece na aba Launcher depois que você terminar o tour.
+      </p>
+      <div className="onboarding-step__actions">
+        <button type="button" className="btn btn-primary" onClick={onNext}>continue</button>
+      </div>
+    </div>
+  );
+}
+
+function ProviderStep({ onNext }: { onNext: () => void }) {
+  return (
+    <div className="onboarding-step">
+      <p className="onboarding-step__prompt">&gt; choose provider</p>
+      <div className="onboarding-step__radios">
+        <label className="is-active"><input type="radio" name="ob-prov" defaultChecked /> Anthropic (oficial)</label>
+        <label><input type="radio" name="ob-prov" /> Z.AI</label>
+        <label><input type="radio" name="ob-prov" /> MiniMax</label>
+      </div>
+      <p className="onboarding-step__body">
+        Configure tokens depois no Admin → Providers. Tokens ficam local only,
+        zero telemetria.
+      </p>
+      <div className="onboarding-step__actions">
+        <button type="button" className="btn btn-primary" onClick={onNext}>continue</button>
+      </div>
+    </div>
+  );
+}
+
+function LaunchStep({ onFinish }: { onFinish: () => void }) {
+  return (
+    <div className="onboarding-step">
+      <p className="onboarding-step__prompt">&gt; ready to launch</p>
+      <p className="onboarding-step__body">
+        Pressione <kbd>⌘</kbd> <kbd>K</kbd> pra abrir a paleta a qualquer hora,
+        ou volte pra aba Launcher e selecione a CLI.
+      </p>
+      <div className="onboarding-step__actions">
+        <button type="button" className="btn btn-primary" onClick={onFinish}>
+          <ArrowUpRight size={14} /> launch now
+        </button>
+      </div>
+    </div>
+  );
+}
