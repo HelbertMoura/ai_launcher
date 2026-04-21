@@ -433,7 +433,9 @@
     "openingTool": "Opening {{name}}",
     "clearAllConfirm": "Clear ALL settings (directory, history, theme, welcome, API keys, install log)?\n\nThe app will reload.",
     "settingsReset": "Settings reset",
-    "welcomeOnNext": "Welcome will be shown on next open"
+    "welcomeOnNext": "Welcome will be shown on next open",
+    "customLaunchFailed": "Launch failed: {{error}}",
+    "customLaunched": "Launched: {{name}}"
   },
   "welcome": {
     "loading": "Loading...",

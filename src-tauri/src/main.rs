@@ -1770,6 +1770,172 @@ fn launch_cli(
     Ok(format!("Iniciando: {} em {}", cmd_line, work_dir))
 }
 
+// v7.1: Launch a user-defined custom CLI. Mirrors launch_cli's terminal chain
+// (Windows Terminal → pwsh → powershell → cmd) for consistency, but takes the
+// command + args directly instead of looking up a built-in CLI definition.
+#[tauri::command]
+fn launch_custom_cli(
+    command: String,
+    args: Option<String>,
+    directory: Option<String>,
+    env: Option<HashMap<String, String>>,
+) -> Result<String, String> {
+    if command.trim().is_empty() {
+        return Err("command vazio".to_string());
+    }
+    let safe_args = sanitize_args(args.as_deref().unwrap_or(""))?;
+    let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
+
+    // Resolve absolute path when possible (handles npm global shims on Windows).
+    let resolved_cmd = resolve_cli_path_win(&command).unwrap_or_else(|| command.clone());
+    let ps_cmd = if resolved_cmd.contains(' ') {
+        format!("& '{}'", resolved_cmd.replace('\'', "''"))
+    } else {
+        resolved_cmd.clone()
+    };
+    let cmd_cmd = if resolved_cmd.contains(' ') {
+        format!("\"{}\"", resolved_cmd)
+    } else {
+        resolved_cmd.clone()
+    };
+
+    let tail_args = if safe_args.is_empty() {
+        String::new()
+    } else {
+        format!(" {}", safe_args)
+    };
+    let ps_line = format!("{}{}", ps_cmd, tail_args);
+    let cmd_line = format!("{}{}", cmd_cmd, tail_args);
+
+    let mut ps_script =
+        String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+    if let Some(ref vars) = env {
+        for (k, v) in vars {
+            let esc = v.replace('\'', "''");
+            ps_script.push_str(&format!("$env:{} = '{}'\n", k, esc));
+        }
+    }
+    ps_script.push_str(&ps_line);
+    ps_script.push('\n');
+
+    let encoded = encode_powershell_command(&ps_script);
+    let mut launched = false;
+
+    if let Some(wt) = find_windows_terminal() {
+        if std::process::Command::new(&wt)
+            .args([
+                "new-tab",
+                "-d",
+                &work_dir,
+                "pwsh",
+                "-NoExit",
+                "-EncodedCommand",
+                &encoded,
+            ])
+            .spawn()
+            .is_ok()
+        {
+            launched = true;
+        }
+    }
+    if !launched
+        && std::process::Command::new("pwsh")
+            .args(["-NoExit", "-EncodedCommand", &encoded])
+            .current_dir(&work_dir)
+            .spawn()
+            .is_ok()
+    {
+        launched = true;
+    }
+    if !launched
+        && std::process::Command::new("powershell")
+            .args(["-NoExit", "-EncodedCommand", &encoded])
+            .current_dir(&work_dir)
+            .spawn()
+            .is_ok()
+    {
+        launched = true;
+    }
+    if !launched {
+        std::process::Command::new("cmd")
+            .args(["/K", &cmd_line])
+            .current_dir(&work_dir)
+            .spawn()
+            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
+    }
+
+    Ok(format!("Iniciando: {} em {}", cmd_line, work_dir))
+}
+
+// v7.1: Launch a user-defined custom IDE. The stored launch_cmd uses a literal
+// "<dir>" placeholder that gets replaced with the chosen directory. Mirrors
+// launch_cli's terminal-chain fallback so users see the exact same spawn
+// behavior as built-in CLIs.
+#[tauri::command]
+fn launch_custom_ide(
+    launch_cmd: String,
+    directory: Option<String>,
+) -> Result<String, String> {
+    if launch_cmd.trim().is_empty() {
+        return Err("launch_cmd vazio".to_string());
+    }
+    let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
+    let resolved = launch_cmd.replace("<dir>", &work_dir);
+
+    // Encode as PowerShell so we get the same terminal chain + PATH bootstrap.
+    let mut ps_script =
+        String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+    ps_script.push_str(&resolved);
+    ps_script.push('\n');
+    let encoded = encode_powershell_command(&ps_script);
+
+    let mut launched = false;
+    if let Some(wt) = find_windows_terminal() {
+        if std::process::Command::new(&wt)
+            .args([
+                "new-tab",
+                "-d",
+                &work_dir,
+                "pwsh",
+                "-NoExit",
+                "-EncodedCommand",
+                &encoded,
+            ])
+            .spawn()
+            .is_ok()
+        {
+            launched = true;
+        }
+    }
+    if !launched
+        && std::process::Command::new("pwsh")
+            .args(["-NoExit", "-EncodedCommand", &encoded])
+            .current_dir(&work_dir)
+            .spawn()
+            .is_ok()
+    {
+        launched = true;
+    }
+    if !launched
+        && std::process::Command::new("powershell")
+            .args(["-NoExit", "-EncodedCommand", &encoded])
+            .current_dir(&work_dir)
+            .spawn()
+            .is_ok()
+    {
+        launched = true;
+    }
+    if !launched {
+        std::process::Command::new("cmd")
+            .args(["/K", &resolved])
+            .current_dir(&work_dir)
+            .spawn()
+            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
+    }
+
+    Ok(format!("Iniciando: {} em {}", resolved, work_dir))
+}
+
 #[tauri::command]
 fn launch_multi_clis(
     cli_keys: Vec<String>,
@@ -2800,6 +2966,8 @@ fn main() {
             update_cli,
             update_all_clis,
             launch_cli,
+            launch_custom_cli,
+            launch_custom_ide,
             launch_multi_clis,
             launch_tool,
             install_tool,
