@@ -190,3 +190,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Custom CLI card variant (v7.0) */
+.launcher-cli-card--custom {
+  border-style: dashed;
+  cursor: default;
+}
+.launcher-cli-card--custom:hover {
+  transform: none;
+}
+.launcher-cli-card--custom .launcher-cli-card__version {
+  color: var(--text-prompt);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+.launcher-cli-card--custom .launcher-cli-card__desc code {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  word-break: break-all;
+}
