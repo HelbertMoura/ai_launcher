@@ -4,7 +4,7 @@
 // MiniMax, etc.) que injetam env vars no launch do Claude Code.
 // ==============================================================================
 
-export type ProviderKind = 'anthropic' | 'zai' | 'minimax' | 'custom';
+export type ProviderKind = 'anthropic' | 'zai' | 'minimax' | 'moonshot' | 'qwen' | 'openrouter' | 'custom';
 
 export interface ProviderProfile {
   /** ID estável (slug). Ex: "anthropic", "zai", "zai-test". */

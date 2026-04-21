@@ -105,6 +105,10 @@
   color: oklch(70% 0.18 300);
 }
 
+.headerbar__dot--moonshot   { background: var(--color-brand-moonshot); }
+.headerbar__dot--qwen       { background: var(--color-brand-qwen); }
+.headerbar__dot--openrouter { background: var(--color-brand-openrouter); }
+
 .headerbar__dot--custom {
   background: var(--text-muted);
   color: var(--text-muted);

@@ -141,6 +141,9 @@
 .history-entry__provider.kind-anthropic { color: var(--color-brand-anthropic); }
 .history-entry__provider.kind-zai       { color: var(--color-brand-zai); }
 .history-entry__provider.kind-minimax   { color: var(--color-brand-minimax); }
+.history-entry__provider.kind-moonshot   { color: var(--color-brand-moonshot); }
+.history-entry__provider.kind-qwen       { color: var(--color-brand-qwen); }
+.history-entry__provider.kind-openrouter { color: var(--color-brand-openrouter); }
 .history-entry__time {
   margin-left: auto;
   color: var(--text-dim);
