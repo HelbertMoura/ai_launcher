@@ -5,7 +5,7 @@ import { useTheme } from "../hooks/useTheme";
 import { Sidebar } from "./layout/Sidebar";
 import { StatusBar } from "./layout/StatusBar";
 import { TopBar } from "./layout/TopBar";
-import { TAB_ORDER, type TabId } from "./layout/TabId";
+import type { TabId } from "./layout/TabId";
 import "./App.css";
 
 export function App() {
@@ -35,7 +35,7 @@ export function App() {
         <Placeholder tab={active} />
       </main>
       <div className="cd-app__status">
-        <StatusBar online={0} total={TAB_ORDER.length} todaySpend="$0.00" version={pkg.version} />
+        <StatusBar online={0} total={0} todaySpend="$0.00" version={pkg.version} />
       </div>
     </div>
   );

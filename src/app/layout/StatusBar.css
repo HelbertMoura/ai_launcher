@@ -7,7 +7,7 @@
   border-top: 1px solid var(--border);
   background: var(--surface-1);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--text-dim);
 }

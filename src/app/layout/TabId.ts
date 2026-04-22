@@ -17,11 +17,15 @@ export const TAB_LABELS: Record<TabId, string> = {
   help: "Help",
 };
 
+const MOD = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform)
+  ? "⌘"
+  : "Ctrl";
+
 export const TAB_KEYS: Record<TabId, string> = {
-  launcher: "⌘1",
-  tools: "⌘2",
-  history: "⌘3",
-  costs: "⌘4",
-  admin: "⌘,",
+  launcher: `${MOD}+1`,
+  tools: `${MOD}+2`,
+  history: `${MOD}+3`,
+  costs: `${MOD}+4`,
+  admin: `${MOD}+,`,
   help: "?",
 };
