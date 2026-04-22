@@ -1,0 +1,18 @@
+.cd-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.cd-banner__content { flex: 1; }
+.cd-banner--info { border-color: var(--border-strong); color: var(--text-muted); }
+.cd-banner--warn { border-color: var(--warn); color: var(--warn); }
+.cd-banner--err  { border-color: var(--err);  color: var(--err); }
+.cd-banner--admin { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
