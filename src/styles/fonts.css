@@ -1,1 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+/* v10 migration: external Google Fonts @import removed to eliminate runtime network request.
+   The v9 UI (Fira Code / Fira Sans) falls back to system fonts until Phase 3 swaps the entry
+   point to src/app/main.tsx, at which point this entire src/styles/ directory is deleted. */
