@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export type Accent = "red" | "amber" | "green" | "blue" | "violet";
 
@@ -24,10 +24,6 @@ export function useAccent(): { accent: Accent; setAccent: (a: Accent) => void } 
       // ignore
     }
   }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-accent", accent);
-  }, [accent]);
 
   return { accent, setAccent };
 }

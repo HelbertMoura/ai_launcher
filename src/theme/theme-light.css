@@ -1,3 +1,5 @@
+/* Hard Light — intentional flat white. bg, surface-1, surface-2 collapse to #ffffff;
+   layering is achieved via 1px borders and accent glow, not surface elevation. */
 [data-theme="light"] {
   color-scheme: light;
 

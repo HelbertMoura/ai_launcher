@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export type Theme = "dark" | "light";
 
@@ -22,10 +22,6 @@ export function useTheme(): { theme: Theme; setTheme: (t: Theme) => void } {
       // ignore storage errors (private mode)
     }
   }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
 
   return { theme, setTheme };
 }

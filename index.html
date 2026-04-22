@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script>
       (function () {
+        var THEMES = ["dark", "light"];
+        var ACCENTS = ["red", "amber", "green", "blue", "violet"];
         try {
-          var t = localStorage.getItem("ai-launcher:theme") || "dark";
-          var a = localStorage.getItem("ai-launcher:accent") || "red";
-          document.documentElement.setAttribute("data-theme", t);
-          document.documentElement.setAttribute("data-accent", a);
+          var t = localStorage.getItem("ai-launcher:theme");
+          var a = localStorage.getItem("ai-launcher:accent");
+          document.documentElement.setAttribute(
+            "data-theme",
+            THEMES.indexOf(t) >= 0 ? t : "dark"
+          );
+          document.documentElement.setAttribute(
+            "data-accent",
+            ACCENTS.indexOf(a) >= 0 ? a : "red"
+          );
         } catch (e) {
           document.documentElement.setAttribute("data-theme", "dark");
           document.documentElement.setAttribute("data-accent", "red");
@@ -17,7 +25,7 @@
       })();
     </script>
     <meta name="description" content="AI Launcher - Your ultimate desktop hub for AI coding CLIs." />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#0a0a0b" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -30,10 +38,6 @@
     <meta property="twitter:description" content="Your ultimate desktop hub for AI coding CLIs. Built for speed, flexibility, and productivity." />
 
     <title>AI Launcher Pro - by Helbert Moura</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   </head>
   <body>
     <noscript>Você precisa habilitar o JavaScript para rodar este aplicativo. / You need to enable JavaScript to run this app.</noscript>
