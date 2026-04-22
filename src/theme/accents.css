@@ -1,0 +1,28 @@
+[data-accent="red"] {
+  --accent: #ff3131;
+  --accent-glow: rgba(255, 49, 49, 0.4);
+  --accent-soft: rgba(255, 49, 49, 0.12);
+}
+[data-accent="amber"] {
+  --accent: #ff9f1c;
+  --accent-glow: rgba(255, 159, 28, 0.4);
+  --accent-soft: rgba(255, 159, 28, 0.12);
+}
+[data-accent="green"] {
+  --accent: #35d07f;
+  --accent-glow: rgba(53, 208, 127, 0.4);
+  --accent-soft: rgba(53, 208, 127, 0.12);
+}
+[data-accent="blue"] {
+  --accent: #4ea1ff;
+  --accent-glow: rgba(78, 161, 255, 0.4);
+  --accent-soft: rgba(78, 161, 255, 0.12);
+}
+[data-accent="violet"] {
+  --accent: #b982ff;
+  --accent-glow: rgba(185, 130, 255, 0.4);
+  --accent-soft: rgba(185, 130, 255, 0.12);
+}
+[data-theme="light"][data-accent] {
+  --accent-soft: rgba(0, 0, 0, 0.04);
+}

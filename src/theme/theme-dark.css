@@ -1,0 +1,5 @@
+/* Dark is the default in tokens.css — this file is a no-op placeholder
+   kept for symmetry with theme-light.css and future dark variants. */
+[data-theme="dark"] {
+  color-scheme: dark;
+}

@@ -1,0 +1,62 @@
+/* Command Deck — base tokens (dark default) */
+:root {
+  /* surfaces */
+  --bg: #0a0a0b;
+  --surface-1: #0d0d0f;
+  --surface-2: #111114;
+  --surface-hover: #15151a;
+  --border: #1a1a1d;
+  --border-strong: #2a2a2d;
+
+  /* text */
+  --text: #e6e6e8;
+  --text-muted: #9a9aa3;
+  --text-dim: #6b6b74;
+
+  /* accent (default: red) */
+  --accent: #ff3131;
+  --accent-glow: rgba(255, 49, 49, 0.4);
+  --accent-soft: rgba(255, 49, 49, 0.12);
+  --accent-ink: #0a0a0b;
+
+  /* semantic */
+  --ok: #35d07f;
+  --warn: #ff9f1c;
+  --err: #ff3131;
+
+  /* typography */
+  --font-mono: "JetBrains Mono", Menlo, ui-monospace, monospace;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 28px;
+
+  /* spacing — base 4 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  /* radii — Command Deck é afiado */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+
+  /* motion */
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 400ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* chrome */
+  --sidebar-w: 184px;
+  --topbar-h: 44px;
+  --statusbar-h: 26px;
+}
