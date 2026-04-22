@@ -1,59 +1,113 @@
-# AI Launcher Pro v9.1
+> [🇺🇸 English](./README.md) | 🇧🇷 Português (Brasil)
 
+```text
+   ┌─ AI LAUNCHER ─────────────────────────── v10.0.0 ──┐
+   │                                                    │
+   │   ▎ COMMAND DECK                                   │
+   │                                                    │
+   │   ● claude-code   online    v2.1.0                 │
+   │   ● codex         online    v1.4.2                 │
+   │   ○ gemini        missing                          │
+   │   ● qwen          online    v0.9.1                 │
+   │   ▲ aider         update    v0.5 → v0.6            │
+   │   ● copilot       online    v1.2.0                 │
+   │                                                    │
+   │   5/8 online         ● ADMIN         $0.42 today   │
+   └────────────────────────────────────────────────────┘
 ```
-┌──────────────────────────────────────────────┐
-│  ●   AI Launcher Pro                        │
-│                                              │
-│  $ claude --describe "beautiful code"      │
-│  $ codex --help                             │
-│                                              │
-│  8 CLIs  •  Theme: Soft Workbench 2.0       │
-└──────────────────────────────────────────────┘
-```
 
-O AI Launcher Pro é um hub desktop local-first para CLIs de coding com IA. A versão 9.1 traz uma reformulação visual completa — **UI minimalista no estilo Figma** com acentos terracotta quentes, modo escuro completo e acesso admin unificado.
+Launcher desktop para CLIs de codificação com IA — detecte, instale, execute e acompanhe custos.
 
-**Idioma:** [English](./README.md) · Português  
-**Plataformas:** Windows ✅ · macOS 🔜 · Linux 🔜
+![Licença: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Versão 10.0.0](https://img.shields.io/badge/version-10.0.0-ff3131)
+![Plataforma: Windows](https://img.shields.io/badge/platform-Windows-0078D4)
 
-## O que mudou na v9.1 — Soft Workbench 2.0
+## O que é
 
-- **UI no estilo Figma**: Design minimalista e moderno com acentos terracotta quentes
-- **Modo escuro**: Tema escuro completo com hierarquia de superfícies no estilo Figma
-- **Admin unificado**: Todos os recursos disponíveis para todos os usuários — sem divisão admin/público
-- **Ícones oficiais**: Ícones autênticos das marcas para Claude, VS Code, Cursor, Gemini, Qwen
-- **Cores de destaque dinâmicas**: Escolha sua cor de destaque nas configurações do Admin
-- **Sem estética terminal**: Interface limpa e moderna sem decorações falsas de terminal
+O AI Launcher é um app desktop em Tauri v2 que gerencia CLIs de IA para codificação — Claude Code, Codex, Gemini, Qwen, Aider, Copilot e outros — junto com IDEs como VSCode, Cursor, Windsurf e JetBrains AI. Ele detecta o que já está instalado na sua máquina, ajuda a instalar o que falta, executa cada ferramenta com o provider certo e o diretório de trabalho correto, e acompanha o gasto por provider para você saber exatamente quanto cada sessão custa.
 
-## Recursos
+## Screenshots
 
-- 8 CLIs de IA embutidas: Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush e Droid
-- Perfis Anthropic-compatible com troca de provider, override de modelo e rastreamento de custos
-- Histórico de launches, budgets, atalhos e backup/import local de configuração
-- CLIs customizadas e IDEs customizadas com imagem opcional para ícone
-- Armazenamento local-first e zero telemetria
-- Tema: Claro/Escuro com cor de destaque configurável
+![Aba Launcher — grid de CLIs com chips de status](./docs/screenshots/01-launcher.svg)
+_Aba Launcher — resultado do scan com status, versões e botões de lançamento._
+
+![Aba Admin — seção de providers com três cards](./docs/screenshots/02-admin.svg)
+_Aba Admin — providers, presets, aparência e overrides de CLI._
+
+![Aba Costs — total de hoje e detalhamento por CLI](./docs/screenshots/03-costs.svg)
+_Aba Costs — total de hoje, tiles por CLI e tendência de gasto._
 
 ## Instalação
 
-### Usuário final
+### Baixar o `.msi`
 
-Baixe o `.msi` ou `.exe` mais recente na [página de releases do GitHub](https://github.com/HelbertMoura/ai_launcher/releases/latest).
+Pegue o instalador mais recente no [último release](https://github.com/HelbertMoura/ai_launcher/releases).
 
-O Windows SmartScreen pode alertar em builds sem assinatura. Se necessário, use **Mais informações → Executar mesmo assim**.
+O SmartScreen do Windows pode alertar em builds sem assinatura — use **Mais informações → Executar mesmo assim**.
 
-### A partir do código
+### Build a partir do código
+
+**Pré-requisitos:** Node 20+, Rust stable, Visual Studio Build Tools com **Desktop development with C++**.
 
 ```bash
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
 npm install
-npm run tauri dev
 npm run tauri build
 ```
 
-Pré-requisitos: Node 18+, Rust stable, Windows 10/11 e Visual Studio Build Tools com **Desktop development with C++**.
+O `.msi` é gerado em `src-tauri/target/release/bundle/msi/`.
+
+## Uso
+
+### Atalhos de teclado
+
+- `Ctrl+K` / `⌘K` — abre a paleta de comandos
+- `Ctrl+1`..`Ctrl+4` — salta para as quatro primeiras abas
+- `?` — abre a ajuda
+- `Esc` — fecha qualquer diálogo aberto
+
+### Sidebar
+
+A barra lateral esquerda expõe sete superfícies: **Launch** (scan e execução de CLIs), **Tools** (gerenciamento de IDEs), **History** (lançamentos passados), **Costs** (gasto por provider), **Admin** (providers, presets, aparência, overrides e IDEs customizadas), **Help** e **Onboarding**.
+
+### Sobre o Admin
+
+O launcher sempre roda com acesso total ao sistema (`--dangerously-skip-permissions` é o padrão). Todas as credenciais, overrides e histórico permanecem locais — nada é transmitido além das chamadas de API que você dispara explicitamente.
+
+## Personalização
+
+- **Tema** — escuro (padrão) ou Hard Light
+- **Accent** — 5 cores de LED: vermelho, âmbar, verde, azul, violeta
+- **Fonte** — 5 opções monoespaçadas, incluindo JetBrains Mono e fallbacks pareados com Inter
+- **Overrides de nome/ícone das CLIs** — renomeie qualquer CLI built-in e suba um ícone customizado
+- **IDEs customizadas** — adicione qualquer IDE que não venha por padrão, CRUD completo no Admin
+- **Providers** — Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter e endpoints customizados
+- **Presets** — salve combinações de CLI + provider + diretório + args e dispare com `Ctrl+1..9`
+
+## Novidades da v10
+
+- Reescrita completa do frontend na direção visual **Command Deck** — estética de terminal monoespaçado dark-first com accent LED
+- Nova arquitetura em camadas sob `src/app/`, `src/ui/`, `src/features/`, `src/theme/`, `src/icons/`, `src/hooks/`
+- Sistema de tema baseado em atributos (dark + Hard Light) com restauração pre-paint, sem flash de conteúdo sem estilo
+- Sistema de accent de 5 cores, trocável pela top bar ou pela paleta de comandos
+- Aba Tools de volta — o gerenciamento de IDEs volta a ser superfície de primeira classe
+- Admin unificado — sem toggle, uma única build com acesso total em todo lugar
+- 16 ícones line-art customizados usando `currentColor` e stroke 1.5 para renderização consistente entre temas
+- Paleta de comandos (`⌘K` / `Ctrl+K`) com grupos Navigate, Theme e Accent
+- JetBrains Mono + Inter self-hosted — sem requisições externas de fonte
+
+## Contribuindo
+
+Faça fork do repositório, crie uma branch de feature e abra um pull request contra `main`. Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para setup, convenções e checklist de PR.
 
 ## Licença
 
-MIT. Veja [LICENSE](./LICENSE).
+MIT — veja [LICENSE](./LICENSE).
+
+## Créditos
+
+- Autor: **Helbert Moura** — DevManiac's
+- **JetBrains Mono** — por JetBrains, licenciada sob SIL OFL 1.1
+- **Inter** — por Rasmus Andersson, licenciada sob SIL OFL 1.1
+- Os ícones são line-art desenhados manualmente — **não são** logos oficiais de fornecedores. Nomes de marcas e marcas registradas pertencem aos seus respectivos donos.
