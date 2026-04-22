@@ -57,6 +57,7 @@ function Item({
   return (
     <button
       type="button"
+      aria-current={isOn ? "page" : undefined}
       className={`cd-side__item${isOn ? " cd-side__item--on" : ""}`}
       onClick={() => onSelect(id)}
     >

@@ -21,6 +21,7 @@
     "src/**/*.bak",
     "src/tabs",
     "src/layout",
+    "src/styles",
     "src/presets",
     "src/providers",
     "src/shared",

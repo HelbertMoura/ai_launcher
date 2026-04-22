@@ -2,6 +2,11 @@ import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Theme } from "../../hooks/useTheme";
 import "./TopBar.css";
 
+const CMD_KEY_LABEL =
+  typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform)
+    ? "⌘K"
+    : "Ctrl+K";
+
 interface TopBarProps {
   onCommand: () => void;
   theme: Theme;
@@ -16,7 +21,7 @@ export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: To
       <button className="cd-top__cmd" type="button" onClick={onCommand}>
         <span className="cd-top__cmd-icon">⌘</span>
         <span>search commands, CLIs, presets…</span>
-        <span className="cd-top__cmd-key">⌘K</span>
+        <span className="cd-top__cmd-key">{CMD_KEY_LABEL}</span>
       </button>
 
       <div className="cd-top__right">
