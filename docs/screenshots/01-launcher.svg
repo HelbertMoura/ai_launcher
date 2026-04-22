@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" font-family="JetBrains Mono, monospace" font-size="12">
+  <rect width="1200" height="750" fill="#0a0a0b"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="220" height="750" fill="#111114"/>
+  <line x1="220" y1="0" x2="220" y2="750" stroke="#22222a"/>
+  <text x="24" y="40" fill="#ff3131" font-size="14" font-weight="700">▎ AI LAUNCHER</text>
+  <text x="24" y="58" fill="#55555e" font-size="10">v10.0.0 · COMMAND DECK</text>
+
+  <!-- Sidebar nav -->
+  <g font-size="13">
+    <rect x="12" y="100" width="196" height="34" rx="4" fill="#1a1a20" stroke="#ff3131"/>
+    <text x="28" y="122" fill="#ff3131">▸ Launch</text>
+    <text x="28" y="156" fill="#c8c8d0">  Tools</text>
+    <text x="28" y="186" fill="#c8c8d0">  History</text>
+    <text x="28" y="216" fill="#c8c8d0">  Costs</text>
+    <text x="28" y="246" fill="#c8c8d0">  Admin</text>
+    <text x="28" y="276" fill="#c8c8d0">  Help</text>
+    <text x="28" y="306" fill="#7a7a84">  Onboarding</text>
+  </g>
+
+  <!-- Top bar -->
+  <rect x="220" y="0" width="980" height="56" fill="#0e0e12"/>
+  <line x1="220" y1="56" x2="1200" y2="56" stroke="#22222a"/>
+  <rect x="240" y="14" width="360" height="28" rx="6" fill="#17171c" stroke="#2a2a33"/>
+  <text x="256" y="32" fill="#55555e">⌘K</text>
+  <text x="296" y="32" fill="#8a8a94">Search commands, tabs, themes…</text>
+
+  <!-- Accent swatches -->
+  <g>
+    <circle cx="720" cy="28" r="8" fill="#ff3131" stroke="#ffffff" stroke-opacity="0.25"/>
+    <circle cx="742" cy="28" r="8" fill="#f5a524"/>
+    <circle cx="764" cy="28" r="8" fill="#34c759"/>
+    <circle cx="786" cy="28" r="8" fill="#3b82f6"/>
+    <circle cx="808" cy="28" r="8" fill="#8b5cf6"/>
+  </g>
+
+  <!-- Theme toggle -->
+  <rect x="840" y="14" width="60" height="28" rx="14" fill="#17171c" stroke="#2a2a33"/>
+  <circle cx="856" cy="28" r="9" fill="#ff3131"/>
+  <text x="875" y="32" fill="#8a8a94" font-size="10">dark</text>
+
+  <!-- Title -->
+  <text x="244" y="98" fill="#eeeef2" font-size="24" font-weight="700">LAUNCH</text>
+  <text x="244" y="120" fill="#7a7a84">Detected 6 CLIs on this machine · 5 online</text>
+
+  <!-- Cards grid (3x2) -->
+  <g font-size="12">
+    <!-- Card 1 -->
+    <rect x="244" y="150" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="264" y="178" fill="#eeeef2" font-size="14" font-weight="700">claude-code</text>
+    <circle cx="504" cy="172" r="5" fill="#34c759"/>
+    <text x="264" y="200" fill="#7a7a84">Anthropic CLI · v2.1.0</text>
+    <rect x="264" y="218" width="60" height="20" rx="3" fill="#0d2518"/>
+    <text x="274" y="232" fill="#34c759" font-size="10">ONLINE</text>
+    <rect x="264" y="258" width="96" height="28" rx="4" fill="#ff3131"/>
+    <text x="286" y="276" fill="#ffffff" font-weight="700">Launch ▸</text>
+    <text x="374" y="276" fill="#7a7a84">Docs</text>
+
+    <!-- Card 2 -->
+    <rect x="554" y="150" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="574" y="178" fill="#eeeef2" font-size="14" font-weight="700">codex</text>
+    <circle cx="814" cy="172" r="5" fill="#34c759"/>
+    <text x="574" y="200" fill="#7a7a84">OpenAI CLI · v1.4.2</text>
+    <rect x="574" y="218" width="60" height="20" rx="3" fill="#0d2518"/>
+    <text x="584" y="232" fill="#34c759" font-size="10">ONLINE</text>
+    <rect x="574" y="258" width="96" height="28" rx="4" fill="#ff3131"/>
+    <text x="596" y="276" fill="#ffffff" font-weight="700">Launch ▸</text>
+    <text x="684" y="276" fill="#7a7a84">Docs</text>
+
+    <!-- Card 3 -->
+    <rect x="864" y="150" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="884" y="178" fill="#eeeef2" font-size="14" font-weight="700">gemini</text>
+    <circle cx="1124" cy="172" r="5" fill="#55555e"/>
+    <text x="884" y="200" fill="#7a7a84">Google CLI · not installed</text>
+    <rect x="884" y="218" width="80" height="20" rx="3" fill="#2a1a1a"/>
+    <text x="894" y="232" fill="#ff7070" font-size="10">MISSING</text>
+    <rect x="884" y="258" width="96" height="28" rx="4" fill="#1a1a20" stroke="#ff3131"/>
+    <text x="898" y="276" fill="#ff3131" font-weight="700">Install ▸</text>
+
+    <!-- Card 4 -->
+    <rect x="244" y="320" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="264" y="348" fill="#eeeef2" font-size="14" font-weight="700">qwen</text>
+    <circle cx="504" cy="342" r="5" fill="#34c759"/>
+    <text x="264" y="370" fill="#7a7a84">Alibaba CLI · v0.9.1</text>
+    <rect x="264" y="388" width="60" height="20" rx="3" fill="#0d2518"/>
+    <text x="274" y="402" fill="#34c759" font-size="10">ONLINE</text>
+    <rect x="264" y="428" width="96" height="28" rx="4" fill="#ff3131"/>
+    <text x="286" y="446" fill="#ffffff" font-weight="700">Launch ▸</text>
+
+    <!-- Card 5 -->
+    <rect x="554" y="320" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="574" y="348" fill="#eeeef2" font-size="14" font-weight="700">aider</text>
+    <text x="810" y="348" fill="#f5a524" font-size="14">▲</text>
+    <text x="574" y="370" fill="#7a7a84">v0.5 → v0.6 available</text>
+    <rect x="574" y="388" width="70" height="20" rx="3" fill="#2a2218"/>
+    <text x="584" y="402" fill="#f5a524" font-size="10">UPDATE</text>
+    <rect x="574" y="428" width="96" height="28" rx="4" fill="#ff3131"/>
+    <text x="596" y="446" fill="#ffffff" font-weight="700">Launch ▸</text>
+    <text x="684" y="446" fill="#f5a524">Update</text>
+
+    <!-- Card 6 -->
+    <rect x="864" y="320" width="290" height="150" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="884" y="348" fill="#eeeef2" font-size="14" font-weight="700">copilot</text>
+    <circle cx="1124" cy="342" r="5" fill="#34c759"/>
+    <text x="884" y="370" fill="#7a7a84">GitHub CLI · v1.2.0</text>
+    <rect x="884" y="388" width="60" height="20" rx="3" fill="#0d2518"/>
+    <text x="894" y="402" fill="#34c759" font-size="10">ONLINE</text>
+    <rect x="884" y="428" width="96" height="28" rx="4" fill="#ff3131"/>
+    <text x="906" y="446" fill="#ffffff" font-weight="700">Launch ▸</text>
+  </g>
+
+  <!-- Status bar -->
+  <rect x="220" y="718" width="980" height="32" fill="#0e0e12"/>
+  <line x1="220" y1="718" x2="1200" y2="718" stroke="#22222a"/>
+  <g font-size="11">
+    <text x="244" y="738" fill="#8a8a94">5/6 online</text>
+    <text x="340" y="738" fill="#55555e">·</text>
+    <circle cx="362" cy="734" r="4" fill="#ff3131"/>
+    <text x="374" y="738" fill="#ff3131">ADMIN</text>
+    <text x="430" y="738" fill="#55555e">·</text>
+    <text x="450" y="738" fill="#8a8a94">$0.42 today</text>
+    <text x="1140" y="738" fill="#55555e">v10.0.0</text>
+  </g>
+</svg>
