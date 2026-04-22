@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
 import { Skeleton } from "../../ui/Skeleton";
@@ -42,6 +43,7 @@ function rollup(entries: UsageEntry[]): CliRollup[] {
 }
 
 export function CostsPage() {
+  const { t } = useTranslation();
   const { report, loading, error } = useUsage();
 
   const { todayTotal, cliRollups } = useMemo(() => {
@@ -59,8 +61,8 @@ export function CostsPage() {
     <section className="cd-page cd-costs">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ COSTS</h2>
-          <p className="cd-page__sub">estimated usage spend</p>
+          <h2 className="cd-page__title">▎ {t("costs.title")}</h2>
+          <p className="cd-page__sub">{t("costs.subtitle")}</p>
         </div>
       </header>
 
@@ -78,35 +80,37 @@ export function CostsPage() {
       )}
 
       {!loading && !hasData && (
-        <div className="cd-page__empty">No usage data yet.</div>
+        <div className="cd-page__empty">{t("costs.noData")}</div>
       )}
 
       {!loading && hasData && (
         <>
           <Card className="cd-costs__hero">
-            <div className="cd-costs__hero-label">today</div>
+            <div className="cd-costs__hero-label">{t("costs.today")}</div>
             <div className="cd-costs__hero-amount">{formatUsd(todayTotal)}</div>
             <div className="cd-costs__hero-sub">
-              {report?.entries.length ?? 0} entries tracked
+              {t("costs.entriesTracked", { count: report?.entries.length ?? 0 })}
             </div>
           </Card>
 
           {cliRollups.length > 0 && (
             <>
-              <h3 className="cd-costs__section">by CLI</h3>
+              <h3 className="cd-costs__section">{t("costs.byCli")}</h3>
               <div className="cd-page__grid">
                 {cliRollups.map((r) => (
                   <Card key={r.cli} className="cd-costs__cli">
                     <div className="cd-costs__cli-name">{r.cli}</div>
                     <div className="cd-costs__cli-row">
-                      <span className="cd-costs__cli-label">today</span>
+                      <span className="cd-costs__cli-label">{t("costs.today")}</span>
                       <span className="cd-costs__cli-val">{formatUsd(r.today)}</span>
                     </div>
                     <div className="cd-costs__cli-row">
-                      <span className="cd-costs__cli-label">month</span>
+                      <span className="cd-costs__cli-label">{t("costs.month")}</span>
                       <span className="cd-costs__cli-val">{formatUsd(r.month)}</span>
                     </div>
-                    <div className="cd-costs__cli-entries">{r.entries} entries</div>
+                    <div className="cd-costs__cli-entries">
+                      {t("costs.entries", { count: r.entries })}
+                    </div>
                   </Card>
                 ))}
               </div>

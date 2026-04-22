@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { ACCENTS, useAccent, type Accent } from "../../../hooks/useAccent";
@@ -9,6 +10,7 @@ import {
   FONT_STORAGE_KEY,
   type FontId,
 } from "../../../lib/appearance";
+import { setLocale, SUPPORTED_LOCALES, type Locale } from "../../../i18n";
 
 const THEMES: Theme[] = ["dark", "light"];
 
@@ -30,10 +32,19 @@ function readStoredFont(): FontId {
   return "jetbrains";
 }
 
+const LOCALE_LABELS: Record<Locale, string> = {
+  "pt-BR": "admin.appearance.languagePtBR",
+  en: "admin.appearance.languageEn",
+};
+
 export function AppearanceSection() {
+  const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { accent, setAccent } = useAccent();
   const [fontId, setFontId] = useState<FontId>(readStoredFont);
+  const currentLocale = (SUPPORTED_LOCALES as readonly string[]).includes(i18n.language)
+    ? (i18n.language as Locale)
+    : "pt-BR";
 
   useEffect(() => {
     applyFontStack(fontId);
@@ -48,16 +59,16 @@ export function AppearanceSection() {
     <div className="cd-admin__body">
       <Card>
         <div className="cd-appearance__group">
-          <div className="cd-appearance__label">theme</div>
+          <div className="cd-appearance__label">{t("admin.appearance.language")}</div>
           <div className="cd-appearance__row">
-            {THEMES.map((t) => (
+            {SUPPORTED_LOCALES.map((loc) => (
               <Button
-                key={t}
+                key={loc}
                 size="sm"
-                variant={theme === t ? "primary" : "ghost"}
-                onClick={() => setTheme(t)}
+                variant={currentLocale === loc ? "primary" : "ghost"}
+                onClick={() => setLocale(loc)}
               >
-                {t}
+                {t(LOCALE_LABELS[loc])}
               </Button>
             ))}
           </div>
@@ -66,7 +77,25 @@ export function AppearanceSection() {
 
       <Card>
         <div className="cd-appearance__group">
-          <div className="cd-appearance__label">accent</div>
+          <div className="cd-appearance__label">{t("admin.appearance.theme")}</div>
+          <div className="cd-appearance__row">
+            {THEMES.map((th) => (
+              <Button
+                key={th}
+                size="sm"
+                variant={theme === th ? "primary" : "ghost"}
+                onClick={() => setTheme(th)}
+              >
+                {th}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="cd-appearance__group">
+          <div className="cd-appearance__label">{t("admin.appearance.accent")}</div>
           <div className="cd-appearance__row" role="radiogroup">
             {ACCENTS.map((a) => (
               <button
@@ -74,7 +103,7 @@ export function AppearanceSection() {
                 type="button"
                 role="radio"
                 aria-checked={a === accent}
-                aria-label={`Accent ${a}`}
+                aria-label={`${t("topBar.accent")} ${a}`}
                 className={`cd-appearance__swatch cd-appearance__swatch--${a}${
                   a === accent ? " is-active" : ""
                 }`}
@@ -87,7 +116,7 @@ export function AppearanceSection() {
 
       <Card>
         <div className="cd-appearance__group">
-          <div className="cd-appearance__label">display font</div>
+          <div className="cd-appearance__label">{t("admin.appearance.font")}</div>
           <div className="cd-appearance__fonts">
             {FONT_OPTIONS.map((opt) => (
               <button
@@ -101,7 +130,7 @@ export function AppearanceSection() {
               >
                 <span>
                   {opt.name}
-                  {opt.recommended ? " · recommended" : ""}
+                  {opt.recommended ? ` · ${t("admin.appearance.recommended")}` : ""}
                 </span>
                 <span className="cd-appearance__font-sample">AaBb 0123</span>
               </button>

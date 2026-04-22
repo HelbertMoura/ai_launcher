@@ -1,43 +1,17 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
+import { Dialog } from "../../ui/Dialog";
 import { TAB_KEYS } from "../../app/layout/TabId";
+import { ONBOARDING_STORAGE_KEY } from "../../app/onboarding";
 import "../page.css";
 import "./HelpPage.css";
 
 const IS_MAC =
   typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
 const PALETTE_KEY = IS_MAC ? "⌘K" : "Ctrl+K";
-
-const SHORTCUTS: Array<{ keys: string; action: string }> = [
-  { keys: TAB_KEYS.launcher, action: "Go to Launch" },
-  { keys: TAB_KEYS.tools, action: "Go to Tools" },
-  { keys: TAB_KEYS.history, action: "Go to History" },
-  { keys: TAB_KEYS.costs, action: "Go to Costs" },
-  { keys: TAB_KEYS.admin, action: "Go to Admin" },
-  { keys: TAB_KEYS.help, action: "Show help" },
-  { keys: PALETTE_KEY, action: "Open command palette" },
-  { keys: "Esc", action: "Close dialog" },
-];
-
-const FAQS: Array<{ q: string; a: string }> = [
-  {
-    q: "A CLI still shows as missing right after installing it",
-    a: "Click the refresh control or switch tabs — detection re-runs on page load. A fresh shell environment may be needed if the installer didn't update PATH for running apps.",
-  },
-  {
-    q: "Launch fails with a path error",
-    a: "Make sure the working directory still exists and that you have permission to write there. Windows paths with special characters may need to be picked via the Browse button.",
-  },
-  {
-    q: "Costs page shows no usage data",
-    a: "Usage is read from each CLI's local log files. Run a supported CLI (Claude Code, Codex, Gemini) at least once so those files are created.",
-  },
-  {
-    q: "Theme or accent color didn't apply",
-    a: "Open the Admin tab and re-pick your theme and accent. If the issue persists, check the browser console (F12) for errors and restart the app.",
-  },
-];
 
 const LINKS: Array<{ label: string; url: string }> = [
   { label: "README", url: "https://github.com/HelbertMoura/ai_launcher#readme" },
@@ -49,45 +23,71 @@ const LINKS: Array<{ label: string; url: string }> = [
 ];
 
 export function HelpPage() {
+  const { t } = useTranslation();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const shortcuts: Array<{ keys: string; actionKey: string }> = [
+    { keys: TAB_KEYS.launcher, actionKey: "help.actionGoLaunch" },
+    { keys: TAB_KEYS.tools, actionKey: "help.actionGoTools" },
+    { keys: TAB_KEYS.history, actionKey: "help.actionGoHistory" },
+    { keys: TAB_KEYS.costs, actionKey: "help.actionGoCosts" },
+    { keys: TAB_KEYS.admin, actionKey: "help.actionGoAdmin" },
+    { keys: TAB_KEYS.help, actionKey: "help.actionShowHelp" },
+    { keys: PALETTE_KEY, actionKey: "help.actionOpenPalette" },
+    { keys: "Esc", actionKey: "help.actionCloseDialog" },
+  ];
+
+  const faqs: Array<{ qKey: string; aKey: string }> = [
+    { qKey: "help.faqInstalledMissingQ", aKey: "help.faqInstalledMissingA" },
+    { qKey: "help.faqLaunchFailQ", aKey: "help.faqLaunchFailA" },
+    { qKey: "help.faqCostsQ", aKey: "help.faqCostsA" },
+    { qKey: "help.faqThemeQ", aKey: "help.faqThemeA" },
+  ];
+
   const openLink = async (url: string) => {
     try {
       await invoke<string>("open_external_url", { url });
     } catch {
-      /* user-visible noop; the backend surfaces errors via tray if any */
+      /* user-visible noop */
     }
+  };
+
+  const resetOnboarding = () => {
+    try {
+      localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setConfirmOpen(false);
+    // Full reload to trigger the onboarding gate cleanly.
+    window.location.reload();
   };
 
   return (
     <section className="cd-page cd-help">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ HELP</h2>
-          <p className="cd-page__sub">how to use AI Launcher Pro</p>
+          <h2 className="cd-page__title">▎ {t("help.title")}</h2>
+          <p className="cd-page__sub">{t("help.subtitle")}</p>
         </div>
       </header>
 
       <div className="cd-help__stack">
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">// getting started</h3>
-          <p className="cd-help__body">
-            AI Launcher Pro detects and manages AI coding CLIs (Claude, Codex,
-            Gemini, and more) and IDE tools installed on your machine. Pick a
-            CLI, choose a working directory, and launch it in a fresh terminal
-            session — launcher tracks history and usage locally without sending
-            anything over the network.
-          </p>
+          <h3 className="cd-help__heading">{t("help.gettingStarted")}</h3>
+          <p className="cd-help__body">{t("help.gettingStartedBody")}</p>
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">// keyboard shortcuts</h3>
+          <h3 className="cd-help__heading">{t("help.shortcuts")}</h3>
           <table className="cd-help__table">
             <tbody>
-              {SHORTCUTS.map((s) => (
-                <tr key={`${s.keys}-${s.action}`}>
+              {shortcuts.map((s) => (
+                <tr key={`${s.keys}-${s.actionKey}`}>
                   <td className="cd-help__kbd">
                     <kbd>{s.keys}</kbd>
                   </td>
-                  <td className="cd-help__action">{s.action}</td>
+                  <td className="cd-help__action">{t(s.actionKey)}</td>
                 </tr>
               ))}
             </tbody>
@@ -95,19 +95,29 @@ export function HelpPage() {
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">// troubleshooting</h3>
+          <h3 className="cd-help__heading">{t("help.troubleshooting")}</h3>
           <ul className="cd-help__faqs">
-            {FAQS.map((f) => (
-              <li key={f.q} className="cd-help__faq">
-                <div className="cd-help__faq-q">{f.q}</div>
-                <div className="cd-help__faq-a">{f.a}</div>
+            {faqs.map((f) => (
+              <li key={f.qKey} className="cd-help__faq">
+                <div className="cd-help__faq-q">{t(f.qKey)}</div>
+                <div className="cd-help__faq-a">{t(f.aKey)}</div>
               </li>
             ))}
           </ul>
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">// links</h3>
+          <h3 className="cd-help__heading">{t("help.tour")}</h3>
+          <p className="cd-help__body">{t("help.tourBody")}</p>
+          <div className="cd-help__links">
+            <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(true)}>
+              ⟳ {t("help.tourButton")}
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="cd-help__section">
+          <h3 className="cd-help__heading">{t("help.links")}</h3>
           <div className="cd-help__links">
             {LINKS.map((l) => (
               <Button
@@ -122,6 +132,25 @@ export function HelpPage() {
           </div>
         </Card>
       </div>
+
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title={t("help.tourConfirmTitle")}
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button size="sm" onClick={resetOnboarding}>
+              {t("help.tourConfirmOk")}
+            </Button>
+          </>
+        }
+      >
+        <p>{t("help.tourConfirmBody")}</p>
+      </Dialog>
     </section>
   );
 }

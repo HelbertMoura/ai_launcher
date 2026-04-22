@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { useHistory, type HistoryItem } from "./useHistory";
@@ -11,23 +12,30 @@ function truncateDir(dir: string, max = 48): string {
   return `${dir.slice(0, head)}…${dir.slice(dir.length - tail)}`;
 }
 
-function relativeTime(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return iso;
-  const diff = Date.now() - then;
-  if (diff < 60_000) return "just now";
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} minutes ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} hours ago`;
-  if (diff < 604_800_000) return `${Math.floor(diff / 86_400_000)} days ago`;
-  return new Date(iso).toLocaleDateString();
+function useRelativeTime() {
+  const { t } = useTranslation();
+  return (iso: string): string => {
+    const then = new Date(iso).getTime();
+    if (Number.isNaN(then)) return iso;
+    const diff = Date.now() - then;
+    if (diff < 60_000) return t("history.justNow");
+    if (diff < 3_600_000)
+      return t("history.minutesAgo", { count: Math.floor(diff / 60_000) });
+    if (diff < 86_400_000)
+      return t("history.hoursAgo", { count: Math.floor(diff / 3_600_000) });
+    if (diff < 604_800_000)
+      return t("history.daysAgo", { count: Math.floor(diff / 86_400_000) });
+    return new Date(iso).toLocaleDateString();
+  };
 }
 
 export function HistoryPage() {
+  const { t } = useTranslation();
   const { items, clear } = useHistory();
 
   const onClear = () => {
     if (items.length === 0) return;
-    const ok = window.confirm("Clear all launch history? This cannot be undone.");
+    const ok = window.confirm(t("history.clearConfirm"));
     if (ok) clear();
   };
 
@@ -35,22 +43,22 @@ export function HistoryPage() {
     <section className="cd-page cd-history">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ HISTORY</h2>
+          <h2 className="cd-page__title">▎ {t("history.title")}</h2>
           <p className="cd-page__sub">
             {items.length === 0
-              ? "no launches yet"
-              : `${items.length} launch${items.length === 1 ? "" : "es"}`}
+              ? t("history.none")
+              : t("history.count", { count: items.length })}
           </p>
         </div>
         {items.length > 0 && (
           <Button variant="danger" size="sm" onClick={onClear}>
-            Clear history
+            {t("history.clear")}
           </Button>
         )}
       </header>
 
       {items.length === 0 ? (
-        <div className="cd-page__empty">No launches yet.</div>
+        <div className="cd-page__empty">{t("history.none")}.</div>
       ) : (
         <ul className="cd-history__list">
           {items.map((item, idx) => (
@@ -63,6 +71,7 @@ export function HistoryPage() {
 }
 
 function HistoryRow({ item }: { item: HistoryItem }) {
+  const relativeTime = useRelativeTime();
   return (
     <li className="cd-history__item">
       <Card>

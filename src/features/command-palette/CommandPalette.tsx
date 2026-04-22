@@ -1,5 +1,6 @@
 import { Command } from "cmdk";
-import { TAB_LABELS, type TabId } from "../../app/layout/TabId";
+import { useTranslation } from "react-i18next";
+import { TAB_I18N_KEYS, type TabId } from "../../app/layout/TabId";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Theme } from "../../hooks/useTheme";
 import "./CommandPalette.css";
@@ -23,6 +24,7 @@ export function CommandPalette({
   onToggleTheme,
   onSetAccent,
 }: CommandPaletteProps) {
+  const { t } = useTranslation();
   if (!open) return null;
 
   const run = (fn: () => void) => () => {
@@ -36,46 +38,49 @@ export function CommandPalette({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Command palette"
+      aria-label={t("topBar.command")}
     >
       <div className="cd-cmd" onClick={(e) => e.stopPropagation()}>
-        <Command label="Command palette" loop>
+        <Command label={t("topBar.command")} loop>
           <Command.Input
             className="cd-cmd__input"
-            placeholder="Search commands…"
+            placeholder={t("palette.placeholder")}
             autoFocus
           />
           <Command.List className="cd-cmd__list">
-            <Command.Empty className="cd-cmd__empty">No matches.</Command.Empty>
+            <Command.Empty className="cd-cmd__empty">—</Command.Empty>
 
-            <Command.Group heading="Navigate" className="cd-cmd__group">
-              {TABS.map((tab) => (
-                <Command.Item
-                  key={`nav-${tab}`}
-                  value={`navigate ${tab} ${TAB_LABELS[tab]}`}
-                  onSelect={run(() => onNavigate(tab))}
-                  className="cd-cmd__item"
-                >
-                  <span className="cd-cmd__item-kind">go</span>
-                  <span className="cd-cmd__item-label">{TAB_LABELS[tab]}</span>
-                </Command.Item>
-              ))}
+            <Command.Group heading={t("palette.groupNavigate")} className="cd-cmd__group">
+              {TABS.map((tab) => {
+                const label = t(TAB_I18N_KEYS[tab]);
+                return (
+                  <Command.Item
+                    key={`nav-${tab}`}
+                    value={`navigate ${tab} ${label}`}
+                    onSelect={run(() => onNavigate(tab))}
+                    className="cd-cmd__item"
+                  >
+                    <span className="cd-cmd__item-kind">→</span>
+                    <span className="cd-cmd__item-label">{label}</span>
+                  </Command.Item>
+                );
+              })}
             </Command.Group>
 
-            <Command.Group heading="Theme" className="cd-cmd__group">
+            <Command.Group heading={t("palette.groupTheme")} className="cd-cmd__group">
               <Command.Item
                 value={`theme switch ${theme === "dark" ? "light" : "dark"}`}
                 onSelect={run(onToggleTheme)}
                 className="cd-cmd__item"
               >
-                <span className="cd-cmd__item-kind">theme</span>
+                <span className="cd-cmd__item-kind">☾</span>
                 <span className="cd-cmd__item-label">
-                  Switch to {theme === "dark" ? "light" : "dark"}
+                  {theme === "dark" ? t("palette.actionThemeLight") : t("palette.actionThemeDark")}
                 </span>
               </Command.Item>
             </Command.Group>
 
-            <Command.Group heading="Accent" className="cd-cmd__group">
+            <Command.Group heading={t("palette.groupAccent")} className="cd-cmd__group">
               {ACCENTS.map((accent) => (
                 <Command.Item
                   key={`acc-${accent}`}
@@ -83,7 +88,7 @@ export function CommandPalette({
                   onSelect={run(() => onSetAccent(accent))}
                   className="cd-cmd__item"
                 >
-                  <span className="cd-cmd__item-kind">accent</span>
+                  <span className="cd-cmd__item-kind">●</span>
                   <span
                     className={`cd-cmd__swatch cd-cmd__swatch--${accent}`}
                     aria-hidden
