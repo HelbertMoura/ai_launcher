@@ -1,0 +1,54 @@
+.cd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.cd-chip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.cd-chip--online {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.cd-chip--offline {
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+.cd-chip--missing {
+  color: var(--text-dim);
+  border-color: var(--border);
+  opacity: 0.7;
+}
+.cd-chip--update {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.cd-chip--warn {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.cd-chip--admin {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.cd-chip--admin .cd-chip__dot {
+  background: var(--accent-ink);
+  box-shadow: none;
+}
