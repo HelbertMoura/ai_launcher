@@ -1,3 +1,4 @@
+/* v10 theme stack. The legacy src/styles/tokens*.css files define conflicting values for --bg/--text/--accent/--font-* and must be deleted before this file is imported into main.tsx (done in Phase 3 when the new App.tsx replaces the v9 entry). */
 @import "./fonts.css";
 @import "./tokens.css";
 @import "./theme-dark.css";

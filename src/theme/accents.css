@@ -25,4 +25,5 @@
 }
 [data-theme="light"][data-accent] {
   --accent-soft: rgba(0, 0, 0, 0.04);
+  --accent-glow: rgba(0, 0, 0, 0.08);
 }
