@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="VS Code">
   <defs>
-    <linearGradient id="vscode-bg" x1="11" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#C7DAFF"/>
-      <stop offset="1" stop-color="#4B78CF"/>
+    <linearGradient id="vscode-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#007ACC"/>
+      <stop offset="1" stop-color="#005C99"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#vscode-bg)"/>
-  <path d="m41 16 7 3v26l-7 3-19-16.5Z" fill="#F8FBFF"/>
-  <path d="M41 16 25 29.5 18 24l5-5.5Z" fill="#F8FBFF" opacity=".72"/>
-  <path d="M41 48 25 34.5 18 40l5 5.5Z" fill="#F8FBFF" opacity=".82"/>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#vscode-bg)"/>
+  <path d="M18 20l-8 12 8 12" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M46 20l8 12-8 12" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 16l-12 16 12 16" fill="none" stroke="#E07A5F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

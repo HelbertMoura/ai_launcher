@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Claude">
-  <defs>
-    <linearGradient id="claude-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F2C5B8"/>
-      <stop offset="1" stop-color="#D4765A"/>
-    </linearGradient>
-  </defs>
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#claude-bg)"/>
-  <path d="M41 21.5c-2.6-2.5-5.5-3.7-8.8-3.7-6.7 0-11.7 5-11.7 11.8s5 11.8 11.7 11.8c3.2 0 6.2-1.2 8.8-3.7" fill="none" stroke="#FFF8F5" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M37 21.5h8" stroke="#FFF8F5" stroke-width="5.5" stroke-linecap="round"/>
-  <path d="M37 41.5h8" stroke="#FFF8F5" stroke-width="5.5" stroke-linecap="round"/>
-</svg>
+<svg fill="#E07A5F" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Anthropic</title><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></svg>

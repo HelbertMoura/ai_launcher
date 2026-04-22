@@ -603,7 +603,7 @@
       },
       "adminUnlock": {
         "q": "Como habilito o admin mode?",
-        "a": "Pressione ⌘⇧A (Ctrl+Shift+A no Windows/Linux). Ou abra com o parâmetro ?admin=1 na URL. Ou faça build do fonte com VITE_ADMIN_MODE=1."
+        "a": "Todos os recursos estão sempre disponíveis. Configure a aparência e os provedores na aba Admin."
       },
       "tokensSafe": {
         "q": "Onde meus tokens de API ficam armazenados?",

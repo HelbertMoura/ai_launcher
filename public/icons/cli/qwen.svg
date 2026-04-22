@@ -1,12 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Qwen">
   <defs>
-    <linearGradient id="qwen-bg" x1="9" y1="9" x2="55" y2="55" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#D8CBF3"/>
-      <stop offset="1" stop-color="#7155B6"/>
+    <linearGradient id="qwen-bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5d88b6"/>
+      <stop offset="1" stop-color="#3a5f82"/>
     </linearGradient>
   </defs>
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#qwen-bg)"/>
-  <circle cx="31" cy="30" r="12" fill="none" stroke="#FBF8FF" stroke-width="5"/>
-  <path d="m39.5 39.5 7 7" stroke="#FBF8FF" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="31" cy="30" r="4" fill="#FBF8FF" opacity=".9"/>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#qwen-bg)"/>
+  <text x="32" y="40" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle">QW</text>
 </svg>

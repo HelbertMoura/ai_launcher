@@ -1,31 +1,38 @@
-# AI Launcher Pro v9.0
+# AI Launcher Pro v9.1
 
-AI Launcher Pro is a local-first desktop hub for AI coding CLIs. Version 9 replaces the old terminal-heavy aesthetic with **Soft Workbench**: a friendlier visual system, warmer colors, rebuilt official icons, and a real appearance layer with configurable accent presets from Admin.
+```
+┌──────────────────────────────────────────────┐
+│  ●   AI Launcher Pro                        │
+│                                              │
+│  $ claude --describe "beautiful code"      │
+│  $ codex --help                             │
+│                                              │
+│  8 CLIs  •  Theme: Soft Workbench 2.0       │
+└──────────────────────────────────────────────┘
+```
+
+AI Launcher Pro is a local-first desktop hub for AI coding CLIs. Version 9.1 ships a complete visual overhaul — **Figma-style minimalist UI** with warm terracotta accents, full dark mode, and unified admin access.
 
 **Language:** English · [Português](./README.pt-BR.md)  
 **Platforms:** Windows ✅ · macOS 🔜 · Linux 🔜
 
-## What changed in v9
+## What's new in v9.1 — Soft Workbench 2.0
 
-- Full UI/UX reformulation with a new light-first identity
-- Accent color presets configurable from Admin
-- New official icon family for built-in CLIs and tools
-- Built-in icon overrides now accept local image files
-- Central icon registry for easier manual asset replacement later
-- Public docs cleaned up without old screenshots/mockups
+- **Figma-style UI**: Minimalist modern design with warm terracotta accents
+- **Dark mode**: Full dark theme with Figma-style surface hierarchy
+- **Unified Admin**: All features available to all users — no more admin/public split
+- **Official icons**: Brand-authentic icons for Claude, VS Code, Cursor, Gemini, Qwen
+- **Dynamic accent colors**: Choose your highlight color from Admin settings
+- **Zero terminal aesthetic**: Clean, modern interface without fake terminal decorations
 
-## Highlights
+## Features
 
 - 8 built-in AI CLIs: Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, and Droid
 - Anthropic-compatible provider profiles with switching, model overrides, and cost tracking
 - Launch history, budgets, shortcuts, and local configuration backup/import
 - Custom CLI and custom IDE entries with optional uploaded icon image
 - Local-first storage and zero telemetry
-
-## Manual icon replacement
-
-Built-in icon mapping now lives in [src/lib/iconRegistry.ts](/C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/lib/iconRegistry.ts).  
-Operational notes are documented in [docs/ICON_OVERRIDES.md](/C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/docs/ICON_OVERRIDES.md).
+- Theme: Light/Dark with configurable accent color
 
 ## Install
 
@@ -43,7 +50,6 @@ cd ai_launcher
 npm install
 npm run tauri dev
 npm run tauri build
-$env:VITE_ADMIN_MODE='1'; npm run tauri build
 ```
 
 Prerequisites: Node 18+, Rust stable, Windows 10/11, and Visual Studio Build Tools with **Desktop development with C++**.

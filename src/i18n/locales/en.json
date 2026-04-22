@@ -603,7 +603,7 @@
       },
       "adminUnlock": {
         "q": "How do I enable admin mode?",
-        "a": "Press ⌘⇧A (Ctrl+Shift+A on Windows/Linux). Or launch with ?admin=1 URL param. Or build from source with VITE_ADMIN_MODE=1."
+        "a": "All features are always available. Configure appearance and providers in the Admin tab."
       },
       "tokensSafe": {
         "q": "Where are my API tokens stored?",

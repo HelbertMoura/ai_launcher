@@ -29,7 +29,7 @@ import { applyAccentPreset, applyTheme } from './lib/appearance';
 import { getBuiltinIconAsset } from './lib/iconRegistry';
 // commandTimeout is wired through invoke() calls in v7.1 (see installCli/updateSingleCli).
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
-import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
+import { type LaunchProviderInfo, type ProvidersState } from './providers/types';
 import { computeTodaySpend, shouldAlert } from './providers/budget';
 import { addPreset, generatePresetId, loadPresets, removePreset, updatePreset } from './presets/storage';
 import type { LaunchPreset } from './presets/types';
@@ -237,7 +237,8 @@ function App() {
 
   // Admin: providers Anthropic-compatible (Z.AI, MiniMax, etc.)
   // Runtime toggle via ⌘⇧A — persisted in localStorage. VITE_ADMIN_MODE=1 build wins regardless.
-  const [adminMode, setAdminModeState] = useState<boolean>(() => isAdminMode());
+  // All users get full admin access always — no split.
+  const [adminMode] = useState<boolean>(true);
   const [providers, setProviders] = useState<ProvidersState>(() => loadProviders());
   const [quickSwitchOpen, setQuickSwitchOpen] = useState(false);
   const [dryRunOpen, setDryRunOpen] = useState(false);
@@ -544,31 +545,6 @@ function App() {
         '4': 'costs',
       };
       setActiveTab(map[e.key]);
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  // Admin mode runtime toggle (⌘⇧A / Ctrl+Shift+A)
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (!(e.metaKey || e.ctrlKey)) return;
-      if (!e.shiftKey || e.altKey) return;
-      if (e.key.toLowerCase() !== 'a') return;
-      const target = document.activeElement;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        (target instanceof HTMLElement && target.isContentEditable)
-      ) return;
-      e.preventDefault();
-      setAdminModeState((prev) => {
-        const next = !prev;
-        setAdminMode(next);
-        showToast(next ? t('admin.mode.on') : t('admin.mode.off'));
-        return next;
-      });
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -1171,10 +1147,9 @@ function App() {
           if (tabId === 'updates' && !updatesSummary) checkAllUpdates(false);
         }}
         onThemeToggle={() => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); saveConfig({ theme: t }); }}
-        onRefresh={checkInstalled}
+        onHelp={() => setHelpModalOpen(true)}
         theme={theme}
         version={APP_VERSION}
-        adminMode={adminMode}
         providers={providers}
         updateCount={updateCount}
         onOpenPalette={() => setCommandPaletteOpen(true)}
@@ -1186,7 +1161,6 @@ function App() {
         <LauncherTab
           bootReady={bootReady}
           hasChecked={hasChecked}
-          adminMode={adminMode}
           clis={clis}
           installed={installed}
           installedClis={installedClis}
@@ -1599,7 +1573,6 @@ function App() {
 
       {activeTab === 'admin' && (
         <AdminTab
-          adminMode={adminMode}
           providers={providers}
           updateProviders={updateProviders}
           showToast={showToast}

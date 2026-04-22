@@ -1,74 +1,65 @@
 :root,
 [data-theme="light"] {
-  --color-bg-app: #f3ece8;
-  --color-bg-shell: #fbf7f4;
-  --color-surface: #fffaf8;
-  --color-surface-soft: #f6efeb;
-  --color-surface-muted: #efe5df;
-  --color-surface-elevated: #ffffff;
+  /* Backgrounds */
+  --bg: #F5F5F5;
+  --bg-base: #F5F5F5;
+  --surface: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-muted: #F0F0F0;
+  --surface-overlay: rgba(0,0,0,0.04);
 
-  --color-border: rgba(98, 70, 66, 0.12);
-  --color-border-strong: rgba(98, 70, 66, 0.22);
+  /* Borders */
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.15);
 
-  --color-text: #342b2d;
-  --color-text-soft: #56494b;
-  --color-text-muted: #7b6b6d;
-  --color-text-dim: #a08f91;
+  /* Text */
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --text-dim: #A0A0A0;
 
-  --color-success: #6b9a76;
-  --color-success-dim: #587e61;
-  --color-danger: #c45a55;
-  --color-danger-dim: #a84641;
-  --color-warn: #c98f4d;
-  --color-warn-dim: #a87338;
-  --color-info: #6a8aa2;
-  --color-info-dim: #55748c;
+  /* Accent — configurable via Admin */
+  --accent: #E07A5F;
+  --accent-hover: #C95F4A;
+  --accent-light: rgba(224,122,95,0.12);
+  --accent-ink: #FFFFFF;
 
-  --color-brand-anthropic: #cf7f5d;
-  --color-brand-google: #5c8fe0;
-  --color-brand-zai: #8b69bd;
-  --color-brand-minimax: #da7d53;
-  --color-brand-moonshot: #d59a58;
-  --color-brand-qwen: #5d88b6;
-  --color-brand-openrouter: #5c9f8f;
+  /* Status */
+  --success: #4CAF50;
+  --success-light: rgba(76,175,80,0.12);
+  --danger: #E53935;
+  --danger-light: rgba(229,115,115,0.12);
+  --warn: #FF9800;
+  --info: #2196F3;
 
-  --shadow-sm: 0 8px 20px rgba(101, 73, 68, 0.07);
-  --shadow-md: 0 18px 36px rgba(101, 73, 68, 0.09);
-  --shadow-lg: 0 28px 60px rgba(101, 73, 68, 0.14);
-  --shadow-glow-accent: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
 
-  --ring: 0 0 0 2px var(--color-bg-app), 0 0 0 4px color-mix(in srgb, var(--color-accent) 45%, transparent);
-  --ring-danger: 0 0 0 2px var(--color-bg-app), 0 0 0 4px color-mix(in srgb, var(--color-danger) 45%, transparent);
+  /* Focus */
+  --ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  --ring-sm: 0 0 0 1px var(--bg), 0 0 0 3px var(--accent);
 
-  --bg: var(--color-bg-app);
-  --bg-base: var(--color-bg-app);
-  --surface: var(--color-surface);
-  --inner: var(--color-surface-soft);
-  --bg-surface: var(--color-surface-soft);
-  --bg-surface-hover: var(--color-surface-elevated);
-  --border: var(--color-border);
-  --muted: var(--color-text-muted);
-  --text: var(--color-text);
-  --brand: var(--color-accent);
-  --brand-light: var(--color-accent-soft);
-  --brand-dark: var(--color-accent-strong);
-  --green: var(--color-success);
-  --red: var(--color-danger);
-  --yellow: var(--color-warn);
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
 
-  --bg-terminal: var(--color-bg-shell);
-  --bg-surface-raised: var(--color-surface);
-  --bg-prompt: var(--color-surface-muted);
-  --border-dim: var(--color-border);
-  --border-bright: var(--color-border-strong);
-  --text-dim: var(--color-text-dim);
-  --text-prompt: var(--color-accent);
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  --color-bg-0: var(--color-bg-app);
-  --color-bg-1: var(--color-surface);
-  --color-bg-2: var(--color-surface-soft);
-  --color-accent-on: var(--color-accent-ink);
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
 
-  --shadow-terminal: var(--shadow-md);
-  --shadow-floating: var(--shadow-lg);
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }

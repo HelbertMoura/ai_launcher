@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { TerminalFrame } from './shared/TerminalFrame';
-import { Terminal, CheckCircle2, ArrowUpRight } from './icons';
+import { CheckCircle2, ArrowUpRight } from './icons';
 import './Onboarding.css';
 
 const STEPS = ['welcome', 'detect', 'autoDetect', 'tour', 'launch'] as const;
@@ -39,23 +38,23 @@ export function Onboarding({ onClose }: OnboardingProps) {
   }
 
   return (
-    <div className="onboarding">
-      <div className="onboarding__inner">
-        <div className="onboarding__progress" aria-hidden="true">
+    <div className="onb-overlay">
+      <div className="onb-modal">
+        <div className="onb-progress" aria-hidden="true">
           {STEPS.map((s, i) => (
             <span
               key={s}
-              className={`onboarding__dot${STEPS.indexOf(step) >= i ? ' is-reached' : ''}${step === s ? ' is-current' : ''}`}
+              className={`onb-dot${STEPS.indexOf(step) >= i ? ' onb-dot--done' : ''}${step === s ? ' onb-dot--active' : ''}`}
             />
           ))}
         </div>
-        <TerminalFrame>
+        <div className="onb-step">
           {step === 'welcome' && <WelcomeStep onNext={next} onSkip={handleFinish} />}
           {step === 'detect' && <DetectStep onNext={next} />}
           {step === 'autoDetect' && <AutoDetectStep onNext={next} />}
           {step === 'tour' && <TourStep onNext={next} onSkip={handleFinish} />}
           {step === 'launch' && <LaunchStep onFinish={handleFinish} />}
-        </TerminalFrame>
+        </div>
       </div>
     </div>
   );
@@ -64,19 +63,13 @@ export function Onboarding({ onClose }: OnboardingProps) {
 function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="onboarding-step">
-      <h1 className="onboarding-step__title">
-        <Terminal size={20} strokeWidth={1.5} /> {t('onboarding.welcome.brand')}
-      </h1>
-      <p className="onboarding-step__tagline onboarding-step__tagline--typing">
-        {t('onboarding.welcome.tagline')}
-      </p>
-      <p className="onboarding-step__body">
-        {t('onboarding.welcome.body')}
-      </p>
-      <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>{t('onboarding.welcome.start')}</button>
-        <button type="button" className="btn-ghost" onClick={onSkip}>{t('onboarding.welcome.skip')}</button>
+    <div className="onb-step onb-step--left">
+      <h1 className="onb-title">{t('onboarding.welcome.brand')}</h1>
+      <p className="onb-tagline">{t('onboarding.welcome.tagline')}</p>
+      <p className="onb-body">{t('onboarding.welcome.body')}</p>
+      <div className="onb-actions onb-actions--left">
+        <button type="button" className="onb-btn onb-btn--primary" onClick={onNext}>{t('onboarding.welcome.start')}</button>
+        <button type="button" className="onb-btn onb-btn--ghost" onClick={onSkip}>{t('onboarding.welcome.skip')}</button>
       </div>
     </div>
   );
@@ -85,18 +78,16 @@ function WelcomeStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
 function DetectStep({ onNext }: { onNext: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="onboarding-step">
-      <p className="onboarding-step__prompt">{t('onboarding.detect.prompt')}</p>
-      <ul className="onboarding-step__checklist">
+    <div className="onb-step">
+      <p className="onb-tagline">{t('onboarding.detect.prompt')}</p>
+      <ul className="onb-bullets">
         <li><CheckCircle2 size={14}/> <code>claude</code></li>
         <li><CheckCircle2 size={14}/> <code>codex</code></li>
         <li><CheckCircle2 size={14}/> <code>cursor-agent</code></li>
       </ul>
-      <p className="onboarding-step__body">
-        {t('onboarding.detect.body')}
-      </p>
-      <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>{t('onboarding.detect.continue')}</button>
+      <p className="onb-body">{t('onboarding.detect.body')}</p>
+      <div className="onb-actions">
+        <button type="button" className="onb-btn onb-btn--primary" onClick={onNext}>{t('onboarding.detect.continue')}</button>
       </div>
     </div>
   );
@@ -107,15 +98,15 @@ function AutoDetectStep({ onNext }: { onNext: () => void }) {
   const envKey = (import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined) ?? '';
   const hasKey = envKey.length > 10;
   return (
-    <div className="onboarding-step">
-      <p className="onboarding-step__prompt">{t('onboarding.autoDetect.prompt')}</p>
-      <p className="onboarding-step__body">
+    <div className="onb-step">
+      <p className="onb-tagline">{t('onboarding.autoDetect.prompt')}</p>
+      <p className="onb-body">
         {hasKey
-          ? t('onboarding.autoDetect.found', { key: envKey.slice(0, 8) + '\u2022\u2022\u2022' })
+          ? t('onboarding.autoDetect.found', { key: envKey.slice(0, 8) + '•••' })
           : t('onboarding.autoDetect.notFound')}
       </p>
-      <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onNext}>
+      <div className="onb-actions">
+        <button type="button" className="onb-btn onb-btn--primary" onClick={onNext}>
           {hasKey ? t('onboarding.autoDetect.useBtn') : t('onboarding.autoDetect.skipBtn')}
         </button>
       </div>
@@ -152,36 +143,36 @@ function TourStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
   }, [idx, isLast, onNext, onSkip]);
 
   return (
-    <div className="onboarding-step onboarding-tour">
-      <p className="onboarding-step__prompt">{t('onboarding.tour.title')}</p>
-      <div className="onboarding-tour__slide">
-        <h3 className="onboarding-tour__slide-title">{t(`onboarding.tour.slides.${slide}.title`)}</h3>
-        <p className="onboarding-tour__slide-body">{t(`onboarding.tour.slides.${slide}.body`)}</p>
+    <div className="onb-step">
+      <p className="onb-tagline">{t('onboarding.tour.title')}</p>
+      <div className="onb-tour-slide">
+        <h3 className="onb-tour-title">{t(`onboarding.tour.slides.${slide}.title`)}</h3>
+        <p className="onb-tour-body">{t(`onboarding.tour.slides.${slide}.body`)}</p>
       </div>
-      <div className="onboarding-tour__dots" aria-label="Slide progress">
+      <div className="onb-tour-dots" aria-label="Slide progress">
         {TOUR_SLIDES.map((s, i) => (
           <span
             key={s}
-            className={`onboarding-tour__slide-dot${i === idx ? ' is-current' : ''}${i < idx ? ' is-reached' : ''}`}
+            className={`onb-tour-dot${i === idx ? ' onb-tour-dot--active' : ''}${i < idx ? ' onb-tour-dot--done' : ''}`}
           />
         ))}
       </div>
-      <p className="onboarding-tour__nav-hint">{t('onboarding.tour.body')}</p>
-      <div className="onboarding-step__actions onboarding-tour__actions">
+      <p className="onb-body">{t('onboarding.tour.body')}</p>
+      <div className="onb-actions onb-tour-actions">
         <button
           type="button"
-          className="btn-ghost"
+          className="onb-btn onb-btn--ghost"
           onClick={() => setIdx((i) => Math.max(0, i - 1))}
           disabled={idx === 0}
         >
           {t('onboarding.tour.prev')}
         </button>
-        <button type="button" className="btn-ghost" onClick={onSkip}>
+        <button type="button" className="onb-btn onb-btn--ghost" onClick={onSkip}>
           {t('onboarding.tour.skip')}
         </button>
         <button
           type="button"
-          className="btn btn-primary"
+          className="onb-btn onb-btn--primary"
           onClick={() => (isLast ? onNext() : setIdx((i) => i + 1))}
         >
           {isLast ? t('onboarding.tour.done') : t('onboarding.tour.next')}
@@ -194,17 +185,17 @@ function TourStep({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
 function LaunchStep({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="onboarding-step">
-      <p className="onboarding-step__prompt">{t('onboarding.launch.prompt')}</p>
-      <p className="onboarding-step__body">
+    <div className="onb-step">
+      <p className="onb-tagline">{t('onboarding.launch.prompt')}</p>
+      <p className="onb-body">
         <Trans
           i18nKey="onboarding.launch.body"
-          values={{ cmd: '\u2318', k: 'K' }}
+          values={{ cmd: '⌘', k: 'K' }}
           components={{ 1: <kbd />, 2: <kbd /> }}
         />
       </p>
-      <div className="onboarding-step__actions">
-        <button type="button" className="btn btn-primary" onClick={onFinish}>
+      <div className="onb-actions">
+        <button type="button" className="onb-btn onb-btn--primary" onClick={onFinish}>
           <ArrowUpRight size={14} /> {t('onboarding.launch.cta')}
         </button>
       </div>

@@ -80,23 +80,33 @@ export function AppearanceSection({ accentPreset, onAccentChange }: AppearanceSe
           <span className="appearance-accent__title">{t('admin.appearance.accentTitle')}</span>
           <span className="appearance-accent__hint">{t('admin.appearance.accentHint')}</span>
         </div>
-        <div className="appearance-accent__grid" role="radiogroup" aria-label={t('admin.appearance.accentAria')}>
+
+        {/* Color preset circles */}
+        <div className="accent-picker" role="radiogroup" aria-label={t('admin.appearance.accentAria')}>
           {ACCENT_PRESETS.map((preset) => (
-            <label key={preset.id} className={`appearance-accent__option${accentPreset === preset.id ? ' is-active' : ''}`}>
-              <input
-                type="radio"
-                name="accent-preset"
-                value={preset.id}
-                checked={accentPreset === preset.id}
-                onChange={() => onAccentChange(preset.id)}
-              />
-              <span className={`appearance-accent__swatch appearance-accent__swatch--${preset.id}`} aria-hidden="true" />
-              <span className="appearance-accent__copy">
-                <span className="appearance-accent__name">{preset.name}</span>
-                <span className="appearance-accent__desc">{preset.description}</span>
-              </span>
-            </label>
+            <button
+              key={preset.id}
+              type="button"
+              className={`accent-preset${accentPreset === preset.id ? ' is-active' : ''}`}
+              style={{ '--preset-color': preset.color } as React.CSSProperties}
+              onClick={() => onAccentChange(preset.id)}
+              title={preset.name}
+              aria-label={preset.name}
+              aria-pressed={accentPreset === preset.id}
+            />
           ))}
+          {/* Custom color button */}
+          <label className="accent-custom" title={t('admin.appearance.customColor')}>
+            <input
+              type="color"
+              className="accent-custom__input"
+              defaultValue={ACCENT_PRESETS.find(p => p.id === accentPreset)?.color ?? '#E07A5F'}
+              onChange={(e) => {
+                onAccentChange(e.target.value as unknown as AccentPresetId);
+              }}
+            />
+            <span className="accent-custom__icon">+</span>
+          </label>
         </div>
       </div>
       <div className="appearance-preview" style={{ fontFamily: currentStack }}>
