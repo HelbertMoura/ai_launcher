@@ -25,6 +25,7 @@ interface PresetsBarProps {
 const ICON_CHOICES: ReadonlyArray<string> = PRESET_ICON_IDS;
 
 export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: PresetsBarProps) {
+  const { t } = useTranslation();
   const [showAdd, setShowAdd] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftEmoji, setDraftEmoji] = useState<string>('bolt');
