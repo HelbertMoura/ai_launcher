@@ -1,12 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Antigravity">
-  <defs>
-    <linearGradient id="antgravity-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F0D7CE"/>
-      <stop offset="1" stop-color="#8D5E52"/>
-    </linearGradient>
-  </defs>
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#antgravity-bg)"/>
-  <circle cx="32" cy="32" r="7.5" fill="#FFF9F7"/>
-  <ellipse cx="32" cy="32" rx="18" ry="7.5" fill="none" stroke="#FFF9F7" stroke-width="4"/>
-  <path d="M22 20.5c2.6-2.8 6-4.5 10-4.5 7.7 0 14 6.3 14 14" fill="none" stroke="#FFF9F7" stroke-width="4" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 18c2-5 6-8 8-8s6 3 8 8"/>
+  <circle cx="12" cy="5" r="1.8"/>
 </svg>
