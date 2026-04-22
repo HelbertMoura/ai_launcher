@@ -35,3 +35,7 @@
 .cd-input--invalid {
   border-color: var(--err);
 }
+.cd-input--invalid:focus-within {
+  border-color: var(--err);
+  box-shadow: 0 0 0 3px rgba(255, 49, 49, 0.18);
+}
