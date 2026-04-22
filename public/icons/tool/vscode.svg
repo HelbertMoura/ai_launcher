@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#007ACC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M11 10l-6 6 6 6" />
-  <path d="M21 10l6 6-6 6" />
-  <path d="M18 7l-4 18" stroke="#007ACC" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="vscode-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#2563EB" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#vscode-grad)" opacity="0.1" />
+  <path d="M22 6L6 14l6 4-6 4 16 8v-9L12 16l10-5V6z" fill="url(#vscode-grad)" filter="url(#shadow)" />
 </svg>

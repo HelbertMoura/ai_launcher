@@ -1,7 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#5BA4FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M8 5v22" />
-  <path d="M8 16l8-8" />
-  <path d="M8 16l8 11" />
-  <path d="M20 10l4 4-4 4" />
-  <path d="M26 22h-4" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="kilo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#F59E0B" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#kilo-grad)" opacity="0.1" />
+  <path d="M10 6v20M10 18l10-12M10 14l10 12" stroke="url(#kilo-grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
 </svg>

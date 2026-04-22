@@ -1,6 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#FF1744" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M16 27V7" />
-  <path d="M9 14l7-7 7 7" />
-  <path d="M6 29h20" stroke="currentColor" stroke-width="1.5" opacity="0.5" />
-  <circle cx="16" cy="7" r="1.5" fill="#FF1744" stroke="none" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="ant-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#93C5FD" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#2563EB" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#ant-grad)" opacity="0.1" />
+  <path d="M16 6L6 26l10-4 10 4L16 6z" fill="url(#ant-grad)" filter="url(#shadow)" />
 </svg>

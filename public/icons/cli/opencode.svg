@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#E8E6E3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M5 5h9" />
-  <path d="M5 5v22" />
-  <path d="M5 27h9" />
-  <path d="M27 5h-9" />
-  <path d="M27 5v8" />
-  <path d="M27 19v8" />
-  <path d="M27 27h-9" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="open-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#059669" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#open-grad)" opacity="0.1" />
+  <path d="M12 10L6 16l6 6M20 10l6 6-6 6" stroke="url(#open-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
 </svg>
