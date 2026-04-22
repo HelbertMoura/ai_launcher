@@ -1,0 +1,15 @@
+.cd-app {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr var(--statusbar-h);
+  grid-template-areas:
+    "side top"
+    "side main"
+    "side status";
+  background: var(--bg);
+}
+.cd-app__top { grid-area: top; }
+.cd-app__side { grid-area: side; display: flex; }
+.cd-app__main { grid-area: main; overflow: auto; padding: var(--s-5); }
+.cd-app__status { grid-area: status; }
