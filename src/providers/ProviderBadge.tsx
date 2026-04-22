@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import type { ProvidersState } from './types';
+import { useTranslation } from 'react-i18next';
 
 interface ProviderBadgeProps {
   state: ProvidersState;
@@ -11,6 +12,7 @@ interface ProviderBadgeProps {
 }
 
 export function ProviderBadge({ state, onClick }: ProviderBadgeProps) {
+  const { t } = useTranslation();
   const active = state.profiles.find(p => p.id === state.activeId);
   if (!active) return null;
   // Oculta badge quando é o Anthropic oficial — menos ruído visual.
@@ -24,7 +26,7 @@ export function ProviderBadge({ state, onClick }: ProviderBadgeProps) {
       type="button"
       className={`provider-badge kind-${active.kind}`}
       onClick={onClick}
-      title={i18n.t('providerBadge.openAdmin', 'Abrir Painel Admin')}
+      title={t('providerBadge.openAdmin', 'Abrir Painel Admin')}
     >
       <span className="provider-badge-dot" />
       <span className="provider-badge-label">{label}</span>
