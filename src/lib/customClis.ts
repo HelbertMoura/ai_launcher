@@ -12,6 +12,7 @@ export interface CustomCli {
   launchArgs?: string;      // optional default args
   docsUrl?: string;
   iconEmoji?: string;       // optional emoji/text icon; fallback to ▶
+  iconDataUrl?: string;     // optional uploaded icon; wins over emoji
   createdAt: number;        // ms since epoch
 }
 

@@ -6,16 +6,20 @@
 //   - commandTimeout  (default 30)  — seconds; reserved for v7.1 Tauri wiring
 // ==============================================================================
 
+import { DEFAULT_ACCENT_PRESET, isAccentPresetId, type AccentPresetId } from './appearance';
+
 export interface AppSettings {
   maxHistory: number;
   refreshInterval: number;   // seconds; 0 = manual
   commandTimeout: number;    // seconds; reserved for v7.1 wiring
+  accentPreset: AccentPresetId;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   maxHistory: 50,
   refreshInterval: 0,
   commandTimeout: 30,
+  accentPreset: DEFAULT_ACCENT_PRESET,
 };
 
 const STORAGE_KEY = 'ai-launcher:app-settings';
@@ -43,6 +47,9 @@ export function loadAppSettings(): AppSettings {
         typeof parsed.commandTimeout === 'number' && parsed.commandTimeout > 0
           ? Math.floor(parsed.commandTimeout)
           : DEFAULT_SETTINGS.commandTimeout,
+      accentPreset: isAccentPresetId(parsed.accentPreset)
+        ? parsed.accentPreset
+        : DEFAULT_SETTINGS.accentPreset,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };

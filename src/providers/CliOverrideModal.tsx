@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from '../icons';
 import type { CliOverride } from '../lib/clisOverrides';
+import { readIconFileAsDataUrl } from '../lib/iconUpload';
 import './CliOverrideModal.css';
 
 export interface CliOverrideTarget {
@@ -39,6 +40,8 @@ export function CliOverrideModal({
   const { t } = useTranslation();
   const [name, setName] = useState<string>('');
   const [iconEmoji, setIconEmoji] = useState<string>('');
+  const [iconDataUrl, setIconDataUrl] = useState<string>('');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const titleId = 'cli-override-modal-title';
 
@@ -46,6 +49,8 @@ export function CliOverrideModal({
     if (!open) return;
     setName(current.name ?? '');
     setIconEmoji(current.iconEmoji ?? '');
+    setIconDataUrl(current.iconDataUrl ?? '');
+    setUploadError(null);
   }, [open, current]);
 
   useEffect(() => {
@@ -67,8 +72,9 @@ export function CliOverrideModal({
     const cleaned: CliOverride = {
       name: name.trim() || undefined,
       iconEmoji: iconEmoji.trim() || undefined,
+      iconDataUrl: iconDataUrl.trim() || undefined,
     };
-    if (!cleaned.name && !cleaned.iconEmoji) {
+    if (!cleaned.name && !cleaned.iconEmoji && !cleaned.iconDataUrl) {
       onClear(target.key);
       return;
     }
@@ -79,10 +85,24 @@ export function CliOverrideModal({
     if (!target) return;
     setName('');
     setIconEmoji('');
+    setIconDataUrl('');
+    setUploadError(null);
     onClear(target.key);
   }
 
   const previewEmoji = iconEmoji.trim();
+  const previewDataUrl = iconDataUrl.trim();
+
+  async function handleIconFile(file: File | null) {
+    if (!file) return;
+    try {
+      const dataUrl = await readIconFileAsDataUrl(file);
+      setIconDataUrl(dataUrl);
+      setUploadError(null);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : String(error));
+    }
+  }
 
   return (
     <div
@@ -112,7 +132,11 @@ export function CliOverrideModal({
           <div className="cli-override-modal__preview">
             <span className="cli-override-modal__preview-label">{t('overrides.iconPreview')}</span>
             <span className="cli-override-modal__preview-icon" aria-hidden="true">
-              {previewEmoji ? previewEmoji : target.builtinIcon}
+              {previewDataUrl ? (
+                <img src={previewDataUrl} alt="" />
+              ) : previewEmoji ? (
+                previewEmoji
+              ) : target.builtinIcon}
             </span>
           </div>
 
@@ -147,6 +171,30 @@ export function CliOverrideModal({
               spellCheck={false}
             />
             <div className="cli-override-modal__hint">{t('overrides.iconHint')}</div>
+          </div>
+
+          <div className="cli-override-modal__field">
+            <label className="cli-override-modal__label" htmlFor="cli-ovr-icon-file">
+              {t('overrides.iconFileLabel')}
+            </label>
+            <input
+              id="cli-ovr-icon-file"
+              className="cli-override-modal__file"
+              type="file"
+              accept="image/png,image/svg+xml,image/jpeg,image/webp"
+              onChange={e => void handleIconFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="cli-override-modal__hint">{t('overrides.iconFileHint')}</div>
+            {uploadError && <div className="cli-override-modal__error">{uploadError}</div>}
+            {previewDataUrl && (
+              <button
+                type="button"
+                className="cli-override-modal__btn cli-override-modal__btn--ghost"
+                onClick={() => setIconDataUrl('')}
+              >
+                {t('overrides.clearImage')}
+              </button>
+            )}
           </div>
         </div>
 

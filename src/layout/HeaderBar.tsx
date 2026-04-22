@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Terminal, Command, Moon, Sun, RefreshCw, Globe } from '../icons';
+import { Command, Moon, Sun, RefreshCw, Globe } from '../icons';
 import { KeyCap } from '../shared/KeyCap';
 import type { ProvidersState, ProviderKind } from '../providers/types';
 import { SUPPORTED_LOCALES, LOCALE_LABELS, setLocale, type Locale } from '../i18n';
@@ -101,10 +101,14 @@ export function HeaderBar({
     <header className="headerbar">
       <div className="headerbar__top">
         <div className="headerbar__brand">
-          <span className="headerbar__brand-icon" aria-hidden="true">
-            <Terminal size={18} strokeWidth={1.5} />
+          <span className="headerbar__brand-mark" aria-hidden="true">
+            <span className="headerbar__brand-mark-dot" />
+            <span className="headerbar__brand-mark-bar" />
           </span>
-          <span className="headerbar__wordmark">{t('header.brand')}</span>
+          <span className="headerbar__brand-copy">
+            <span className="headerbar__wordmark">{t('header.brand')}</span>
+            <span className="headerbar__tagline">soft workbench</span>
+          </span>
           <span className="headerbar__version">v{version}</span>
         </div>
 

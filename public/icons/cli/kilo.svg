@@ -1,13 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kilocode">
   <defs>
-    <linearGradient id="kilo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FCD34D" />
-      <stop offset="100%" stop-color="#F59E0B" />
+    <linearGradient id="kilo-bg" x1="11" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#CFE3FF"/>
+      <stop offset="1" stop-color="#5B8FD6"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#F59E0B" flood-opacity="0.3" />
-    </filter>
   </defs>
-  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#kilo-grad)" opacity="0.1" />
-  <path d="M10 6v20M10 18l10-12M10 14l10 12" stroke="url(#kilo-grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#kilo-bg)"/>
+  <path d="M21 18v28" stroke="#FAFCFF" stroke-width="5.5" stroke-linecap="round"/>
+  <path d="M41.5 18 26 32l15.5 14" fill="none" stroke="#FAFCFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M26 32h12" stroke="#FAFCFF" stroke-width="5.5" stroke-linecap="round"/>
 </svg>

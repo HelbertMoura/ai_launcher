@@ -9,6 +9,7 @@
 export interface CliOverride {
   name?: string;
   iconEmoji?: string;
+  iconDataUrl?: string;
 }
 
 export type CliOverrides = Record<string, CliOverride>;
@@ -28,7 +29,7 @@ function loadFrom(key: string): CliOverrides {
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
       return {};
     }
-    // Shallow shape-check: keep only plain object entries with name/iconEmoji strings.
+    // Shallow shape-check: keep only plain object entries with name/icon strings.
     const result: CliOverrides = {};
     for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
       if (typeof v !== 'object' || v === null) continue;
@@ -36,7 +37,8 @@ function loadFrom(key: string): CliOverrides {
       const entry: CliOverride = {};
       if (typeof item.name === 'string') entry.name = item.name;
       if (typeof item.iconEmoji === 'string') entry.iconEmoji = item.iconEmoji;
-      if (entry.name || entry.iconEmoji) result[k] = entry;
+      if (typeof item.iconDataUrl === 'string') entry.iconDataUrl = item.iconDataUrl;
+      if (entry.name || entry.iconEmoji || entry.iconDataUrl) result[k] = entry;
     }
     return result;
   } catch {
@@ -73,8 +75,9 @@ export function setCliOverride(
   const cleaned: CliOverride = {
     name: override.name?.trim() || undefined,
     iconEmoji: override.iconEmoji?.trim() || undefined,
+    iconDataUrl: override.iconDataUrl?.trim() || undefined,
   };
-  if (!cleaned.name && !cleaned.iconEmoji) {
+  if (!cleaned.name && !cleaned.iconEmoji && !cleaned.iconDataUrl) {
     // Empty override → remove entry entirely.
     const next = { ...all };
     delete next[key];
@@ -100,7 +103,12 @@ export function getEffectiveName(
 export function getEffectiveIcon(
   key: string,
   overrides: CliOverrides
-): string | null {
+): { emoji?: string; dataUrl?: string } | null {
+  const dataUrl = overrides[key]?.iconDataUrl?.trim();
   const emoji = overrides[key]?.iconEmoji?.trim();
-  return emoji ? emoji : null;
+  if (!emoji && !dataUrl) return null;
+  return {
+    emoji: emoji || undefined,
+    dataUrl: dataUrl || undefined,
+  };
 }

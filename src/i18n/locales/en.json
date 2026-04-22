@@ -383,7 +383,10 @@
     "appearance": {
       "title": "Appearance",
       "fontAria": "Display font",
-      "recommended": "recommended"
+      "recommended": "recommended",
+      "accentTitle": "Accent color",
+      "accentHint": "Changes the primary accent used across the whole interface.",
+      "accentAria": "Accent color preset"
     },
     "mode": {
       "on": "Admin mode ON — provider editing available",
@@ -642,7 +645,9 @@
       "launchArgsHint": "optional — e.g. --yolo --no-color",
       "docsUrl": "Docs URL",
       "iconEmoji": "Icon (emoji or short text)",
-      "iconHint": "Use an emoji, 1-2 chars, or leave blank for default"
+      "iconHint": "Use an emoji, 1-2 chars, or leave blank for default",
+      "iconFile": "Icon image",
+      "iconFileHint": "Optional. PNG, SVG, JPG, or WEBP up to 512 KB."
     },
     "save": "save",
     "cancel": "cancel",
@@ -670,7 +675,9 @@
       "launchCmd": "Launch command",
       "launchCmdHint": "e.g. code <dir>",
       "docsUrl": "Docs URL",
-      "iconEmoji": "Icon"
+      "iconEmoji": "Icon",
+      "iconFile": "Icon image",
+      "iconFileHint": "Optional. PNG, SVG, JPG, or WEBP up to 512 KB."
     },
     "save": "save",
     "cancel": "cancel",
@@ -686,7 +693,10 @@
     "nameHint": "Leave empty to use default",
     "iconLabel": "Icon (emoji or short text)",
     "iconHint": "Up to 3 chars; leave empty to use the built-in SVG",
+    "iconFileLabel": "Icon image",
+    "iconFileHint": "Optional. PNG, SVG, JPG, or WEBP up to 512 KB.",
     "iconPreview": "Preview:",
+    "clearImage": "remove image",
     "reset": "reset to default",
     "save": "save",
     "cancel": "cancel",

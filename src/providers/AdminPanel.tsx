@@ -529,7 +529,10 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
           : <div className="admin-note">{t('admin.form.noEnvs')}</div>}
       </div>
 
-      <AppearanceSection />
+      <AppearanceSection
+        accentPreset={settings.accentPreset}
+        onAccentChange={(accentPreset) => updateSetting('accentPreset', accentPreset)}
+      />
 
       <section className="admin-section admin-settings">
         <h3 className="admin-section__title">
@@ -600,7 +603,11 @@ export function AdminPanel({ state, onChange, onToast, appVersion }: AdminPanelP
           <ul className="admin-custom-list">
             {customClis.map(c => (
               <li key={c.key} className="admin-custom-list__item">
-                <span className="admin-custom-list__icon" aria-hidden="true">{c.iconEmoji || '\u25B6'}</span>
+                <span className="admin-custom-list__icon" aria-hidden="true">
+                  {c.iconDataUrl
+                    ? <img src={c.iconDataUrl} alt="" />
+                    : (c.iconEmoji || '\u25B6')}
+                </span>
                 <span className="admin-custom-list__name">{c.name}</span>
                 <code className="admin-custom-list__key">{c.key}</code>
                 <span className="admin-custom-list__spacer" />

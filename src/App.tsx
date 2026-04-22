@@ -25,6 +25,8 @@ import {
   type CliOverride,
 } from './lib/clisOverrides';
 import { loadAppSettings, SETTINGS_CHANGED_EVENT, type AppSettings } from './lib/appSettings';
+import { applyAccentPreset, applyTheme } from './lib/appearance';
+import { getBuiltinIconAsset } from './lib/iconRegistry';
 // commandTimeout is wired through invoke() calls in v7.1 (see installCli/updateSingleCli).
 import { buildLaunchEnv, loadProviders, redactEnv, saveProviders, setActive } from './providers/storage';
 import { isAdminMode, setAdminMode, type LaunchProviderInfo, type ProvidersState } from './providers/types';
@@ -106,12 +108,18 @@ export const CLI_COLORS: Record<string, string> = {
 
 // ==================== ÍCONES ====================
 
-export function CliIcon({ cliKey, size = 32 }: { cliKey: string; size?: number }) {
-  const fileName = cliKey === 'kilocode' ? 'kilo' : cliKey;
-  return <img src={`/icons/cli/${fileName}.svg`} width={size} height={size} alt={cliKey} style={{ display: 'block' }} />;
+function AssetIcon({ src, size, alt }: { src: string; size: number; alt: string }) {
+  return <img src={src} width={size} height={size} alt={alt} style={{ display: 'block', objectFit: 'cover' }} />;
 }
-function ToolIcon({ toolKey, size = 40 }: { toolKey: string; size?: number }) {
-  return <img src={`/icons/tool/${toolKey}.svg`} width={size} height={size} alt={toolKey} style={{ display: 'block' }} />;
+
+export function CliIcon({ cliKey, size = 32, overrideSrc }: { cliKey: string; size?: number; overrideSrc?: string | null }) {
+  const src = overrideSrc || getBuiltinIconAsset('cli', cliKey) || '/icons/cli/claude.svg';
+  return <AssetIcon src={src} size={size} alt={cliKey} />;
+}
+
+function ToolIcon({ toolKey, size = 40, overrideSrc }: { toolKey: string; size?: number; overrideSrc?: string | null }) {
+  const src = overrideSrc || getBuiltinIconAsset('tool', toolKey) || '/icons/tool/vscode.svg';
+  return <AssetIcon src={src} size={size} alt={toolKey} />;
 }
 
 // ==================== HELPERS ====================
@@ -209,7 +217,7 @@ function App() {
   const [installLog, setInstallLog] = useState<Record<string, ProgressEvent[]>>({});
   const [toast, setToast] = useState<string | null>(null);
 
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [helpModalOpen, setHelpModalOpen] = useState(false);
@@ -311,7 +319,7 @@ function App() {
 
     setDirectory((conf.directory as string) || '');
     setHistory((conf.history as HistoryItem[]) || []);
-    setTheme(((conf.theme as 'dark' | 'light') || 'dark'));
+    setTheme(((conf.theme as 'dark' | 'light') || 'light'));
     const hw = Boolean(conf.hideWelcome);
     setHideWelcome(hw);
 
@@ -345,8 +353,12 @@ function App() {
 
   // Tema
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    applyTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    applyAccentPreset(appSettings.accentPreset);
+  }, [appSettings.accentPreset]);
 
   // Install progress listener
   useEffect(() => {
@@ -1330,7 +1342,7 @@ function App() {
             {tools.map(tool => {
               const info = toolsChecked[tool.key] || { installed: false, version: null };
               const displayName = getEffectiveIdeName(tool.key, tool.name, ideOverrides);
-              const overrideEmoji = getEffectiveIdeIcon(tool.key, ideOverrides);
+              const overrideIcon = getEffectiveIdeIcon(tool.key, ideOverrides);
               return (
                 <div key={tool.key} className={`tool-card ${info.installed ? 'installed' : ''}`}>
                   <button
@@ -1341,15 +1353,19 @@ function App() {
                     onClick={() => setIdeOverrideTarget({
                       key: tool.key,
                       builtinName: tool.name,
-                      builtinIcon: <ToolIcon toolKey={tool.key} size={48} />,
+                      builtinIcon: <ToolIcon toolKey={tool.key} size={48} overrideSrc={overrideIcon?.dataUrl} />,
                     })}
                   >
                     ✎
                   </button>
                   <div className="tool-icon">
-                    {overrideEmoji
-                      ? <span className="tool-icon__emoji" aria-hidden="true">{overrideEmoji}</span>
-                      : <ToolIcon toolKey={tool.key} size={48} />}
+                    {overrideIcon?.dataUrl ? (
+                      <ToolIcon toolKey={tool.key} size={48} overrideSrc={overrideIcon.dataUrl} />
+                    ) : overrideIcon?.emoji ? (
+                      <span className="tool-icon__emoji" aria-hidden="true">{overrideIcon.emoji}</span>
+                    ) : (
+                      <ToolIcon toolKey={tool.key} size={48} />
+                    )}
                   </div>
                   <div className="tool-name">{displayName}</div>
                   <div className="tool-status">{info.version || (info.installed ? t('toolsTab.available') : t('toolsTab.notInstalled'))}</div>
@@ -1373,7 +1389,11 @@ function App() {
               <ul className="admin-custom-list">
                 {customIdes.map(ide => (
                   <li key={ide.key} className="admin-custom-list__item">
-                    <span className="admin-custom-list__icon">{ide.iconEmoji || '▶'}</span>
+                    <span className="admin-custom-list__icon">
+                      {ide.iconDataUrl
+                        ? <img src={ide.iconDataUrl} alt="" aria-hidden="true" />
+                        : (ide.iconEmoji || '▶')}
+                    </span>
                     <span className="admin-custom-list__name">{ide.name}</span>
                     <code className="admin-custom-list__key">{ide.key}</code>
                     <span className="admin-custom-list__spacer" />

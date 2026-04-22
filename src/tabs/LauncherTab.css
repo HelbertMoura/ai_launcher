@@ -1,222 +1,202 @@
-/* ==============================================================================
-   LauncherTab — Terminal Dramático (v5.5 direction D)
-   CLI cards como "terminal panes" monospace.
-   ============================================================================== */
-
-/* Sobrescreve grid do styles.css global — mais largos, menos colunas */
 .launcher-cli-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px;
-  margin-top: 4px;
 }
 
 .launcher-cli-card {
   display: flex;
   flex-direction: column;
+  gap: 0;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, white 8%), var(--color-surface-soft));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   text-align: left;
-  padding: 16px 18px;
-  background: var(--bg-surface-raised);
-  border: 1px solid var(--border-dim);
-  border-radius: var(--radius-md);
-  font-family: var(--ff-mono);
   cursor: pointer;
-  transition: border-color var(--d-base) var(--ease-terminal),
-              transform var(--d-base) var(--ease-terminal),
-              background-color var(--d-base) var(--ease-terminal);
+  transition: transform var(--d-base) var(--ease-soft),
+              border-color var(--d-base) var(--ease-soft),
+              box-shadow var(--d-base) var(--ease-soft);
 }
 
 .launcher-cli-card:hover {
-  border-color: var(--border-bright);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--c, var(--color-accent)) 30%, var(--color-border-strong));
+  box-shadow: var(--shadow-md);
 }
 
 .launcher-cli-card:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--text-prompt) 40%, transparent);
+  box-shadow: var(--ring);
 }
 
 .launcher-cli-card.is-selected {
-  border-color: var(--text-prompt);
-  background: color-mix(in oklch, var(--text-prompt) 6%, var(--bg-surface-raised));
+  border-color: color-mix(in srgb, var(--c, var(--color-accent)) 40%, var(--color-border-strong));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 74%, var(--color-accent-surface)), color-mix(in srgb, var(--color-surface-soft) 84%, var(--color-accent-surface)));
 }
 
 .launcher-cli-card.is-missing {
-  opacity: 0.72;
+  opacity: 0.78;
 }
 
 .launcher-cli-card__head {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
-  min-width: 0;
+  margin-bottom: 12px;
 }
 
 .launcher-cli-card__prompt {
-  color: var(--text-prompt);
-  font-weight: 600;
-  font-size: var(--fs-md);
-  line-height: 1;
-}
-
-.launcher-cli-card__icon {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.launcher-cli-card__icon svg {
-  display: block;
-  border-radius: 4px;
-}
-
-.launcher-cli-card__icon-emoji {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.launcher-cli-card__icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.launcher-cli-card__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.launcher-cli-card__icon-emoji {
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 18px;
-  line-height: 1;
 }
 
 .launcher-cli-card__name {
-  flex: 1;
   margin: 0;
+  font-family: var(--ff-display);
   font-size: var(--fs-md);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: var(--ls-tight);
+  text-transform: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .launcher-cli-card__version {
-  flex: 0 0 auto;
   font-size: var(--fs-xs);
-  color: var(--text-muted);
-  font-family: var(--ff-mono);
+  color: var(--color-text-muted);
 }
 
 .launcher-cli-card__status-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.launcher-cli-card__status,
+.launcher-cli-card__update {
+  min-height: 24px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
 }
 
 .launcher-cli-card__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-xs);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-dim);
+  background: var(--color-surface-muted);
+  color: var(--color-text-soft);
+  border: 1px solid var(--color-border);
 }
 
 .launcher-cli-card.is-installed .launcher-cli-card__status {
-  color: var(--text-prompt);
-}
-
-.launcher-cli-card.is-missing .launcher-cli-card__status {
-  color: var(--text-muted);
+  color: var(--color-success-dim);
+  border-color: color-mix(in srgb, var(--color-success) 35%, var(--color-border));
 }
 
 .launcher-cli-card__update {
-  font-size: var(--fs-xs);
-  color: var(--yellow, #f5a623);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  background: color-mix(in oklch, var(--yellow, #f5a623) 12%, transparent);
-  border: 1px solid color-mix(in oklch, var(--yellow, #f5a623) 35%, transparent);
+  background: color-mix(in srgb, var(--color-warn) 16%, transparent);
+  color: var(--color-warn-dim);
 }
 
 .launcher-cli-card__desc {
-  margin: 0 0 12px;
-  color: var(--text-muted);
+  margin: 0 0 14px;
   font-size: var(--fs-sm);
-  line-height: 1.45;
-  min-height: 1.45em;
+  line-height: 1.55;
+  color: var(--color-text-soft);
+  min-height: 3.2em;
 }
 
 .launcher-cli-card__actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
   margin-top: auto;
-  padding-top: 4px;
 }
 
 .launcher-cli-card__actions button {
+  min-height: 34px;
+  padding: 0 12px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  font-family: var(--ff-mono);
   font-size: var(--fs-xs);
-  font-weight: 500;
-  border-radius: var(--radius-sm);
+  font-weight: 600;
+  border-radius: 999px;
   cursor: pointer;
-  transition: filter var(--d-fast, 120ms) var(--ease-terminal),
-              transform var(--d-fast, 120ms) var(--ease-terminal),
-              border-color var(--d-fast, 120ms) var(--ease-terminal),
-              color var(--d-fast, 120ms) var(--ease-terminal),
-              background-color var(--d-fast, 120ms) var(--ease-terminal);
+  transition: transform var(--d-fast) var(--ease-out),
+              filter var(--d-fast) var(--ease-out),
+              border-color var(--d-fast) var(--ease-out),
+              background-color var(--d-fast) var(--ease-out);
 }
 
-.launcher-cli-card__actions .btn-cli-primary {
-  background: var(--text-prompt);
-  color: var(--bg-terminal);
-  border: 1px solid var(--text-prompt);
-}
-
-.launcher-cli-card__actions .btn-cli-primary:hover:not(:disabled) {
-  filter: brightness(1.08);
+.launcher-cli-card__actions button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
 .launcher-cli-card__actions .btn-cli-primary:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.launcher-cli-card__actions .btn-cli-ghost {
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border-dim);
+.launcher-cli-card--custom {
+  border-style: solid;
 }
 
-.launcher-cli-card__actions .btn-cli-ghost:hover {
-  color: var(--text);
-  border-color: var(--border-bright);
+.launcher-cli-card--custom .launcher-cli-card__version,
+.launcher-cli-card--custom .launcher-cli-card__status {
+  color: var(--color-accent-strong);
+}
+
+.launcher-cli-card--custom code {
+  font-family: var(--ff-mono);
+  font-size: 11px;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 720px) {
   .launcher-cli-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* Custom CLI card variant (v7.0) */
-.launcher-cli-card--custom {
-  border-style: dashed;
-  cursor: default;
-}
-.launcher-cli-card--custom:hover {
-  transform: none;
-}
-.launcher-cli-card--custom .launcher-cli-card__version {
-  color: var(--text-prompt);
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-}
-.launcher-cli-card--custom .launcher-cli-card__desc code {
-  font-family: var(--ff-mono);
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-  word-break: break-all;
 }

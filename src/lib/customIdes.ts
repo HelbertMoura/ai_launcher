@@ -12,6 +12,7 @@ export interface CustomIde {
   launchCmd: string;        // e.g. "zed <dir>" — <dir> is a literal placeholder token
   docsUrl?: string;
   iconEmoji?: string;       // optional emoji/text icon; fallback to ▶
+  iconDataUrl?: string;     // optional uploaded icon; wins over emoji
   createdAt: number;        // ms since epoch
 }
 

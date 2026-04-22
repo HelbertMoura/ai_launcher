@@ -1,13 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Antigravity">
   <defs>
-    <linearGradient id="ant-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#93C5FD" />
-      <stop offset="100%" stop-color="#2563EB" />
+    <linearGradient id="antgravity-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0D7CE"/>
+      <stop offset="1" stop-color="#8D5E52"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#2563EB" flood-opacity="0.3" />
-    </filter>
   </defs>
-  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#ant-grad)" opacity="0.1" />
-  <path d="M16 6L6 26l10-4 10 4L16 6z" fill="url(#ant-grad)" filter="url(#shadow)" />
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#antgravity-bg)"/>
+  <circle cx="32" cy="32" r="7.5" fill="#FFF9F7"/>
+  <ellipse cx="32" cy="32" rx="18" ry="7.5" fill="none" stroke="#FFF9F7" stroke-width="4"/>
+  <path d="M22 20.5c2.6-2.8 6-4.5 10-4.5 7.7 0 14 6.3 14 14" fill="none" stroke="#FFF9F7" stroke-width="4" stroke-linecap="round"/>
 </svg>

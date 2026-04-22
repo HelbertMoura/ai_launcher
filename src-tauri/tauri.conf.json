@@ -1,7 +1,7 @@
 {
   "$schema": "https://v2.tauri.app/schemas/config.schema.json",
   "productName": "AI Launcher",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "identifier": "com.devmaniacs.ailauncher",
   "build": {
     "devUrl": "http://localhost:5173",
