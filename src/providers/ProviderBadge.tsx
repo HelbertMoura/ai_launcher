@@ -24,7 +24,7 @@ export function ProviderBadge({ state, onClick }: ProviderBadgeProps) {
       type="button"
       className={`provider-badge kind-${active.kind}`}
       onClick={onClick}
-      title="Abrir Painel Admin"
+      title={i18n.t('providerBadge.openAdmin', 'Abrir Painel Admin')}
     >
       <span className="provider-badge-dot" />
       <span className="provider-badge-label">{label}</span>

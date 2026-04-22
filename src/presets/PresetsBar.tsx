@@ -5,6 +5,7 @@
 // ==============================================================================
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { LaunchPreset } from './types';
 import { PresetIcon, PRESET_ICON_IDS } from './PresetIcon';
 
@@ -48,21 +49,21 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
   return (
     <div className="presets-bar">
       <div className="presets-bar-head">
-        <span className="section-title" style={{ margin: 0 }}>PRESETS</span>
-        <button className="btn btn-sm" onClick={() => setShowAdd(v => !v)} title="Salvar combinação atual como preset">
-          {showAdd ? '✕ Fechar' : '+ Salvar atual'}
+        <span className="section-title" style={{ margin: 0 }}>{t('presets.sectionTitle', 'PRESETS')}</span>
+        <button className="btn btn-sm" onClick={() => setShowAdd(v => !v)} title={t('presets.saveHint', 'Salvar combinação atual como preset')}>
+          {showAdd ? t('presets.closeAdd', '✕ Fechar') : t('presets.saveCurrent', '+ Salvar atual')}
         </button>
       </div>
       {showAdd && (
         <div className="preset-add">
-          <div className="preset-emoji-row" role="radiogroup" aria-label="Escolher ícone do preset">
+          <div className="preset-emoji-row" role="radiogroup" aria-label={t('presets.chooseIcon', 'Escolher ícone do preset')}>
             {ICON_CHOICES.map(id => (
               <button
                 key={id}
                 type="button"
                 role="radio"
                 aria-checked={draftEmoji === id}
-                aria-label={`Ícone ${id}`}
+                aria-label={t('presets.iconLabel', 'Ícone {{id}}', { id })}
                 className={`preset-emoji ${draftEmoji === id ? 'active' : ''}`}
                 onClick={() => setDraftEmoji(id)}
               >
@@ -72,28 +73,28 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
           </div>
           <input
             className="input"
-            placeholder="Nome do preset (ex: Refactor mode, Review daily, etc.)"
+            placeholder={t('presets.namePlaceholder', 'Nome do preset (ex: Refactor mode, Review daily, etc.)')}
             value={draftName}
             onChange={e => setDraftName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             autoFocus
           />
-          <button className="btn" onClick={handleSave}>💾 Salvar</button>
+          <button className="btn" onClick={handleSave}>{t('presets.saveBtn', '💾 Salvar')}</button>
         </div>
       )}
       {presets.length === 0 && !showAdd && (
         <div className="presets-empty">
-          Sem presets. Configure CLI + diretório + argumentos + provider, depois clique <strong>+ Salvar atual</strong>.
+          {t('presets.empty', 'Sem presets. Configure CLI + diretório + argumentos + provider, depois clique ')}<strong>{t('presets.saveCurrent', '+ Salvar atual')}</strong>.
         </div>
       )}
       {presets.length > 0 && (
         <div className="presets-list">
           {presets.map((p, idx) => (
-            <div key={p.id} className="preset-chip" title={`${p.cliKey} · ${p.directory || '(sem dir)'}`}>
+            <div key={p.id} className="preset-chip" title={t('presets.chipTitle', '{{cliKey}} · {{dir}}', { cliKey: p.cliKey, dir: p.directory || t('presets.noDir', '(sem dir)') })}>
               <button
                 className="preset-chip-main"
                 onClick={() => onLaunch(p)}
-                title={`Lançar (Ctrl+${idx + 1})`}
+                title={t('presets.launchHint', 'Lançar (Ctrl+{{n}})', { n: idx + 1 })}
               >
                 <span className="preset-chip-emoji" aria-hidden="true">
                   <PresetIcon id={p.emoji || 'bolt'} size={14} />
@@ -119,14 +120,14 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
               <button
                 className="preset-chip-edit"
                 onClick={e => { e.stopPropagation(); setRenamingId(p.id); setRenameDraft(p.name); }}
-                title="Renomear"
-                aria-label="Renomear preset"
+                title={t('presets.renameHint', 'Renomear')}
+                aria-label={t('presets.renameAria', 'Renomear preset')}
               >✎</button>
               <button
                 className="preset-chip-x"
                 onClick={e => { e.stopPropagation(); onRemove(p.id); }}
-                title="Excluir preset"
-                aria-label="Excluir preset"
+                title={t('presets.deleteHint', 'Excluir preset')}
+                aria-label={t('presets.deleteAria', 'Excluir preset')}
               >×</button>
             </div>
           ))}
