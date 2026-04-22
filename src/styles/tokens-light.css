@@ -1,50 +1,57 @@
 /* ============================================================================
- * AI Launcher Pro — Light theme tokens
- *
- * Override opt-in via [data-theme="light"]. O app é dark-first; este tema
- * ativa apenas quando o atributo é definido pelo toggle legado.
+ * AI Launcher Pro v8 — Light theme tokens (Friendly Dashboard)
  * ============================================================================ */
 
 [data-theme="light"] {
-  /* -- Neutral surfaces (light) — preservados do tokens.css original -- */
-  --color-bg-0: oklch(98% 0.002 260);
-  --color-bg-1: oklch(100% 0 0);
-  --color-bg-2: oklch(96% 0.003 260);
-  --color-border: oklch(88% 0.005 260);
-  --color-border-strong: oklch(78% 0.008 260);
+  --color-bg-0: #F8FAFC;
+  --color-bg-1: #FFFFFF;
+  --color-bg-2: #F1F5F9;
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
 
-  /* -- Text scale (light) — preservados -- */
-  --color-text: oklch(18% 0.010 260);
-  --color-text-soft: oklch(34% 0.010 260);
-  --color-text-muted: oklch(52% 0.012 260);
-  --color-text-dim: oklch(68% 0.010 260);
+  --color-text: #0F172A;
+  --color-text-soft: #334155;
+  --color-text-muted: #475569;
+  --color-text-dim: #94A3B8;
 
-  /* -- Texto sobre accent (light) — preservado -- */
-  --color-accent-on: oklch(98% 0.002 260);
+  --color-accent: #3B82F6;
+  --color-accent-soft: #60A5FA;
+  --color-accent-dim: #93C5FD;
+  --color-accent-on: #FFFFFF;
 
-  /* -- Shadows (light) — preservados -- */
-  --shadow-sm: 0 1px 2px 0 oklch(20% 0 260 / 0.06);
-  --shadow-md: 0 4px 12px 0 oklch(20% 0 260 / 0.10);
-  --shadow-lg: 0 12px 32px 0 oklch(20% 0 260 / 0.16);
+  --color-success: #10B981;
+  --color-success-dim: #34D399;
+  --color-danger: #EF4444;
+  --color-danger-dim: #F87171;
+  --color-warn: #F59E0B;
+  --color-warn-dim: #FBBF24;
+  --color-info: #3B82F6;
+  --color-info-dim: #60A5FA;
 
-  /* -- v5.5 Terminal surfaces (light) -- */
-  --bg-terminal:       oklch(98% 0.005 80);
-  --bg-surface-raised: oklch(100% 0 0);
-  --bg-prompt:         oklch(96% 0.005 80);
-  --border-dim:        oklch(88% 0.005 80);
-  --border-bright:     oklch(70% 0.030 180);
-  --text-dim:          oklch(55% 0.010 250);
-  --text-prompt:       oklch(45% 0.190 25);
+  --color-brand-anthropic: #D97757;
+  --color-brand-google: #4285F4;
+  --color-brand-zai: #8B5CF6;
+  --color-brand-minimax: #F97316;
+  --color-brand-moonshot: #F59E0B;
+  --color-brand-qwen: #3B82F6;
+  --color-brand-openrouter: #14B8A6;
 
-  /* -- v5.5 Elevation (light) -- */
-  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px oklch(0% 0 0 / 0.1);
-  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px oklch(0% 0 0 / 0.08);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow-accent: 0 0 0 2px rgba(59, 130, 246, 0.3);
 
-  /* -- Brand colors (light) — slightly darker for contrast on light surfaces -- */
-  --color-brand-anthropic: oklch(55% 0.155 52);
-  --color-brand-zai:       oklch(50% 0.130 288);
-  --color-brand-minimax:   oklch(52% 0.165 16);
-  --color-brand-moonshot:   oklch(58% 0.160 32);
-  --color-brand-qwen:       oklch(50% 0.140 245);
-  --color-brand-openrouter: oklch(52% 0.120 155);
+  --ring: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-accent);
+  --ring-danger: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-danger);
+
+  --bg-terminal: #FFFFFF;
+  --bg-surface-raised: #F8FAFC;
+  --bg-prompt: #F1F5F9;
+  --border-dim: #E2E8F0;
+  --border-bright: #CBD5E1;
+  --text-dim: #94A3B8;
+  --text-prompt: #3B82F6;
+
+  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px rgba(0, 0, 0, 0.1);
 }

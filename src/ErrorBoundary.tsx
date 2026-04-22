@@ -1,6 +1,7 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open as openUrl } from '@tauri-apps/plugin-shell';
+import i18n from './i18n';
 import './ErrorBoundary.css';
 
 interface Props {
@@ -150,6 +151,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </button>
             <button className="errbnd-btn errbnd-btn-primary" onClick={this.handleReload}>
               🔄 Recarregar app
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+  );
+  }
+}
+rt', '🐞 Reportar no GitHub')}
+            </button>
+            <button className="errbnd-btn errbnd-btn-primary" onClick={this.handleReload}>
+              {i18n.t('errorBoundary.reload', '🔄 Recarregar app')}
             </button>
           </div>
         </div>

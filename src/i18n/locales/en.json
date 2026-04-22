@@ -53,13 +53,13 @@
     "launch": "Launch",
     "launchCtaTitle": "Launch CLI",
     "launchCtaDisabled": "CLI not installed",
-    "startCli": "\u25B6 START {{name}}",
-    "startMulti": "\u25B6\u25B6 START {{count}} CLIs",
+    "startCli": "▶ START {{name}}",
+    "startMulti": "▶▶ START {{count}} CLIs",
     "docs": "Docs",
     "docsTitle": "Open docs",
-    "installed": "\u25CF installed",
-    "missing": "\u25CB missing",
-    "update": "\u2191 update",
+    "installed": "● installed",
+    "missing": "○ missing",
+    "update": "↑ update",
     "updateTitle": "Update available",
     "notInstalled": "not installed",
     "flagLabel": "Flag: ",
@@ -72,11 +72,11 @@
     "removeEntry": "Remove {{name}}",
     "argsPlaceholder": "Ex: --verbose",
     "noPerms": "Skip permission prompt",
-    "preview": "\uD83D\uDD2C Preview",
+    "preview": "🔬 Preview",
     "previewTitle": "Preview: see CMD + envs without running",
     "emptyTitle": "No CLI detected",
     "emptySub": "Install your first AI CLI to get started.",
-    "emptyCta": "\uD83D\uDCE6 Install first CLI",
+    "emptyCta": "📦 Install first CLI",
     "cliDescriptions": {
       "claude": "Anthropic official CLI",
       "codex": "OpenAI Codex CLI",
@@ -189,7 +189,7 @@
     "welcome": {
       "brand": "AI LAUNCHER",
       "tagline": "eight CLIs. one launcher.",
-      "body": "AI Launcher Pro detects your installed CLIs, switches providers in a click, and launches with the right environment \u2014 straight from the dramatic terminal.",
+      "body": "AI Launcher Pro detects your installed CLIs, switches providers in a click, and launches with the right environment — straight from your friendly dashboard.",
       "start": "start",
       "skip": "skip tour"
     },
@@ -203,7 +203,7 @@
       "optionAnthropic": "Anthropic (official)",
       "optionZai": "Z.AI",
       "optionMinimax": "MiniMax",
-      "body": "You configure tokens later in Admin \u2192 Providers. Tokens stay local only, zero telemetry.",
+      "body": "You configure tokens later in Admin → Providers. Tokens stay local only, zero telemetry.",
       "continue": "continue"
     },
     "launch": {
@@ -220,21 +220,48 @@
     },
     "tour": {
       "title": "9 tabs, one keyboard",
-      "body": "Press \u2192 to skip ahead, \u2190 to go back, enter to move on.",
+      "body": "Press → to skip ahead, ← to go back, enter to move on.",
       "next": "next",
       "prev": "prev",
       "skip": "skip tour",
       "done": "done",
       "slides": {
-        "launcher": { "title": "Launcher", "body": "Eight CLIs detected, one click away." },
-        "install": { "title": "Install", "body": "Install what's missing from npm or pip." },
-        "tools": { "title": "Tools", "body": "Node, Python, Git, IDEs \u2014 verified locally." },
-        "history": { "title": "History", "body": "Git-log timeline with re-run + copy args." },
-        "costs": { "title": "Costs", "body": "Per-CLI 7-day sparklines + daily budget." },
-        "palette": { "title": "Palette", "body": "\u2318K opens a live-preview command list." },
-        "admin": { "title": "Admin", "body": "Switch providers, edit tokens, backup config." },
-        "help": { "title": "Help", "body": "\u2318/ shows every shortcut." },
-        "updates": { "title": "Updates", "body": "CLI versions tracked \u2014 update in one click." }
+        "launcher": {
+          "title": "Launcher",
+          "body": "Eight CLIs detected, one click away."
+        },
+        "install": {
+          "title": "Install",
+          "body": "Install what's missing from npm or pip."
+        },
+        "tools": {
+          "title": "Tools",
+          "body": "Node, Python, Git, IDEs — verified locally."
+        },
+        "history": {
+          "title": "History",
+          "body": "Git-log timeline with re-run + copy args."
+        },
+        "costs": {
+          "title": "Costs",
+          "body": "Per-CLI 7-day sparklines + daily budget."
+        },
+        "palette": {
+          "title": "Palette",
+          "body": "⌘K opens a live-preview command list."
+        },
+        "admin": {
+          "title": "Admin",
+          "body": "Switch providers, edit tokens, backup config."
+        },
+        "help": {
+          "title": "Help",
+          "body": "⌘/ shows every shortcut."
+        },
+        "updates": {
+          "title": "Updates",
+          "body": "CLI versions tracked — update in one click."
+        }
       }
     }
   },
@@ -263,14 +290,14 @@
       "resetClaudeError": "Error: {{error}}"
     },
     "testing": "Testing...",
-    "testConnection": "\uD83D\uDD0C Test connection",
+    "testConnection": "🔌 Test connection",
     "confirmReset": "Reset providers to built-ins? Custom profiles will be lost.",
     "confirmResetClaude": "Clear Claude Code state?\n\nRemoves customApiKeyResponses, oauthAccount and model from ~/.claude.json\n\nUseful when Claude Code is \"stuck\" on an old provider.",
     "confirmMerge": "Merge with current config? (Cancel = REPLACE)",
     "confirmDelete": "Delete profile \"{{name}}\"?",
     "copyJsonPrompt": "Copy the JSON below:",
     "header": {
-      "title": "Admin panel \u2014 Providers",
+      "title": "Admin panel — Providers",
       "sub": "Manage Anthropic-compatible provider profiles (Z.AI, MiniMax, etc.). Active profile:"
     },
     "actions": {
@@ -292,8 +319,8 @@
     },
     "cardBody": {
       "baseUrl": "baseUrl",
-      "opusSonnet": "opus/sonnet \u2192",
-      "haiku": "haiku \u2192",
+      "opusSonnet": "opus/sonnet →",
+      "haiku": "haiku →",
       "context": "context",
       "contextUnit": "{{n}} tokens",
       "costSession": "cost ~session (50k in + 10k out)",
@@ -301,9 +328,9 @@
       "builtIn": "built-in"
     },
     "buttons": {
-      "export": "\u2B07 Export",
+      "export": "⬇ Export",
       "exportTitle": "Copies JSON with all profiles",
-      "reset": "\u267B Reset",
+      "reset": "♻ Reset",
       "resetTitle": "Reverts to built-ins",
       "resetClaudeTitle": "Clears customApiKeyResponses/oauthAccount/model from ~/.claude.json (makes backup)",
       "resetClaudeLabel": "Reset Claude Code state"
@@ -331,8 +358,8 @@
         "id": "ID (slug, optional)",
         "baseUrl": "Base URL",
         "apiKey": "API Key",
-        "mainModel": "Main model (opus/sonnet \u2192)",
-        "fastModel": "Fast model (haiku \u2192)",
+        "mainModel": "Main model (opus/sonnet →)",
+        "fastModel": "Fast model (haiku →)",
         "contextWindow": "Context window (tokens)",
         "priceInput": "Input price ($/1M)",
         "priceOutput": "Output price ($/1M)",
@@ -359,7 +386,7 @@
       "recommended": "recommended"
     },
     "mode": {
-      "on": "Admin mode ON \u2014 provider editing available",
+      "on": "Admin mode ON — provider editing available",
       "off": "Admin mode OFF"
     },
     "settings": {
@@ -374,13 +401,13 @@
     }
   },
   "quickSwitch": {
-    "placeholder": "Filter provider... (\u2191\u2193 navigate, Enter activate, Esc close)",
+    "placeholder": "Filter provider... (↑↓ navigate, Enter activate, Esc close)",
     "empty": "No results.",
-    "hint": "<1>Ctrl+P</1> opens \u00B7 <2>\u2191\u2193</2> navigate \u00B7 <3>Enter</3> activate \u00B7 <4>Esc</4> close",
+    "hint": "<1>Ctrl+P</1> opens · <2>↑↓</2> navigate · <3>Enter</3> activate · <4>Esc</4> close",
     "active": "ACTIVE"
   },
   "dryRun": {
-    "title": "\uD83D\uDD2C Launch preview",
+    "title": "🔬 Launch preview",
     "closeTitle": "Close preview",
     "closeLabel": "Close launch preview",
     "cli": "CLI",
@@ -388,7 +415,7 @@
     "directoryFallback": "(current directory)",
     "envVars": "Injected env vars",
     "noEnvs": "No envs (uses {{cli}} default config).",
-    "copyScript": "\uD83D\uDCCB Copy as .bat script",
+    "copyScript": "📋 Copy as .bat script",
     "copyPrompt": "Copy below:",
     "close": "Close",
     "cwdFallback": "(current)"
@@ -413,7 +440,7 @@
     }
   },
   "toasts": {
-    "activeProvider": "\uD83D\uDD00 Active provider: {{name}}",
+    "activeProvider": "🔀 Active provider: {{name}}",
     "trayHotkeyUpdated": "Global shortcut updated",
     "trayHotkeyError": "Error saving shortcut: {{error}}",
     "trayHotkeyReset": "Global shortcut reset",
@@ -424,11 +451,11 @@
     "updated": "{{name}}: updated",
     "ready": "{{key}}: ready",
     "openingDownload": "Opening download page",
-    "budgetExceeded": "\u26A0 Budget: ${{today}} / ${{budget}} today ({{name}})",
-    "launchedWith": "\u25B6 {{cli}} via {{provider}} \u00B7 envs: {{keys}}",
-    "presetSaved": "\uD83D\uDCBE Preset \"{{name}}\" saved",
+    "budgetExceeded": "⚠ Budget: ${{today}} / ${{budget}} today ({{name}})",
+    "launchedWith": "▶ {{cli}} via {{provider}} · envs: {{keys}}",
+    "presetSaved": "💾 Preset \"{{name}}\" saved",
     "cliNotFound": "CLI \"{{key}}\" not found",
-    "launchedPreset": "\u25B6 {{emoji}} {{name}}",
+    "launchedPreset": "▶ {{emoji}} {{name}}",
     "presetDeleted": "Preset deleted",
     "openingTool": "Opening {{name}}",
     "clearAllConfirm": "Clear ALL settings (directory, history, theme, welcome, API keys, install log)?\n\nThe app will reload.",
@@ -456,7 +483,7 @@
     "prereqTitle": "System prerequisites",
     "cliNotInstalled": "CLIs not installed",
     "installButton": "Install",
-    "logTitle": "Install log \u2014 {{cli}}",
+    "logTitle": "Install log — {{cli}}",
     "installing": "Installing...",
     "recheckPrereqs": "Re-check prerequisites",
     "installedSection": "Installed ({{n}})",
@@ -471,11 +498,11 @@
     "recheck": "Re-check"
   },
   "updatesTab": {
-    "updateAll": "\u2B06 Update all CLIs",
+    "updateAll": "⬆ Update all CLIs",
     "updating": "Updating...",
     "current": "Current: {{version}}",
-    "currentMissing": "Current: \u2014 (not installed)",
-    "currentDash": "Current: \u2014",
+    "currentMissing": "Current: — (not installed)",
+    "currentDash": "Current: —",
     "updateViaNpm": "Update via npm global",
     "updateCliLabel": "Update {{cli}}",
     "openDownloadPage": "Opens the official download page",
@@ -484,7 +511,7 @@
     "noComparison": "? no comparison",
     "noComparisonTitle": "No public API to compare version",
     "emptyPrereqs": "No prerequisites detected.",
-    "lastCheck": "Last: {{time}} \u00B7 {{n}} with update",
+    "lastCheck": "Last: {{time}} · {{n}} with update",
     "checkAll": "Check all",
     "aiClisGroup": "AI CLIs",
     "prereqsGroup": "Prerequisites",
@@ -500,27 +527,27 @@
     "whatIsTitle": "What is AI Launcher Pro?",
     "whatIsBody": "Centralized hub to manage, install, update and launch AI CLIs (Claude, Codex, Gemini, Qwen, Kilo, OpenCode, Crush, Factory Droid) and dev tools (VS Code, Cursor, Windsurf, AntGravity). All in one place, no flashing terminals, with live progress.",
     "installTitle": "How to install a CLI",
-    "installBody": "Tab \uD83D\uDCE6 Install \u2192 \"CLIs not installed\" section \u2192 click \"Install\". Installation is silent in the background, with a live log shown below. Missing prerequisites (Node, Git, Python, etc.) have their own install button.",
+    "installBody": "Tab 📦 Install → \"CLIs not installed\" section → click \"Install\". Installation is silent in the background, with a live log shown below. Missing prerequisites (Node, Git, Python, etc.) have their own install button.",
     "factoryDroidBody": "Factory Droid: uses the official script, native on Windows. When you click Install, the launcher runs the script via PowerShell in the background.",
     "launchTitle": "How to launch a CLI",
-    "launchStep1": "Tab \u26A1 Launcher \u2192 click the desired CLI card",
+    "launchStep1": "Tab ⚡ Launcher → click the desired CLI card",
     "launchStep2": "Choose the directory (Ctrl+L focuses the field)",
     "launchStep3": "Add optional arguments (forbidden chars: ; & | ` $ > <)",
     "launchStep4": "Click START (or Ctrl+K). Opens in Windows Terminal if available, else PowerShell, else cmd.",
     "launchMulti": "To launch multiple, check boxes in the \"Multiple CLIs\" section and click the second button.",
     "updatesTitle": "Check for updates",
-    "updatesBody": "Tab \uD83D\uDD14 Updates \u2192 \"Check all\" button. Queries in parallel:",
+    "updatesBody": "Tab 🔔 Updates → \"Check all\" button. Queries in parallel:",
     "updatesListCli": "CLIs: compares local version vs npm registry",
     "updatesListPrereqs": "Prerequisites: local version + latest of npm packages (pnpm, yarn, tauri)",
-    "updatesNote": "Note: IDE updates (VS Code / Cursor / Windsurf) were removed \u2014 update inside the IDE itself.",
+    "updatesNote": "Note: IDE updates (VS Code / Cursor / Windsurf) were removed — update inside the IDE itself.",
     "updatesBulk": "When there are multiple CLI updates, use \"Update all\" to apply them in batch.",
     "shortcutsTitle": "Keyboard shortcuts",
     "securityTitle": "Security & virus alerts",
     "securityBody1": "If Windows Defender or SmartScreen flags the app: it's a typical false positive for new binaries. The app is signed with a self-signed cert (DevManiacs). To remove the alert on this machine, the cert has already been installed in the Trusted Root. On other machines, the user needs to import the .cer manually, OR the author needs to buy a real cert (Sectigo, DigiCert, SSL.com or Azure Trusted Signing).",
-    "securityBody2": "Every install/update now runs via tokio::process directly, without an intermediate cmd /C \u2014 this eliminates the \"hidden process \u2192 invisible cmd \u2192 downloads from the internet\" heuristic that triggered Defender.",
+    "securityBody2": "Every install/update now runs via tokio::process directly, without an intermediate cmd /C — this eliminates the \"hidden process → invisible cmd → downloads from the internet\" heuristic that triggered Defender.",
     "troubleshootTitle": "Troubleshooting",
     "troubleshootItem1Title": "A CLI appears \"detected\" but without version",
-    "troubleshootItem1Body": "The binary exists in PATH but the --version command returned unparseable output. Usually benign \u2014 the CLI works. Try running the command manually in the terminal to confirm.",
+    "troubleshootItem1Body": "The binary exists in PATH but the --version command returned unparseable output. Usually benign — the CLI works. Try running the command manually in the terminal to confirm.",
     "troubleshootItem2Title": "Installation hangs or fails",
     "troubleshootItem2Body": "See the live log on the Install tab (panel below). Persistent log in %APPDATA%/ai-launcher/install.log. Common causes: lack of permission for npm global, corporate proxy, Defender blocking npm.",
     "troubleshootItem3Title": "\"Directory does not exist\" on launch",
@@ -534,7 +561,7 @@
     "trayTitle": "System Tray",
     "trayMinimize": "Minimize to tray when closing (instead of quitting)",
     "trayShortcut": "Global shortcut (open/close):",
-    "trayShortcutHelp": "Format: modifiers separated by +. Ex: CommandOrControl+Shift+L, Alt+F1. Conflicts with other apps (Raycast, AutoHotkey) may block registration \u2014 choose another combination if that happens.",
+    "trayShortcutHelp": "Format: modifiers separated by +. Ex: CommandOrControl+Shift+L, Alt+F1. Conflicts with other apps (Raycast, AutoHotkey) may block registration — choose another combination if that happens.",
     "resetTrayHotkey": "Reset",
     "onboardingTitle": "Onboarding",
     "onboardingBody": "Review the welcome tour with shortcuts and guided install.",
@@ -557,23 +584,23 @@
     "faq": {
       "whatIs": {
         "q": "What is AI Launcher Pro?",
-        "a": "A desktop launcher that manages AI coding CLIs (Claude Code, Codex, Cursor\u2026) from a single keyboard-first surface. Local-only, no telemetry."
+        "a": "A desktop launcher that manages AI coding CLIs (Claude Code, Codex, Cursor…) from a single keyboard-first surface. Local-only, no telemetry."
       },
       "whichCLIs": {
         "q": "Which CLIs are supported?",
-        "a": "Eight built-in: Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot CLI, plus Kilo / Crush / Droid / OpenCode. Custom CLIs can be added from Admin \u2192 Add Custom CLI."
+        "a": "Eight built-in: Claude Code, Codex, Cursor, Gemini, Qwen, iFlow, Copilot CLI, plus Kilo / Crush / Droid / OpenCode. Custom CLIs can be added from Admin → Add Custom CLI."
       },
       "switchProvider": {
         "q": "How do I switch provider?",
-        "a": "Open Admin \u2192 Providers, click 'Activate' on any profile. The active provider's base URL and API key are injected into the next CLI launch."
+        "a": "Open Admin → Providers, click 'Activate' on any profile. The active provider's base URL and API key are injected into the next CLI launch."
       },
       "addProvider": {
         "q": "Can I add a provider not in the list?",
-        "a": "Yes. Admin \u2192 Providers \u2192 '+ New profile'. Set `kind: custom` with the Anthropic-compatible base URL and paste your API key."
+        "a": "Yes. Admin → Providers → '+ New profile'. Set `kind: custom` with the Anthropic-compatible base URL and paste your API key."
       },
       "adminUnlock": {
         "q": "How do I enable admin mode?",
-        "a": "Press \u2318\u21E7A (Ctrl+Shift+A on Windows/Linux). Or launch with ?admin=1 URL param. Or build from source with VITE_ADMIN_MODE=1."
+        "a": "Press ⌘⇧A (Ctrl+Shift+A on Windows/Linux). Or launch with ?admin=1 URL param. Or build from source with VITE_ADMIN_MODE=1."
       },
       "tokensSafe": {
         "q": "Where are my API tokens stored?",
@@ -581,11 +608,11 @@
       },
       "exportConfig": {
         "q": "Can I export my config?",
-        "a": "Admin \u2192 Backup \u2192 Export JSON. Secrets are redacted in the exported file; you re-enter them after import."
+        "a": "Admin → Backup → Export JSON. Secrets are redacted in the exported file; you re-enter them after import."
       },
       "changeLanguage": {
         "q": "How do I change language?",
-        "a": "Click the globe icon in the header, or press \u2318\u21E7L to cycle EN \u2194 pt-BR."
+        "a": "Click the globe icon in the header, or press ⌘⇧L to cycle EN ↔ pt-BR."
       },
       "firstProvider": {
         "q": "Which provider should I start with?",
@@ -593,7 +620,7 @@
       },
       "platforms": {
         "q": "Which platforms are supported?",
-        "a": "Windows 10/11 today. macOS and Linux builds are planned \u2014 follow the GitHub releases page."
+        "a": "Windows 10/11 today. macOS and Linux builds are planned — follow the GitHub releases page."
       }
     },
     "noResults": "No matching help entries.",
@@ -612,7 +639,7 @@
       "versionCmd": "Version check command",
       "versionCmdHint": "e.g. my-cli --version",
       "launchArgs": "Default launch args",
-      "launchArgsHint": "optional \u2014 e.g. --yolo --no-color",
+      "launchArgsHint": "optional — e.g. --yolo --no-color",
       "docsUrl": "Docs URL",
       "iconEmoji": "Icon (emoji or short text)",
       "iconHint": "Use an emoji, 1-2 chars, or leave blank for default"
@@ -670,6 +697,51 @@
   "footer": {
     "by": "by Helbert Moura",
     "poweredBy": "Powered by DevManiac's",
-    "clisCount": "\u2713 {{n}}/{{total}} CLIs"
+    "clisCount": "✓ {{n}}/{{total}} CLIs"
+  },
+  "errorBoundary": {
+    "unknownError": "Unknown error",
+    "title": "Something went wrong",
+    "description": "The app caught a rendering error. A log has been saved locally.",
+    "messageLabel": "Message:",
+    "logFileLabel": "Log file:",
+    "copied": "✓ Copied",
+    "copyLog": "📋 Copy log",
+    "openDir": "📁 Open crash folder",
+    "report": "🐞 Report on GitHub",
+    "reload": "🔄 Reload app"
+  },
+  "presets": {
+    "sectionTitle": "PRESETS",
+    "saveHint": "Save current combination as a preset",
+    "closeAdd": "✕ Close",
+    "saveCurrent": "+ Save current",
+    "chooseIcon": "Choose preset icon",
+    "iconLabel": "Icon {{id}}",
+    "namePlaceholder": "Preset name (e.g. Refactor mode, Review daily, etc.)",
+    "saveBtn": "💾 Save",
+    "empty": "No presets yet. Configure CLI + directory + arguments + provider, then click ",
+    "noDir": "(no dir)",
+    "chipTitle": "{{cliKey}} · {{dir}}",
+    "launchHint": "Launch (Ctrl+{{n}})",
+    "renameHint": "Rename",
+    "renameAria": "Rename preset",
+    "deleteHint": "Delete preset",
+    "deleteAria": "Delete preset"
+  },
+  "providerBadge": {
+    "openAdmin": "Open Admin Panel"
+  },
+  "providerSelector": {
+    "title": "PROVIDER (Claude)",
+    "overrideHint": "Quick model override for this launch",
+    "closeOverride": "✕ Close override",
+    "openOverride": "⚙ Override model",
+    "tokens": "tokens",
+    "capWarn": "Context cap:",
+    "capWarnText": "Even if requesting \"opus 1M\" to Claude Code, the {{name}} backend truncates the context. Plan long conversations with this in mind.",
+    "overrideMain": "Override main (opus/sonnet)",
+    "overrideFast": "Override fast (haiku)",
+    "clearOverrides": "Clear overrides"
   }
 }

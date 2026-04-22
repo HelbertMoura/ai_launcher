@@ -5,6 +5,32 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.0] — 2026-04-21
+
+### 🎨 "Friendly Dashboard" — Complete UI/UX Redesign & Robust i18n
+
+Major release transforming the user experience from the strict "Terminal Dramático" to a modern, accessible, and clean "Data-Dense Dashboard" (Friendly Dashboard). This update also brings flawless internationalization (i18n) support and advanced custom icon management.
+
+### Added
+
+- **Advanced Custom CLI/IDE Icons** — Users can now upload PNG/JPG images for custom tools. Includes an integrated crop and resize tool to ensure custom icons look perfect alongside built-in ones.
+- **Friendly Dashboard Design System** — A completely new visual language replacing the dense dark terminal look. Features a softer slate/blue color palette, 4.5:1 WCAG AA contrast ratio, and generous spacing for better readability.
+- **Fluid i18n Typography & Layouts** — The entire layout is now flex-wrapped and fluid, preventing text clipping or overflow when switching between English and Portuguese.
+- **Redesigned Official Icons** — Built-in CLIs now feature colorful, recognizable icons, retiring the previous minimalist 32x32 wireframe glyphs.
+
+### Changed
+
+- **UI Typography** — Shifted from 100% monospace to a hybrid approach: Fira Code for terminals and data, Fira Sans for general UI elements.
+- **100% i18n Coverage** — Eliminated all hardcoded strings. Every single text element in the app now runs through `useTranslation()` with strict validation.
+- **Improved Hover States & Hitboxes** — Increased touch targets (minimum 44x44px) and added smooth 150-300ms transitions for better interactivity.
+
+### Fixed
+
+- **i18n Translation Leaks** — Fixed issues where English and Portuguese texts would mix or fail to update instantly upon language switch.
+- **UI Overflow** — Fixed horizontal scrolling bugs caused by long translation strings in the Brazilian Portuguese locale.
+
+---
+
 ## [7.1.0] — 2026-04-21
 
 ### 🎨 "Polish & Wire" — Bug fixes + custom launches + built-in overrides
@@ -546,30 +572,3 @@ alternativos (Z.AI / GLM, MiniMax) com um clique. Opt-in via flag
 ## [4.1.0] — 2026-04-17
 
 First public release.
-
-### Added
-
-- Unified launcher window for AI coding CLIs: Claude Code, Codex, Gemini, Qwen,
-  Kilo Code, OpenCode, Crush, and Droid.
-- Unified launcher for developer IDE tools: VS Code, Cursor, Windsurf, AntGravity,
-  Claude Desktop, Codex Desktop.
-- Environment wizard that detects which CLIs and tools are already installed on
-  first run.
-- Silent install flow with live progress output in the UI (no flashing terminal
-  windows during `npm install -g` / `pip install`).
-- Update checker with three sections: CLIs, prerequisites (Node, Python, Git,
-  Rust), and IDEs.
-- Per-CLI permission flag toggle (e.g. `--dangerously-skip-permissions`,
-  `--yolo`).
-- Execution history with deduplication.
-- Command palette (Ctrl+K) for quick CLI launch.
-- Cost aggregator for reading local Claude Code token usage.
-- Orchestrator tab for running multiple CLIs side-by-side against the same
-  working directory.
-- Onboarding flow shown on first launch.
-- Dark and light themes; brand color #8B1E2A.
-- Global shortcut registration (Ctrl+L focus directory, Ctrl+K launch).
-- Windows launch strategy with cascading fallback: Windows Terminal → PowerShell
-  7 (pwsh) → cmd.
-- Code signing helpers for self-signed certificates (`scripts/gen-cert.ps1`,
-  `scripts/sign-build.ps1`).
