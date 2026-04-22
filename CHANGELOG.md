@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.0.0] — 2026-04-22 — Command Deck
+
+### Changed (breaking visual rewrite)
+- Entire frontend rewritten from scratch in the **Command Deck** visual direction — dark-first monospace terminal aesthetic with vermelho LED accent.
+- New architecture: `src/app/`, `src/ui/`, `src/features/`, `src/theme/`, `src/icons/`, `src/hooks/`.
+- Theme system: dark (default) + Hard Light, attribute-based (`data-theme`), with pre-paint restore to prevent FOUC.
+- Accent system: 5 selectable colors (red default, amber, green, blue, violet) via `data-accent` + `useAccent` hook.
+- Typography: self-hosted JetBrains Mono + Inter (SIL OFL 1.1).
+- Tools tab restored — IDE management surface is back as a first-class tab.
+- Admin mode unified — no more toggle; one build, always full access (`--dangerously-skip-permissions` by default).
+- Icon set rewritten — 16 coherent 24×24 line-art glyphs using `currentColor`, stroke-width 1.5.
+- Command palette (⌘K / Ctrl+K) with Navigate / Theme / Accent groups.
+
+### Added
+- Onboarding flow (welcome → personalize → scan CLIs).
+- Per-CLI name/icon overrides editor with image upload.
+- Custom IDEs CRUD in Admin.
+- Platform-aware keyboard shortcut labels (⌘ on macOS, Ctrl elsewhere).
+- ARIA-compliant Dialog with focus trap, `aria-current` on active nav item, role-based live regions on Banner.
+
+### Removed
+- v9 "Soft Workbench" components, styles, and tabs.
+- `adminMode` toggle and all conditional non-admin code paths.
+- Bilingual i18n runtime (temporarily English-only in v10; returns in a later release).
+- External Google Fonts request (fully self-hosted now).
+
+### Preserved
+- Rust backend (`src-tauri/`) and all `invoke` contracts.
+- localStorage keys and shapes for providers, presets, custom IDEs, CLI overrides, launch history (stored inside `ai-launcher-config`).
+
 ## [9.1.0] — 2026-04-22
 
 ### 🎨 "Soft Workbench 2.0" — Complete Visual Overhaul
