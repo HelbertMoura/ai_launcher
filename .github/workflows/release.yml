@@ -51,7 +51,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install npm dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Tauri bundle (MSI + NSIS)
         run: npm run tauri build

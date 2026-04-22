@@ -17,6 +17,16 @@ export const TAB_LABELS: Record<TabId, string> = {
   help: "Help",
 };
 
+/** i18n keys for each tab (used by Sidebar + CommandPalette). */
+export const TAB_I18N_KEYS: Record<TabId, string> = {
+  launcher: "nav.launcher",
+  tools: "nav.tools",
+  history: "nav.history",
+  costs: "nav.costs",
+  admin: "nav.admin",
+  help: "nav.help",
+};
+
 const MOD = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform)
   ? "⌘"
   : "Ctrl";

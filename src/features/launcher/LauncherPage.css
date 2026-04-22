@@ -44,3 +44,57 @@
 }
 .cd-launch-dialog__row { display: flex; gap: var(--s-2); }
 .cd-launch-dialog__input { flex: 1; }
+
+.cd-launch-dialog__field--toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--border);
+  margin-top: var(--s-3);
+}
+.cd-launch-dialog__toggle-main {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text);
+  font-weight: 600;
+}
+.cd-launch-dialog__hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.cd-launch-dialog__select {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+.cd-launch-dialog__select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.cd-tool-card__icon--placeholder,
+.cd-cli-card__icon--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 14px;
+}

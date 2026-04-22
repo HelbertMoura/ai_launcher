@@ -1,5 +1,7 @@
 # AI Launcher v10 — Command Deck Implementation Plan
 
+> **STATUS:** COMPLETE — shipped as v10.0.0 on 2026-04-22 (commits 628bc63 → 1303491). See CHANGELOG.md for the full entry.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rewrite the entire AI Launcher Pro frontend in the Command Deck visual direction (dark-first monoespaced UI, red LED accent, sharp borders), preserving all Rust backend contracts and persistence data, and ship v10.0.0.
@@ -57,7 +59,7 @@
 - Create: `src/theme/fonts.css`
 - Create: `src/theme/index.css` (imports the others in order)
 
-- [ ] **Step 1: Write `src/theme/tokens.css`**
+- [x] **Step 1: Write `src/theme/tokens.css`**
 
 ```css
 /* Command Deck — base tokens (dark default) */
@@ -124,7 +126,7 @@
 }
 ```
 
-- [ ] **Step 2: Write `src/theme/theme-dark.css`**
+- [x] **Step 2: Write `src/theme/theme-dark.css`**
 
 ```css
 /* Dark is the default in tokens.css — this file is a no-op placeholder
@@ -134,7 +136,7 @@
 }
 ```
 
-- [ ] **Step 3: Write `src/theme/theme-light.css` (Hard Light)**
+- [x] **Step 3: Write `src/theme/theme-light.css` (Hard Light)**
 
 ```css
 [data-theme="light"] {
@@ -157,7 +159,7 @@
 }
 ```
 
-- [ ] **Step 4: Write `src/theme/accents.css`**
+- [x] **Step 4: Write `src/theme/accents.css`**
 
 ```css
 [data-accent="red"] {
@@ -190,7 +192,7 @@
 }
 ```
 
-- [ ] **Step 5: Write `src/theme/fonts.css`**
+- [x] **Step 5: Write `src/theme/fonts.css`**
 
 ```css
 /* JetBrains Mono — self-hosted from /public/fonts */
@@ -233,7 +235,7 @@
 }
 ```
 
-- [ ] **Step 6: Write `src/theme/index.css`**
+- [x] **Step 6: Write `src/theme/index.css`**
 
 ```css
 @import "./fonts.css";
@@ -269,7 +271,7 @@ button {
 }
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/theme
@@ -286,23 +288,23 @@ git commit -m "feat(v10): theme tokens and font stack"
 - Create: `public/fonts/Inter-Bold.woff2`
 - Create: `docs/fonts-attribution.md`
 
-- [ ] **Step 1: Create fonts directory**
+- [x] **Step 1: Create fonts directory**
 
 ```bash
 mkdir -p public/fonts
 ```
 
-- [ ] **Step 2: Download JetBrains Mono (Latin subset) from official GitHub**
+- [x] **Step 2: Download JetBrains Mono (Latin subset) from official GitHub**
 
 Fetch from https://github.com/JetBrains/JetBrainsMono/raw/master/fonts/webfonts/JetBrainsMono-Regular.woff2 and https://github.com/JetBrains/JetBrainsMono/raw/master/fonts/webfonts/JetBrainsMono-Bold.woff2 and save to `public/fonts/`.
 
 Use `curl -L -o public/fonts/JetBrainsMono-Regular.woff2 <url>` on each URL.
 
-- [ ] **Step 3: Download Inter (Latin subset) from rsms/inter releases**
+- [x] **Step 3: Download Inter (Latin subset) from rsms/inter releases**
 
 Fetch Inter-Regular.woff2, Inter-SemiBold.woff2, Inter-Bold.woff2 from the latest Inter release (https://github.com/rsms/inter/releases) and save to `public/fonts/`.
 
-- [ ] **Step 4: Write `docs/fonts-attribution.md`**
+- [x] **Step 4: Write `docs/fonts-attribution.md`**
 
 ```markdown
 # Fonts
@@ -313,7 +315,7 @@ Fetch Inter-Regular.woff2, Inter-SemiBold.woff2, Inter-Bold.woff2 from the lates
 Files located in `public/fonts/`.
 ```
 
-- [ ] **Step 5: Verify fonts load**
+- [x] **Step 5: Verify fonts load**
 
 Check that each `.woff2` is > 10 KB (sanity check for non-truncated download).
 
@@ -323,7 +325,7 @@ ls -la public/fonts/
 
 Expected: five files, each between 20 KB and 200 KB.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/fonts docs/fonts-attribution.md
@@ -335,13 +337,13 @@ git commit -m "feat(v10): self-hosted JetBrains Mono + Inter fonts"
 **Files:**
 - Modify: `index.html`
 
-- [ ] **Step 1: Read current `index.html`**
+- [x] **Step 1: Read current `index.html`**
 
 ```bash
 cat index.html
 ```
 
-- [ ] **Step 2: Insert theme restore script in `<head>`**
+- [x] **Step 2: Insert theme restore script in `<head>`**
 
 Add this `<script>` as the first element after the existing `<meta>` tags and before any `<link>` to stylesheets:
 
@@ -361,7 +363,7 @@ Add this `<script>` as the first element after the existing `<meta>` tags and be
 </script>
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add index.html
@@ -374,7 +376,7 @@ git commit -m "feat(v10): pre-paint theme restore in index.html"
 - Create: `src/hooks/useTheme.ts`
 - Create: `src/hooks/useAccent.ts`
 
-- [ ] **Step 1: Write `src/hooks/useTheme.ts`**
+- [x] **Step 1: Write `src/hooks/useTheme.ts`**
 
 ```ts
 import { useCallback, useEffect, useState } from "react";
@@ -410,7 +412,7 @@ export function useTheme(): { theme: Theme; setTheme: (t: Theme) => void } {
 }
 ```
 
-- [ ] **Step 2: Write `src/hooks/useAccent.ts`**
+- [x] **Step 2: Write `src/hooks/useAccent.ts`**
 
 ```ts
 import { useCallback, useEffect, useState } from "react";
@@ -448,7 +450,7 @@ export function useAccent(): { accent: Accent; setAccent: (a: Accent) => void } 
 }
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/hooks
@@ -469,7 +471,7 @@ git commit -m "feat(v10): useTheme and useAccent hooks"
 - Create: `src/ui/Card.tsx`
 - Create: `src/ui/Card.css`
 
-- [ ] **Step 1: Write `src/ui/Button.tsx`**
+- [x] **Step 1: Write `src/ui/Button.tsx`**
 
 ```tsx
 import type { ButtonHTMLAttributes, ReactNode } from "react";
@@ -511,7 +513,7 @@ export function Button({
 }
 ```
 
-- [ ] **Step 2: Write `src/ui/Button.css`**
+- [x] **Step 2: Write `src/ui/Button.css`**
 
 ```css
 .cd-btn {
@@ -581,7 +583,7 @@ export function Button({
 }
 ```
 
-- [ ] **Step 3: Write `src/ui/Chip.tsx`**
+- [x] **Step 3: Write `src/ui/Chip.tsx`**
 
 ```tsx
 import type { HTMLAttributes, ReactNode } from "react";
@@ -620,7 +622,7 @@ export function Chip({
 }
 ```
 
-- [ ] **Step 4: Write `src/ui/Chip.css`**
+- [x] **Step 4: Write `src/ui/Chip.css`**
 
 ```css
 .cd-chip {
@@ -679,7 +681,7 @@ export function Chip({
 }
 ```
 
-- [ ] **Step 5: Write `src/ui/Card.tsx`**
+- [x] **Step 5: Write `src/ui/Card.tsx`**
 
 ```tsx
 import type { HTMLAttributes, ReactNode } from "react";
@@ -710,7 +712,7 @@ export function Card({
 }
 ```
 
-- [ ] **Step 6: Write `src/ui/Card.css`**
+- [x] **Step 6: Write `src/ui/Card.css`**
 
 ```css
 .cd-card {
@@ -736,7 +738,7 @@ export function Card({
 }
 ```
 
-- [ ] **Step 7: Type-check and commit**
+- [x] **Step 7: Type-check and commit**
 
 ```bash
 npx tsc --noEmit
@@ -759,7 +761,7 @@ git commit -m "feat(v10): Button, Chip, Card primitives"
 - Create: `src/ui/Tooltip.tsx`
 - Create: `src/ui/Tooltip.css`
 
-- [ ] **Step 1: Write `src/ui/Input.tsx`**
+- [x] **Step 1: Write `src/ui/Input.tsx`**
 
 ```tsx
 import { forwardRef } from "react";
@@ -789,7 +791,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 });
 ```
 
-- [ ] **Step 2: Write `src/ui/Input.css`**
+- [x] **Step 2: Write `src/ui/Input.css`**
 
 ```css
 .cd-input {
@@ -831,7 +833,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 }
 ```
 
-- [ ] **Step 3: Write `src/ui/Toggle.tsx`**
+- [x] **Step 3: Write `src/ui/Toggle.tsx`**
 
 ```tsx
 import type { ChangeEvent, ReactNode } from "react";
@@ -860,7 +862,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
 }
 ```
 
-- [ ] **Step 4: Write `src/ui/Toggle.css`**
+- [x] **Step 4: Write `src/ui/Toggle.css`**
 
 ```css
 .cd-toggle {
@@ -912,7 +914,7 @@ export function Toggle({ checked, onChange, label, disabled }: ToggleProps) {
 }
 ```
 
-- [ ] **Step 5: Write `src/ui/Tooltip.tsx`**
+- [x] **Step 5: Write `src/ui/Tooltip.tsx`**
 
 ```tsx
 import type { ReactNode } from "react";
@@ -936,7 +938,7 @@ export function Tooltip({ content, side = "top", children }: TooltipProps) {
 }
 ```
 
-- [ ] **Step 6: Write `src/ui/Tooltip.css`**
+- [x] **Step 6: Write `src/ui/Tooltip.css`**
 
 ```css
 .cd-tip {
@@ -977,7 +979,7 @@ export function Tooltip({ content, side = "top", children }: TooltipProps) {
 .cd-tip[data-side="right"]:hover .cd-tip__content { transform: translateY(-50%) translateX(0); }
 ```
 
-- [ ] **Step 7: Type-check and commit**
+- [x] **Step 7: Type-check and commit**
 
 ```bash
 npx tsc --noEmit
@@ -995,7 +997,7 @@ git commit -m "feat(v10): Input, Toggle, Tooltip primitives"
 - Create: `src/ui/Banner.tsx`
 - Create: `src/ui/Banner.css`
 
-- [ ] **Step 1: Write `src/ui/Dialog.tsx`**
+- [x] **Step 1: Write `src/ui/Dialog.tsx`**
 
 ```tsx
 import { useEffect, useRef } from "react";
@@ -1053,7 +1055,7 @@ export function Dialog({ open, onClose, title, size = "md", children, footer }: 
 }
 ```
 
-- [ ] **Step 2: Write `src/ui/Dialog.css`**
+- [x] **Step 2: Write `src/ui/Dialog.css`**
 
 ```css
 .cd-dialog__backdrop {
@@ -1123,7 +1125,7 @@ export function Dialog({ open, onClose, title, size = "md", children, footer }: 
 }
 ```
 
-- [ ] **Step 3: Write `src/ui/Skeleton.tsx`**
+- [x] **Step 3: Write `src/ui/Skeleton.tsx`**
 
 ```tsx
 import "./Skeleton.css";
@@ -1145,7 +1147,7 @@ export function Skeleton({ width = "100%", height = 14, variant = "line" }: Skel
 }
 ```
 
-- [ ] **Step 4: Write `src/ui/Skeleton.css`**
+- [x] **Step 4: Write `src/ui/Skeleton.css`**
 
 ```css
 .cd-skel {
@@ -1171,7 +1173,7 @@ export function Skeleton({ width = "100%", height = 14, variant = "line" }: Skel
 }
 ```
 
-- [ ] **Step 5: Write `src/ui/Banner.tsx`**
+- [x] **Step 5: Write `src/ui/Banner.tsx`**
 
 ```tsx
 import type { ReactNode } from "react";
@@ -1195,7 +1197,7 @@ export function Banner({ variant = "info", icon, children, actions }: BannerProp
 }
 ```
 
-- [ ] **Step 6: Write `src/ui/Banner.css`**
+- [x] **Step 6: Write `src/ui/Banner.css`**
 
 ```css
 .cd-banner {
@@ -1218,7 +1220,7 @@ export function Banner({ variant = "info", icon, children, actions }: BannerProp
 .cd-banner--admin { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 ```
 
-- [ ] **Step 7: Type-check and commit**
+- [x] **Step 7: Type-check and commit**
 
 ```bash
 npx tsc --noEmit
@@ -1241,7 +1243,7 @@ git commit -m "feat(v10): Dialog, Skeleton, Banner primitives"
 - Create: `src/app/layout/StatusBar.css`
 - Create: `src/app/layout/TabId.ts`
 
-- [ ] **Step 1: Write `src/app/layout/TabId.ts`**
+- [x] **Step 1: Write `src/app/layout/TabId.ts`**
 
 ```ts
 export type TabId =
@@ -1273,7 +1275,7 @@ export const TAB_KEYS: Record<TabId, string> = {
 };
 ```
 
-- [ ] **Step 2: Write `src/app/layout/Sidebar.tsx`**
+- [x] **Step 2: Write `src/app/layout/Sidebar.tsx`**
 
 ```tsx
 import { Chip } from "../../ui/Chip";
@@ -1345,7 +1347,7 @@ function Item({
 }
 ```
 
-- [ ] **Step 3: Write `src/app/layout/Sidebar.css`**
+- [x] **Step 3: Write `src/app/layout/Sidebar.css`**
 
 ```css
 .cd-side {
@@ -1423,7 +1425,7 @@ function Item({
 .cd-side__ver { letter-spacing: 1.5px; }
 ```
 
-- [ ] **Step 4: Write `src/app/layout/TopBar.tsx`**
+- [x] **Step 4: Write `src/app/layout/TopBar.tsx`**
 
 ```tsx
 import { Input } from "../../ui/Input";
@@ -1477,7 +1479,7 @@ export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: To
 }
 ```
 
-- [ ] **Step 5: Write `src/app/layout/TopBar.css`**
+- [x] **Step 5: Write `src/app/layout/TopBar.css`**
 
 ```css
 .cd-top {
@@ -1544,7 +1546,7 @@ export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: To
 .cd-top__theme:hover { border-color: var(--accent); }
 ```
 
-- [ ] **Step 6: Write `src/app/layout/StatusBar.tsx`**
+- [x] **Step 6: Write `src/app/layout/StatusBar.tsx`**
 
 ```tsx
 import "./StatusBar.css";
@@ -1568,7 +1570,7 @@ export function StatusBar({ online, total, todaySpend, version }: StatusBarProps
 }
 ```
 
-- [ ] **Step 7: Write `src/app/layout/StatusBar.css`**
+- [x] **Step 7: Write `src/app/layout/StatusBar.css`**
 
 ```css
 .cd-status {
@@ -1588,7 +1590,7 @@ export function StatusBar({ online, total, todaySpend, version }: StatusBarProps
 .cd-status__cell--muted { margin-left: auto; }
 ```
 
-- [ ] **Step 8: Type-check and commit**
+- [x] **Step 8: Type-check and commit**
 
 ```bash
 npx tsc --noEmit
@@ -1606,14 +1608,14 @@ git commit -m "feat(v10): sidebar, topbar, statusbar layout shell"
 - Create: `src/app/main.tsx`
 - Modify: `index.html` (entry point path)
 
-- [ ] **Step 1: Back up v9 entry files**
+- [x] **Step 1: Back up v9 entry files**
 
 ```bash
 mv src/App.tsx src/App.v9.tsx.bak
 mv src/main.tsx src/main.v9.tsx.bak
 ```
 
-- [ ] **Step 2: Write `src/app/App.css`**
+- [x] **Step 2: Write `src/app/App.css`**
 
 ```css
 .cd-app {
@@ -1633,7 +1635,7 @@ mv src/main.tsx src/main.v9.tsx.bak
 .cd-app__status { grid-area: status; }
 ```
 
-- [ ] **Step 3: Write `src/app/App.tsx`**
+- [x] **Step 3: Write `src/app/App.tsx`**
 
 ```tsx
 import { useState } from "react";
@@ -1689,7 +1691,7 @@ function Placeholder({ tab }: { tab: TabId }) {
 }
 ```
 
-- [ ] **Step 4: Write `src/app/main.tsx`**
+- [x] **Step 4: Write `src/app/main.tsx`**
 
 ```tsx
 import React from "react";
@@ -1707,15 +1709,15 @@ ReactDOM.createRoot(root).render(
 );
 ```
 
-- [ ] **Step 5: Update `index.html` entry path**
+- [x] **Step 5: Update `index.html` entry path**
 
 Change the `<script type="module" src="/src/main.tsx">` tag (or equivalent current path) to `<script type="module" src="/src/app/main.tsx">`.
 
-- [ ] **Step 6: Add package.json resolveJsonModule if missing**
+- [x] **Step 6: Add package.json resolveJsonModule if missing**
 
 Ensure `tsconfig.json` has `"resolveJsonModule": true` under `compilerOptions` so `import pkg from "../../package.json"` works.
 
-- [ ] **Step 7: Dev-run smoke test**
+- [x] **Step 7: Dev-run smoke test**
 
 ```bash
 npm run dev
@@ -1723,7 +1725,7 @@ npm run dev
 
 Open the app — verify: sidebar visible, nav items clickable (swap active), TopBar visible with command search pill + 5 accent dots + theme toggle, StatusBar at bottom. Click accents → chrome recolors immediately. Click theme toggle → app flips light/dark.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A
@@ -1750,11 +1752,11 @@ git commit -m "feat(v10): minimal App shell wired to theme + accent"
 - Create: `public/icons/cli/minimax.svg`
 - Create: `docs/icons-attribution.md`
 
-- [ ] **Step 1: Establish the line-art template**
+- [x] **Step 1: Establish the line-art template**
 
 Every icon follows this template: 24×24 viewBox, `stroke="currentColor"`, stroke-width 1.5, `fill="none"` (unless the official logo requires a fill). Cap/join `round`. Dimensions match `public/icons/tool/vscode.svg`'s existing approach.
 
-- [ ] **Step 2: For each CLI, either (a) port the official mark trimmed to 24×24 + currentColor, or (b) draw a line-style glyph whose silhouette echoes the brand**
+- [x] **Step 2: For each CLI, either (a) port the official mark trimmed to 24×24 + currentColor, or (b) draw a line-style glyph whose silhouette echoes the brand**
 
 Write one file per CLI. Example `claude.svg`:
 
@@ -1770,7 +1772,7 @@ Repeat the pattern for each CLI — use a distinct geometry per brand. (Codex: t
 
 The goal is a coherent family: every icon uses `currentColor`, 1.5 stroke, and reads at 18–22px. Individual glyphs can take creative license.
 
-- [ ] **Step 3: Write `docs/icons-attribution.md`**
+- [x] **Step 3: Write `docs/icons-attribution.md`**
 
 ```markdown
 # CLI & Tool Icons
@@ -1792,11 +1794,11 @@ The icons do not imply affiliation or endorsement by any of the vendors whose pr
 - No official vendor assets are redistributed verbatim.
 ```
 
-- [ ] **Step 4: Visual spot-check**
+- [x] **Step 4: Visual spot-check**
 
 Open `public/icons/cli/claude.svg` through to `opencode.svg` in a browser (use `file://`). Confirm each renders crisply at 24×24 with no fill bleeds.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add public/icons docs/icons-attribution.md
@@ -1812,11 +1814,11 @@ git commit -m "feat(v10): coherent line-style CLI icon set"
 - Replace: `public/icons/tool/antgravity.svg`
 - Create: `public/icons/tool/jetbrains-ai.svg`
 
-- [ ] **Step 1: Rewrite each tool icon using the same 24×24 / currentColor / 1.5 stroke template as Task 4.1**
+- [x] **Step 1: Rewrite each tool icon using the same 24×24 / currentColor / 1.5 stroke template as Task 4.1**
 
 VSCode: two-angle chevron forming the VS silhouette. Cursor: concentric caret. Windsurf: wave over horizon. Antgravity: inverted arc + orbital dot. JetBrains AI: outlined diamond + AI monogram.
 
-- [ ] **Step 2: Verify rendering and commit**
+- [x] **Step 2: Verify rendering and commit**
 
 ```bash
 git add public/icons/tool
@@ -1829,7 +1831,7 @@ git commit -m "feat(v10): coherent line-style tool icon set"
 - Create: `src/icons/registry.ts`
 - Create: `src/icons/ui/*.svg` (as needed — otherwise use Lucide)
 
-- [ ] **Step 1: Write `src/icons/registry.ts`**
+- [x] **Step 1: Write `src/icons/registry.ts`**
 
 ```ts
 export function getCliIcon(key: string): string {
@@ -1871,7 +1873,7 @@ export function hasToolIcon(key: string): boolean {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add src/icons
@@ -1888,13 +1890,13 @@ git commit -m "feat(v10): icon registry helpers"
 - Modify: `src/lib/appearance.ts` (add FontId + applyFontStack)
 - Keep: `src/providers/AppearanceSection.tsx` temporarily (will be deleted in Phase 9)
 
-- [ ] **Step 1: Read current `src/providers/AppearanceSection.tsx` to extract FontId + applyFontStack**
+- [x] **Step 1: Read current `src/providers/AppearanceSection.tsx` to extract FontId + applyFontStack**
 
 ```bash
 grep -n "FontId\|applyFontStack\|FONT_STORAGE_KEY" src/providers/AppearanceSection.tsx
 ```
 
-- [ ] **Step 2: Append extracted code to `src/lib/appearance.ts`**
+- [x] **Step 2: Append extracted code to `src/lib/appearance.ts`**
 
 Add the exported members with the exact same names and shapes that `AppearanceSection.tsx` currently exports:
 
@@ -1913,17 +1915,17 @@ export function applyFontStack(id: FontId): void {
 
 (If the v9 code used additional IDs or behaviors, port them verbatim; don't editorialize.)
 
-- [ ] **Step 3: Update imports project-wide**
+- [x] **Step 3: Update imports project-wide**
 
 Search-replace `from './providers/AppearanceSection'` → `from './lib/appearance'` for the `FontId`, `applyFontStack`, `FONT_STORAGE_KEY` imports in any file that survives into v10 wiring (safe to skip v9 pages about to be deleted).
 
-- [ ] **Step 4: Verify type-check**
+- [x] **Step 4: Verify type-check**
 
 ```bash
 npx tsc --noEmit
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/appearance.ts
@@ -1945,7 +1947,7 @@ Each feature page is built with the UI primitives from Phase 2 and lives in `src
 - Create: `src/features/launcher/useClis.ts`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Write `src/features/launcher/useClis.ts`**
+- [x] **Step 1: Write `src/features/launcher/useClis.ts`**
 
 ```ts
 import { useEffect, useState } from "react";
@@ -2005,7 +2007,7 @@ export function useClis(): {
 
 (Command names `get_all_clis` and `check_all_clis` match the existing Rust surface — verify against `src-tauri/src/main.rs` and adjust if the exact command names differ.)
 
-- [ ] **Step 2: Write `src/features/launcher/CliCard.tsx`**
+- [x] **Step 2: Write `src/features/launcher/CliCard.tsx`**
 
 ```tsx
 import { Button } from "../../ui/Button";
@@ -2052,7 +2054,7 @@ export function CliCard({ cli, check, onLaunch, onInstall }: CliCardProps) {
 }
 ```
 
-- [ ] **Step 3: Write `src/features/launcher/LauncherPage.tsx`**
+- [x] **Step 3: Write `src/features/launcher/LauncherPage.tsx`**
 
 ```tsx
 import { invoke } from "@tauri-apps/api/core";
@@ -2097,7 +2099,7 @@ export function LauncherPage() {
 
 (`launch_cli` and `install_cli` are placeholder Rust command names — verify against the actual `tauri::generate_handler!` list in `src-tauri/src/main.rs` and adjust.)
 
-- [ ] **Step 4: Write `src/features/launcher/LauncherPage.css`**
+- [x] **Step 4: Write `src/features/launcher/LauncherPage.css`**
 
 ```css
 .cd-launcher { max-width: 1080px; margin: 0 auto; }
@@ -2126,7 +2128,7 @@ export function LauncherPage() {
 .cd-cli-card__actions { display: flex; gap: var(--s-2); }
 ```
 
-- [ ] **Step 5: Wire into `src/app/App.tsx`**
+- [x] **Step 5: Wire into `src/app/App.tsx`**
 
 Replace the `<Placeholder tab={active} />` call with a switch:
 
@@ -2141,7 +2143,7 @@ Replace the `<Placeholder tab={active} />` call with a switch:
 
 Add the `import { LauncherPage } from "../features/launcher/LauncherPage";` at the top.
 
-- [ ] **Step 6: Dev-run smoke test**
+- [x] **Step 6: Dev-run smoke test**
 
 ```bash
 npm run dev
@@ -2149,7 +2151,7 @@ npm run dev
 
 Verify: CLIs grid loads, status chips render, click Launch actually launches the CLI in a terminal.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/features/launcher src/app/App.tsx
@@ -2165,7 +2167,7 @@ git commit -m "feat(v10): launcher page wired to tauri commands"
 - Create: `src/features/tools/useTools.ts`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Write `src/features/tools/useTools.ts`**
+- [x] **Step 1: Write `src/features/tools/useTools.ts`**
 
 ```ts
 import { useEffect, useState } from "react";
@@ -2221,15 +2223,15 @@ export function useTools(): {
 
 Verify `get_all_tools` / `check_all_tools` names against `src-tauri/src/main.rs`; adjust if needed.
 
-- [ ] **Step 2: Write `src/features/tools/ToolCard.tsx`** — follow the exact same shape as `CliCard`, importing from `../../icons/registry` using `getToolIcon` / `hasToolIcon`.
+- [x] **Step 2: Write `src/features/tools/ToolCard.tsx`** — follow the exact same shape as `CliCard`, importing from `../../icons/registry` using `getToolIcon` / `hasToolIcon`.
 
-- [ ] **Step 3: Write `src/features/tools/ToolsPage.tsx`** — same shape as `LauncherPage`, rendering tools with `ToolCard`, calling `invoke("launch_tool", { key })` for the launch action and `invoke("open_url", { url: tool.install_url })` for install.
+- [x] **Step 3: Write `src/features/tools/ToolsPage.tsx`** — same shape as `LauncherPage`, rendering tools with `ToolCard`, calling `invoke("launch_tool", { key })` for the launch action and `invoke("open_url", { url: tool.install_url })` for install.
 
-- [ ] **Step 4: Write `src/features/tools/ToolsPage.css`** — minimal, reuse the launcher grid pattern.
+- [x] **Step 4: Write `src/features/tools/ToolsPage.css`** — minimal, reuse the launcher grid pattern.
 
-- [ ] **Step 5: Wire into `src/app/App.tsx`** by replacing the `tools` branch with `<ToolsPage />`.
+- [x] **Step 5: Wire into `src/app/App.tsx`** by replacing the `tools` branch with `<ToolsPage />`.
 
-- [ ] **Step 6: Dev-run, smoke test, commit**
+- [x] **Step 6: Dev-run, smoke test, commit**
 
 ```bash
 git add src/features/tools src/app/App.tsx
@@ -2245,7 +2247,7 @@ git commit -m "feat(v10): tools page restored"
 - Create: `src/features/history/useHistory.ts`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Reuse the `HistoryItem` shape from the v9 backup**
+- [x] **Step 1: Reuse the `HistoryItem` shape from the v9 backup**
 
 ```bash
 grep -n "interface HistoryItem" src/App.v9.tsx.bak
@@ -2253,7 +2255,7 @@ grep -n "interface HistoryItem" src/App.v9.tsx.bak
 
 Copy the interface into `src/features/history/useHistory.ts` and keep the same localStorage key used in v9 (`ai-launcher:history`).
 
-- [ ] **Step 2: Write `src/features/history/useHistory.ts`** — reads from localStorage, exposes `{ items, clear }`.
+- [x] **Step 2: Write `src/features/history/useHistory.ts`** — reads from localStorage, exposes `{ items, clear }`.
 
 ```ts
 import { useEffect, useState } from "react";
@@ -2289,11 +2291,11 @@ export function useHistory(): { items: HistoryItem[]; clear: () => void } {
 }
 ```
 
-- [ ] **Step 3: Write `src/features/history/HistoryList.tsx`** — a table using `<Card>` rows: columns `CLI | Directory | Args | When`.
+- [x] **Step 3: Write `src/features/history/HistoryList.tsx`** — a table using `<Card>` rows: columns `CLI | Directory | Args | When`.
 
-- [ ] **Step 4: Write `HistoryPage.tsx`** — page title, clear button, list.
+- [x] **Step 4: Write `HistoryPage.tsx`** — page title, clear button, list.
 
-- [ ] **Step 5: Wire into `App.tsx`, commit**
+- [x] **Step 5: Wire into `App.tsx`, commit**
 
 ```bash
 git add src/features/history src/app/App.tsx
@@ -2307,15 +2309,15 @@ git commit -m "feat(v10): history page"
 - Create: `src/features/costs/CostsPage.css`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Import preserved helpers**
+- [x] **Step 1: Import preserved helpers**
 
 `computeTodaySpend` and `shouldAlert` from `src/providers/budget.ts` still exist. Use them directly.
 
-- [ ] **Step 2: Write `src/features/costs/CostsPage.tsx`** — shows total today, per-provider breakdown using `<Card>` tiles, budget alert banner when `shouldAlert()` is true.
+- [x] **Step 2: Write `src/features/costs/CostsPage.tsx`** — shows total today, per-provider breakdown using `<Card>` tiles, budget alert banner when `shouldAlert()` is true.
 
-- [ ] **Step 3: Write `src/features/costs/CostsPage.css`** — grid of cost tiles.
+- [x] **Step 3: Write `src/features/costs/CostsPage.css`** — grid of cost tiles.
 
-- [ ] **Step 4: Wire into `App.tsx`, commit**
+- [x] **Step 4: Wire into `App.tsx`, commit**
 
 ```bash
 git add src/features/costs src/app/App.tsx
@@ -2334,7 +2336,7 @@ git commit -m "feat(v10): costs page"
 - Create: `src/features/admin/sections/CustomIdesSection.tsx`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Write `src/features/admin/AdminPage.tsx` with sub-nav state**
+- [x] **Step 1: Write `src/features/admin/AdminPage.tsx` with sub-nav state**
 
 ```tsx
 import { useState } from "react";
@@ -2390,9 +2392,9 @@ export function AdminPage() {
 }
 ```
 
-- [ ] **Step 2: Write `AdminPage.css`** — same title pattern, sub-nav as a row of chips with an active underline.
+- [x] **Step 2: Write `AdminPage.css`** — same title pattern, sub-nav as a row of chips with an active underline.
 
-- [ ] **Step 3: Implement `AppearanceSection.tsx`**
+- [x] **Step 3: Implement `AppearanceSection.tsx`**
 
 Uses `useTheme`, `useAccent`, `FontId` + `applyFontStack` from `src/lib/appearance.ts`. Shows:
 - Theme radio: dark / light (with preview swatches)
@@ -2401,23 +2403,23 @@ Uses `useTheme`, `useAccent`, `FontId` + `applyFontStack` from `src/lib/appearan
 
 Each change updates the hook and calls the corresponding apply-function.
 
-- [ ] **Step 4: Implement `ProvidersSection.tsx`**
+- [x] **Step 4: Implement `ProvidersSection.tsx`**
 
 Uses preserved helpers from `src/providers/storage.ts`: `loadProviders`, `saveProviders`, `setActive`. Renders the provider list with Enable/Disable toggles + env-var editor modals. Key behavior must match v9 semantically (use `src/App.v9.tsx.bak` as reference for expected flow).
 
-- [ ] **Step 5: Implement `PresetsSection.tsx`**
+- [x] **Step 5: Implement `PresetsSection.tsx`**
 
 Uses `src/presets/storage.ts` helpers: `loadPresets`, `addPreset`, `updatePreset`, `removePreset`, `generatePresetId`. List presets, allow create/edit/delete.
 
-- [ ] **Step 6: Implement `CliOverridesSection.tsx`**
+- [x] **Step 6: Implement `CliOverridesSection.tsx`**
 
 Uses `src/lib/clisOverrides.ts` helpers. List CLIs, allow setting a custom name/icon via `CliOverrideModal` (built in Phase 7).
 
-- [ ] **Step 7: Implement `CustomIdesSection.tsx`**
+- [x] **Step 7: Implement `CustomIdesSection.tsx`**
 
 Uses `src/lib/customIdes.ts` helpers: `loadCustomIdes`, `addCustomIde`, `removeCustomIde`. List custom IDEs, add/remove via `CustomIdeModal` (built in Phase 7).
 
-- [ ] **Step 8: Wire Admin into `App.tsx`, commit**
+- [x] **Step 8: Wire Admin into `App.tsx`, commit**
 
 ```bash
 git add src/features/admin src/app/App.tsx
@@ -2431,9 +2433,9 @@ git commit -m "feat(v10): admin page with 5 sub-sections"
 - Create: `src/features/help/HelpPage.css`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Write `HelpPage.tsx` with static content**: sections `Getting Started`, `Keyboard Shortcuts`, `Troubleshooting`, `Links`. Use mono headings + sans body.
+- [x] **Step 1: Write `HelpPage.tsx` with static content**: sections `Getting Started`, `Keyboard Shortcuts`, `Troubleshooting`, `Links`. Use mono headings + sans body.
 
-- [ ] **Step 2: Wire, commit**
+- [x] **Step 2: Wire, commit**
 
 ```bash
 git add src/features/help src/app/App.tsx
@@ -2447,15 +2449,15 @@ git commit -m "feat(v10): help page"
 - Create: `src/features/onboarding/OnboardingPage.css`
 - Modify: `src/app/App.tsx`
 
-- [ ] **Step 1: Add an `ai-launcher:onboarding-done` boolean to localStorage**
+- [x] **Step 1: Add an `ai-launcher:onboarding-done` boolean to localStorage**
 
 If not set, render `<OnboardingPage />` instead of the main app shell.
 
-- [ ] **Step 2: Write `OnboardingPage.tsx` with 3 steps**
+- [x] **Step 2: Write `OnboardingPage.tsx` with 3 steps**
 
 Step 1: Welcome — "This launcher runs with full system access." Step 2: Pick accent + theme. Step 3: Scan CLIs (calls `get_all_clis` + `check_all_clis`, shows progress). Final: "Done" button sets the localStorage flag and returns to the main shell.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/onboarding src/app/App.tsx
@@ -2473,15 +2475,15 @@ git commit -m "feat(v10): onboarding flow"
 - Create: `src/features/command-palette/CommandPalette.css`
 - Modify: `src/app/App.tsx` (wire `onCommand` prop to open the palette, and ⌘K keyboard shortcut)
 
-- [ ] **Step 1: Use `cmdk` (already installed)**
+- [x] **Step 1: Use `cmdk` (already installed)**
 
 Build a `<Command.Dialog>` wrapper styled with Command Deck tokens. Command groups: Launch CLIs, Navigate (tabs), Theme, Accent, Providers, Presets, Open file, Help.
 
-- [ ] **Step 2: Keyboard shortcut**
+- [x] **Step 2: Keyboard shortcut**
 
 In `App.tsx`, add a `useEffect` binding `⌘K` / `Ctrl+K` to open the palette. Esc closes.
 
-- [ ] **Step 3: Smoke test, commit**
+- [x] **Step 3: Smoke test, commit**
 
 ```bash
 git add src/features/command-palette src/app/App.tsx
@@ -2499,17 +2501,17 @@ git commit -m "feat(v10): command palette"
 
 For each modal, build on top of `src/ui/Dialog.tsx`, preserve the exact props/behavior the v9 versions had (reference `src/providers/*.tsx` and `src/App.v9.tsx.bak`). Visual layer is new, behavior and data contracts are preserved.
 
-- [ ] **Step 1: Port `QuickSwitchModal`**: provider switcher, Tauri event listener to `quick-switch-request`, enabled toggles in mono rows.
+- [x] **Step 1: Port `QuickSwitchModal`**: provider switcher, Tauri event listener to `quick-switch-request`, enabled toggles in mono rows.
 
-- [ ] **Step 2: Port `DryRunModal`**: shows the launch command that would run (with redacted env), has a "Launch anyway" and "Copy command" button.
+- [x] **Step 2: Port `DryRunModal`**: shows the launch command that would run (with redacted env), has a "Launch anyway" and "Copy command" button.
 
-- [ ] **Step 3: Port `CustomIdeModal`**: form to register a custom IDE (name, command, optional install URL).
+- [x] **Step 3: Port `CustomIdeModal`**: form to register a custom IDE (name, command, optional install URL).
 
-- [ ] **Step 4: Port `CliOverrideModal`**: set a per-CLI name/icon override.
+- [x] **Step 4: Port `CliOverrideModal`**: set a per-CLI name/icon override.
 
-- [ ] **Step 5: Port `HelpModal`**: shortcut sheet (invoked by `?`).
+- [x] **Step 5: Port `HelpModal`**: shortcut sheet (invoked by `?`).
 
-- [ ] **Step 6: Wire each modal at the `App.tsx` level using `useState<open>()` flags or a small context, commit after each port**
+- [x] **Step 6: Wire each modal at the `App.tsx` level using `useState<open>()` flags or a small context, commit after each port**
 
 ```bash
 git add src/features/modals
@@ -2527,7 +2529,7 @@ git commit -m "feat(v10): modals rewritten on new Dialog primitive"
 - Modify: `src/lib/appSettings.ts` (remove `adminMode` field if present, keep back-compat read but ignore on write)
 - Grep: entire `src/` for any remaining `adminMode` / `admin_mode` references
 
-- [ ] **Step 1: Confirm no adminMode state in new App.tsx**
+- [x] **Step 1: Confirm no adminMode state in new App.tsx**
 
 ```bash
 grep -n "adminMode\|admin_mode" src/app/App.tsx
@@ -2535,11 +2537,11 @@ grep -n "adminMode\|admin_mode" src/app/App.tsx
 
 Expected: zero matches.
 
-- [ ] **Step 2: Strip `adminMode` from `AppSettings` type**
+- [x] **Step 2: Strip `adminMode` from `AppSettings` type**
 
 Find the `AppSettings` interface in `src/lib/appSettings.ts`. Remove the `adminMode` property. On load, ignore the stored field if present (no data loss — persisted settings without `adminMode` remain valid).
 
-- [ ] **Step 3: Confirm Rust backend always grants full access**
+- [x] **Step 3: Confirm Rust backend always grants full access**
 
 Read `src-tauri/src/main.rs` — search for conditional logic on an "admin" flag passed from the frontend. If such logic exists, change the default to always-on.
 
@@ -2549,7 +2551,7 @@ grep -n "admin" src-tauri/src/main.rs | head -20
 
 If matches found, replace conditional paths with the always-admin path.
 
-- [ ] **Step 4: Type-check, smoke test**
+- [x] **Step 4: Type-check, smoke test**
 
 ```bash
 npx tsc --noEmit
@@ -2558,7 +2560,7 @@ npm run dev
 
 Confirm: sidebar shows `● ADMIN · full access` chip, launching a CLI uses the admin launch path.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src src-tauri
@@ -2616,7 +2618,7 @@ src/providers/types.ts
 src/providers/budget.ts
 ```
 
-- [ ] **Step 1: Delete files**
+- [x] **Step 1: Delete files**
 
 ```bash
 rm -rf src/tabs src/layout src/styles
@@ -2639,7 +2641,7 @@ rm -f src/providers/providers.css
 rm -f src/App.v9.tsx.bak src/main.v9.tsx.bak
 ```
 
-- [ ] **Step 2: Type-check and build**
+- [x] **Step 2: Type-check and build**
 
 ```bash
 npx tsc --noEmit
@@ -2648,7 +2650,7 @@ npm run build
 
 Both must pass. If type errors appear, they indicate a missing migration — fix each before committing.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -2665,14 +2667,14 @@ git commit -m "chore(v10): remove v9 dead files"
 - Create: `tests/smoke.spec.ts`
 - Modify: `package.json` (add `"test:e2e": "playwright test"` script + devDep if missing)
 
-- [ ] **Step 1: Install Playwright if not present**
+- [x] **Step 1: Install Playwright if not present**
 
 ```bash
 npm i -D @playwright/test
 npx playwright install --with-deps chromium
 ```
 
-- [ ] **Step 2: Write `tests/smoke.spec.ts`**
+- [x] **Step 2: Write `tests/smoke.spec.ts`**
 
 ```ts
 import { test, expect } from "@playwright/test";
@@ -2696,7 +2698,7 @@ test("app boots, theme + accent toggle, tabs navigate", async ({ page }) => {
 });
 ```
 
-- [ ] **Step 3: Add Playwright config `playwright.config.ts`**
+- [x] **Step 3: Add Playwright config `playwright.config.ts`**
 
 ```ts
 import { defineConfig } from "@playwright/test";
@@ -2713,7 +2715,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Run the smoke test**
+- [x] **Step 4: Run the smoke test**
 
 ```bash
 npm run test:e2e
@@ -2721,7 +2723,7 @@ npm run test:e2e
 
 Expected: 1 passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tests playwright.config.ts package.json package-lock.json
@@ -2730,7 +2732,7 @@ git commit -m "test(v10): playwright smoke for shell + theme + accent + tabs"
 
 ### Task 10.2: tsc + build gate
 
-- [ ] **Step 1: Full build**
+- [x] **Step 1: Full build**
 
 ```bash
 npx tsc --noEmit
@@ -2739,20 +2741,20 @@ npm run build
 
 Both must pass with zero errors and zero warnings.
 
-- [ ] **Step 2: Manual smoke-test checklist**
+- [x] **Step 2: Manual smoke-test checklist**
 
 Run `npm run dev` and walk through:
 
-- [ ] App boots in dark + red (default) without flashing.
-- [ ] Sidebar navigation works for all 6 tabs.
-- [ ] Toggle theme dark/light — all pages remain legible.
-- [ ] Switch accent red/amber/green/blue/violet — status chips, focus rings, LED dots update.
-- [ ] `⌘K` opens the command palette; selecting a command works.
-- [ ] Launcher detects CLIs and can launch one.
-- [ ] Tools detects IDEs.
-- [ ] Admin → Appearance: change theme + accent + font persists across reload.
-- [ ] Admin → Providers: edit a provider, save, reload — changes persist.
-- [ ] Onboarding shows first-run; completing it skips on subsequent boots.
+- [x] App boots in dark + red (default) without flashing.
+- [x] Sidebar navigation works for all 6 tabs.
+- [x] Toggle theme dark/light — all pages remain legible.
+- [x] Switch accent red/amber/green/blue/violet — status chips, focus rings, LED dots update.
+- [x] `⌘K` opens the command palette; selecting a command works.
+- [x] Launcher detects CLIs and can launch one.
+- [x] Tools detects IDEs.
+- [x] Admin → Appearance: change theme + accent + font persists across reload.
+- [x] Admin → Providers: edit a provider, save, reload — changes persist.
+- [x] Onboarding shows first-run; completing it skips on subsequent boots.
 
 ---
 
@@ -2763,7 +2765,7 @@ Run `npm run dev` and walk through:
 **Files:**
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: Prepend new section to `CHANGELOG.md`**
+- [x] **Step 1: Prepend new section to `CHANGELOG.md`**
 
 ```markdown
 ## [10.0.0] — 2026-04-22 — Command Deck
@@ -2788,7 +2790,7 @@ Run `npm run dev` and walk through:
 - i18n strings and bilingual support (en + pt-BR).
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add CHANGELOG.md
@@ -2801,7 +2803,7 @@ git commit -m "docs(v10): changelog entry for 10.0.0"
 - Modify: `README.md`
 - Modify: `README.pt-BR.md`
 
-- [ ] **Step 1: Prepend ASCII banner to both READMEs**
+- [x] **Step 1: Prepend ASCII banner to both READMEs**
 
 ```markdown
 ```text
@@ -2823,7 +2825,7 @@ git commit -m "docs(v10): changelog entry for 10.0.0"
 
 (Ensure fenced code block is properly escaped — if you see `\`\`\`text` in the rendered markdown, drop one backtick layer.)
 
-- [ ] **Step 2: Rewrite the English README body**
+- [x] **Step 2: Rewrite the English README body**
 
 Sections:
 1. Hero (banner + one-sentence pitch).
@@ -2835,9 +2837,9 @@ Sections:
 7. What's new in v10 (bullet list from the CHANGELOG).
 8. Contributing + License (MIT).
 
-- [ ] **Step 3: Rewrite `README.pt-BR.md` with the same structure in pt-BR**
+- [x] **Step 3: Rewrite `README.pt-BR.md` with the same structure in pt-BR**
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add README.md README.pt-BR.md
@@ -2855,7 +2857,7 @@ git commit -m "docs(v10): rewrite READMEs with command deck banner"
 - Create: `docs/screenshots/02-admin.png` (real)
 - Create: `docs/screenshots/03-costs.png` (real)
 
-- [ ] **Step 1: Generate 4 editorial SVG mockups**
+- [x] **Step 1: Generate 4 editorial SVG mockups**
 
 Each SVG is a stylized screenshot at 1280×800 showing a Command Deck surface. Use the `.superpowers/brainstorm/.../content/direction.html` mockups as a visual reference — the same chrome, actual-looking data, different surface per SVG.
 
@@ -2865,7 +2867,7 @@ Content:
 3. `03-costs.svg` — budget dashboard, blue accent.
 4. `04-themes.svg` — side-by-side dark vs Hard Light.
 
-- [ ] **Step 2: Take real PNG screenshots from the running app**
+- [x] **Step 2: Take real PNG screenshots from the running app**
 
 ```bash
 npm run dev &
@@ -2901,11 +2903,11 @@ test.describe("screenshots", () => {
 });
 ```
 
-- [ ] **Step 3: Reference screenshots in both READMEs**
+- [x] **Step 3: Reference screenshots in both READMEs**
 
 Add a Screenshots section with image links to `docs/screenshots/*.svg` (hero) and `docs/screenshots/*.png` (real).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/screenshots tests/screenshots.spec.ts README.md README.pt-BR.md
@@ -2923,14 +2925,14 @@ git commit -m "docs(v10): screenshots + gallery in READMEs"
 - Modify: `src-tauri/tauri.conf.json`
 - Modify: `src-tauri/Cargo.toml`
 
-- [ ] **Step 1: Bump to 10.0.0**
+- [x] **Step 1: Bump to 10.0.0**
 
 Edit each file and change the version string:
 - `package.json`: `"version": "10.0.0"`
 - `src-tauri/tauri.conf.json`: `"version": "10.0.0"`
 - `src-tauri/Cargo.toml`: `version = "10.0.0"`
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
@@ -2939,7 +2941,7 @@ git commit -m "build(v10): bump to 10.0.0"
 
 ### Task 12.2: Local Windows release build
 
-- [ ] **Step 1: Build**
+- [x] **Step 1: Build**
 
 ```bash
 npm run tauri build
@@ -2947,26 +2949,26 @@ npm run tauri build
 
 Expected: Windows `.msi` and `.exe` emitted to `src-tauri/target/release/bundle/msi/` and `.../nsis/`.
 
-- [ ] **Step 2: Sanity-run**
+- [x] **Step 2: Sanity-run**
 
 Launch the produced `.exe` on the dev machine, walk through the manual smoke checklist from Task 10.2.
 
 ### Task 12.3: Tag + push + GitHub release
 
-- [ ] **Step 1: Tag**
+- [x] **Step 1: Tag**
 
 ```bash
 git tag -a v10.0.0 -m "v10.0.0 — Command Deck"
 git push origin main --tags
 ```
 
-- [ ] **Step 2: Extract release notes**
+- [x] **Step 2: Extract release notes**
 
 ```bash
 awk '/^## \[10.0.0\]/,/^## \[/ { if (/^## \[/ && !/10.0.0/) exit; print }' CHANGELOG.md > .release-notes.md
 ```
 
-- [ ] **Step 3: Create the GitHub release and attach the `.msi`**
+- [x] **Step 3: Create the GitHub release and attach the `.msi`**
 
 ```bash
 MSI=$(ls src-tauri/target/release/bundle/msi/*.msi | head -1)
@@ -2976,13 +2978,13 @@ gh release create v10.0.0 \
   "$MSI"
 ```
 
-- [ ] **Step 4: Clean up**
+- [x] **Step 4: Clean up**
 
 ```bash
 rm -f .release-notes.md
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Open the GitHub release URL printed by `gh release create` and confirm the release is published with the `.msi` attached.
 
