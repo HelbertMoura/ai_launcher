@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" font-family="JetBrains Mono, monospace" font-size="12">
+  <rect width="1200" height="750" fill="#0a0a0b"/>
+
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="220" height="750" fill="#111114"/>
+  <line x1="220" y1="0" x2="220" y2="750" stroke="#22222a"/>
+  <text x="24" y="40" fill="#34c759" font-size="14" font-weight="700">▎ AI LAUNCHER</text>
+  <text x="24" y="58" fill="#55555e" font-size="10">v10.0.0 · COMMAND DECK</text>
+
+  <g font-size="13">
+    <text x="28" y="122" fill="#c8c8d0">  Launch</text>
+    <text x="28" y="156" fill="#c8c8d0">  Tools</text>
+    <text x="28" y="186" fill="#c8c8d0">  History</text>
+    <text x="28" y="216" fill="#c8c8d0">  Costs</text>
+    <rect x="12" y="230" width="196" height="34" rx="4" fill="#1a1a20" stroke="#34c759"/>
+    <text x="28" y="252" fill="#34c759">▸ Admin</text>
+    <text x="28" y="286" fill="#c8c8d0">  Help</text>
+    <text x="28" y="316" fill="#7a7a84">  Onboarding</text>
+  </g>
+
+  <!-- Top bar -->
+  <rect x="220" y="0" width="980" height="56" fill="#0e0e12"/>
+  <line x1="220" y1="56" x2="1200" y2="56" stroke="#22222a"/>
+  <rect x="240" y="14" width="360" height="28" rx="6" fill="#17171c" stroke="#2a2a33"/>
+  <text x="256" y="32" fill="#55555e">⌘K</text>
+  <text x="296" y="32" fill="#8a8a94">Search commands, tabs, themes…</text>
+
+  <g>
+    <circle cx="720" cy="28" r="8" fill="#ff3131"/>
+    <circle cx="742" cy="28" r="8" fill="#f5a524"/>
+    <circle cx="764" cy="28" r="8" fill="#34c759" stroke="#ffffff" stroke-opacity="0.25"/>
+    <circle cx="786" cy="28" r="8" fill="#3b82f6"/>
+    <circle cx="808" cy="28" r="8" fill="#8b5cf6"/>
+  </g>
+
+  <rect x="840" y="14" width="60" height="28" rx="14" fill="#17171c" stroke="#2a2a33"/>
+  <circle cx="856" cy="28" r="9" fill="#34c759"/>
+  <text x="875" y="32" fill="#8a8a94" font-size="10">dark</text>
+
+  <!-- Title -->
+  <text x="244" y="98" fill="#eeeef2" font-size="24" font-weight="700">ADMIN</text>
+  <text x="244" y="120" fill="#7a7a84">Configure providers, presets, appearance, overrides and custom IDEs</text>
+
+  <!-- Sub-nav -->
+  <g font-size="12">
+    <rect x="244" y="140" width="110" height="30" rx="4" fill="#1a1a20" stroke="#34c759"/>
+    <text x="262" y="160" fill="#34c759" font-weight="700">Providers</text>
+    <text x="378" y="160" fill="#8a8a94">Presets</text>
+    <text x="450" y="160" fill="#8a8a94">Appearance</text>
+    <text x="550" y="160" fill="#8a8a94">CLI Overrides</text>
+    <text x="680" y="160" fill="#8a8a94">Custom IDEs</text>
+  </g>
+
+  <line x1="244" y1="190" x2="1154" y2="190" stroke="#22222a"/>
+
+  <!-- Provider cards -->
+  <g font-size="12">
+    <!-- Anthropic -->
+    <rect x="244" y="216" width="296" height="200" rx="6" fill="#121218" stroke="#34c759" stroke-width="1.5"/>
+    <text x="266" y="246" fill="#eeeef2" font-size="15" font-weight="700">Anthropic</text>
+    <rect x="450" y="232" width="74" height="20" rx="3" fill="#0d2518"/>
+    <text x="462" y="246" fill="#34c759" font-size="10">ACTIVE</text>
+    <text x="266" y="270" fill="#8a8a94">api.anthropic.com</text>
+    <text x="266" y="292" fill="#7a7a84" font-size="11">sonnet-4 · haiku-4-5</text>
+    <text x="266" y="316" fill="#55555e" font-size="10">Official · 200K context</text>
+
+    <line x1="266" y1="340" x2="518" y2="340" stroke="#22222a"/>
+    <rect x="266" y="356" width="78" height="30" rx="4" fill="#34c759"/>
+    <text x="280" y="376" fill="#0a0a0b" font-weight="700">Active</text>
+    <rect x="354" y="356" width="64" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="370" y="376" fill="#c8c8d0">Edit</text>
+    <rect x="428" y="356" width="74" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="442" y="376" fill="#ff7070">Delete</text>
+
+    <!-- Z.AI -->
+    <rect x="554" y="216" width="296" height="200" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="576" y="246" fill="#eeeef2" font-size="15" font-weight="700">Z.AI / GLM</text>
+    <text x="576" y="270" fill="#8a8a94">api.z.ai/anthropic</text>
+    <text x="576" y="292" fill="#7a7a84" font-size="11">glm-5.1 · glm-4.7</text>
+    <text x="576" y="316" fill="#55555e" font-size="10">Anthropic-compat · 128K</text>
+
+    <line x1="576" y1="340" x2="828" y2="340" stroke="#22222a"/>
+    <rect x="576" y="356" width="84" height="30" rx="4" fill="#1a1a20" stroke="#34c759"/>
+    <text x="590" y="376" fill="#34c759" font-weight="700">Activate</text>
+    <rect x="670" y="356" width="64" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="686" y="376" fill="#c8c8d0">Edit</text>
+    <rect x="744" y="356" width="74" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="758" y="376" fill="#ff7070">Delete</text>
+
+    <!-- MiniMax -->
+    <rect x="864" y="216" width="296" height="200" rx="6" fill="#121218" stroke="#23232c"/>
+    <text x="886" y="246" fill="#eeeef2" font-size="15" font-weight="700">MiniMax</text>
+    <text x="886" y="270" fill="#8a8a94">api.minimax.io/anthropic</text>
+    <text x="886" y="292" fill="#7a7a84" font-size="11">MiniMax-M2.7</text>
+    <text x="886" y="316" fill="#55555e" font-size="10">Anthropic-compat · 200K</text>
+
+    <line x1="886" y1="340" x2="1138" y2="340" stroke="#22222a"/>
+    <rect x="886" y="356" width="84" height="30" rx="4" fill="#1a1a20" stroke="#34c759"/>
+    <text x="900" y="376" fill="#34c759" font-weight="700">Activate</text>
+    <rect x="980" y="356" width="64" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="996" y="376" fill="#c8c8d0">Edit</text>
+    <rect x="1054" y="356" width="74" height="30" rx="4" fill="#1a1a20" stroke="#2a2a33"/>
+    <text x="1068" y="376" fill="#ff7070">Delete</text>
+  </g>
+
+  <!-- Add new provider -->
+  <rect x="244" y="440" width="916" height="60" rx="6" fill="#0e0e12" stroke="#2a2a33" stroke-dasharray="4 4"/>
+  <text x="702" y="476" fill="#8a8a94" text-anchor="middle">+ Add new provider profile</text>
+
+  <!-- Status bar -->
+  <rect x="220" y="718" width="980" height="32" fill="#0e0e12"/>
+  <line x1="220" y1="718" x2="1200" y2="718" stroke="#22222a"/>
+  <g font-size="11">
+    <text x="244" y="738" fill="#8a8a94">3 providers</text>
+    <text x="360" y="738" fill="#55555e">·</text>
+    <circle cx="382" cy="734" r="4" fill="#34c759"/>
+    <text x="394" y="738" fill="#34c759">ADMIN</text>
+    <text x="450" y="738" fill="#55555e">·</text>
+    <text x="470" y="738" fill="#8a8a94">accent: green</text>
+    <text x="1140" y="738" fill="#55555e">v10.0.0</text>
+  </g>
+</svg>
