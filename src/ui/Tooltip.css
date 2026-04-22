@@ -1,0 +1,36 @@
+.cd-tip {
+  position: relative;
+  display: inline-flex;
+}
+.cd-tip__content {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity var(--dur), transform var(--dur);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  white-space: nowrap;
+  z-index: 50;
+}
+.cd-tip:hover .cd-tip__content,
+.cd-tip:focus-within .cd-tip__content {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 400ms;
+}
+.cd-tip[data-side="top"] .cd-tip__content { bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(4px); }
+.cd-tip[data-side="top"]:hover .cd-tip__content { transform: translateX(-50%) translateY(0); }
+.cd-tip[data-side="bottom"] .cd-tip__content { top: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(-4px); }
+.cd-tip[data-side="bottom"]:hover .cd-tip__content { transform: translateX(-50%) translateY(0); }
+.cd-tip[data-side="left"] .cd-tip__content { right: calc(100% + 6px); top: 50%; transform: translateY(-50%) translateX(4px); }
+.cd-tip[data-side="left"]:hover .cd-tip__content { transform: translateY(-50%) translateX(0); }
+.cd-tip[data-side="right"] .cd-tip__content { left: calc(100% + 6px); top: 50%; transform: translateY(-50%) translateX(-4px); }
+.cd-tip[data-side="right"]:hover .cd-tip__content { transform: translateY(-50%) translateX(0); }
