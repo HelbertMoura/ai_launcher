@@ -5,6 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.1.0] — 2026-04-22
+
+### 🎨 "Soft Workbench 2.0" — Complete Visual Overhaul
+
+Major visual reformulation following Figma-style minimalist modern design with warm terracotta accents.
+
+### Added
+
+- **Dark mode**: Full dark theme with Figma-style surface hierarchy (`#1a1a1a` bg, `#242424` surface)
+- **Official brand icons**: SVG icons for Claude, VS Code, Cursor, Gemini from brand CDN/custom designs
+- **Custom icons**: Kilo Code, OpenCode, Crush, Droid with flat branded designs
+- **Theme toggle**: Sun/moon switch in HeaderBar, persisted in localStorage
+- **Accent color picker**: 5 warm presets (Terracotta, Coral, Amber, Sage, Slate) + custom color via native picker
+
+### Changed
+
+- **Admin unification**: All users have full admin access — removed `VITE_ADMIN_MODE` split and `isAdminMode()` gate
+- **LauncherTab cards**: New Figma-style design without `>` prompt, shadows and hover lift, accent ring on selection
+- **Onboarding**: Clean centered card without TerminalFrame decoration, slide-up animation
+- **HeaderBar**: Minimalist redesign — 56px height, logo left, nav center, theme toggle + help button right
+- **Color tokens**: Full Figma-style light/dark token system (`--bg`, `--surface`, `--text`, `--accent`, etc.)
+- **README**: ASCII terminal art + updated description
+
+### Fixed
+
+- **Visual uniformity**: Replaced generic card grid with intentional component design
+- **Terminal aesthetic removal**: No more fake terminal frames as decoration
+
 ## [9.0.0] — 2026-04-22
 
 ### 🎨 "Soft Workbench" — Reformulação total de UI, aparência e iconografia

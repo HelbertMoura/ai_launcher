@@ -67,7 +67,6 @@ export interface LauncherTabProps {
   // Boot / meta
   bootReady: boolean;
   hasChecked: boolean;
-  adminMode: boolean;
 
   // CLIs / installed
   clis: CliInfo[];
@@ -120,7 +119,6 @@ export function LauncherTab(props: LauncherTabProps) {
   const {
     bootReady,
     hasChecked,
-    adminMode,
     clis,
     installed,
     installedClis,
@@ -309,7 +307,6 @@ export function LauncherTab(props: LauncherTabProps) {
                     ✎
                   </button>
                   <header className="launcher-cli-card__head">
-                    <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
                     <span className="launcher-cli-card__icon" aria-hidden="true">
                       {overrideIcon?.dataUrl ? (
                         <CliIcon cliKey={cli.key} size={20} overrideSrc={overrideIcon.dataUrl} />
@@ -383,7 +380,6 @@ export function LauncherTab(props: LauncherTabProps) {
                 className="launcher-cli-card launcher-cli-card--custom is-installed"
               >
                 <header className="launcher-cli-card__head">
-                  <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
                   <span className="launcher-cli-card__icon" aria-hidden="true">
                     {c.iconDataUrl
                       ? <img src={c.iconDataUrl} alt="" aria-hidden="true" />
@@ -504,13 +500,11 @@ export function LauncherTab(props: LauncherTabProps) {
           </label>
         </div>
 
-        {adminMode && (
-          <ProviderSelector
-            state={providers}
-            onChange={updateProviders}
-            selectedCli={selectedCli}
-          />
-        )}
+        <ProviderSelector
+          state={providers}
+          onChange={updateProviders}
+          selectedCli={selectedCli}
+        />
 
         {selectedCliData && (
           <div className="cli-info" style={{ '--c': CLI_COLORS[selectedCli] || '#8B1E2A' } as React.CSSProperties}>

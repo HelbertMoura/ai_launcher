@@ -7,14 +7,12 @@ import { AdminPanel } from '../providers/AdminPanel';
 import type { ProvidersState } from '../providers/types';
 
 export interface AdminTabProps {
-  adminMode: boolean;
   providers: ProvidersState;
   updateProviders: (next: ProvidersState) => void;
   showToast: (msg: string) => void;
 }
 
-export function AdminTab({ adminMode, providers, updateProviders, showToast }: AdminTabProps) {
-  if (!adminMode) return null;
+export function AdminTab({ providers, updateProviders, showToast }: AdminTabProps) {
   return (
     <div className="tab-scroll">
       <div className="tab-pad">
