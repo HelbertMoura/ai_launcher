@@ -3,6 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("ai-launcher:theme") || "dark";
+          var a = localStorage.getItem("ai-launcher:accent") || "red";
+          document.documentElement.setAttribute("data-theme", t);
+          document.documentElement.setAttribute("data-accent", a);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          document.documentElement.setAttribute("data-accent", "red");
+        }
+      })();
+    </script>
     <meta name="description" content="AI Launcher - Your ultimate desktop hub for AI coding CLIs." />
     <meta name="theme-color" content="#ffffff" />
 
