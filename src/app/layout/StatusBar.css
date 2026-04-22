@@ -1,0 +1,15 @@
+.cd-status {
+  height: var(--statusbar-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 var(--s-4);
+  border-top: 1px solid var(--border);
+  background: var(--surface-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.cd-status__cell--accent { color: var(--accent); font-weight: 700; }
+.cd-status__cell--muted { margin-left: auto; }
