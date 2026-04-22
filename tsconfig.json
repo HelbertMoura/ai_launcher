@@ -18,28 +18,7 @@
   },
   "include": ["src"],
   "exclude": [
-    "src/**/*.bak",
-    "src/tabs",
-    "src/layout",
-    "src/styles",
-    "src/shared",
-    "src/i18n",
-    "src/CommandPalette.tsx",
-    "src/CommandPalette.css",
-    "src/CostAggregator.tsx",
-    "src/CostAggregator.css",
-    "src/EmptyState.tsx",
-    "src/EmptyState.css",
-    "src/EmptyState.illustrations.tsx",
-    "src/ErrorBoundary.tsx",
-    "src/ErrorBoundary.css",
-    "src/Onboarding.tsx",
-    "src/Onboarding.css",
-    "src/Orchestrator.tsx",
-    "src/Orchestrator.css",
-    "src/Skeleton.tsx",
-    "src/Skeleton.css",
-    "src/styles.css"
+    "src/**/*.bak"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
