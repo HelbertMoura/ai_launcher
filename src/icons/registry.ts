@@ -13,11 +13,8 @@ const CLI_KEYS = new Set([
   "qwen",
   "crush",
   "droid",
-  "kilo",
+  "kilocode",
   "opencode",
-  "aider",
-  "copilot",
-  "minimax",
 ]);
 
 export function hasCliIcon(key: string): boolean {
