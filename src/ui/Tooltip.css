@@ -34,3 +34,7 @@
 .cd-tip[data-side="left"]:hover .cd-tip__content { transform: translateY(-50%) translateX(0); }
 .cd-tip[data-side="right"] .cd-tip__content { left: calc(100% + 6px); top: 50%; transform: translateY(-50%) translateX(-4px); }
 .cd-tip[data-side="right"]:hover .cd-tip__content { transform: translateY(-50%) translateX(0); }
+.cd-tip[data-side="top"]:focus-within .cd-tip__content { transform: translateX(-50%) translateY(0); }
+.cd-tip[data-side="bottom"]:focus-within .cd-tip__content { transform: translateX(-50%) translateY(0); }
+.cd-tip[data-side="left"]:focus-within .cd-tip__content { transform: translateY(-50%) translateX(0); }
+.cd-tip[data-side="right"]:focus-within .cd-tip__content { transform: translateY(-50%) translateX(0); }

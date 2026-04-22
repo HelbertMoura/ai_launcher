@@ -30,7 +30,7 @@ export function Button({
       aria-busy={loading || undefined}
       disabled={disabled || loading}
     >
-      {icon && <span className="cd-btn__icon">{icon}</span>}
+      {icon && <span className="cd-btn__icon" aria-hidden="true">{icon}</span>}
       <span className="cd-btn__label">{children}</span>
     </button>
   );
