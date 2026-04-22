@@ -1,5 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="#615CED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="14" cy="14" r="9" />
-  <path d="M20 20l7 7" />
-  <circle cx="14" cy="14" r="2.5" fill="#615CED" stroke="none" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="qwen-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#7C3AED" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#qwen-grad)" opacity="0.1" />
+  <circle cx="16" cy="16" r="8" stroke="url(#qwen-grad)" stroke-width="2.5" stroke-dasharray="4 4" filter="url(#shadow)" />
+  <circle cx="16" cy="16" r="3" fill="url(#qwen-grad)" filter="url(#shadow)" />
 </svg>
