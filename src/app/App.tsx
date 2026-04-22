@@ -15,17 +15,8 @@ import { TopBar } from "./layout/TopBar";
 import type { TabId } from "./layout/TabId";
 import { CommandPalette } from "../features/command-palette/CommandPalette";
 import { useCommandPalette } from "../features/command-palette/useCommandPalette";
+import { markOnboarded, readOnboarded } from "./onboarding";
 import "./App.css";
-
-const ONBOARDING_KEY = "ai-launcher:onboarding-done";
-
-function readOnboarded(): boolean {
-  try {
-    return localStorage.getItem(ONBOARDING_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
 
 export function App() {
   const [active, setActive] = useState<TabId>("launcher");
@@ -40,11 +31,7 @@ export function App() {
     return (
       <OnboardingPage
         onFinish={() => {
-          try {
-            localStorage.setItem(ONBOARDING_KEY, "true");
-          } catch {
-            /* ignore storage errors */
-          }
+          markOnboarded();
           setOnboarded(true);
         }}
       />

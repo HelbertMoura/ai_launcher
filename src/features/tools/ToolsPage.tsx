@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
 import { Skeleton } from "../../ui/Skeleton";
@@ -8,6 +9,7 @@ import "../page.css";
 import "./ToolsPage.css";
 
 export function ToolsPage() {
+  const { t } = useTranslation();
   const { tools, checks, loading, error, refresh } = useTools();
   const [installing, setInstalling] = useState<string | null>(null);
   const [launching, setLaunching] = useState<string | null>(null);
@@ -48,9 +50,14 @@ export function ToolsPage() {
     <section className="cd-page cd-tools">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ TOOLS</h2>
+          <h2 className="cd-page__title">▎ {t("tools.title")}</h2>
           <p className="cd-page__sub">
-            {loading ? "scanning…" : `${installedCount}/${tools.length} installed`}
+            {loading
+              ? t("common.scanning")
+              : t("tools.subCount", {
+                  installed: installedCount,
+                  total: tools.length,
+                })}
           </p>
         </div>
       </header>
@@ -67,7 +74,7 @@ export function ToolsPage() {
       )}
 
       {!loading && tools.length === 0 && (
-        <div className="cd-page__empty">No tools registered.</div>
+        <div className="cd-page__empty">{t("tools.notRegistered")}</div>
       )}
 
       {!loading && tools.length > 0 && (
