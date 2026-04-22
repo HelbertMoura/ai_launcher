@@ -13,6 +13,8 @@ import { Sidebar } from "./layout/Sidebar";
 import { StatusBar } from "./layout/StatusBar";
 import { TopBar } from "./layout/TopBar";
 import type { TabId } from "./layout/TabId";
+import { CommandPalette } from "../features/command-palette/CommandPalette";
+import { useCommandPalette } from "../features/command-palette/useCommandPalette";
 import "./App.css";
 
 const ONBOARDING_KEY = "ai-launcher:onboarding-done";
@@ -30,6 +32,7 @@ export function App() {
   const { theme, setTheme } = useTheme();
   const { accent, setAccent } = useAccent();
   const [onboarded, setOnboarded] = useState<boolean>(readOnboarded);
+  const palette = useCommandPalette();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -55,9 +58,7 @@ export function App() {
       </div>
       <div className="cd-app__top">
         <TopBar
-          onCommand={() => {
-            /* wired in Phase 7 */
-          }}
+          onCommand={palette.openPalette}
           theme={theme}
           onToggleTheme={toggleTheme}
           accent={accent}
@@ -75,6 +76,14 @@ export function App() {
       <div className="cd-app__status">
         <StatusBar online={0} total={0} todaySpend="$0.00" version={pkg.version} />
       </div>
+      <CommandPalette
+        open={palette.open}
+        onClose={palette.closePalette}
+        onNavigate={(tab) => setActive(tab)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onSetAccent={setAccent}
+      />
     </div>
   );
 }
