@@ -79,3 +79,4 @@ coverage/
 
 # --- Claude Code local settings (per-dev, never commit) ---
 .claude/
+.superpowers/
