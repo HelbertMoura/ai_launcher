@@ -5,6 +5,35 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [9.0.0] — 2026-04-22
+
+### 🎨 "Soft Workbench" — Reformulação total de UI, aparência e iconografia
+
+Release major dedicada a substituir a estética terminal/futurista herdada da v8 por uma linguagem visual mais amigável e madura. A v9 também formaliza a camada de aparência e a lógica de ícones para permitir personalização real e manutenção mais limpa.
+
+### Added
+
+- **Presets de destaque no Admin** com persistência local e aplicação global na interface.
+- **Registry central de ícones built-in** em `src/lib/iconRegistry.ts`.
+- **Overrides de ícones com imagem local** para itens embutidos.
+- **Suporte a imagem de ícone em CLIs/IDEs customizadas**.
+- **Documentação operacional de troca manual** em `docs/ICON_OVERRIDES.md`.
+- **Spec e plano da v9** em `docs/superpowers/specs/2026-04-22-v9-soft-workbench-design.md` e `docs/superpowers/plans/2026-04-22-v9-soft-workbench-plan.md`.
+
+### Changed
+
+- **UI shell** refeita com nova direção `Soft Workbench`.
+- **Theme defaults** migrados para uma identidade light-first mais quente.
+- **Header, status bar, launcher cards e superfícies administrativas** atualizados para a nova linguagem visual.
+- **Família oficial de ícones** refeita para CLIs e tools built-in.
+- **README público** reescrito sem banner/prints antigos.
+- **README pt-BR** reescrito sem mockups antigos.
+
+### Fixed
+
+- **Personalização superficial de ícones**: built-ins não dependem mais apenas de emoji para override.
+- **Dívida visual da v8**: reduzida a partir de tokens, shell e cards centrais alinhados à nova identidade.
+
 ## [8.0.0] — 2026-04-21
 
 ### 🎨 "Friendly Dashboard" — Complete UI/UX Redesign & Robust i18n

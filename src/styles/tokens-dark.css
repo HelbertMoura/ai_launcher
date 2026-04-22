@@ -1,71 +1,76 @@
-/* ============================================================================
- * AI Launcher Pro v8 — Dark theme tokens (Friendly Dashboard)
- * ============================================================================ */
-
-:root,
+:root[data-theme="dark"],
 [data-theme="dark"] {
-  --color-bg-0: #0F172A;
-  --color-bg-1: #1E293B;
-  --color-bg-2: #334155;
-  --color-border: #334155;
-  --color-border-strong: #475569;
+  --color-bg-app: #1b191c;
+  --color-bg-shell: #242126;
+  --color-surface: #2c2830;
+  --color-surface-soft: #35303a;
+  --color-surface-muted: #231f25;
+  --color-surface-elevated: #3a3440;
 
-  --color-text: #F8FAFC;
-  --color-text-soft: #CBD5E1;
-  --color-text-muted: #94A3B8;
-  --color-text-dim: #64748B;
+  --color-border: rgba(255, 245, 244, 0.08);
+  --color-border-strong: rgba(255, 245, 244, 0.16);
 
-  --color-accent: #3B82F6;
-  --color-accent-soft: #2563EB;
-  --color-accent-dim: #1D4ED8;
-  --color-accent-on: #FFFFFF;
+  --color-text: #f7f0ed;
+  --color-text-soft: #dfd2cf;
+  --color-text-muted: #ad9f9d;
+  --color-text-dim: #887c7b;
 
-  --color-success: #10B981;
-  --color-success-dim: #059669;
-  --color-danger: #EF4444;
-  --color-danger-dim: #DC2626;
-  --color-warn: #F59E0B;
-  --color-warn-dim: #D97706;
-  --color-info: #3B82F6;
-  --color-info-dim: #2563EB;
+  --color-success: #7db489;
+  --color-success-dim: #6c9a76;
+  --color-danger: #d56c68;
+  --color-danger-dim: #b75653;
+  --color-warn: #d8a060;
+  --color-warn-dim: #bb8548;
+  --color-info: #7a99b3;
+  --color-info-dim: #66849c;
 
-  --color-brand-anthropic: #D97757;
-  --color-brand-google: #4285F4;
-  --color-brand-zai: #8B5CF6;
-  --color-brand-minimax: #F97316;
-  --color-brand-moonshot: #F59E0B;
-  --color-brand-qwen: #3B82F6;
-  --color-brand-openrouter: #14B8A6;
+  --color-brand-anthropic: #d18669;
+  --color-brand-google: #6a9ce8;
+  --color-brand-zai: #9c7ec7;
+  --color-brand-minimax: #df8b64;
+  --color-brand-moonshot: #dbab72;
+  --color-brand-qwen: #82a1c8;
+  --color-brand-openrouter: #79b3a4;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.24);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
-  --shadow-glow-accent: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  --shadow-sm: 0 6px 14px rgba(9, 6, 10, 0.18);
+  --shadow-md: 0 16px 28px rgba(9, 6, 10, 0.22);
+  --shadow-lg: 0 24px 56px rgba(9, 6, 10, 0.32);
+  --shadow-glow-accent: 0 0 0 4px color-mix(in srgb, var(--color-accent) 16%, transparent);
 
-  --ring: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-accent);
-  --ring-danger: 0 0 0 2px var(--color-bg-0), 0 0 0 4px var(--color-danger);
+  --ring: 0 0 0 2px var(--color-bg-app), 0 0 0 4px color-mix(in srgb, var(--color-accent) 55%, transparent);
+  --ring-danger: 0 0 0 2px var(--color-bg-app), 0 0 0 4px color-mix(in srgb, var(--color-danger) 55%, transparent);
 
-  --bg: var(--color-bg-0);
-  --surface: var(--color-bg-1);
-  --inner: var(--color-bg-2);
+  --bg: var(--color-bg-app);
+  --bg-base: var(--color-bg-app);
+  --surface: var(--color-surface);
+  --inner: var(--color-surface-soft);
+  --bg-surface: var(--color-surface-soft);
+  --bg-surface-hover: var(--color-surface-elevated);
   --border: var(--color-border);
   --muted: var(--color-text-muted);
   --text: var(--color-text);
   --brand: var(--color-accent);
   --brand-light: var(--color-accent-soft);
-  --brand-dark: var(--color-accent-dim);
+  --brand-dark: var(--color-accent-strong);
   --green: var(--color-success);
   --red: var(--color-danger);
   --yellow: var(--color-warn);
 
-  --bg-terminal: #020617;
-  --bg-surface-raised: #0F172A;
-  --bg-prompt: #1E293B;
-  --border-dim: #1E293B;
-  --border-bright: #334155;
-  --text-dim: #64748B;
-  --text-prompt: #3B82F6;
+  --bg-terminal: var(--color-bg-shell);
+  --bg-surface-raised: var(--color-surface);
+  --bg-prompt: var(--color-surface-muted);
+  --border-dim: var(--color-border);
+  --border-bright: var(--color-border-strong);
+  --text-dim: var(--color-text-dim);
+  --text-prompt: var(--color-accent);
 
-  --shadow-terminal: 0 0 0 1px var(--border-dim), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
-  --shadow-floating: 0 0 0 1px var(--border-bright), 0 16px 48px -12px rgba(0, 0, 0, 0.5);
+  --color-bg-0: var(--color-bg-app);
+  --color-bg-1: var(--color-surface);
+  --color-bg-2: var(--color-surface-soft);
+  --color-text-soft-2: var(--color-text-soft);
+  --color-border-soft: var(--color-border);
+  --color-accent-on: var(--color-accent-ink);
+
+  --shadow-terminal: var(--shadow-md);
+  --shadow-floating: var(--shadow-lg);
 }

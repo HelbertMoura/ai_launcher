@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Type } from '../icons';
+import { ACCENT_PRESETS, type AccentPresetId } from '../lib/appearance';
 import './AppearanceSection.css';
 
 interface FontOption {
@@ -34,7 +35,12 @@ export function applyFontStack(id: FontId): void {
   document.documentElement.style.setProperty('--ff-display', opt.stack);
 }
 
-export function AppearanceSection() {
+interface AppearanceSectionProps {
+  accentPreset: AccentPresetId;
+  onAccentChange: (accentPreset: AccentPresetId) => void;
+}
+
+export function AppearanceSection({ accentPreset, onAccentChange }: AppearanceSectionProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<FontId>(() => {
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(FONT_STORAGE_KEY) : null;
@@ -68,6 +74,30 @@ export function AppearanceSection() {
             {opt.recommended && <span className="appearance-option__badge">{t('admin.appearance.recommended')}</span>}
           </label>
         ))}
+      </div>
+      <div className="appearance-accent">
+        <div className="appearance-accent__head">
+          <span className="appearance-accent__title">{t('admin.appearance.accentTitle')}</span>
+          <span className="appearance-accent__hint">{t('admin.appearance.accentHint')}</span>
+        </div>
+        <div className="appearance-accent__grid" role="radiogroup" aria-label={t('admin.appearance.accentAria')}>
+          {ACCENT_PRESETS.map((preset) => (
+            <label key={preset.id} className={`appearance-accent__option${accentPreset === preset.id ? ' is-active' : ''}`}>
+              <input
+                type="radio"
+                name="accent-preset"
+                value={preset.id}
+                checked={accentPreset === preset.id}
+                onChange={() => onAccentChange(preset.id)}
+              />
+              <span className={`appearance-accent__swatch appearance-accent__swatch--${preset.id}`} aria-hidden="true" />
+              <span className="appearance-accent__copy">
+                <span className="appearance-accent__name">{preset.name}</span>
+                <span className="appearance-accent__desc">{preset.description}</span>
+              </span>
+            </label>
+          ))}
+        </div>
       </div>
       <div className="appearance-preview" style={{ fontFamily: currentStack }}>
         abc 123 → fn() {'{} '} α β γ

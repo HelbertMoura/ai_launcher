@@ -91,6 +91,13 @@
   display: block;
 }
 
+.cli-override-modal__preview-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
 .cli-override-modal__field {
   display: flex;
   flex-direction: column;
@@ -127,6 +134,16 @@
 .cli-override-modal__hint {
   font-size: 11px;
   color: var(--text-dim);
+}
+
+.cli-override-modal__file {
+  font: inherit;
+  color: var(--text);
+}
+
+.cli-override-modal__error {
+  font-size: 11px;
+  color: var(--red);
 }
 
 .cli-override-modal__footer {

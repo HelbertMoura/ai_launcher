@@ -2229,3 +2229,277 @@ body {
   .skeleton-row { animation: none; background: var(--border); }
   .update-item.just-updated { animation: none; }
 }
+
+/* ==========================================================================
+   v9.0 Soft Workbench overrides
+   ========================================================================== */
+
+html, body {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 32%),
+    linear-gradient(180deg, var(--color-bg-app), color-mix(in srgb, var(--color-bg-app) 86%, #ffffff));
+}
+
+body {
+  font-family: var(--ff-ui);
+  color: var(--color-text);
+}
+
+.app {
+  padding: 14px;
+  gap: 0;
+}
+
+.tab-content {
+  min-height: 0;
+  overflow: auto;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+
+.left-col,
+.right-col,
+.content.single,
+.tab-scroll > .tab-pad,
+.tab-scroll .prereq-section,
+.tab-scroll .install-section,
+.tab-scroll .updates-section,
+.help-v2,
+.helptab__sidebar,
+.helptab__content,
+.cost-root > section,
+.cost-section {
+  background: color-mix(in srgb, var(--color-surface) 94%, white 6%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.left-col,
+.right-col {
+  padding: 16px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section-title,
+.preview-title,
+.install-section-title,
+.tab-section-header h2,
+.tab-section-sub,
+.help-content h2.help-title,
+.helptab__content-title,
+.cost-section-title {
+  font-family: var(--ff-display);
+}
+
+.section-title,
+.preview-title,
+.install-section-title {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+}
+
+.input,
+textarea.input,
+select,
+.admin-settings__input,
+.custom-cli-modal__input,
+.custom-ide-modal__input,
+.cli-override-modal__input,
+.quick-switch-input {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
+.checkbox,
+.preview,
+.cli-info,
+.install-item,
+.history-item,
+.status-item,
+.provider-warning,
+.provider-override,
+.admin-note,
+.dryrun-head,
+.dryrun-body,
+.dryrun-hint {
+  background: var(--color-surface-soft);
+}
+
+.btn,
+.btn-install,
+.launch-btn,
+.tool-launch-btn,
+.preset-chip-edit,
+.preset-chip-x,
+.welcome-btn {
+  border-radius: 999px;
+}
+
+.btn,
+.theme-btn,
+.tool-launch-btn.install,
+.launcher-cli-card__actions .btn-cli-ghost {
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn:hover,
+.theme-btn:hover,
+.tool-launch-btn.install:hover,
+.launcher-cli-card__actions .btn-cli-ghost:hover {
+  background: color-mix(in srgb, var(--color-surface-soft) 70%, var(--color-accent-surface));
+  border-color: var(--color-border-strong);
+}
+
+.btn-primary,
+.btn-install,
+.launch-btn,
+.tool-launch-btn,
+.welcome-btn,
+.launcher-cli-card__actions .btn-cli-primary {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: var(--color-accent-ink);
+  border: none;
+}
+
+.tool-card {
+  padding: 14px 12px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 92%, white 8%), var(--color-surface-soft));
+  border: 1px solid var(--color-border);
+}
+
+.tool-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 28%, var(--color-border-strong));
+}
+
+.tool-card.installed {
+  border-color: color-mix(in srgb, var(--color-success) 36%, var(--color-border-strong));
+}
+
+.tool-icon {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+}
+
+.tool-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.tool-status {
+  margin-top: 4px;
+  margin-bottom: 10px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.tool-launch-btn {
+  min-height: 34px;
+  font-size: 11px;
+}
+
+.footer {
+  padding: 0 6px;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.footer-updates {
+  color: var(--color-accent-strong);
+}
+
+.admin-custom-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  padding: 0;
+}
+
+.admin-custom-list__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.admin-custom-list__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.admin-custom-list__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-custom-list__name {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.admin-custom-list__key {
+  color: var(--color-text-muted);
+}
+
+.welcome-screen {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 30%),
+    linear-gradient(180deg, var(--color-bg-app), var(--color-bg-shell));
+}
+
+.welcome-box {
+  background: color-mix(in srgb, var(--color-surface) 94%, white 6%);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 24%, var(--color-border));
+  border-radius: 28px;
+  max-width: 520px;
+}
+
+.welcome-box h1 {
+  font-family: var(--ff-display);
+  font-size: var(--fs-2xl);
+  letter-spacing: var(--ls-tight);
+}
+
+.welcome-brand {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 980px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}

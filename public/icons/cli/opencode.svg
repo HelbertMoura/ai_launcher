@@ -1,13 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="OpenCode">
   <defs>
-    <linearGradient id="open-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34D399" />
-      <stop offset="100%" stop-color="#059669" />
+    <linearGradient id="opencode-bg" x1="10" y1="10" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E4DDD6"/>
+      <stop offset="1" stop-color="#7C7066"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#059669" flood-opacity="0.3" />
-    </filter>
   </defs>
-  <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#open-grad)" opacity="0.1" />
-  <path d="M12 10L6 16l6 6M20 10l6 6-6 6" stroke="url(#open-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#opencode-bg)"/>
+  <path d="M23 22.5 14 32l9 9.5" fill="none" stroke="#FFFDFB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M41 22.5 50 32l-9 9.5" fill="none" stroke="#FFFDFB" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="27.5" y="18" width="9" height="28" rx="4.5" fill="#FFFDFB"/>
 </svg>

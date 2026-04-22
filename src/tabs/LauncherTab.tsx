@@ -272,11 +272,11 @@ export function LauncherTab(props: LauncherTabProps) {
                 const k = clis.find(c => c.name === u.cli)?.key;
                 return k === cli.key && u.has_update;
               });
-              const isSelected = selectedCli === cli.key;
-              const stateClass = info.installed ? 'is-installed' : 'is-missing';
-              const displayName = getEffectiveName(cli.key, cli.name, cliOverrides);
-              const overrideEmoji = getEffectiveIcon(cli.key, cliOverrides);
-              return (
+               const isSelected = selectedCli === cli.key;
+               const stateClass = info.installed ? 'is-installed' : 'is-missing';
+               const displayName = getEffectiveName(cli.key, cli.name, cliOverrides);
+               const overrideIcon = getEffectiveIcon(cli.key, cliOverrides);
+               return (
                 <article
                   key={cli.key}
                   className={`launcher-cli-card ${isSelected ? 'is-selected' : ''} ${stateClass}`}
@@ -302,7 +302,7 @@ export function LauncherTab(props: LauncherTabProps) {
                       setOverrideTarget({
                         key: cli.key,
                         builtinName: cli.name,
-                        builtinIcon: <CliIcon cliKey={cli.key} size={20} />,
+                        builtinIcon: <CliIcon cliKey={cli.key} size={20} overrideSrc={overrideIcon?.dataUrl} />,
                       });
                     }}
                   >
@@ -311,11 +311,15 @@ export function LauncherTab(props: LauncherTabProps) {
                   <header className="launcher-cli-card__head">
                     <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
                     <span className="launcher-cli-card__icon" aria-hidden="true">
-                      {overrideEmoji
-                        ? <span className="launcher-cli-card__icon-emoji">{overrideEmoji}</span>
-                        : <CliIcon cliKey={cli.key} size={20} />}
+                      {overrideIcon?.dataUrl ? (
+                        <CliIcon cliKey={cli.key} size={20} overrideSrc={overrideIcon.dataUrl} />
+                      ) : overrideIcon?.emoji ? (
+                        <span className="launcher-cli-card__icon-emoji">{overrideIcon.emoji}</span>
+                      ) : (
+                        <CliIcon cliKey={cli.key} size={20} />
+                      )}
                     </span>
-                    <h3 className="launcher-cli-card__name">{displayName.toUpperCase()}</h3>
+                    <h3 className="launcher-cli-card__name">{displayName}</h3>
                     <span className="launcher-cli-card__version">
                       {!hasChecked
                         ? <Skeleton width={40} height={10} />
@@ -381,9 +385,11 @@ export function LauncherTab(props: LauncherTabProps) {
                 <header className="launcher-cli-card__head">
                   <span className="launcher-cli-card__prompt" aria-hidden="true">&gt;</span>
                   <span className="launcher-cli-card__icon" aria-hidden="true">
-                    {c.iconEmoji || '\u25B6'}
+                    {c.iconDataUrl
+                      ? <img src={c.iconDataUrl} alt="" aria-hidden="true" />
+                      : (c.iconEmoji || '\u25B6')}
                   </span>
-                  <h3 className="launcher-cli-card__name">{c.name.toUpperCase()}</h3>
+                  <h3 className="launcher-cli-card__name">{c.name}</h3>
                   <span className="launcher-cli-card__version">{t('customCli.customBadge')}</span>
                 </header>
                 <div className="launcher-cli-card__status-row">

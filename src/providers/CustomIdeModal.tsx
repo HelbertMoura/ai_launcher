@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { X } from '../icons';
 import type { CustomIde } from '../lib/customIdes';
 import { validateCustomIde } from '../lib/customIdes';
+import { readIconFileAsDataUrl } from '../lib/iconUpload';
 import './CustomIdeModal.css';
 
 interface CustomIdeModalProps {
@@ -26,6 +27,7 @@ interface DraftState {
   launchCmd: string;
   docsUrl: string;
   iconEmoji: string;
+  iconDataUrl: string;
 }
 
 const EMPTY_DRAFT: DraftState = {
@@ -35,6 +37,7 @@ const EMPTY_DRAFT: DraftState = {
   launchCmd: '',
   docsUrl: '',
   iconEmoji: '',
+  iconDataUrl: '',
 };
 
 function fromIde(ide: CustomIde): DraftState {
@@ -45,6 +48,7 @@ function fromIde(ide: CustomIde): DraftState {
     launchCmd: ide.launchCmd,
     docsUrl: ide.docsUrl ?? '',
     iconEmoji: ide.iconEmoji ?? '',
+    iconDataUrl: ide.iconDataUrl ?? '',
   };
 }
 
@@ -59,6 +63,7 @@ export function CustomIdeModal({
   const [draft, setDraft] = useState<DraftState>(EMPTY_DRAFT);
   const [errorField, setErrorField] = useState<keyof CustomIde | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const originalKey = editing?.key;
   const titleId = 'custom-ide-modal-title';
@@ -68,6 +73,7 @@ export function CustomIdeModal({
     setDraft(editing ? fromIde(editing) : EMPTY_DRAFT);
     setErrorField(null);
     setErrorKey(null);
+    setUploadError(null);
   }, [open, editing]);
 
   useEffect(() => {
@@ -114,9 +120,21 @@ export function CustomIdeModal({
       launchCmd: draft.launchCmd.trim(),
       docsUrl: draft.docsUrl.trim() || undefined,
       iconEmoji: draft.iconEmoji.trim() || undefined,
+      iconDataUrl: draft.iconDataUrl.trim() || undefined,
       createdAt: editing?.createdAt ?? now,
     };
     onSave(ide);
+  }
+
+  async function handleIconFile(file: File | null) {
+    if (!file) return;
+    try {
+      const dataUrl = await readIconFileAsDataUrl(file);
+      update('iconDataUrl', dataUrl);
+      setUploadError(null);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : String(error));
+    }
   }
 
   const title = editing ? t('customIde.editTitle') : t('customIde.addTitle');
@@ -191,6 +209,19 @@ export function CustomIdeModal({
             value={draft.iconEmoji}
             onChange={v => update('iconEmoji', v)}
           />
+          <div className="custom-ide-modal__field">
+            <label className="custom-ide-modal__label" htmlFor="ci-icon-file">{t('customIde.fields.iconFile')}</label>
+            <input
+              id="ci-icon-file"
+              className="custom-ide-modal__input"
+              type="file"
+              accept="image/png,image/svg+xml,image/jpeg,image/webp"
+              onChange={e => void handleIconFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="custom-ide-modal__hint">{t('customIde.fields.iconFileHint')}</div>
+            {draft.iconDataUrl && <img className="custom-ide-modal__icon-preview" src={draft.iconDataUrl} alt="" aria-hidden="true" />}
+            {uploadError && <div className="custom-ide-modal__error">{uploadError}</div>}
+          </div>
         </div>
 
         <footer className="custom-ide-modal__footer">

@@ -383,7 +383,10 @@
     "appearance": {
       "title": "Aparência",
       "fontAria": "Fonte de exibição",
-      "recommended": "recomendado"
+      "recommended": "recomendado",
+      "accentTitle": "Cor de destaque",
+      "accentHint": "Muda o acento principal da interface inteira.",
+      "accentAria": "Preset de cor de destaque"
     },
     "mode": {
       "on": "Admin mode ON — provider editing available",
@@ -642,7 +645,9 @@
       "launchArgsHint": "opcional — ex: --yolo --no-color",
       "docsUrl": "URL dos docs",
       "iconEmoji": "Ícone (emoji ou texto curto)",
-      "iconHint": "Use um emoji, 1-2 caracteres, ou deixe em branco para o padrão"
+      "iconHint": "Use um emoji, 1-2 caracteres, ou deixe em branco para o padrão",
+      "iconFile": "Imagem do ícone",
+      "iconFileHint": "Opcional. PNG, SVG, JPG ou WEBP até 512 KB."
     },
     "save": "salvar",
     "cancel": "cancelar",
@@ -670,7 +675,9 @@
       "launchCmd": "Comando de launch",
       "launchCmdHint": "ex: code <dir>",
       "docsUrl": "URL dos docs",
-      "iconEmoji": "Ícone"
+      "iconEmoji": "Ícone",
+      "iconFile": "Imagem do ícone",
+      "iconFileHint": "Opcional. PNG, SVG, JPG ou WEBP até 512 KB."
     },
     "save": "salvar",
     "cancel": "cancelar",
@@ -686,7 +693,10 @@
     "nameHint": "Deixe em branco para usar o padrão",
     "iconLabel": "Ícone (emoji ou texto curto)",
     "iconHint": "Até 3 caracteres; deixe em branco para usar o SVG padrão",
+    "iconFileLabel": "Imagem do ícone",
+    "iconFileHint": "Opcional. PNG, SVG, JPG ou WEBP até 512 KB.",
     "iconPreview": "Prévia:",
+    "clearImage": "remover imagem",
     "reset": "restaurar padrão",
     "save": "salvar",
     "cancel": "cancelar",

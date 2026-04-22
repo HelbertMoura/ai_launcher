@@ -70,8 +70,8 @@ export function StatusBar({ version, provider, activeTab }: StatusBarProps) {
 
   return (
     <footer className="statusbar" aria-label="Status bar">
-      <span className="statusbar__item">[ai-launcher {version}]</span>
-      {provider && <span className="statusbar__item">● {provider}</span>}
+      <span className="statusbar__item statusbar__item--strong">AI Launcher v{version}</span>
+      {provider && <span className="statusbar__item statusbar__item--provider">{provider}</span>}
       <span className="statusbar__item statusbar__tab">{t('statusbar.tab', { tab: activeTab })}</span>
       <span className="statusbar__spacer" aria-hidden="true" />
       {updateAvailable && latest && (

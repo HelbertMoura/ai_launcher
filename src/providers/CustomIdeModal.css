@@ -100,6 +100,14 @@
   margin-top: 2px;
 }
 
+.custom-ide-modal__icon-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid var(--border-dim);
+}
+
 .custom-ide-modal__footer {
   display: flex;
   justify-content: flex-end;

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { X } from '../icons';
 import type { CustomCli } from '../lib/customClis';
 import { validateCustomCli } from '../lib/customClis';
+import { readIconFileAsDataUrl } from '../lib/iconUpload';
 import './CustomCliModal.css';
 
 interface CustomCliModalProps {
@@ -26,6 +27,7 @@ interface DraftState {
   launchArgs: string;
   docsUrl: string;
   iconEmoji: string;
+  iconDataUrl: string;
 }
 
 const EMPTY_DRAFT: DraftState = {
@@ -36,6 +38,7 @@ const EMPTY_DRAFT: DraftState = {
   launchArgs: '',
   docsUrl: '',
   iconEmoji: '',
+  iconDataUrl: '',
 };
 
 function fromCli(cli: CustomCli): DraftState {
@@ -47,6 +50,7 @@ function fromCli(cli: CustomCli): DraftState {
     launchArgs: cli.launchArgs ?? '',
     docsUrl: cli.docsUrl ?? '',
     iconEmoji: cli.iconEmoji ?? '',
+    iconDataUrl: cli.iconDataUrl ?? '',
   };
 }
 
@@ -61,6 +65,7 @@ export function CustomCliModal({
   const [draft, setDraft] = useState<DraftState>(EMPTY_DRAFT);
   const [errorField, setErrorField] = useState<keyof CustomCli | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const originalKey = editing?.key;
   const titleId = 'custom-cli-modal-title';
@@ -70,6 +75,7 @@ export function CustomCliModal({
     setDraft(editing ? fromCli(editing) : EMPTY_DRAFT);
     setErrorField(null);
     setErrorKey(null);
+    setUploadError(null);
   }, [open, editing]);
 
   useEffect(() => {
@@ -117,9 +123,21 @@ export function CustomCliModal({
       launchArgs: draft.launchArgs.trim() || undefined,
       docsUrl: draft.docsUrl.trim() || undefined,
       iconEmoji: draft.iconEmoji.trim() || undefined,
+      iconDataUrl: draft.iconDataUrl.trim() || undefined,
       createdAt: editing?.createdAt ?? now,
     };
     onSave(cli);
+  }
+
+  async function handleIconFile(file: File | null) {
+    if (!file) return;
+    try {
+      const dataUrl = await readIconFileAsDataUrl(file);
+      update('iconDataUrl', dataUrl);
+      setUploadError(null);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : String(error));
+    }
   }
 
   const title = editing ? t('customCli.editTitle') : t('customCli.addTitle');
@@ -204,6 +222,19 @@ export function CustomCliModal({
             value={draft.iconEmoji}
             onChange={v => update('iconEmoji', v)}
           />
+          <div className="custom-cli-modal__field">
+            <label className="custom-cli-modal__label" htmlFor="cc-icon-file">{t('customCli.fields.iconFile')}</label>
+            <input
+              id="cc-icon-file"
+              className="custom-cli-modal__input"
+              type="file"
+              accept="image/png,image/svg+xml,image/jpeg,image/webp"
+              onChange={e => void handleIconFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="custom-cli-modal__hint">{t('customCli.fields.iconFileHint')}</div>
+            {draft.iconDataUrl && <img className="custom-cli-modal__icon-preview" src={draft.iconDataUrl} alt="" aria-hidden="true" />}
+            {uploadError && <div className="custom-cli-modal__error">{uploadError}</div>}
+          </div>
         </div>
 
         <footer className="custom-cli-modal__footer">

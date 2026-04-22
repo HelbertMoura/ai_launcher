@@ -583,3 +583,78 @@
   display: flex;
   gap: 8px;
 }
+
+/* ============================================================================
+   v9.0 Soft Workbench overrides
+   ============================================================================ */
+
+.admin-panel {
+  padding: 18px;
+}
+
+.admin-panel .admin-header h2 {
+  font-family: var(--ff-display);
+  font-size: var(--fs-2xl);
+  letter-spacing: var(--ls-tight);
+  color: var(--color-text);
+}
+
+.admin-panel .admin-sub {
+  color: var(--color-text-soft);
+}
+
+.admin-card,
+.admin-editor,
+.presets-bar,
+.quick-switch-modal,
+.dryrun-modal,
+.provider-override,
+.provider-warning {
+  background: color-mix(in srgb, var(--color-surface) 94%, white 6%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-card.active {
+  border-color: color-mix(in srgb, var(--color-accent) 34%, var(--color-border-strong));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.admin-row {
+  border-bottom-color: color-mix(in srgb, var(--color-border) 90%, transparent);
+}
+
+.admin-tag {
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
+.admin-tag-active {
+  background: var(--color-accent-surface);
+  color: var(--color-accent-strong);
+}
+
+.admin-form label,
+.provider-override label {
+  color: var(--color-text-muted);
+}
+
+.provider-badge {
+  background: var(--color-surface-soft);
+  border-color: var(--color-border);
+}
+
+.provider-badge:hover {
+  background: color-mix(in srgb, var(--color-surface-soft) 72%, var(--color-accent-surface));
+}
+
+.quick-switch-overlay,
+.dryrun-overlay {
+  background: rgba(32, 24, 25, 0.32);
+}
+
+.quick-switch-hint,
+.dryrun-head {
+  background: var(--color-surface-soft);
+}
