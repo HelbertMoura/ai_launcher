@@ -24,7 +24,6 @@
     "src/styles",
     "src/shared",
     "src/i18n",
-    "src/icons",
     "src/CommandPalette.tsx",
     "src/CommandPalette.css",
     "src/CostAggregator.tsx",
