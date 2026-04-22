@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
@@ -21,6 +22,7 @@ export function ToolCard({
   onLaunch,
   onInstall,
 }: ToolCardProps) {
+  const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
   return (
@@ -29,20 +31,22 @@ export function ToolCard({
         {hasToolIcon(tool.key) ? (
           <img className="cd-tool-card__icon" src={getToolIcon(tool.key)} alt="" />
         ) : (
-          <span className="cd-tool-card__icon cd-tool-card__icon--placeholder" aria-hidden />
+          <span className="cd-tool-card__icon cd-tool-card__icon--placeholder" aria-hidden>
+            ◆
+          </span>
         )}
         <div className="cd-tool-card__meta">
           <div className="cd-tool-card__name">{tool.name}</div>
           <div className="cd-tool-card__cmd">{tool.command}</div>
         </div>
         <Chip variant={installed ? "online" : "missing"} dot>
-          {installed ? (version ?? "online") : "missing"}
+          {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
       </div>
       <div className="cd-tool-card__actions">
         {installed ? (
           <Button size="sm" loading={launching} onClick={() => onLaunch(tool)}>
-            {launching ? "Launching…" : "Launch"}
+            {launching ? t("tools.launching") : t("tools.launch")}
           </Button>
         ) : (
           <Button
@@ -51,7 +55,11 @@ export function ToolCard({
             loading={installing}
             onClick={() => onInstall(tool)}
           >
-            {installing ? "Installing…" : tool.install_url ? "Get" : "Install"}
+            {installing
+              ? t("tools.installing")
+              : tool.install_url
+              ? t("tools.get")
+              : t("tools.install")}
           </Button>
         )}
       </div>

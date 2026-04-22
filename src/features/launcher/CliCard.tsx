@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
@@ -13,6 +14,7 @@ interface CliCardProps {
 }
 
 export function CliCard({ cli, check, installing = false, onLaunch, onInstall }: CliCardProps) {
+  const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
   return (
@@ -21,22 +23,24 @@ export function CliCard({ cli, check, installing = false, onLaunch, onInstall }:
         {hasCliIcon(cli.key) ? (
           <img className="cd-cli-card__icon" src={getCliIcon(cli.key)} alt="" />
         ) : (
-          <span className="cd-cli-card__icon cd-cli-card__icon--placeholder" aria-hidden />
+          <span className="cd-cli-card__icon cd-cli-card__icon--placeholder" aria-hidden>
+            ◆
+          </span>
         )}
         <div className="cd-cli-card__meta">
           <div className="cd-cli-card__name">{cli.name}</div>
           <div className="cd-cli-card__cmd">{cli.command}</div>
         </div>
         <Chip variant={installed ? "online" : "missing"} dot>
-          {installed ? (version ?? "online") : "missing"}
+          {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
       </div>
       <div className="cd-cli-card__actions">
         {installed ? (
-          <Button size="sm" onClick={() => onLaunch(cli)}>Launch</Button>
+          <Button size="sm" onClick={() => onLaunch(cli)}>{t("launcher.launch")}</Button>
         ) : (
           <Button size="sm" variant="ghost" loading={installing} onClick={() => onInstall(cli)}>
-            {installing ? "Installing…" : "Install"}
+            {installing ? t("launcher.installing") : t("launcher.install")}
           </Button>
         )}
       </div>

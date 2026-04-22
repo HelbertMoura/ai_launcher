@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Chip } from "../../ui/Chip";
@@ -22,6 +23,7 @@ const THEMES: Theme[] = ["dark", "light"];
 const TOTAL_STEPS = 3;
 
 export function OnboardingPage({ onFinish }: OnboardingPageProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const { theme, setTheme } = useTheme();
   const { accent, setAccent } = useAccent();
@@ -49,52 +51,48 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
     <div className="cd-onb" role="dialog" aria-modal="true" aria-labelledby="cd-onb-title">
       <div className="cd-onb__panel">
         <div className="cd-onb__indicator">
-          {step} / {TOTAL_STEPS}
+          {t("onboarding.indicator", { current: step, total: TOTAL_STEPS })}
         </div>
 
         {step === 1 && (
           <div className="cd-onb__step">
             <h1 id="cd-onb-title" className="cd-onb__title">
-              ▎ AI LAUNCHER
+              ▎ {t("onboarding.title")}
             </h1>
-            <p className="cd-onb__lede">
-              This launcher runs with full system access so it can install,
-              update, and launch AI CLIs on your behalf. Keep your credentials
-              safe. No telemetry leaves your machine without explicit action.
-            </p>
+            <p className="cd-onb__lede">{t("onboarding.step1Lede")}</p>
           </div>
         )}
 
         {step === 2 && (
           <div className="cd-onb__step">
             <h1 id="cd-onb-title" className="cd-onb__title">
-              Pick your look
+              {t("onboarding.step2Title")}
             </h1>
             <div className="cd-onb__field">
-              <div className="cd-onb__label">theme</div>
+              <div className="cd-onb__label">{t("onboarding.step2Theme")}</div>
               <div className="cd-onb__row">
-                {THEMES.map((t) => (
+                {THEMES.map((th) => (
                   <Button
-                    key={t}
+                    key={th}
                     size="sm"
-                    variant={theme === t ? "primary" : "ghost"}
-                    onClick={() => setTheme(t)}
+                    variant={theme === th ? "primary" : "ghost"}
+                    onClick={() => setTheme(th)}
                   >
-                    {t}
+                    {th}
                   </Button>
                 ))}
               </div>
             </div>
 
             <div className="cd-onb__field">
-              <div className="cd-onb__label">accent</div>
+              <div className="cd-onb__label">{t("onboarding.step2Accent")}</div>
               <div className="cd-onb__swatches">
                 {ACCENTS.map((a) => (
                   <button
                     key={a}
                     type="button"
                     className={`cd-onb__swatch cd-onb__swatch--${a} ${accent === a ? "is-active" : ""}`}
-                    aria-label={`Accent ${a}`}
+                    aria-label={`${t("topBar.accent")} ${a}`}
                     aria-pressed={accent === a}
                     onClick={() => setAccent(a satisfies Accent)}
                   />
@@ -107,16 +105,13 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
         {step === 3 && (
           <div className="cd-onb__step">
             <h1 id="cd-onb-title" className="cd-onb__title">
-              Detect your CLIs
+              {t("onboarding.step3Title")}
             </h1>
-            <p className="cd-onb__lede">
-              We'll look for Claude, Codex, Gemini, and the other supported
-              CLIs on your PATH. Nothing is uploaded.
-            </p>
+            <p className="cd-onb__lede">{t("onboarding.step3Lede")}</p>
 
             {!results && !scanning && (
               <Button size="md" onClick={() => void runScan()}>
-                Scan now
+                {t("onboarding.step3ScanNow")}
               </Button>
             )}
 
@@ -129,7 +124,9 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
             )}
 
             {scanError && (
-              <div className="cd-onb__error">Scan failed: {scanError}</div>
+              <div className="cd-onb__error">
+                {t("onboarding.step3ScanError", { error: scanError })}
+              </div>
             )}
 
             {results && !scanning && (
@@ -138,7 +135,7 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
                   <li key={r.name} className="cd-onb__result">
                     <span className="cd-onb__result-name">{r.name}</span>
                     <Chip variant={r.installed ? "online" : "missing"} dot>
-                      {r.installed ? (r.version ?? "online") : "missing"}
+                      {r.installed ? (r.version ?? t("common.online")) : t("common.missing")}
                     </Chip>
                   </li>
                 ))}
@@ -150,7 +147,7 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
         <div className="cd-onb__nav">
           {step > 1 ? (
             <Button variant="ghost" size="sm" onClick={back}>
-              ← Back
+              {t("onboarding.back")}
             </Button>
           ) : (
             <span />
@@ -158,13 +155,13 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
 
           {step < TOTAL_STEPS && (
             <Button size="sm" onClick={next}>
-              Continue →
+              {t("onboarding.next")}
             </Button>
           )}
 
           {step === TOTAL_STEPS && (
             <Button size="sm" disabled={!results} onClick={onFinish}>
-              Finish
+              {t("onboarding.finish")}
             </Button>
           )}
         </div>
