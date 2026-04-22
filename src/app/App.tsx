@@ -7,6 +7,7 @@ import { ToolsPage } from "../features/tools/ToolsPage";
 import { HistoryPage } from "../features/history/HistoryPage";
 import { CostsPage } from "../features/costs/CostsPage";
 import { HelpPage } from "../features/help/HelpPage";
+import { AdminPage } from "../features/admin/AdminPage";
 import { OnboardingPage } from "../features/onboarding/OnboardingPage";
 import { Sidebar } from "./layout/Sidebar";
 import { StatusBar } from "./layout/StatusBar";
@@ -69,7 +70,7 @@ export function App() {
         {active === "history" && <HistoryPage />}
         {active === "costs" && <CostsPage />}
         {active === "help" && <HelpPage />}
-        {active === "admin" && <Placeholder tab={active} />}
+        {active === "admin" && <AdminPage />}
       </main>
       <div className="cd-app__status">
         <StatusBar online={0} total={0} todaySpend="$0.00" version={pkg.version} />
@@ -78,11 +79,3 @@ export function App() {
   );
 }
 
-function Placeholder({ tab }: { tab: TabId }) {
-  return (
-    <div style={{ fontFamily: "var(--font-mono)", color: "var(--text-muted)" }}>
-      <h2 style={{ margin: 0, color: "var(--text)" }}>▎ {tab.toUpperCase()}</h2>
-      <p>Feature page wiring arrives in Phase 6B.</p>
-    </div>
-  );
-}
