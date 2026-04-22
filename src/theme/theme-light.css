@@ -1,0 +1,18 @@
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-hover: #f4f2ec;
+
+  --border: #1a1a1a;
+  --border-strong: #1a1a1a;
+
+  --text: #1a1a1a;
+  --text-muted: #555555;
+  --text-dim: #888888;
+
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(255, 49, 49, 0.08);
+}
