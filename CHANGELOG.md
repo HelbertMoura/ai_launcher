@@ -5,6 +5,33 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [10.1.0] — 2026-04-22 — Command Deck Refinement
+
+### Added
+- **Português (Brasil) locale** — i18next + LanguageDetector with pt-BR as default and English fallback. Switcher in Admin → Appearance. Locale persists in `localStorage["ai-launcher:locale"]`.
+- **Language switcher** button group in Admin → Appearance (pt-BR | en).
+- **CLI scan cache** (`src/features/launcher/clisStore.ts`) — module-level singleton with `sessionStorage` TTL 10 min. Subsequent visits to the Launcher hydrate instantly instead of re-invoking `check_clis` on every tab switch.
+- **Rescan button** in the Launcher header — forces a fresh backend scan and invalidates the cache.
+- **Replay welcome tour** button in Help page with confirmation dialog — clears `ai-launcher:onboarding-done` and reloads; settings (theme/accent/providers) preserved.
+- **Permission toggle** in Launch Dialog — `--dangerously-skip-permissions` is now user-facing per launch (previously hardcoded on).
+- **Provider selector** in Launch Dialog (Claude Code only) — pre-selected to the active provider; dropdown with all saved profiles (Anthropic official, z.ai, MiniMax, Moonshot, Qwen, OpenRouter, custom). Env vars are built on the fly via `buildLaunchEnv()`.
+
+### Changed
+- **Icons redesigned** — all 8 CLI glyphs and 5 Tool glyphs redrawn with distinctive line-art identity at 24×24/stroke 1.5 (`claude` radial sun, `codex` codex manuscript, `gemini` 4-point star, `qwen` magnifier, `crush` diamond, `droid` robot with antenna, `kilocode` K-profile + bullseye, `opencode` paired braces, `vscode` ribbon chevron, `cursor` classic pointer, `windsurf` sail + water, `antgravity` 3-axis orbit, `jetbrains-ai` framed J+A).
+- **Card placeholder** (CLI + Tool) now renders a filled `◆` glyph in `--text-dim` instead of a grey block.
+- **Release + build CI** use `npm ci --legacy-peer-deps` so the i18next peer vs. TS 6 conflict no longer aborts the workflow.
+
+### Fixed
+- **Kilocode icon never rendered** — backend key `kilocode` was looking up `/icons/cli/kilocode.svg` but the file was named `kilo.svg`. Renamed.
+- **Release workflow failing on every tag since v9.0** — peer-dep resolution error is now bypassed in CI.
+
+### Removed
+- Orphan CLI icons (`aider.svg`, `copilot.svg`, `minimax.svg`) — these CLIs have no backend counterpart, so the icons were dead paths that created confusion.
+
+### Preserved
+- Rust backend (`src-tauri/`) and all `invoke` contracts.
+- All localStorage keys and shapes from v10.0 (providers, presets, custom IDEs, CLI overrides, history, appearance).
+
 ## [10.0.0] — 2026-04-22 — Command Deck
 
 ### Changed (breaking visual rewrite)
