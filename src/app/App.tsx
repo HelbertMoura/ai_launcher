@@ -2,6 +2,7 @@ import { useState } from "react";
 import pkg from "../../package.json";
 import { useAccent } from "../hooks/useAccent";
 import { useTheme } from "../hooks/useTheme";
+import { LauncherPage } from "../features/launcher/LauncherPage";
 import { Sidebar } from "./layout/Sidebar";
 import { StatusBar } from "./layout/StatusBar";
 import { TopBar } from "./layout/TopBar";
@@ -32,7 +33,7 @@ export function App() {
         />
       </div>
       <main className="cd-app__main">
-        <Placeholder tab={active} />
+        {active === "launcher" ? <LauncherPage /> : <Placeholder tab={active} />}
       </main>
       <div className="cd-app__status">
         <StatusBar online={0} total={0} todaySpend="$0.00" version={pkg.version} />
