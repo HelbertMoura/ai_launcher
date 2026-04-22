@@ -1,3 +1,0 @@
-/* v10 migration: external Google Fonts @import removed to eliminate runtime network request.
-   The v9 UI (Fira Code / Fira Sans) falls back to system fonts until Phase 3 swaps the entry
-   point to src/app/main.tsx, at which point this entire src/styles/ directory is deleted. */
