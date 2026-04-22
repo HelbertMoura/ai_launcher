@@ -1,0 +1,93 @@
+.cd-cmd__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14vh;
+  z-index: 200;
+}
+
+.cd-cmd {
+  width: 560px;
+  max-width: calc(100% - var(--s-5));
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.cd-cmd__input {
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  outline: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--text);
+}
+.cd-cmd__input::placeholder { color: var(--text-dim); }
+
+.cd-cmd__list {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: var(--s-2);
+}
+
+.cd-cmd__empty {
+  padding: var(--s-5);
+  text-align: center;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+
+.cd-cmd__group [cmdk-group-heading] {
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cd-cmd__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 8px var(--s-3);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+.cd-cmd__item[data-selected="true"] {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.cd-cmd__item-kind {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  min-width: 52px;
+  text-transform: uppercase;
+}
+.cd-cmd__item-label { flex: 1; }
+
+.cd-cmd__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.cd-cmd__swatch--red    { background: #ff3131; }
+.cd-cmd__swatch--amber  { background: #ff9f1c; }
+.cd-cmd__swatch--green  { background: #35d07f; }
+.cd-cmd__swatch--blue   { background: #4ea1ff; }
+.cd-cmd__swatch--violet { background: #b982ff; }
