@@ -36,7 +36,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
-      message: error.message || 'Erro desconhecido',
+      message: error.message || i18n.t('errorBoundary.unknownError', 'Erro desconhecido'),
     };
   }
 
@@ -88,12 +88,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
   };
 
   handleReport = (): void => {
-    const title = encodeURIComponent(`Crash: ${this.state.message.slice(0, 80)}`);
-    const bodyRaw =
-      '## Descrição\nO app travou com um erro de render.\n\n' +
-      '## Log (cole aqui o conteúdo)\n```\n' +
-      this.state.stack.slice(0, 1800) +
-      '\n```\n';
+    const title = encodeURIComponent(i18n.t('errorBoundary.reportTitle', 'Crash: {{msg}}', { msg: this.state.message.slice(0, 80) }));
+    const bodyRaw = i18n.t('errorBoundary.reportBody', '## Descrição\nO app travou com um erro de render.\n\n## Log (cole aqui o conteúdo)\n```\n{{stack}}\n```\n', { stack: this.state.stack.slice(0, 1800) });
     const body = encodeURIComponent(bodyRaw);
     const url = `https://github.com/PLACEHOLDER_USER/ai-launcher/issues/new?title=${title}&body=${body}`;
     openUrl(url).catch((e) => {
@@ -115,20 +111,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
         <div className="errbnd-modal">
           <div className="errbnd-header">
             <span className="errbnd-emoji" aria-hidden="true">💥</span>
-            <h2 className="errbnd-title">Algo quebrou</h2>
+            <h2 className="errbnd-title">{i18n.t('errorBoundary.title', 'Algo quebrou')}</h2>
           </div>
 
           <p className="errbnd-desc">
-            O app capturou um erro de render. Um log foi salvo localmente.
+            {i18n.t('errorBoundary.description', 'O app capturou um erro de render. Um log foi salvo localmente.')}
           </p>
 
           <div className="errbnd-msg">
-            <strong>Mensagem:</strong> {this.state.message}
+            <strong>{i18n.t('errorBoundary.messageLabel', 'Mensagem:')}</strong> {this.state.message}
           </div>
 
           {this.state.logPath && (
             <div className="errbnd-path-wrap">
-              <label className="errbnd-path-label">Arquivo de log:</label>
+              <label className="errbnd-path-label">{i18n.t('errorBoundary.logFileLabel', 'Arquivo de log:')}</label>
               <input
                 className="errbnd-path"
                 type="text"
@@ -141,27 +137,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
           <div className="errbnd-actions">
             <button className="errbnd-btn" onClick={this.handleCopyLog}>
-              {this.state.copied ? '✓ Copiado' : '📋 Copiar log'}
+              {this.state.copied ? i18n.t('errorBoundary.copied', '✓ Copiado') : i18n.t('errorBoundary.copyLog', '📋 Copiar log')}
             </button>
             <button className="errbnd-btn" onClick={this.handleOpenDir}>
-              📁 Abrir pasta de crashes
+              {i18n.t('errorBoundary.openDir', '📁 Abrir pasta de crashes')}
             </button>
             <button className="errbnd-btn" onClick={this.handleReport}>
-              🐞 Reportar no GitHub
-            </button>
-            <button className="errbnd-btn errbnd-btn-primary" onClick={this.handleReload}>
-              🔄 Recarregar app
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-  );
-  }
-}
-rt', '🐞 Reportar no GitHub')}
+              {i18n.t('errorBoundary.report', '🐞 Reportar no GitHub')}
             </button>
             <button className="errbnd-btn errbnd-btn-primary" onClick={this.handleReload}>
               {i18n.t('errorBoundary.reload', '🔄 Recarregar app')}
