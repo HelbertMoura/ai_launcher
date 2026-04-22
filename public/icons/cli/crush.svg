@@ -1,10 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Crush">
-  <defs>
-    <linearGradient id="crush-bg" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F8C6D9"/>
-      <stop offset="1" stop-color="#C64F86"/>
-    </linearGradient>
-  </defs>
-  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#crush-bg)"/>
-  <path d="M32 44.5 19.5 32c-3.4-3.4-3.4-8.9 0-12.3 3.4-3.4 8.9-3.4 12.3 0l.2.2.2-.2c3.4-3.4 8.9-3.4 12.3 0 3.4 3.4 3.4 8.9 0 12.3L32 44.5Z" fill="#FFF8FB"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 12h7l-3-3"/>
+  <path d="M10 12l-3 3"/>
+  <path d="M21 12h-7l3-3"/>
+  <path d="M14 12l3 3"/>
 </svg>
