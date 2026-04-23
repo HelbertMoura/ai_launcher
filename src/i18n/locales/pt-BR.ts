@@ -26,6 +26,11 @@ export const ptBR = {
     no: "Não",
     optional: "opcional",
   },
+  errorBoundary: {
+    title: "Algo deu errado",
+    message: "Um erro de UI foi capturado. Você pode tentar novamente, ou reiniciar o app se persistir.",
+    retry: "Tentar novamente",
+  },
   nav: {
     launcher: "Lançar",
     tools: "Ferramentas",
@@ -87,6 +92,8 @@ export const ptBR = {
     install: "Instalar",
     installing: "Instalando…",
     launch: "Lançar",
+    templates: "Templates salvos",
+    deleteTemplateConfirm: "Excluir template \"{{name}}\"?",
   },
   launchDialog: {
     title: "Lançar {{cli}}",
@@ -100,11 +107,18 @@ export const ptBR = {
     permissionToggle: "Pular prompt de permissões",
     permissionHint:
       "Passa --dangerously-skip-permissions para a CLI. Deixe ligado para uso em projetos próprios.",
+    clipboardPromptLabel: "Usar clipboard como prompt inicial",
+    clipboardPromptHint:
+      "Anexa `-p \"<texto do clipboard>\"` aos args ao lançar",
     provider: "Provider",
     providerHint: "Somente Claude Code. Muda ANTHROPIC_BASE_URL + token.",
     manageProviders: "Gerenciar providers",
     saveAsPreset: "Salvar como preset",
     savedAsPreset: "Preset salvo",
+    pin: "Fixar este diretório",
+    unpin: "Desfixar este diretório",
+    saveTemplate: "Salvar como template",
+    saveTemplatePrompt: "Nome do template:",
   },
   tools: {
     title: "FERRAMENTAS",
@@ -139,6 +153,16 @@ export const ptBR = {
     addDescription: "Adicionar nota...",
     descriptionPlaceholder: "Descrição da sessão...",
     providerGone: "Provider \"{{id}}\" foi removido. Lançar com o provider padrão?",
+    filter: {
+      allClis: "Todos os CLIs",
+      allProviders: "Todos os provedores",
+      all: "Todo o período",
+      today: "Hoje",
+      week: "Últimos 7 dias",
+      month: "Últimos 30 dias",
+      clear: "Limpar",
+      countLabel: "{{count}} de {{total}}",
+    },
   },
   costs: {
     title: "CUSTOS",
@@ -153,6 +177,8 @@ export const ptBR = {
     noData: "Sem dados de uso ainda.",
     empty:
       "Sem dados de uso. Rode uma CLI suportada (Claude Code, Codex, Gemini) pelo menos uma vez.",
+    exportCsv: "Exportar CSV",
+    exportJson: "Exportar JSON",
   },
   help: {
     title: "AJUDA",
@@ -212,11 +238,26 @@ export const ptBR = {
     appearance: {
       theme: "tema",
       accent: "destaque",
+      accentCustom: "Cor personalizada",
       font: "fonte de exibição",
       language: "idioma",
       languagePtBR: "Português (Brasil)",
       languageEn: "English",
       recommended: "recomendada",
+    },
+    autostart: {
+      label: "Iniciar com o Windows",
+      hint: "Abre minimizado na bandeja",
+    },
+    notifications: {
+      label: "Notificações do sistema",
+      hint: "Exibe toasts para instalações e execuções",
+    },
+    hotkey: {
+      label: "Atalho global",
+      hint: "Foca a janela de qualquer lugar. Ex: CmdOrCtrl+Alt+L",
+      save: "Salvar",
+      invalid: "Atalho inválido",
     },
   },
   prereqs: {
@@ -243,6 +284,16 @@ export const ptBR = {
     noUpdates: "Nenhuma atualização disponível",
     refreshing: "Verificando atualizações…",
     refresh: "Verificar",
+  },
+  notifications: {
+    installDone: {
+      title: "{{name}} instalado",
+      body: "O CLI está pronto para ser executado.",
+    },
+    sessionStarted: {
+      title: "Sessão iniciada: {{cli}}",
+      body: "{{dir}}",
+    },
   },
   palette: {
     placeholder: "Digite um comando…",

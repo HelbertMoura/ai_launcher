@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 13.0.0](https://img.shields.io/badge/vers%C3%A3o-13.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 14.0.0](https://img.shields.io/badge/vers%C3%A3o-14.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -107,12 +107,23 @@ O app tem 8 superfícies principais acessíveis pela sidebar:
 | **Admin** | Providers (com teste de API), presets, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## Novidades da v13.0
+## 🚀 Novidades da v14
+
+- **Início com Windows + atalho global** — abre junto com o sistema, foca de qualquer lugar
+- **Diretórios fixados + templates de sessão** — um clique para relançar seus setups favoritos
+- **Filtros no histórico, export de custos, notificações** — observabilidade completa
+- **Cor de destaque livre** — qualquer hex, não só os 5 presets
+- **Backend modularizado** — `main.rs` de 3105 → ~120 linhas, erros tipados, testes unitários
+- **CI com quality gates** — tsc, vitest, clippy, cargo audit, Playwright E2E em cada PR
+
+<details><summary>Destaques da v13</summary>
 
 - **Novo ícone minimalista** — Design Hex Hub em vermelho, limpo e reconhecível em qualquer tamanho
 - **Provider persiste no histórico** — Ao reabrir uma sessão do Claude, restaura o provider exato usado
 - **Dropdown de diretórios recentes** — Últimos 10 diretórios por CLI ao focar no campo, seleção rápida
 - **Screenshots na documentação** — Galeria completa de todas as telas do app no README
+
+</details>
 
 <details><summary>Destaques da v12.5</summary>
 

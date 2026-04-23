@@ -6,6 +6,7 @@ import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
 import { getCliIcon, hasCliIcon } from "../../icons/registry";
 import { getRecentDirs, saveLastDir, addRecentDir } from "../history/useHistory";
+import { getPinnedDirs } from "./pinnedDirs";
 import { appendHistory } from "./history";
 import { buildLaunchEnv, loadProviders } from "../../providers/storage";
 import type { CheckResult, CliInfo } from "./useClis";
@@ -27,7 +28,11 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
   const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
-  const recentDirs = useMemo(() => getRecentDirs(cli.key).slice(0, 3), [cli.key]);
+  const pinnedDirs = useMemo(() => getPinnedDirs(cli.key), [cli.key]);
+  const recentDirs = useMemo(
+    () => getRecentDirs(cli.key).filter((d) => !pinnedDirs.includes(d)).slice(0, 3),
+    [cli.key, pinnedDirs],
+  );
   const [quickLaunching, setQuickLaunching] = useState(false);
 
   const quickLaunch = async (dir: string) => {
@@ -92,8 +97,22 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
           </Button>
         )}
       </div>
-      {installed && recentDirs.length > 0 && (
+      {installed && (pinnedDirs.length > 0 || recentDirs.length > 0) && (
         <div className="cd-cli-card__recents">
+          {pinnedDirs.map((d) => (
+            <button
+              key={`pin-${d}`}
+              className="cd-cli-card__recent-dir cd-cli-card__recent-dir--pinned"
+              title={d}
+              disabled={quickLaunching}
+              onClick={(e) => {
+                e.stopPropagation();
+                void quickLaunch(d);
+              }}
+            >
+              📌 {truncateEnd(d)}
+            </button>
+          ))}
           {recentDirs.map((d) => (
             <button
               key={d}

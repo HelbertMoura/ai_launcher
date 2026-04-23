@@ -1,6 +1,6 @@
 [package]
 name = "ai-launcher"
-version = "13.5.0"
+version = "14.0.0"
 description = "Desktop launcher for AI coding CLIs (Windows)"
 authors = ["Helbert Moura"]
 license = "MIT"
@@ -17,6 +17,9 @@ tauri = { version = "2.0", features = ["tray-icon", "image-png"] }
 tauri-plugin-shell = "2.0"
 tauri-plugin-dialog = "2.0"
 tauri-plugin-global-shortcut = "2.0"
+tauri-plugin-single-instance = "2.0"
+tauri-plugin-autostart = "2.0"
+tauri-plugin-notification = "2.0"
 regex-lite = "0.1"
 open = "5"
 tokio = { version = "1", features = ["process", "io-util", "rt-multi-thread", "macros", "sync"] }
@@ -24,6 +27,7 @@ dirs = "5"
 ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+thiserror = "1.0"
 
 [features]
 default = ["custom-protocol"]

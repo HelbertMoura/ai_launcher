@@ -142,3 +142,43 @@
   display: flex;
   gap: 4px;
 }
+.cd-history__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cd-history__filter-select {
+  padding: 4px 8px;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+.cd-history__filter-select option {
+  background: var(--surface-1);
+  color: var(--text);
+}
+.cd-history__filter-clear {
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: 12px;
+}
+.cd-history__filter-clear:hover {
+  color: var(--err);
+  border-color: var(--err);
+}
+.cd-history__filter-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: auto;
+  font-family: var(--font-mono);
+}

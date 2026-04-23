@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 13.0.0](https://img.shields.io/badge/version-13.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 14.0.0](https://img.shields.io/badge/version-14.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -107,12 +107,23 @@ The app has 8 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), presets, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## What's New in v13.0
+## 🚀 What's new in v14
+
+- **Autostart + global hotkey** — launch with Windows, focus from anywhere
+- **Pinned dirs + session templates** — one-click relaunch for your favorite setups
+- **History filters, usage export, desktop notifications** — full observability
+- **Free-form accent color picker** — any hex, not just 5 presets
+- **Backend modularized** — `main.rs` from 3105 → ~120 lines, typed errors, unit tests
+- **CI quality gates** — tsc, vitest, clippy, cargo audit, Playwright E2E on every PR
+
+<details><summary>v13 highlights</summary>
 
 - **New minimalist icon** — Hex Hub design in red, clean and recognizable at any size
 - **Provider persistence in history** — Reopening a Claude session now restores the exact provider used
 - **Recent directories dropdown** — Last 10 directories per CLI shown on focus for quick selection
 - **Screenshots in docs** — Full gallery of all app surfaces in the README
+
+</details>
 
 <details><summary>v12.5 highlights</summary>
 

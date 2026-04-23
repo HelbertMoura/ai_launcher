@@ -8,6 +8,12 @@ import { CliCard } from "./CliCard";
 import { LaunchDialog } from "./LaunchDialog";
 import { useClis, type CliInfo } from "./useClis";
 import { useUpdates } from "../../hooks/useUpdates";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
+import {
+  getTemplates,
+  deleteTemplate,
+  type SessionTemplate,
+} from "./sessionTemplates";
 import "../page.css";
 import "./LauncherPage.css";
 
@@ -17,6 +23,10 @@ export function LauncherPage() {
   const [launching, setLaunching] = useState<CliInfo | null>(null);
   const [installing, setInstalling] = useState<string | null>(null);
   const { summary: updates } = useUpdates();
+  const [templates, setTemplates] = useState<SessionTemplate[]>(() =>
+    getTemplates(),
+  );
+  const refreshTemplates = () => setTemplates(getTemplates());
 
   const cliHasUpdate = (name: string) =>
     updates?.cli_updates.some((u) => u.cli === name && u.has_update) ?? false;
@@ -25,11 +35,30 @@ export function LauncherPage() {
     setInstalling(cli.key);
     try {
       await invoke<string>("install_cli", { cliKey: cli.key, timeoutSec: null });
+      void ensurePermissionThenNotify(
+        t("notifications.installDone.title", { name: cli.name }),
+        t("notifications.installDone.body"),
+      );
       await refresh();
     } catch {
       // error surfaced in next refresh via CheckResult.missing
     } finally {
       setInstalling(null);
+    }
+  };
+
+  const launchTemplate = async (tpl: SessionTemplate) => {
+    try {
+      await invoke("launch_cli", {
+        cliKey: tpl.cliKey,
+        directory: tpl.directory,
+        args: tpl.args,
+        noPerms: tpl.noPerms,
+        envVars: null,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("template launch failed", e);
     }
   };
 
@@ -62,6 +91,55 @@ export function LauncherPage() {
 
       {error && <Banner variant="err">{error}</Banner>}
 
+      {templates.length > 0 && (
+        <div className="cd-launcher__templates">
+          <h3 className="cd-launcher__section-title">
+            {t("launcher.templates")}
+          </h3>
+          <div className="cd-launcher__templates-grid">
+            {templates.map((tpl) => (
+              <div key={tpl.id} className="cd-launcher__template-card">
+                <div className="cd-launcher__template-name">{tpl.name}</div>
+                <div
+                  className="cd-launcher__template-meta"
+                  title={`${tpl.cliName} · ${tpl.directory}`}
+                >
+                  {tpl.cliName} · {tpl.directory}
+                </div>
+                <div className="cd-launcher__template-actions">
+                  <button
+                    type="button"
+                    className="cd-launcher__template-launch"
+                    onClick={() => void launchTemplate(tpl)}
+                  >
+                    {t("launcher.launch")}
+                  </button>
+                  <button
+                    type="button"
+                    className="cd-launcher__template-delete"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          t("launcher.deleteTemplateConfirm", {
+                            name: tpl.name,
+                          }),
+                        )
+                      ) {
+                        deleteTemplate(tpl.id);
+                        refreshTemplates();
+                      }
+                    }}
+                    title={t("common.delete")}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="cd-page__grid">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -90,7 +168,13 @@ export function LauncherPage() {
         </div>
       )}
 
-      <LaunchDialog cli={launching} onClose={() => setLaunching(null)} />
+      <LaunchDialog
+        cli={launching}
+        onClose={() => {
+          setLaunching(null);
+          refreshTemplates();
+        }}
+      />
     </section>
   );
 }

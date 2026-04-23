@@ -6,6 +6,7 @@ import { Skeleton } from "../../ui/Skeleton";
 import { ToolCard } from "./ToolCard";
 import { useTools, type ToolInfo } from "./useTools";
 import { useUpdates } from "../../hooks/useUpdates";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
 import "../page.css";
 import "./ToolsPage.css";
 
@@ -40,6 +41,10 @@ export function ToolsPage() {
         await invoke<string>("open_external_url", { url: tool.install_url });
       } else {
         await invoke<string>("install_tool", { toolKey: tool.key });
+        void ensurePermissionThenNotify(
+          t("notifications.installDone.title", { name: tool.name }),
+          t("notifications.installDone.body"),
+        );
         await refresh();
       }
     } catch (e) {

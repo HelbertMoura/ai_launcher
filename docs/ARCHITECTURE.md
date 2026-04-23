@@ -1,312 +1,157 @@
-# Architecture — AI Launcher Pro
+# AI Launcher Pro — Architecture
 
-> Snapshot of the runtime layout on branch `v5.5-terminal-dramatico`. When in doubt,
-> the source files cited here are the ground truth — this doc should be updated
-> whenever a command, storage key, or directory moves.
+> Technical reference for contributors. For user-facing docs, see [README.md](../README.md).
 
----
+**Stack:** Tauri v2 · React 19 · TypeScript · Rust · Vite · Vitest · Playwright
 
-## 1. High-level stack
-
-| Layer        | Tech                                              |
-| ------------ | ------------------------------------------------- |
-| Shell        | [Tauri v2](https://tauri.app/) (Windows installer target) |
-| Backend      | Rust 2021 edition, `tokio` async runtime          |
-| Frontend     | React 19 + TypeScript (strict) + Vite 8           |
-| CSS          | Hand-written CSS with design tokens (no utility framework) |
-| Icons        | `lucide-react` via curated re-export              |
-| Command menu | `cmdk`                                            |
-| IPC          | `@tauri-apps/api` `invoke()` + event channel      |
-
-Key Rust crates (see `src-tauri/Cargo.toml`):
-
-- `tauri`, `tauri-plugin-shell`, `tauri-plugin-dialog`, `tauri-plugin-global-shortcut`
-- `tokio` (process, io-util, sync), `serde`/`serde_json`
-- `ureq` (HTTP for GitHub releases + provider tests), `base64`, `regex-lite`
-- `dirs`, `open`, `chrono`
-
----
-
-## 2. Directory map
-
-### `src/` (frontend)
+## Directory layout
 
 ```
-src/
-├── App.tsx                   # Root composition: routing, state hub, invoke bridge
-├── main.tsx                  # React root + error boundary mount
-├── styles.css                # Global resets + imports of tokens/motion/fonts
-│
-├── styles/
-│   ├── tokens.css            # Shared (typography, spacing, radii, motion)
-│   ├── tokens-dark.css       # Dark palette (default at :root)
-│   ├── tokens-light.css      # Light palette ([data-theme="light"])
-│   ├── motion.css            # Page-enter + staggered children keyframes
-│   └── fonts.css             # @font-face for JetBrains Mono (self-hosted)
-│
-├── layout/
-│   ├── HeaderBar.{tsx,css}   # Wordmark, tab strip, header actions
-│   ├── StatusBar.{tsx,css}   # Footer status
-│   └── HelpModal.{tsx,css}   # Shortcut reference
-│
-├── tabs/
-│   ├── LauncherTab.{tsx,css} # Terminal-pane CLI cards
-│   ├── HistoryTab.{tsx,css}  # Timeline of past launches
-│   ├── CostsTab.tsx          # Usage aggregation + sparkline
-│   └── AdminTab.tsx          # Provider CRUD (admin-gated)
-│
-├── shared/
-│   ├── PromptLine.tsx        # `>` prefix section header
-│   ├── TerminalFrame.tsx     # Pane chrome wrapper
-│   ├── Sparkline.tsx         # SVG chart primitive
-│   ├── KeyCap.{tsx,module.css}
-│   └── shared.css
-│
-├── providers/
-│   ├── types.ts              # ProviderProfile, ProvidersState, isAdminMode()
-│   ├── storage.ts            # localStorage read/write + migration
-│   ├── seeds.ts              # Built-in providers (Anthropic/Z.AI/MiniMax)
-│   ├── modelCatalog.ts       # Model IDs per provider
-│   ├── costEstimator.ts      # Price math
-│   ├── budget.ts             # Daily-budget guard
-│   ├── testConnection.ts     # Frontend wrapper for test_provider_connection
-│   ├── docsLinks.ts          # External docs URLs
-│   ├── ProviderBadge.tsx     # Active-provider chip
-│   ├── ProviderSelector.tsx  # Dropdown switcher
-│   ├── QuickSwitchModal.tsx  # Ctrl/Cmd+P fast switch
-│   ├── DryRunModal.tsx       # Env injection preview
-│   ├── AppearanceSection.{tsx,css}  # Font/theme controls + FONT_STORAGE_KEY
-│   ├── AdminPanel.tsx        # Embedded admin UI
-│   └── providers.css
-│
-├── presets/
-│   ├── types.ts              # Preset shape
-│   ├── storage.ts            # localStorage STORAGE_KEY = 'ai-launcher-presets'
-│   ├── PresetsBar.tsx        # Horizontal bar of favorites
-│   └── PresetIcon.tsx
-│
-├── icons/
-│   ├── index.ts              # Curated lucide-react re-exports (tree-shakeable)
-│   └── types.ts              # DEFAULT_ICON_SIZE, DEFAULT_STROKE_WIDTH
-│
-├── lib/
-│   └── configIO.ts           # Export/import of full config bundle
-│
-├── CommandPalette.{tsx,css}  # cmdk-backed palette
-├── Onboarding.{tsx,css}      # 4-step first-run
-├── EmptyState.{tsx,css,illustrations.tsx}
-├── Skeleton.{tsx,css}
-├── CostAggregator.{tsx,css}  # Legacy aggregator (kept for costs panel)
-├── Orchestrator.{tsx,css}    # Multi-CLI launcher
-├── ErrorBoundary.{tsx,css}
-└── assets/                   # Fonts and static images
+ai-launcher-tutra/
+├── src/                      # React frontend
+│   ├── app/                  # App shell: App.tsx, layout/, onboarding, CSS
+│   ├── features/             # Feature modules, one folder per surface
+│   │   ├── launcher/         # LauncherPage, CliCard, LaunchDialog, stores
+│   │   ├── tools/            # ToolsPage
+│   │   ├── history/          # HistoryPage, useHistory
+│   │   ├── costs/            # CostsPage, useUsage
+│   │   ├── admin/            # AdminPage + 5 section editors
+│   │   ├── updates/          # UpdatesPage
+│   │   ├── prereqs/          # PrereqsPage
+│   │   ├── help/             # HelpPage, AnimatedTerminal
+│   │   ├── onboarding/       # OnboardingPage
+│   │   └── command-palette/  # Ctrl+K palette
+│   ├── ui/                   # Shared primitives (Button, Dialog, Toggle, ...)
+│   ├── hooks/                # useTheme, useAccent, useUpdates
+│   ├── lib/                  # configIO (import/export), notifications, exportData
+│   ├── providers/            # ProvidersState, buildLaunchEnv
+│   ├── theme/                # tokens.css, accents.css
+│   └── i18n/                 # i18next config + en.ts + pt-BR.ts
+├── src-tauri/
+│   ├── src/
+│   │   ├── main.rs           # ~120 lines: builder + invoke_handler
+│   │   ├── commands/
+│   │   │   ├── mod.rs
+│   │   │   ├── cli.rs        # 9 CLI-related commands
+│   │   │   ├── tools.rs      # 5 tool-related commands
+│   │   │   ├── updates.rs    # 7 update-check commands
+│   │   │   ├── config.rs     # 6 config/usage commands
+│   │   │   └── system.rs     # 7 window/tray/hotkey commands
+│   │   ├── tray.rs           # setup_tray() + menu handlers
+│   │   ├── util.rs           # strip_ansi, parse_version, timeouts, definitions
+│   │   └── errors.rs         # AppError (thiserror) + AppResult
+│   ├── capabilities/         # Tauri permissions
+│   └── Cargo.toml            # Rust deps + metadata
+├── e2e/                      # Playwright specs
+├── docs/                     # This doc + CHANGELOG.md + archive/
+└── .github/workflows/        # build.yml, release.yml, quality.yml
 ```
 
-### `src-tauri/src/`
+## Frontend patterns
 
-```
-src-tauri/
-├── Cargo.toml
-├── src/main.rs               # Single Rust entrypoint — all #[tauri::command]s
-├── icons/                    # Tray + window icons
-├── tauri.conf.json           # App metadata, bundle, window config
-└── capabilities/             # v2 permissions
-```
+### State management
 
-The backend is intentionally a single large `main.rs`; the plan tracks the eventual
-split into modules (see Task 35 retrospective).
+The project does **not** use Redux/Zustand/Jotai. Patterns in use:
 
----
+- **`useState` / `useReducer`** for local component state. `LaunchDialog` uses a reducer; most others use `useState`.
+- **Module-level stores** (`clisStore.ts`, `toolsStore.ts`) with `useSyncExternalStore` + `sessionStorage` TTL cache (10 min). Pattern: exported singleton with `subscribe`, `getSnapshot`, `invalidate`.
+- **`localStorage`-backed hooks** (`useHistory`, `useAccent`, `useTheme`, custom `ai-launcher:*` keys) for persisted user prefs.
 
-## 3. Launch flow
+### Tauri invoke
 
-User clicks a "Launch" button on a `LauncherTab` pane. The flow:
-
-```
-  [React]                             [Tauri IPC]         [Rust]
-  ─────────                            ─────────          ──────
-  LauncherTab  ─onClick─►  App.tsx handler
-                              │
-                              ├── resolve active provider
-                              │    (providers/storage.ts
-                              │     → getActiveProfile)
-                              │
-                              ├── build envVars payload
-                              │    (ANTHROPIC_BASE_URL,
-                              │     ANTHROPIC_AUTH_TOKEN,
-                              │     ANTHROPIC_MODEL,
-                              │     ANTHROPIC_SMALL_FAST_MODEL,
-                              │     extraEnv, overrides)
-                              │
-                              └── invoke('launch_cli', {
-                                   cliKey, directory, args,
-                                   noPerms, envVars
-                                  })  ──────────────►  launch_cli()
-                                                       (src-tauri/src/main.rs)
-                                                         │
-                                                         ├── resolve CLI def
-                                                         ├── spawn child process
-                                                         │   (tokio::process)
-                                                         ├── stream stdout/stderr
-                                                         │   as `cli-output` events
-                                                         └── return Result<String>
-                           event('cli-output', …) ◄──────┘
-                              │
-                         HistoryTab appends entry
-                         CostsTab updates estimate
-```
-
-Multi-CLI launches call `launch_multi_clis` with an ordered list; env injection is
-identical per entry.
-
----
-
-## 4. State model
-
-Client-side persistence lives entirely in `localStorage` — there is no
-server-side state and no native keychain today (API keys are stored plain-text locally).
-
-| Key                           | Shape                                  | Owner (file)                                  |
-| ----------------------------- | -------------------------------------- | --------------------------------------------- |
-| `ai-launcher-config`          | `{ directory, selectedClis, args, ... }` full launch form state + history | `src/App.tsx` |
-| `ai-launcher-providers`       | `ProvidersState` (profiles + activeId) | `src/providers/storage.ts`                    |
-| `ai-launcher-presets`         | `Preset[]` (≤ `MAX_PRESETS`)           | `src/presets/storage.ts`                      |
-| `ai-launcher:display-font`    | `FontId` (`'mono' \| 'sans' \| ...`)   | `src/providers/AppearanceSection.tsx` (`FONT_STORAGE_KEY`) |
-| `ai-launcher:hide-welcome`    | `'1'` flag                             | `src/Onboarding.tsx`                          |
-| `onboardingCompleted`         | `'true'` flag                          | `src/App.tsx` (first-run gate)                |
-
-The `configIO.ts` helper exports and re-imports the first four keys as a single
-bundle for backup/restore.
-
-Reset path: `reset_all_config` (Rust) wipes `install.log` under the user's config dir;
-the frontend additionally clears every key listed above.
-
----
-
-## 5. Rust commands
-
-All `#[tauri::command]` functions are registered in `src-tauri/src/main.rs`. Frontend
-callers use `invoke('<name>', { … })` through `@tauri-apps/api`.
-
-| Command                     | Purpose                                                           |
-| --------------------------- | ----------------------------------------------------------------- |
-| `check_latest_release`      | Fetch the latest GitHub release for self-update prompts           |
-| `check_environment`         | Probe Node, npm, git, and runtime prerequisites                   |
-| `check_clis`                | Status of every known AI CLI (installed / missing / version)      |
-| `check_cli_updates`         | Compare installed CLI versions against npm registry               |
-| `check_env_updates`         | Updates for shared prerequisites (npm global utilities)           |
-| `check_tool_updates`        | Updates for auxiliary dev tools (gh, etc.)                        |
-| `check_all_updates`         | Aggregated run of the three update checks (emits progress events) |
-| `check_tools`               | Status of auxiliary tools                                         |
-| `get_all_clis`              | Return CLI catalog (static definitions)                           |
-| `get_all_tools`             | Return tool catalog                                               |
-| `install_cli`               | Install a CLI via npm (emits progress)                            |
-| `update_cli`                | Update a single CLI                                               |
-| `update_all_clis`           | Bulk update of outdated CLIs                                      |
-| `install_prerequisite`      | Open installer page or run npm install for a prerequisite         |
-| `update_prerequisite`       | Update npm-managed prerequisite                                   |
-| `launch_cli`                | Spawn a single CLI with injected env + args                       |
-| `launch_multi_clis`         | Spawn multiple CLIs in the same directory                         |
-| `launch_tool`               | Open an auxiliary tool (browser / binary)                         |
-| `install_tool`              | Install an auxiliary tool                                         |
-| `open_in_explorer`          | Reveal a path in the OS file explorer                             |
-| `open_external_url`         | Open an `https://` URL (protocol-allowlisted)                     |
-| `reset_all_config`          | Clear backend-side config (`install.log`)                         |
-| `read_usage_stats`          | Parse usage data for CostsTab                                     |
-| `get_tray_hotkey`           | Read tray global shortcut                                         |
-| `set_tray_hotkey`           | Update tray global shortcut                                       |
-| `get_minimize_to_tray`      | Read minimize-to-tray flag                                        |
-| `set_minimize_to_tray`      | Update minimize-to-tray flag                                      |
-| `save_crash_log`            | Persist a frontend error stack for diagnostics                    |
-| `read_crash_log`            | Read back a crash log (path-canonicalized)                        |
-| `open_crash_dir`            | Reveal the crash directory in explorer                            |
-| `test_provider_connection`  | Ping provider `baseUrl` with the stored API key                   |
-| `reset_claude_state`        | Delete `~/.claude.json` (reset of Claude Code auth cache)         |
-
-Any command that accepts a path validates it before touching the filesystem;
-`open_external_url` enforces an `https://` allowlist to prevent shell injection via
-custom protocols.
-
----
-
-## 6. Provider abstraction
-
-`ProviderProfile` (in `src/providers/types.ts`) is the unit of a "launch identity":
+All backend commands are typed and invoked via `@tauri-apps/api/core`:
 
 ```ts
-interface ProviderProfile {
-  id: string;                 // slug
-  name: string;               // UI label
-  kind: 'anthropic' | 'zai' | 'minimax' | 'custom';
-  baseUrl: string;            // ANTHROPIC_BASE_URL ('' = default)
-  apiKey: string;             // ANTHROPIC_AUTH_TOKEN (plain text, local)
-  mainModel: string;          // ANTHROPIC_MODEL
-  fastModel: string;          // ANTHROPIC_SMALL_FAST_MODEL
-  contextWindow: number;      // for cap warning
-  extraEnv?: Record<string, string>;
-  priceInPerM?: number;
-  priceOutPerM?: number;
-  dailyBudget?: number;       // 0/undefined = no cap
-  builtin?: boolean;
-  note?: string;
-}
-
-interface ProvidersState {
-  profiles: ProviderProfile[];
-  activeId: string;           // default 'anthropic'
-  overrideMainModel?: string; // one-shot override for next launch
-  overrideFastModel?: string;
-}
+import { invoke } from "@tauri-apps/api/core";
+const clis = await invoke<CliInfo[]>("get_all_clis");
 ```
 
-Built-in profiles live in `src/providers/seeds.ts` and cannot be deleted, only edited.
-`kind` drives the provider badge color, the context-cap warning, and the docs link in
-`docsLinks.ts`. Env injection happens in `App.tsx` just before `invoke('launch_cli', …)`;
-the Rust side receives a flat `Record<string, string>` and applies it to the child
-process environment.
+Command list is the source of truth in `src-tauri/src/commands/*.rs` — adding a new command requires:
 
----
+1. Write the Rust function with `#[tauri::command]` in the appropriate module.
+2. Add to the `tauri::generate_handler![...]` list in `src-tauri/src/main.rs`.
+3. Call from frontend with matching name + parameter casing (camelCase → snake_case is automatic).
 
-## 7. Testing strategy
+### i18n
 
-Current reality: **no unit tests**. Quality gates are static.
+Keys live in `src/i18n/locales/en.ts` and `src/i18n/locales/pt-BR.ts`. New keys **must** be added to both locales. Use `useTranslation()` from `react-i18next` and reference keys via `t("namespace.key")`. Interpolation via `t("key", { name: value })`.
 
-- TypeScript: `npx tsc --noEmit` (strict mode, no `any`).
-- Frontend build: `npm run build` (Vite) — fails on TS errors and unresolved imports.
-- Rust lint: `cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings`.
-- Rust compile: `cargo check --manifest-path src-tauri/Cargo.toml`.
-- Manual smoke tests per the checklist in [VISUAL_SYSTEM.md](./VISUAL_SYSTEM.md#8-smoke-test-per-surface).
+## Backend patterns
 
-A retrospective item is tracked in the v5.5 plan (Task 35) to introduce Vitest +
-Playwright coverage for provider math, storage migrations, and critical flows.
+### Modules
 
----
+Each file in `src-tauri/src/commands/` groups related `#[tauri::command]` functions. Keep commands thin — move heavy logic to `util.rs` or a dedicated helper module.
 
-## 8. Admin mode gate
+### Error handling
 
-Admin-only UI (provider CRUD, advanced diagnostics) is compile-time gated via a Vite
-env flag:
+- Commands return `Result<T, String>` (Tauri's required shape today).
+- Internal helpers can use `AppResult<T>` (from `errors.rs`) which is `Result<T, AppError>` with `thiserror`-derived variants.
+- Migration to `AppResult` is incremental. `From<tauri::Error>` for `AppError` is a future addition.
+
+### Process execution
+
+```rust
+util::run_with_timeout(cmd, args, timeout_ms, workdir)
+```
+
+Timeouts are enforced via `tokio::time::timeout`. On expiration, stuck processes are killed via `taskkill /PID /T /F` on Windows. `strip_ansi` is applied to captured stdout/stderr.
+
+### Tray + hotkey
+
+- `tray.rs::setup_tray()` builds the `TrayIconBuilder` with menu items and click handlers.
+- Global hotkey (default `CommandOrControl+Alt+Space`) is registered via `tauri-plugin-global-shortcut` and persisted to a config file. Rebinding via `set_tray_hotkey` unregisters the old shortcut and registers the new one atomically.
+
+## Testing
+
+### Frontend (Vitest)
 
 ```bash
-# Public build
-npm run build
-
-# Admin build
-VITE_ADMIN_MODE=1 npm run build
+npm test            # one-shot
+npm run test:watch  # watch mode
 ```
 
-Runtime check (in `src/providers/types.ts`):
+- `jsdom` environment. Setup in `src/test/setup.ts` mocks `@tauri-apps/api/core.invoke` globally.
+- Tests co-locate next to source: `useHistory.test.ts`, `configIO.test.ts`, `pinnedDirs.test.ts`, `sessionTemplates.test.ts`, `exportData.test.ts`, `useAccent.test.ts`.
 
-```ts
-export function isAdminMode(): boolean {
-  return import.meta.env.VITE_ADMIN_MODE === '1';
-}
+### Backend (cargo test)
+
+```bash
+cd src-tauri && cargo test
 ```
 
-`App.tsx` consumes `isAdminMode()` once on mount; `AdminTab.tsx` and
-`providers/AdminPanel.tsx` short-circuit to `null` when the flag is off, so the
-admin bundle is not shipped with a public build.
+Unit tests live in `src-tauri/src/util.rs` under `#[cfg(test)] mod tests`. 8 tests currently cover `strip_ansi` and `parse_version` edge cases.
 
-The flag is **compile-time only** — toggling it in a running app has no effect, and a
-public bundle cannot be flipped into admin mode by editing localStorage or runtime
-state.
+### E2E (Playwright)
+
+```bash
+npm run e2e         # headless
+npm run e2e:ui      # interactive
+```
+
+Spec at `e2e/launcher.spec.ts`. Spins up Vite dev server (`vite`) and stubs `window.__TAURI_INTERNALS__.invoke` — real Tauri backend is NOT exercised.
+
+## CI quality gates
+
+`.github/workflows/quality.yml` runs 5 parallel jobs on every PR and push to `main` or `release/**`:
+
+| Job         | Command                                                                            |
+| ----------- | ---------------------------------------------------------------------------------- |
+| tsc         | `npx tsc --noEmit`                                                                 |
+| vitest      | `npm test`                                                                         |
+| cargo       | `cargo fmt --check` + `cargo clippy --no-deps -- -D warnings` + `cargo test`       |
+| cargo-audit | `cargo audit` (via `cargo install cargo-audit --locked`)                           |
+| e2e         | `npm run e2e` (Playwright chromium)                                                |
+
+## Release process
+
+1. All changes land on `release/v14` (or `release/vN` for major releases).
+2. Version bumps in 3 files: `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+3. `CHANGELOG.md` entry under the new version header.
+4. Tag `vX.Y.Z` and push `--tags` — triggers `.github/workflows/release.yml` which builds MSI and publishes a GitHub release.
+5. Merge `release/v14` → `main`.
+
+## Known limitations (roadmap)
+
+- **Self-updater** — `tauri-plugin-updater` is not wired yet. Needs signing key + `release.yml` changes. Planned for v14.1.
+- **Session-end notifications** — `launch_cli` spawns detached via `wt.exe`; tracking child exit requires retaining handles + async monitor tasks. Planned for v14.1.
+- **`util.rs` size** — ~1070 lines (CLI/tool definitions + helpers + tests). Split candidates: `definitions.rs`, `types.rs`. Non-blocking.
