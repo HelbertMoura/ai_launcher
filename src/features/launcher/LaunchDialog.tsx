@@ -12,6 +12,7 @@ import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history
 import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
 import { saveTemplate } from "./sessionTemplates";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
 
@@ -169,6 +170,10 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         noPerms,
         envVars: envVars ?? null,
       });
+      void ensurePermissionThenNotify(
+        t("notifications.sessionStarted.title", { cli: cli.name }),
+        t("notifications.sessionStarted.body", { dir: directory }),
+      );
       saveLastDir(cli.key, directory);
       addRecentDir(cli.key, directory);
       appendHistory({

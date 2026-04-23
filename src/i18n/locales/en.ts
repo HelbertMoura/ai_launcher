@@ -234,6 +234,10 @@ export const en: Dictionary = {
       label: "Launch at Windows startup",
       hint: "Starts minimized to tray",
     },
+    notifications: {
+      label: "Desktop notifications",
+      hint: "Show system toasts for installs and launches",
+    },
     hotkey: {
       label: "Global hotkey",
       hint: "Focus window from anywhere. Ex: CmdOrCtrl+Alt+L",
@@ -265,6 +269,16 @@ export const en: Dictionary = {
     noUpdates: "No updates available",
     refreshing: "Checking for updates…",
     refresh: "Refresh",
+  },
+  notifications: {
+    installDone: {
+      title: "{{name}} installed",
+      body: "The CLI is ready to launch.",
+    },
+    sessionStarted: {
+      title: "Session started: {{cli}}",
+      body: "{{dir}}",
+    },
   },
   palette: {
     placeholder: "Type a command…",

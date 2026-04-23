@@ -13,6 +13,7 @@ import {
 import { setLocale, SUPPORTED_LOCALES, type Locale } from "../../../i18n";
 import { AutoStartToggle } from "./AutoStartToggle";
 import { HotkeyField } from "./HotkeyField";
+import { NotificationsToggle } from "./NotificationsToggle";
 
 const THEMES: Theme[] = ["dark", "light"];
 
@@ -140,6 +141,9 @@ export function AppearanceSection() {
           </div>
           <div style={{ marginTop: "16px" }}>
             <AutoStartToggle />
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <NotificationsToggle />
           </div>
         </div>
       </Card>

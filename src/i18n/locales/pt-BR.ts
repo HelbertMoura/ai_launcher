@@ -233,6 +233,10 @@ export const ptBR = {
       label: "Iniciar com o Windows",
       hint: "Abre minimizado na bandeja",
     },
+    notifications: {
+      label: "Notificações do sistema",
+      hint: "Exibe toasts para instalações e execuções",
+    },
     hotkey: {
       label: "Atalho global",
       hint: "Foca a janela de qualquer lugar. Ex: CmdOrCtrl+Alt+L",
@@ -264,6 +268,16 @@ export const ptBR = {
     noUpdates: "Nenhuma atualização disponível",
     refreshing: "Verificando atualizações…",
     refresh: "Verificar",
+  },
+  notifications: {
+    installDone: {
+      title: "{{name}} instalado",
+      body: "O CLI está pronto para ser executado.",
+    },
+    sessionStarted: {
+      title: "Sessão iniciada: {{cli}}",
+      body: "{{dir}}",
+    },
   },
   palette: {
     placeholder: "Digite um comando…",

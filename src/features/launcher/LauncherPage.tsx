@@ -8,6 +8,7 @@ import { CliCard } from "./CliCard";
 import { LaunchDialog } from "./LaunchDialog";
 import { useClis, type CliInfo } from "./useClis";
 import { useUpdates } from "../../hooks/useUpdates";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
 import {
   getTemplates,
   deleteTemplate,
@@ -34,6 +35,10 @@ export function LauncherPage() {
     setInstalling(cli.key);
     try {
       await invoke<string>("install_cli", { cliKey: cli.key, timeoutSec: null });
+      void ensurePermissionThenNotify(
+        t("notifications.installDone.title", { name: cli.name }),
+        t("notifications.installDone.body"),
+      );
       await refresh();
     } catch {
       // error surfaced in next refresh via CheckResult.missing
