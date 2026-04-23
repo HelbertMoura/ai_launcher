@@ -38,7 +38,7 @@
   <!-- Content area -->
   <!-- Header banner -->
   <text x="50" y="78" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#7aa2f7" font-weight="bold">
-    ┌─ AI LAUNCHER PRO ────────────────────────────── v12.5.0 ──┐
+    ┌─ AI LAUNCHER PRO ────────────────────────────── v14.0.0 ──┐
   </text>
   <text x="50" y="100" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
   <text x="748" y="100" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
