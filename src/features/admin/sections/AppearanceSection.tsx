@@ -11,6 +11,7 @@ import {
   type FontId,
 } from "../../../lib/appearance";
 import { setLocale, SUPPORTED_LOCALES, type Locale } from "../../../i18n";
+import { AutoStartToggle } from "./AutoStartToggle";
 
 const THEMES: Theme[] = ["dark", "light"];
 
@@ -135,6 +136,9 @@ export function AppearanceSection() {
                 <span className="cd-appearance__font-sample">AaBb 0123</span>
               </button>
             ))}
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <AutoStartToggle />
           </div>
         </div>
       </Card>
