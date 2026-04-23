@@ -26,6 +26,11 @@ export const ptBR = {
     no: "Não",
     optional: "opcional",
   },
+  errorBoundary: {
+    title: "Algo deu errado",
+    message: "Um erro de UI foi capturado. Você pode tentar novamente, ou reiniciar o app se persistir.",
+    retry: "Tentar novamente",
+  },
   nav: {
     launcher: "Lançar",
     tools: "Ferramentas",
