@@ -151,3 +151,39 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Quick-access recent directories on CLI cards */
+.cd-cli-card__recents {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--s-2);
+  border-top: 1px solid var(--border);
+  padding-top: var(--s-2);
+}
+.cd-cli-card__recent-dir {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s;
+}
+.cd-cli-card__recent-dir:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.cd-cli-card__recent-dir:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

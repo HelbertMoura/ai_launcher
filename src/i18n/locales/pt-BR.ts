@@ -138,6 +138,7 @@ export const ptBR = {
     reopen: "Reabrir",
     addDescription: "Adicionar nota...",
     descriptionPlaceholder: "Descrição da sessão...",
+    providerGone: "Provider \"{{id}}\" foi removido. Lançar com o provider padrão?",
   },
   costs: {
     title: "CUSTOS",

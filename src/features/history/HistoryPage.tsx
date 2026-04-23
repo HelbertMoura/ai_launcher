@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import type { ProvidersState } from "../../providers/types";
 import "../page.css";
 import "./HistoryPage.css";
 
@@ -51,9 +52,27 @@ function StatusBadge({ status }: { status?: SessionStatus }) {
   return <span className="cd-history__status cd-history__status--error" title="Error">✗</span>;
 }
 
+function ProviderBadge({ providerId, profiles }: { providerId?: string; profiles: ProvidersState["profiles"] }) {
+  if (!providerId) return null;
+  const profile = profiles.find(p => p.id === providerId);
+  if (profile) {
+    return (
+      <span className="cd-history__provider" title={`Provider: ${profile.name}`}>
+        {profile.name}
+      </span>
+    );
+  }
+  return (
+    <span className="cd-history__provider cd-history__provider--gone" title="Provider no longer available">
+      {providerId}
+    </span>
+  );
+}
+
 export function HistoryPage() {
   const { t } = useTranslation();
   const { items, clear, updateItem, removeItem } = useHistory();
+  const providersState = useMemo(() => loadProviders(), []);
 
   const onClear = () => {
     if (items.length === 0) return;
@@ -88,6 +107,7 @@ export function HistoryPage() {
               key={`${item.timestamp}-${idx}`}
               item={item}
               index={idx}
+              providersState={providersState}
               onUpdate={updateItem}
               onRemove={removeItem}
             />
@@ -101,11 +121,13 @@ export function HistoryPage() {
 function HistoryRow({
   item,
   index,
+  providersState,
   onUpdate,
   onRemove,
 }: {
   item: HistoryItem;
   index: number;
+  providersState: ProvidersState;
   onUpdate: (index: number, patch: Partial<HistoryItem>) => void;
   onRemove: (index: number) => void;
 }) {
@@ -125,10 +147,17 @@ function HistoryRow({
     try {
       let envVars: Record<string, string> | null = null;
       if (item.cliKey === "claude" && item.providerId) {
-        const state = loadProviders();
-        const stateWithProvider = setActive(state, item.providerId);
-        const built = buildLaunchEnv(stateWithProvider);
-        envVars = built ?? null;
+        const profileExists = providersState.profiles.some(p => p.id === item.providerId);
+        if (!profileExists) {
+          const ok = window.confirm(t("history.providerGone", { id: item.providerId }));
+          if (!ok) { setRelaunching(false); return; }
+          const built = buildLaunchEnv(providersState);
+          envVars = built ?? null;
+        } else {
+          const stateWithProvider = setActive(providersState, item.providerId);
+          const built = buildLaunchEnv(stateWithProvider);
+          envVars = built ?? null;
+        }
       }
       await invoke<string>("launch_cli", {
         cliKey: item.cliKey,
@@ -153,6 +182,7 @@ function HistoryRow({
             <div className="cd-history__cli-row">
               <StatusBadge status={item.status} />
               <span className="cd-history__cli">{item.cli}</span>
+              <ProviderBadge providerId={item.providerId} profiles={providersState.profiles} />
               {item.duration != null && (
                 <span className="cd-history__duration">
                   {formatDuration(item.duration)}
