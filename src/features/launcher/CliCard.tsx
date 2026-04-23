@@ -1,8 +1,13 @@
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
 import { getCliIcon, hasCliIcon } from "../../icons/registry";
+import { getRecentDirs, saveLastDir, addRecentDir } from "../history/useHistory";
+import { appendHistory } from "./history";
+import { buildLaunchEnv, loadProviders } from "../../providers/storage";
 import type { CheckResult, CliInfo } from "./useClis";
 
 interface CliCardProps {
@@ -14,10 +19,51 @@ interface CliCardProps {
   onInstall: (cli: CliInfo) => void;
 }
 
+function truncateEnd(s: string, max = 32): string {
+  return s.length <= max ? s : `…${s.slice(s.length - (max - 1))}`;
+}
+
 export function CliCard({ cli, check, installing = false, hasUpdate = false, onLaunch, onInstall }: CliCardProps) {
   const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
+  const recentDirs = useMemo(() => getRecentDirs(cli.key).slice(0, 3), [cli.key]);
+  const [quickLaunching, setQuickLaunching] = useState(false);
+
+  const quickLaunch = async (dir: string) => {
+    setQuickLaunching(true);
+    try {
+      let envVars: Record<string, string> | undefined;
+      let providerId: string | undefined;
+      if (cli.key === "claude") {
+        const state = loadProviders();
+        envVars = buildLaunchEnv(state);
+        providerId = state.activeId;
+      }
+      await invoke<string>("launch_cli", {
+        cliKey: cli.key,
+        directory: dir,
+        args: "",
+        noPerms: true,
+        envVars: envVars ?? null,
+      });
+      saveLastDir(cli.key, dir);
+      addRecentDir(cli.key, dir);
+      appendHistory({
+        cli: cli.name,
+        cliKey: cli.key,
+        directory: dir,
+        args: "",
+        timestamp: new Date().toISOString(),
+        providerId,
+      });
+    } catch (e) {
+      window.alert(e instanceof Error ? e.message : String(e));
+    } finally {
+      setQuickLaunching(false);
+    }
+  };
+
   return (
     <Card interactive>
       <div className="cd-cli-card__head">
@@ -46,6 +92,24 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
           </Button>
         )}
       </div>
+      {installed && recentDirs.length > 0 && (
+        <div className="cd-cli-card__recents">
+          {recentDirs.map((d) => (
+            <button
+              key={d}
+              className="cd-cli-card__recent-dir"
+              title={d}
+              disabled={quickLaunching}
+              onClick={(e) => {
+                e.stopPropagation();
+                void quickLaunch(d);
+              }}
+            >
+              📂 {truncateEnd(d)}
+            </button>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

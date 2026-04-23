@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.5.0] — 2026-04-23 — Feature Release
+
+### Added
+- **Provider badge in history** — Each history row now shows which provider (Anthropic, Z.AI, MiniMax, etc.) was used for Claude sessions. Deleted providers display a warning badge.
+- **Quick-access recent directories on CLI cards** — Last 3 opened directories appear directly on each installed CLI card in the Launch tab. Click to relaunch instantly without opening the dialog.
+- **Relaunch provider guard** — Reopening a history entry whose provider was deleted now prompts for confirmation before falling back to the default.
+
+### Changed
+- **Version bumped** to 13.5.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+
 ## [13.0.0] — 2026-04-23 — Major Release
 
 ### Added

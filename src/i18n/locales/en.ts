@@ -140,6 +140,7 @@ export const en: Dictionary = {
     reopen: "Reopen",
     addDescription: "Add note...",
     descriptionPlaceholder: "Session description...",
+    providerGone: "Provider \"{{id}}\" was removed. Launch with default provider?",
   },
   costs: {
     title: "COSTS",
