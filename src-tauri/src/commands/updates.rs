@@ -3,8 +3,9 @@ use tauri::Emitter;
 use crate::commands::cli::check_cli_updates;
 use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
-    fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal, get_tool_definitions,
-    http_agent, npm_latest, run_silent, stream_install, CheckResult, UpdateInfo, UpdatesSummary,
+    fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal,
+    get_tool_definitions, http_agent, npm_latest, run_silent, stream_install, CheckResult,
+    UpdateInfo, UpdatesSummary,
 };
 
 #[tauri::command]
@@ -114,9 +115,8 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
         r
     });
 
-    let (cli_updates, env_updates, tool_updates) =
-        tokio::try_join!(cli_task, env_task, tool_task)
-            .map_err(|e| format!("Falha interna ao verificar updates: {}", e))?;
+    let (cli_updates, env_updates, tool_updates) = tokio::try_join!(cli_task, env_task, tool_task)
+        .map_err(|e| format!("Falha interna ao verificar updates: {}", e))?;
 
     let total = cli_updates.iter().filter(|u| u.has_update).count()
         + env_updates.iter().filter(|u| u.has_update).count();
@@ -279,10 +279,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 }
 
 #[tauri::command]
-pub async fn install_prerequisite(
-    app: tauri::AppHandle,
-    key: String,
-) -> Result<String, String> {
+pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, String> {
     let url_for = |u: &str| -> Result<String, String> {
         open::that(u).map_err(|e| e.to_string())?;
         Ok(format!("Abrindo {}", u))
@@ -336,10 +333,7 @@ pub async fn install_prerequisite(
 }
 
 #[tauri::command]
-pub async fn update_prerequisite(
-    app: tauri::AppHandle,
-    key: String,
-) -> Result<String, String> {
+pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, String> {
     let npm_map: &[(&str, &str)] = &[
         ("npm", "npm"),
         ("pnpm", "pnpm"),

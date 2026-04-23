@@ -83,10 +83,7 @@ fn read_claude_usage(entries: &mut Vec<UsageEntry>, warnings: &mut Vec<String>) 
             Err(_) => continue,
         };
         let tokens_in = v.get("input_tokens").and_then(|x| x.as_u64()).unwrap_or(0);
-        let tokens_out = v
-            .get("output_tokens")
-            .and_then(|x| x.as_u64())
-            .unwrap_or(0);
+        let tokens_out = v.get("output_tokens").and_then(|x| x.as_u64()).unwrap_or(0);
         if tokens_in == 0 && tokens_out == 0 {
             continue;
         }
@@ -220,8 +217,8 @@ fn read_gemini_usage(entries: &mut Vec<UsageEntry>, warnings: &mut Vec<String>) 
             let date = ts.get(..10).unwrap_or("").to_string();
             let cwd = v.get("cwd").and_then(|x| x.as_str()).map(String::from);
             let (pin, pout) = price_per_mtoken("gemini", model.as_deref());
-            let cost = (tokens_in as f64) * pin / 1_000_000.0
-                + (tokens_out as f64) * pout / 1_000_000.0;
+            let cost =
+                (tokens_in as f64) * pin / 1_000_000.0 + (tokens_out as f64) * pout / 1_000_000.0;
             entries.push(UsageEntry {
                 cli: "gemini".to_string(),
                 date,
@@ -338,8 +335,8 @@ pub fn reset_claude_state() -> Result<String, String> {
     let backup = path.with_extension("json.bak");
     let _ = std::fs::copy(&path, &backup);
 
-    let serialized = serde_json::to_string_pretty(&json)
-        .map_err(|e| format!("Falha ao serializar: {}", e))?;
+    let serialized =
+        serde_json::to_string_pretty(&json).map_err(|e| format!("Falha ao serializar: {}", e))?;
     std::fs::write(&path, serialized)
         .map_err(|e| format!("Falha ao escrever {}: {}", path.display(), e))?;
 

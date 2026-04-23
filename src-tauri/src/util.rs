@@ -467,7 +467,11 @@ pub fn expand_env(path: &str) -> String {
     result
 }
 
-pub fn scan_subdirs_for_exe_deep(base_dir: &str, exe_names: &[&str], depth: u32) -> Option<PathBuf> {
+pub fn scan_subdirs_for_exe_deep(
+    base_dir: &str,
+    exe_names: &[&str],
+    depth: u32,
+) -> Option<PathBuf> {
     let path = std::path::Path::new(base_dir);
     if !path.exists() {
         return None;
@@ -807,13 +811,7 @@ pub fn log_event(phase: &str, msg: &str) {
         .append(true)
         .open(&log_path)
     {
-        let _ = writeln!(
-            f,
-            "[{}] {} | {}",
-            chrono_format_local_now(),
-            phase,
-            msg
-        );
+        let _ = writeln!(f, "[{}] {} | {}", chrono_format_local_now(), phase, msg);
     }
 }
 
