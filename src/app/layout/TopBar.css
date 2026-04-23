@@ -48,6 +48,23 @@
 .cd-top__acc--blue   { color: #4ea1ff; background: #4ea1ff; }
 .cd-top__acc--violet { color: #b982ff; background: #b982ff; }
 
+.cd-top__lang {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  height: 24px;
+  min-width: 30px;
+  cursor: pointer;
+  padding: 0 6px;
+}
+.cd-top__lang:hover { border-color: var(--accent); color: var(--accent); }
+.cd-top__lang:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 .cd-top__theme {
   background: transparent;
   border: 1px solid var(--border-strong);

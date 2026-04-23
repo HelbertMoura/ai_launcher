@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Theme } from "../../hooks/useTheme";
+import { getLocale, setLocale, SUPPORTED_LOCALES, type Locale } from "../../i18n";
 import "./TopBar.css";
 
 const CMD_KEY_LABEL =
@@ -19,6 +20,9 @@ interface TopBarProps {
 export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: TopBarProps) {
   const { t } = useTranslation();
   const toggleLabel = theme === "dark" ? t("topBar.themeToLight") : t("topBar.themeToDark");
+  const locale = getLocale();
+  const nextLocale: Locale = locale === "pt-BR" ? "en" : "pt-BR";
+
   return (
     <header className="cd-top">
       <button className="cd-top__cmd" type="button" onClick={onCommand}>
@@ -42,6 +46,16 @@ export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: To
             />
           ))}
         </div>
+
+        <button
+          type="button"
+          className="cd-top__lang"
+          onClick={() => setLocale(nextLocale)}
+          aria-label={t("admin.appearance.language")}
+          title={t("admin.appearance.language")}
+        >
+          {locale === "pt-BR" ? "PT" : "EN"}
+        </button>
 
         <button
           type="button"

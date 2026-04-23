@@ -1,7 +1,7 @@
 > 🇺🇸 English | [🇧🇷 Português (Brasil)](./README.pt-BR.md)
 
 ```text
-   ┌─ AI LAUNCHER ─────────────────────────── v10.0.0 ──┐
+   ┌─ AI LAUNCHER ─────────────────────────── v11.0.0 ──┐
    │                                                    │
    │   ▎ COMMAND DECK                                   │
    │                                                    │
@@ -19,23 +19,12 @@
 Desktop launcher for AI coding CLIs — detect, install, launch, track.
 
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Version 10.0.0](https://img.shields.io/badge/version-10.0.0-ff3131)
+![Version 11.0.0](https://img.shields.io/badge/version-11.0.0-ff3131)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4)
 
 ## What is it
 
 AI Launcher is a Tauri v2 desktop app that manages AI coding CLIs — Claude Code, Codex, Gemini, Qwen, Aider, Copilot and more — alongside IDEs like VSCode, Cursor, Windsurf and JetBrains AI. It detects what's installed on your machine, helps you install what's missing, launches tools with the right provider context and working directory, and tracks spend per provider so you know exactly how much each session costs.
-
-## Screenshots
-
-![Launcher tab — CLI grid with status chips](./docs/screenshots/01-launcher.svg)
-_Launcher tab — scan results with status, versions, launch actions._
-
-![Admin tab — providers section with three provider cards](./docs/screenshots/02-admin.svg)
-_Admin tab — providers, presets, appearance and CLI overrides._
-
-![Costs tab — today's total and per-CLI breakdown](./docs/screenshots/03-costs.svg)
-_Costs tab — today's total, per-CLI tiles, spend trend._
 
 ## Install
 
@@ -85,17 +74,15 @@ The launcher always runs with full system access (`--dangerously-skip-permission
 - **Providers** — Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter and custom endpoints
 - **Presets** — save CLI + provider + directory + args combos and fire them with `Ctrl+1..9`
 
-## What's new in v10
+## What's new in v11
 
-- Full frontend rewrite in the **Command Deck** visual direction — dark-first monospace terminal aesthetic with LED accent
-- New layered architecture under `src/app/`, `src/ui/`, `src/features/`, `src/theme/`, `src/icons/`, `src/hooks/`
-- Attribute-based theme system (dark + Hard Light) with pre-paint restore so there's no flash of unstyled content
-- 5-color accent system swappable from the top bar or command palette
-- Tools tab is back — IDE management is once again a first-class surface
-- Unified admin — no more toggle, one build with full access everywhere
-- 16 custom line-art icons using `currentColor` and stroke-width 1.5 for crisp theming
-- Command palette (`⌘K` / `Ctrl+K`) with Navigate, Theme and Accent groups
-- Self-hosted JetBrains Mono + Inter — no external font requests
+- **Language selector in TopBar** — instant PT/EN toggle without visiting Admin
+- **Fixed pt-BR locale** — all translations now resolve correctly (i18next v24 config fix)
+- **Tools scan cache** — sessionStorage TTL 10 min, no re-scan on every tab switch
+- **Animated Terminal** on Help page — typing-effect demo of CLI scan and launch
+- **Expanded Help page** — shortcuts, FAQ, GitHub links, DevManiac's branding
+
+### Previous: v10 — Command Deck
 
 ## Contributing
 

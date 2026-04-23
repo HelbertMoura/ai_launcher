@@ -6,6 +6,7 @@ import { Card } from "../../ui/Card";
 import { Dialog } from "../../ui/Dialog";
 import { TAB_KEYS } from "../../app/layout/TabId";
 import { ONBOARDING_STORAGE_KEY } from "../../app/onboarding";
+import { AnimatedTerminal } from "./AnimatedTerminal";
 import "../page.css";
 import "./HelpPage.css";
 
@@ -14,6 +15,7 @@ const IS_MAC =
 const PALETTE_KEY = IS_MAC ? "⌘K" : "Ctrl+K";
 
 const LINKS: Array<{ label: string; url: string }> = [
+  { label: "GitHub", url: "https://github.com/HelbertMoura/ai_launcher" },
   { label: "README", url: "https://github.com/HelbertMoura/ai_launcher#readme" },
   { label: "Issues", url: "https://github.com/HelbertMoura/ai_launcher/issues" },
   {
@@ -48,7 +50,7 @@ export function HelpPage() {
     try {
       await invoke<string>("open_external_url", { url });
     } catch {
-      /* user-visible noop */
+      /* noop */
     }
   };
 
@@ -59,7 +61,6 @@ export function HelpPage() {
       /* ignore */
     }
     setConfirmOpen(false);
-    // Full reload to trigger the onboarding gate cleanly.
     window.location.reload();
   };
 
@@ -73,6 +74,8 @@ export function HelpPage() {
       </header>
 
       <div className="cd-help__stack">
+        <AnimatedTerminal />
+
         <Card className="cd-help__section">
           <h3 className="cd-help__heading">{t("help.gettingStarted")}</h3>
           <p className="cd-help__body">{t("help.gettingStartedBody")}</p>
@@ -130,6 +133,17 @@ export function HelpPage() {
               </Button>
             ))}
           </div>
+        </Card>
+
+        <Card className="cd-help__section cd-help__about">
+          <h3 className="cd-help__heading">// about</h3>
+          <p className="cd-help__body">
+            AI Launcher Pro — Desktop launcher for AI coding CLIs.
+          </p>
+          <p className="cd-help__body">
+            Made with ♥ by <strong>Helbert Moura</strong> · <strong>DevManiac's</strong>
+          </p>
+          <p className="cd-help__version">v11.0.0 · MIT License</p>
         </Card>
       </div>
 
