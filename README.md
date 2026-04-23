@@ -2,23 +2,7 @@
 
 <div align="center">
 
-```text
-   ┌─ AI LAUNCHER PRO ────────────────────────── v12.5.0 ──┐
-   │                                                        │
-   │   ▎ COMMAND DECK                                       │
-   │                                                        │
-   │   ● claude-code    online     v4.7                     │
-   │   ● codex          online     v1.0                     │
-   │   ○ gemini         missing                            │
-   │   ● qwen           online     v0.9                     │
-   │   ● crush          online     v1.2                     │
-   │   ● droid          online     v0.8                     │
-   │   ▲ kilocode       update     v0.5 → v0.6             │
-   │   ● opencode       online     v0.3                     │
-   │                                                        │
-   │   7/8 online    ⬆ 1 update    ● ADMIN    $0.42 today  │
-   └────────────────────────────────────────────────────────┘
-```
+<img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="720">
 
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
