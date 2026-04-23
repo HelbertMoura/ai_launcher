@@ -9,6 +9,7 @@ import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
 import { appendHistory } from "./history";
 import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
+import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
@@ -221,24 +222,47 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
                 setTimeout(() => dispatch({ type: "setShowRecent", value: false }), 200)
               }
             />
-            {showRecent && recentDirs.length > 0 && (
+            {showRecent && recentDirs.length > 0 && cli && (
               <ul className="cd-launch-dialog__recent-list">
-                {recentDirs.map((d) => (
-                  <li
-                    key={d}
-                    className="cd-launch-dialog__recent-item"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      dispatch({ type: "setDirectory", value: d });
-                      dispatch({ type: "setShowRecent", value: false });
-                    }}
-                  >
-                    <span className="cd-launch-dialog__recent-icon">📁</span>
-                    <span className="cd-launch-dialog__recent-path" title={d}>
-                      {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
-                    </span>
-                  </li>
-                ))}
+                {recentDirs.map((d) => {
+                  const pinned = isPinned(cli.key, d);
+                  return (
+                    <li key={d} className="cd-launch-dialog__recent-item">
+                      <button
+                        className="cd-launch-dialog__recent-main"
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          dispatch({ type: "setDirectory", value: d });
+                          dispatch({ type: "setShowRecent", value: false });
+                        }}
+                      >
+                        <span className="cd-launch-dialog__recent-icon">📁</span>
+                        <span className="cd-launch-dialog__recent-path" title={d}>
+                          {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
+                        </span>
+                      </button>
+                      <button
+                        className="cd-launch-dialog__pin-btn"
+                        type="button"
+                        title={pinned ? t("launchDialog.unpin") : t("launchDialog.pin")}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (pinned) unpinDir(cli.key, d);
+                          else pinDir(cli.key, d);
+                          dispatch({ type: "setShowRecent", value: false });
+                          setTimeout(
+                            () => dispatch({ type: "setShowRecent", value: true }),
+                            0,
+                          );
+                        }}
+                      >
+                        {pinned ? "📌" : "📍"}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

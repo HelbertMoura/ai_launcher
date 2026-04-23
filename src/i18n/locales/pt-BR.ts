@@ -110,6 +110,8 @@ export const ptBR = {
     manageProviders: "Gerenciar providers",
     saveAsPreset: "Salvar como preset",
     savedAsPreset: "Preset salvo",
+    pin: "Fixar este diretório",
+    unpin: "Desfixar este diretório",
   },
   tools: {
     title: "FERRAMENTAS",
