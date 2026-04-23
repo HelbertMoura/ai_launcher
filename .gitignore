@@ -80,3 +80,6 @@ coverage/
 # --- Claude Code local settings (per-dev, never commit) ---
 .claude/
 .superpowers/
+
+# Tooling caches
+.playwright-mcp/
