@@ -111,13 +111,17 @@
 }
 
 /* Recent directories dropdown */
+.cd-launch-dialog__field:has(.cd-launch-dialog__recent-list) {
+  position: relative;
+  z-index: 20;
+}
 .cd-launch-dialog__recent-list {
   position: absolute;
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 50;
-  background: var(--surface);
+  z-index: 100;
+  background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   max-height: 220px;
@@ -125,7 +129,8 @@
   margin-top: 2px;
   padding: 2px 0;
   list-style: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
 }
 .cd-launch-dialog__recent-item {
   display: flex;
