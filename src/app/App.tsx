@@ -21,6 +21,7 @@ import { markOnboarded, readOnboarded } from "./onboarding";
 import { clisStore } from "../features/launcher/clisStore";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
 import "./App.css";
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
@@ -75,51 +76,55 @@ export function App() {
 
   if (!onboarded) {
     return (
-      <OnboardingPage
-        onFinish={() => {
-          markOnboarded();
-          setOnboarded(true);
-        }}
-      />
+      <ErrorBoundary>
+        <OnboardingPage
+          onFinish={() => {
+            markOnboarded();
+            setOnboarded(true);
+          }}
+        />
+      </ErrorBoundary>
     );
   }
 
   return (
-    <div className="cd-app">
-      <div className="cd-app__side">
-        <Sidebar active={active} onSelect={setActive} version={pkg.version} />
-      </div>
-      <div className="cd-app__top">
-        <TopBar
-          onCommand={palette.openPalette}
+    <ErrorBoundary>
+      <div className="cd-app">
+        <div className="cd-app__side">
+          <Sidebar active={active} onSelect={setActive} version={pkg.version} />
+        </div>
+        <div className="cd-app__top">
+          <TopBar
+            onCommand={palette.openPalette}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            accent={accent}
+            onAccent={setAccent}
+          />
+        </div>
+        <main className="cd-app__main">
+          {active === "launcher" && <LauncherPage />}
+          {active === "tools" && <ToolsPage />}
+          {active === "history" && <HistoryPage />}
+          {active === "costs" && <CostsPage />}
+          {active === "updates" && <UpdatesPage />}
+          {active === "prereqs" && <PrereqsPage />}
+          {active === "help" && <HelpPage />}
+          {active === "admin" && <AdminPage />}
+        </main>
+        <div className="cd-app__status">
+          <StatusBarConnector version={pkg.version} />
+        </div>
+        <CommandPalette
+          open={palette.open}
+          onClose={palette.closePalette}
+          onNavigate={(tab) => setActive(tab)}
           theme={theme}
           onToggleTheme={toggleTheme}
-          accent={accent}
-          onAccent={setAccent}
+          onSetAccent={setAccent}
         />
       </div>
-      <main className="cd-app__main">
-        {active === "launcher" && <LauncherPage />}
-        {active === "tools" && <ToolsPage />}
-        {active === "history" && <HistoryPage />}
-        {active === "costs" && <CostsPage />}
-        {active === "updates" && <UpdatesPage />}
-        {active === "prereqs" && <PrereqsPage />}
-        {active === "help" && <HelpPage />}
-        {active === "admin" && <AdminPage />}
-      </main>
-      <div className="cd-app__status">
-        <StatusBarConnector version={pkg.version} />
-      </div>
-      <CommandPalette
-        open={palette.open}
-        onClose={palette.closePalette}
-        onNavigate={(tab) => setActive(tab)}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onSetAccent={setAccent}
-      />
-    </div>
+    </ErrorBoundary>
   );
 }
 

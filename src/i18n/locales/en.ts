@@ -28,6 +28,11 @@ export const en: Dictionary = {
     no: "No",
     optional: "optional",
   },
+  errorBoundary: {
+    title: "Something went wrong",
+    message: "A UI error was caught. You can retry, or restart the app if it persists.",
+    retry: "Retry",
+  },
   nav: {
     launcher: "Launch",
     tools: "Tools",
@@ -89,6 +94,8 @@ export const en: Dictionary = {
     install: "Install",
     installing: "Installing…",
     launch: "Launch",
+    templates: "Saved templates",
+    deleteTemplateConfirm: "Delete template \"{{name}}\"?",
   },
   launchDialog: {
     title: "Launch {{cli}}",
@@ -102,11 +109,18 @@ export const en: Dictionary = {
     permissionToggle: "Skip permission prompts",
     permissionHint:
       "Passes --dangerously-skip-permissions to the CLI. Keep enabled for your own projects.",
+    clipboardPromptLabel: "Use clipboard as initial prompt",
+    clipboardPromptHint:
+      "Appends `-p \"<clipboard text>\"` to the CLI args at launch",
     provider: "Provider",
     providerHint: "Claude Code only. Overrides ANTHROPIC_BASE_URL + token.",
     manageProviders: "Manage providers",
     saveAsPreset: "Save as preset",
     savedAsPreset: "Preset saved",
+    pin: "Pin this directory",
+    unpin: "Unpin this directory",
+    saveTemplate: "Save as template",
+    saveTemplatePrompt: "Template name:",
   },
   tools: {
     title: "TOOLS",
@@ -141,6 +155,16 @@ export const en: Dictionary = {
     addDescription: "Add note...",
     descriptionPlaceholder: "Session description...",
     providerGone: "Provider \"{{id}}\" was removed. Launch with default provider?",
+    filter: {
+      allClis: "All CLIs",
+      allProviders: "All providers",
+      all: "All time",
+      today: "Today",
+      week: "Last 7 days",
+      month: "Last 30 days",
+      clear: "Clear",
+      countLabel: "{{count}} of {{total}}",
+    },
   },
   costs: {
     title: "COSTS",
@@ -155,6 +179,8 @@ export const en: Dictionary = {
     noData: "No usage data yet.",
     empty:
       "No usage data. Run a supported CLI (Claude Code, Codex, Gemini) at least once.",
+    exportCsv: "Export CSV",
+    exportJson: "Export JSON",
   },
   help: {
     title: "HELP",
@@ -213,11 +239,26 @@ export const en: Dictionary = {
     appearance: {
       theme: "theme",
       accent: "accent",
+      accentCustom: "Custom color",
       font: "display font",
       language: "language",
       languagePtBR: "Português (Brasil)",
       languageEn: "English",
       recommended: "recommended",
+    },
+    autostart: {
+      label: "Launch at Windows startup",
+      hint: "Starts minimized to tray",
+    },
+    notifications: {
+      label: "Desktop notifications",
+      hint: "Show system toasts for installs and launches",
+    },
+    hotkey: {
+      label: "Global hotkey",
+      hint: "Focus window from anywhere. Ex: CmdOrCtrl+Alt+L",
+      save: "Save",
+      invalid: "Invalid shortcut",
     },
   },
   prereqs: {
@@ -244,6 +285,16 @@ export const en: Dictionary = {
     noUpdates: "No updates available",
     refreshing: "Checking for updates…",
     refresh: "Refresh",
+  },
+  notifications: {
+    installDone: {
+      title: "{{name}} installed",
+      body: "The CLI is ready to launch.",
+    },
+    sessionStarted: {
+      title: "Session started: {{cli}}",
+      body: "{{dir}}",
+    },
   },
   palette: {
     placeholder: "Type a command…",

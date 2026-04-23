@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
@@ -9,7 +9,10 @@ import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
 import { appendHistory } from "./history";
 import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
+import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
+import { saveTemplate } from "./sessionTemplates";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
 
@@ -19,39 +22,124 @@ interface LaunchDialogProps {
 }
 
 const CLAUDE_KEY = "claude";
+const CLIS_WITH_PROMPT_FLAG = new Set(["claude", "codex", "gemini"]);
+
+interface LaunchState {
+  directory: string;
+  args: string;
+  noPerms: boolean;
+  providersState: ProvidersState | null;
+  providerId: string;
+  launching: boolean;
+  error: string | null;
+  recentDirs: string[];
+  showRecent: boolean;
+  clipboardPrompt: boolean;
+}
+
+type LaunchAction =
+  | {
+      type: "loadForCli";
+      directory: string;
+      recentDirs: string[];
+      providersState: ProvidersState | null;
+      providerId: string;
+    }
+  | { type: "setDirectory"; value: string }
+  | { type: "setArgs"; value: string }
+  | { type: "setNoPerms"; value: boolean }
+  | { type: "setProviderId"; value: string }
+  | { type: "setShowRecent"; value: boolean }
+  | { type: "startLaunch" }
+  | { type: "launchFailed"; error: string }
+  | { type: "setError"; error: string | null }
+  | { type: "setClipboardPrompt"; value: boolean };
+
+function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
+  switch (action.type) {
+    case "loadForCli":
+      return {
+        ...state,
+        directory: action.directory,
+        args: "",
+        noPerms: true,
+        showRecent: false,
+        launching: false,
+        error: null,
+        providersState: action.providersState,
+        providerId: action.providerId,
+        recentDirs: action.recentDirs,
+        clipboardPrompt: false,
+      };
+    case "setDirectory":
+      return { ...state, directory: action.value };
+    case "setArgs":
+      return { ...state, args: action.value };
+    case "setNoPerms":
+      return { ...state, noPerms: action.value };
+    case "setProviderId":
+      return { ...state, providerId: action.value };
+    case "setShowRecent":
+      return { ...state, showRecent: action.value };
+    case "startLaunch":
+      return { ...state, launching: true, error: null };
+    case "launchFailed":
+      return { ...state, launching: false, error: action.error };
+    case "setError":
+      return { ...state, error: action.error };
+    case "setClipboardPrompt":
+      return { ...state, clipboardPrompt: action.value };
+  }
+}
+
+const INITIAL_LAUNCH_STATE: LaunchState = {
+  directory: "",
+  args: "",
+  noPerms: true,
+  providersState: null,
+  providerId: "",
+  launching: false,
+  error: null,
+  recentDirs: [],
+  showRecent: false,
+  clipboardPrompt: false,
+};
 
 export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const { t } = useTranslation();
-  const [directory, setDirectory] = useState("");
-  const [args, setArgs] = useState("");
-  const [noPerms, setNoPerms] = useState(true);
-  const [providersState, setProvidersState] = useState<ProvidersState | null>(null);
-  const [providerId, setProviderId] = useState<string>("");
-  const [launching, setLaunching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recentDirs, setRecentDirs] = useState<string[]>([]);
-  const [showRecent, setShowRecent] = useState(false);
+  const [state, dispatch] = useReducer(launchReducer, INITIAL_LAUNCH_STATE);
+  const {
+    directory,
+    args,
+    noPerms,
+    providersState,
+    providerId,
+    launching,
+    error,
+    recentDirs,
+    showRecent,
+    clipboardPrompt,
+  } = state;
 
   const isClaude = cli?.key === CLAUDE_KEY;
+  const supportsPrompt = cli ? CLIS_WITH_PROMPT_FLAG.has(cli.key) : false;
 
   useEffect(() => {
     if (!cli) return;
     const lastDir = getLastDir(cli.key);
-    setDirectory(lastDir);
-    setRecentDirs(getRecentDirs(cli.key));
-    setShowRecent(false);
-    setArgs("");
-    setNoPerms(true);
-    setError(null);
-    setLaunching(false);
+    let providersStateLocal: ProvidersState | null = null;
+    let providerIdLocal = "";
     if (cli.key === CLAUDE_KEY) {
-      const state = loadProviders();
-      setProvidersState(state);
-      setProviderId(state.activeId);
-    } else {
-      setProvidersState(null);
-      setProviderId("");
+      providersStateLocal = loadProviders();
+      providerIdLocal = providersStateLocal.activeId;
     }
+    dispatch({
+      type: "loadForCli",
+      directory: lastDir,
+      recentDirs: getRecentDirs(cli.key),
+      providersState: providersStateLocal,
+      providerId: providerIdLocal,
+    });
   }, [cli]);
 
   const providerOptions = useMemo(() => {
@@ -65,33 +153,52 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const pickDirectory = async () => {
     try {
       const picked = await openDialog({ directory: true, multiple: false });
-      if (typeof picked === "string") setDirectory(picked);
+      if (typeof picked === "string") dispatch({ type: "setDirectory", value: picked });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      dispatch({ type: "setError", error: e instanceof Error ? e.message : String(e) });
     }
   };
 
   const doLaunch = async () => {
     if (!cli) return;
     if (!directory.trim()) {
-      setError(t("launchDialog.directoryRequired"));
+      dispatch({ type: "setError", error: t("launchDialog.directoryRequired") });
       return;
     }
-    setLaunching(true);
-    setError(null);
+    dispatch({ type: "startLaunch" });
     try {
       let envVars: Record<string, string> | undefined;
       if (isClaude && providersState) {
         const stateWithSelected = setActive(providersState, providerId);
         envVars = buildLaunchEnv(stateWithSelected);
       }
+      let finalArgs = args;
+      if (clipboardPrompt && supportsPrompt) {
+        try {
+          const text = await navigator.clipboard.readText();
+          const trimmed = text.trim();
+          if (trimmed) {
+            // JSON.stringify escapes quotes and newlines safely
+            const escaped = JSON.stringify(trimmed);
+            finalArgs = finalArgs ? `${finalArgs} -p ${escaped}` : `-p ${escaped}`;
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("[clipboard] read failed", err);
+          // Continue launch without the prompt
+        }
+      }
       await invoke<string>("launch_cli", {
         cliKey: cli.key,
         directory,
-        args,
+        args: finalArgs,
         noPerms,
         envVars: envVars ?? null,
       });
+      void ensurePermissionThenNotify(
+        t("notifications.sessionStarted.title", { cli: cli.name }),
+        t("notifications.sessionStarted.body", { dir: directory }),
+      );
       saveLastDir(cli.key, directory);
       addRecentDir(cli.key, directory);
       appendHistory({
@@ -104,9 +211,10 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       });
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLaunching(false);
+      dispatch({
+        type: "launchFailed",
+        error: e instanceof Error ? e.message : String(e),
+      });
     }
   };
 
@@ -118,6 +226,27 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       size="md"
       footer={
         <>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              if (!cli || !directory.trim()) return;
+              const defaultName = `${cli.name} · ${directory.split(/[\\/]/).pop() || directory}`;
+              const name = window.prompt(t("launchDialog.saveTemplatePrompt"), defaultName);
+              if (!name) return;
+              saveTemplate({
+                name,
+                cliKey: cli.key,
+                cliName: cli.name,
+                directory,
+                args,
+                noPerms,
+                providerId: isClaude ? providerId : null,
+              });
+            }}
+          >
+            {t("launchDialog.saveTemplate")}
+          </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("common.cancel")}
           </Button>
@@ -137,28 +266,55 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
               className="cd-launch-dialog__input"
               value={directory}
               placeholder={t("launchDialog.directoryPlaceholder")}
-              onChange={(e) => setDirectory(e.target.value)}
-              onFocus={() => recentDirs.length > 0 && setShowRecent(true)}
-              onBlur={() => setTimeout(() => setShowRecent(false), 200)}
+              onChange={(e) => dispatch({ type: "setDirectory", value: e.target.value })}
+              onFocus={() =>
+                recentDirs.length > 0 && dispatch({ type: "setShowRecent", value: true })
+              }
+              onBlur={() =>
+                setTimeout(() => dispatch({ type: "setShowRecent", value: false }), 200)
+              }
             />
-            {showRecent && recentDirs.length > 0 && (
+            {showRecent && recentDirs.length > 0 && cli && (
               <ul className="cd-launch-dialog__recent-list">
-                {recentDirs.map((d) => (
-                  <li
-                    key={d}
-                    className="cd-launch-dialog__recent-item"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setDirectory(d);
-                      setShowRecent(false);
-                    }}
-                  >
-                    <span className="cd-launch-dialog__recent-icon">📁</span>
-                    <span className="cd-launch-dialog__recent-path" title={d}>
-                      {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
-                    </span>
-                  </li>
-                ))}
+                {recentDirs.map((d) => {
+                  const pinned = isPinned(cli.key, d);
+                  return (
+                    <li key={d} className="cd-launch-dialog__recent-item">
+                      <button
+                        className="cd-launch-dialog__recent-main"
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          dispatch({ type: "setDirectory", value: d });
+                          dispatch({ type: "setShowRecent", value: false });
+                        }}
+                      >
+                        <span className="cd-launch-dialog__recent-icon">📁</span>
+                        <span className="cd-launch-dialog__recent-path" title={d}>
+                          {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
+                        </span>
+                      </button>
+                      <button
+                        className="cd-launch-dialog__pin-btn"
+                        type="button"
+                        title={pinned ? t("launchDialog.unpin") : t("launchDialog.pin")}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (pinned) unpinDir(cli.key, d);
+                          else pinDir(cli.key, d);
+                          dispatch({ type: "setShowRecent", value: false });
+                          setTimeout(
+                            () => dispatch({ type: "setShowRecent", value: true }),
+                            0,
+                          );
+                        }}
+                      >
+                        {pinned ? "📌" : "📍"}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -176,14 +332,14 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           className="cd-launch-dialog__input"
           value={args}
           placeholder={t("launchDialog.argsPlaceholder")}
-          onChange={(e) => setArgs(e.target.value)}
+          onChange={(e) => dispatch({ type: "setArgs", value: e.target.value })}
         />
       </div>
 
       <div className="cd-launch-dialog__field cd-launch-dialog__field--toggle">
         <Toggle
           checked={noPerms}
-          onChange={setNoPerms}
+          onChange={(value) => dispatch({ type: "setNoPerms", value })}
           label={
             <span>
               <span className="cd-launch-dialog__toggle-main">
@@ -197,6 +353,25 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         />
       </div>
 
+      {supportsPrompt && (
+        <div className="cd-launch-dialog__field cd-launch-dialog__field--toggle">
+          <Toggle
+            checked={clipboardPrompt}
+            onChange={(value) => dispatch({ type: "setClipboardPrompt", value })}
+            label={
+              <span>
+                <span className="cd-launch-dialog__toggle-main">
+                  {t("launchDialog.clipboardPromptLabel")}
+                </span>
+                <span className="cd-launch-dialog__hint">
+                  {t("launchDialog.clipboardPromptHint")}
+                </span>
+              </span>
+            }
+          />
+        </div>
+      )}
+
       {isClaude && providersState && (
         <div className="cd-launch-dialog__field">
           <label className="cd-launch-dialog__label">
@@ -205,7 +380,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           <select
             className="cd-launch-dialog__select"
             value={providerId}
-            onChange={(e) => setProviderId(e.target.value)}
+            onChange={(e) => dispatch({ type: "setProviderId", value: e.target.value })}
           >
             {providerOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>

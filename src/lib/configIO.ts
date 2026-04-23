@@ -10,6 +10,17 @@
 //   - ai-launcher:display-font (AppearanceSection.tsx FONT_STORAGE_KEY)
 // ==============================================================================
 
+import { z } from 'zod';
+
+const ConfigDumpSchema = z.object({
+  version: z.string().min(1),
+  exportedAt: z.string().min(1),
+  providers: z.record(z.string(), z.unknown()),
+  presets: z.unknown().optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+});
+
 const PROVIDERS_KEY = 'ai-launcher-providers';
 const PRESETS_KEY = 'ai-launcher-presets';
 const CONFIG_KEY = 'ai-launcher-config';
@@ -18,14 +29,7 @@ const FONT_KEY = 'ai-launcher:display-font';
 const REDACTED = '{{REDACTED}}';
 const SECRET_RE = /token|key|secret|bearer|password/i;
 
-interface ConfigDump {
-  version: string;
-  exportedAt: string;
-  providers: Record<string, unknown>;
-  presets: unknown;
-  config: Record<string, unknown>;
-  settings: Record<string, unknown>;
-}
+type ConfigDump = z.infer<typeof ConfigDumpSchema>;
 
 function safeParse<T>(raw: string | null, fallback: T): T {
   if (!raw) return fallback;
@@ -112,15 +116,24 @@ function countRedacted(providers: unknown): number {
 }
 
 export function importConfig(raw: string, mode: 'merge' | 'replace'): ImportResult {
-  let dump: ConfigDump;
+  let parsedJson: unknown;
   try {
-    dump = JSON.parse(raw) as ConfigDump;
+    parsedJson = JSON.parse(raw);
   } catch {
     return { ok: false, error: 'Arquivo nao e JSON valido.' };
   }
-  if (!dump.version || !dump.providers || typeof dump.providers !== 'object') {
-    return { ok: false, error: 'Formato de config desconhecido.' };
+
+  const result = ConfigDumpSchema.safeParse(parsedJson);
+  if (!result.success) {
+    const first = result.error.issues[0];
+    const path = first.path.join('.');
+    return {
+      ok: false,
+      error: `Formato de config invalido${path ? ` em "${path}"` : ''}: ${first.message}`,
+    };
   }
+
+  const dump = result.data;
 
   const redactedCount = countRedacted(dump.providers);
 

@@ -4,6 +4,7 @@ import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
 import { Skeleton } from "../../ui/Skeleton";
 import { useUsage, type UsageEntry } from "./useUsage";
+import { toCsv, downloadBlob } from "../../lib/exportData";
 import "../page.css";
 import "./CostsPage.css";
 
@@ -57,6 +58,22 @@ export function CostsPage() {
   }, [report]);
 
   const hasData = (report?.entries.length ?? 0) > 0;
+  const entries = report?.entries ?? [];
+
+  const handleExportCsv = (): void => {
+    const csv = toCsv(entries as unknown as Record<string, unknown>[]);
+    const date = new Date().toISOString().slice(0, 10);
+    downloadBlob(csv, `ai-launcher-usage-${date}.csv`, "text/csv");
+  };
+
+  const handleExportJson = (): void => {
+    const date = new Date().toISOString().slice(0, 10);
+    downloadBlob(
+      JSON.stringify(entries, null, 2),
+      `ai-launcher-usage-${date}.json`,
+      "application/json",
+    );
+  };
 
   return (
     <section className="cd-page cd-costs">
@@ -91,6 +108,24 @@ export function CostsPage() {
             <div className="cd-costs__hero-amount">{formatUsd(todayTotal)}</div>
             <div className="cd-costs__hero-sub">
               {t("costs.entriesTracked", { count: report?.entries.length ?? 0 })}
+            </div>
+            <div className="cd-costs__export">
+              <button
+                type="button"
+                className="cd-costs__export-btn"
+                onClick={handleExportCsv}
+                disabled={entries.length === 0}
+              >
+                {t("costs.exportCsv")}
+              </button>
+              <button
+                type="button"
+                className="cd-costs__export-btn"
+                onClick={handleExportJson}
+                disabled={entries.length === 0}
+              >
+                {t("costs.exportJson")}
+              </button>
             </div>
           </Card>
 

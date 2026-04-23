@@ -20,6 +20,8 @@
     "dialog:allow-message",
     "dialog:allow-ask",
     "dialog:allow-confirm",
-    "global-shortcut:default"
+    "global-shortcut:default",
+    "autostart:default",
+    "notification:default"
   ]
 }
