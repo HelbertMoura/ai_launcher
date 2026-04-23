@@ -28,6 +28,11 @@ export const en: Dictionary = {
     no: "No",
     optional: "optional",
   },
+  errorBoundary: {
+    title: "Something went wrong",
+    message: "A UI error was caught. You can retry, or restart the app if it persists.",
+    retry: "Retry",
+  },
   nav: {
     launcher: "Launch",
     tools: "Tools",
