@@ -50,6 +50,7 @@
       "nsis": {
         "installMode": "currentUser",
         "displayLanguageSelector": true,
+        "languages": ["PortugueseBR", "English"],
         "installerIcon": "icons/icon.ico"
       },
       "wix": {
