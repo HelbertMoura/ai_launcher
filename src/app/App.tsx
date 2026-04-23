@@ -21,7 +21,7 @@ import { markOnboarded, readOnboarded } from "./onboarding";
 import { clisStore } from "../features/launcher/clisStore";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
-import { ErrorBoundary } from "../components/ErrorBoundary";
+import { ErrorBoundary } from "../ui/ErrorBoundary";
 import "./App.css";
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
