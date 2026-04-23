@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 12.5.0](https://img.shields.io/badge/version-12.5.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 13.0.0](https://img.shields.io/badge/version-13.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -33,6 +33,28 @@
 | 🌐 | **i18n** | English and Portuguese (Brazil) with instant toggle |
 | ⌨️ | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-6` tab nav, `Ctrl+,` admin, `?` help |
 | 🔒 | **Privacy-First** | Everything stays local — no telemetry, no cloud sync |
+
+## Screenshots
+
+<div align="center">
+
+| CLI Launcher | Tools Manager | Launch Dialog |
+|:---:|:---:|:---:|
+| ![CLI Launcher](./docs/screenshots/01-launcher-cli.png) | ![Tools](./docs/screenshots/02-launcher-tools.png) | ![Launch Dialog](./docs/screenshots/03-launch-dialog.png) |
+
+| History | Providers | Settings |
+|:---:|:---:|:---:|
+| ![History](./docs/screenshots/04-history.png) | ![Providers](./docs/screenshots/05-providers.png) | ![Settings](./docs/screenshots/06-settings.png) |
+
+| Onboarding | Updates | Provider Edit |
+|:---:|:---:|:---:|
+| ![Onboarding](./docs/screenshots/07-onboarding.png) | ![Updates](./docs/screenshots/08-updates.png) | ![Provider Edit](./docs/screenshots/09-provider-edit.png) |
+
+| Welcome | Dark Theme |
+|:---:|:---:|
+| ![Welcome](./docs/screenshots/10-welcome.png) | ![Dark Theme](./docs/screenshots/11-dark-theme.png) |
+
+</div>
 
 ## Quick Start
 
@@ -85,15 +107,23 @@ The app has 8 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), presets, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## What's New in v12.5
+## What's New in v13.0
 
-- **Updates tab** — Dedicated surface for CLI, tool and prerequisite updates with Update All button
-- **Install from cards** — Install missing CLIs and tools directly from Launch and Tools tabs
-- **History improvements** — Reopen sessions, add descriptions, status badges (running/finished/error), duration tracking, remember last directory per CLI
-- **Test API button** — Test provider connections directly from Admin with latency display
-- **Official brand icons** — Real vendor logos from LobeHub Icons and devicons, visible in both themes
-- **Welcome screen** — Reformulated with DevManiacs branding, guided tour and "always show" option
-- **i18n improvements** — Full pt-BR and EN coverage for all new features
+- **New minimalist icon** — Hex Hub design in red, clean and recognizable at any size
+- **Provider persistence in history** — Reopening a Claude session now restores the exact provider used
+- **Recent directories dropdown** — Last 10 directories per CLI shown on focus for quick selection
+- **Screenshots in docs** — Full gallery of all app surfaces in the README
+
+<details><summary>v12.5 highlights</summary>
+
+- Updates tab — Dedicated surface for CLI, tool and prerequisite updates
+- Install from cards — Install missing CLIs and tools directly from tabs
+- History improvements — Reopen sessions, descriptions, status badges, duration tracking
+- Test API button — Test provider connections from Admin with latency display
+- Official brand icons — Real vendor logos from LobeHub Icons and devicons
+- Welcome screen — DevManiacs branding, guided tour, "always show" option
+
+</details>
 
 ## Tech Stack
 

@@ -8,7 +8,7 @@ import { Input } from "../../ui/Input";
 import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
 import { appendHistory } from "./history";
-import { getLastDir, saveLastDir } from "../history/useHistory";
+import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
@@ -29,12 +29,17 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const [providerId, setProviderId] = useState<string>("");
   const [launching, setLaunching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recentDirs, setRecentDirs] = useState<string[]>([]);
+  const [showRecent, setShowRecent] = useState(false);
 
   const isClaude = cli?.key === CLAUDE_KEY;
 
   useEffect(() => {
     if (!cli) return;
-    setDirectory(getLastDir(cli.key));
+    const lastDir = getLastDir(cli.key);
+    setDirectory(lastDir);
+    setRecentDirs(getRecentDirs(cli.key));
+    setShowRecent(false);
     setArgs("");
     setNoPerms(true);
     setError(null);
@@ -88,12 +93,14 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         envVars: envVars ?? null,
       });
       saveLastDir(cli.key, directory);
+      addRecentDir(cli.key, directory);
       appendHistory({
         cli: cli.name,
         cliKey: cli.key,
         directory,
         args,
         timestamp: new Date().toISOString(),
+        providerId: isClaude ? providerId : undefined,
       });
       onClose();
     } catch (e) {
@@ -125,12 +132,36 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       <div className="cd-launch-dialog__field">
         <label className="cd-launch-dialog__label">{t("launchDialog.directory")}</label>
         <div className="cd-launch-dialog__row">
-          <Input
-            className="cd-launch-dialog__input"
-            value={directory}
-            placeholder={t("launchDialog.directoryPlaceholder")}
-            onChange={(e) => setDirectory(e.target.value)}
-          />
+          <div style={{ position: "relative", flex: 1 }}>
+            <Input
+              className="cd-launch-dialog__input"
+              value={directory}
+              placeholder={t("launchDialog.directoryPlaceholder")}
+              onChange={(e) => setDirectory(e.target.value)}
+              onFocus={() => recentDirs.length > 0 && setShowRecent(true)}
+              onBlur={() => setTimeout(() => setShowRecent(false), 200)}
+            />
+            {showRecent && recentDirs.length > 0 && (
+              <ul className="cd-launch-dialog__recent-list">
+                {recentDirs.map((d) => (
+                  <li
+                    key={d}
+                    className="cd-launch-dialog__recent-item"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDirectory(d);
+                      setShowRecent(false);
+                    }}
+                  >
+                    <span className="cd-launch-dialog__recent-icon">📁</span>
+                    <span className="cd-launch-dialog__recent-path" title={d}>
+                      {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <Button size="sm" variant="ghost" onClick={pickDirectory}>
             {t("common.browse")}
           </Button>

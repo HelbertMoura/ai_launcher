@@ -109,3 +109,45 @@
   color: var(--text-dim);
   font-size: 14px;
 }
+
+/* Recent directories dropdown */
+.cd-launch-dialog__recent-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 2px;
+  padding: 2px 0;
+  list-style: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.cd-launch-dialog__recent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  transition: background 0.15s, color 0.15s;
+}
+.cd-launch-dialog__recent-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.cd-launch-dialog__recent-icon {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.cd-launch-dialog__recent-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

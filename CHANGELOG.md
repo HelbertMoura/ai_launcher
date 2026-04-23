@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [13.0.0] — 2026-04-23 — Major Release
+
+### Added
+- **New minimalist icon** — Hex Hub design in red (`#ff4757`), clean at all sizes. Replaces rocket+terminal icon across installer, desktop, taskbar, navbar and app.
+- **Provider persistence in history** — `HistoryItem` now stores `providerId`. Reopening a Claude session restores the exact provider used (not the default).
+- **Recent directories dropdown** — Last 10 unique directories per CLI stored in `ai-launcher:recent-dirs`. Shown on directory input focus for quick selection.
+- **Screenshots gallery** — 11 screenshots added to `docs/screenshots/` and embedded in both README.md and README.pt-BR.md.
+
+### Changed
+- **Icon regeneration** — All 17 icon sizes in `src-tauri/icons/` regenerated from new SVG (1024px base, ICO, Windows Store tiles).
+- **README redesign** — Both EN and pt-BR READMEs updated with screenshot gallery, v13 section, and collapsible v12.5 highlights.
+
 ## [12.5.0] — 2026-04-23 — Feature Release
 
 ### Added

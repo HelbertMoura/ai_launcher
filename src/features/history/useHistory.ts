@@ -11,6 +11,7 @@ export interface HistoryItem {
   description?: string;
   status?: SessionStatus;
   duration?: number; // seconds
+  providerId?: string;
 }
 
 const CONFIG_KEY = "ai-launcher-config";
@@ -98,6 +99,32 @@ export function saveLastDir(cliKey: string, dir: string): void {
     const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
     map[cliKey] = dir;
     localStorage.setItem(LAST_DIR_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
+
+const RECENT_DIRS_KEY = "ai-launcher:recent-dirs";
+const MAX_RECENT_DIRS = 10;
+
+export function getRecentDirs(cliKey: string): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_DIRS_KEY);
+    if (!raw) return [];
+    const map = JSON.parse(raw) as Record<string, string[]>;
+    return map[cliKey] ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export function addRecentDir(cliKey: string, dir: string): void {
+  try {
+    const raw = localStorage.getItem(RECENT_DIRS_KEY);
+    const map = raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
+    const list = (map[cliKey] ?? []).filter((d) => d !== dir);
+    map[cliKey] = [dir, ...list].slice(0, MAX_RECENT_DIRS);
+    localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
   }
