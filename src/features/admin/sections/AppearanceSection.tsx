@@ -43,8 +43,13 @@ const LOCALE_LABELS: Record<Locale, string> = {
 export function AppearanceSection() {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
-  const { accent, setAccent } = useAccent();
+  const { accent, setAccent, customHex, setCustomHex } = useAccent();
+  const [customHexDraft, setCustomHexDraft] = useState<string>(customHex);
   const [fontId, setFontId] = useState<FontId>(readStoredFont);
+
+  useEffect(() => {
+    setCustomHexDraft(customHex);
+  }, [customHex]);
   const currentLocale = (SUPPORTED_LOCALES as readonly string[]).includes(i18n.language)
     ? (i18n.language as Locale)
     : "pt-BR";
@@ -113,7 +118,48 @@ export function AppearanceSection() {
                 onClick={() => setAccent(a satisfies Accent)}
               />
             ))}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={accent === "custom"}
+              aria-label={t("admin.appearance.accentCustom")}
+              title={t("admin.appearance.accentCustom")}
+              className={`cd-appearance__swatch cd-appearance__swatch--custom${
+                accent === "custom" ? " is-active" : ""
+              }`}
+              style={{ background: customHex }}
+              onClick={() => setAccent("custom")}
+            />
           </div>
+          {accent === "custom" && (
+            <div className="cd-appearance__accent-custom-row">
+              <input
+                type="color"
+                value={customHex}
+                onChange={(e) => setCustomHex(e.target.value)}
+                className="cd-appearance__accent-custom-input"
+                aria-label={t("admin.appearance.accentCustom")}
+              />
+              <input
+                type="text"
+                value={customHexDraft}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (/^#?[0-9a-f]{0,6}$/i.test(v)) {
+                    const withHash = v.startsWith("#") ? v : `#${v}`;
+                    setCustomHexDraft(withHash);
+                    if (/^#[0-9a-f]{6}$/i.test(withHash)) {
+                      setCustomHex(withHash);
+                    }
+                  }
+                }}
+                className="cd-appearance__accent-custom-hex"
+                spellCheck={false}
+                pattern="^#[0-9a-fA-F]{6}$"
+                maxLength={7}
+              />
+            </div>
+          )}
         </div>
       </Card>
 
