@@ -176,6 +176,8 @@ export const en: Dictionary = {
     noData: "No usage data yet.",
     empty:
       "No usage data. Run a supported CLI (Claude Code, Codex, Gemini) at least once.",
+    exportCsv: "Export CSV",
+    exportJson: "Export JSON",
   },
   help: {
     title: "HELP",

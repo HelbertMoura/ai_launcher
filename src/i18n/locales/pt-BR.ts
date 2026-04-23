@@ -174,6 +174,8 @@ export const ptBR = {
     noData: "Sem dados de uso ainda.",
     empty:
       "Sem dados de uso. Rode uma CLI suportada (Claude Code, Codex, Gemini) pelo menos uma vez.",
+    exportCsv: "Exportar CSV",
+    exportJson: "Exportar JSON",
   },
   help: {
     title: "AJUDA",
