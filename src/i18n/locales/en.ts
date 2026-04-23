@@ -228,6 +228,12 @@ export const en: Dictionary = {
       label: "Launch at Windows startup",
       hint: "Starts minimized to tray",
     },
+    hotkey: {
+      label: "Global hotkey",
+      hint: "Focus window from anywhere. Ex: CmdOrCtrl+Alt+L",
+      save: "Save",
+      invalid: "Invalid shortcut",
+    },
   },
   prereqs: {
     title: "PREREQUISITES",
