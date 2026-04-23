@@ -112,6 +112,8 @@ export const en: Dictionary = {
     manageProviders: "Manage providers",
     saveAsPreset: "Save as preset",
     savedAsPreset: "Preset saved",
+    pin: "Pin this directory",
+    unpin: "Unpin this directory",
   },
   tools: {
     title: "TOOLS",
