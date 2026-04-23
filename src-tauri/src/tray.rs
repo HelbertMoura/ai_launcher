@@ -36,23 +36,12 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let launch_claude =
         MenuItem::with_id(app, "tray-launch-claude", "Claude Code", true, None::<&str>)?;
     let launch_codex = MenuItem::with_id(app, "tray-launch-codex", "Codex", true, None::<&str>)?;
-    let launch_gemini =
-        MenuItem::with_id(app, "tray-launch-gemini", "Gemini", true, None::<&str>)?;
+    let launch_gemini = MenuItem::with_id(app, "tray-launch-gemini", "Gemini", true, None::<&str>)?;
     let launch_qwen = MenuItem::with_id(app, "tray-launch-qwen", "Qwen", true, None::<&str>)?;
-    let launch_kilocode = MenuItem::with_id(
-        app,
-        "tray-launch-kilocode",
-        "Kilo Code",
-        true,
-        None::<&str>,
-    )?;
-    let launch_opencode = MenuItem::with_id(
-        app,
-        "tray-launch-opencode",
-        "OpenCode",
-        true,
-        None::<&str>,
-    )?;
+    let launch_kilocode =
+        MenuItem::with_id(app, "tray-launch-kilocode", "Kilo Code", true, None::<&str>)?;
+    let launch_opencode =
+        MenuItem::with_id(app, "tray-launch-opencode", "OpenCode", true, None::<&str>)?;
     let launch_crush = MenuItem::with_id(app, "tray-launch-crush", "Crush", true, None::<&str>)?;
     let launch_droid = MenuItem::with_id(app, "tray-launch-droid", "Droid", true, None::<&str>)?;
     let launch_menu = Submenu::with_items(
@@ -84,8 +73,7 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let tab_updates =
         MenuItem::with_id(app, "tray-tab-updates", "Atualizações", true, None::<&str>)?;
     let tab_costs = MenuItem::with_id(app, "tray-tab-costs", "Custos", true, None::<&str>)?;
-    let tab_config =
-        MenuItem::with_id(app, "tray-tab-config", "Ajuda/Config", true, None::<&str>)?;
+    let tab_config = MenuItem::with_id(app, "tray-tab-config", "Ajuda/Config", true, None::<&str>)?;
     let tabs_menu = Submenu::with_items(
         app,
         "Abrir aba",
@@ -165,9 +153,16 @@ fn handle_tray_menu_event(app: &AppHandle, id: &str) {
     }
 }
 
-/// Build tray icon, register global hotkey. Called from main.rs setup().
+/// Sets up the system tray icon, menu, and event handlers.
+///
+/// Returns `Box<dyn std::error::Error>` instead of our `AppResult`
+/// because `tauri::App::setup()` requires this error type signature.
+/// Future work: implement `From<tauri::Error>` for `AppError` and
+/// migrate to `AppResult<()>` for consistency.
 pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let window = app.get_webview_window("main").unwrap();
+    let window = app
+        .get_webview_window("main")
+        .ok_or("janela 'main' não encontrada")?;
     window.set_title("AI Launcher Pro - by Helbert Moura | Powered by DevManiac's")?;
 
     let menu = build_tray_menu(app.handle())?;

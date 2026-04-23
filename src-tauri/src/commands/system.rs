@@ -3,9 +3,7 @@ use std::process::Command;
 
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
-use crate::util::{
-    crash_dir, read_tray_config, write_tray_config, CREATE_NO_WINDOW,
-};
+use crate::util::{crash_dir, read_tray_config, write_tray_config, CREATE_NO_WINDOW};
 
 #[tauri::command]
 pub fn open_in_explorer(path: String) -> Result<String, String> {

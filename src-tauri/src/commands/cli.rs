@@ -88,13 +88,7 @@ pub async fn install_cli(
             }
             "pip" => {
                 let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
-                stream_install(
-                    app,
-                    key_for_work,
-                    "pip".into(),
-                    vec!["install".into(), pkg],
-                )
-                .await
+                stream_install(app, key_for_work, "pip".into(), vec!["install".into(), pkg]).await
             }
             "script" => {
                 stream_install(
@@ -257,8 +251,7 @@ pub fn launch_cli(
     let safe_args = sanitize_args(&args)?;
     let work_dir = validate_directory(&directory)?;
 
-    let resolved_cmd =
-        resolve_cli_path_win(&cli.command).unwrap_or_else(|| cli.command.clone());
+    let resolved_cmd = resolve_cli_path_win(&cli.command).unwrap_or_else(|| cli.command.clone());
 
     let ps_cmd = if resolved_cmd.contains(' ') {
         format!("& '{}'", resolved_cmd.replace('\'', "''"))
