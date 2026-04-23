@@ -238,6 +238,7 @@ export const ptBR = {
     appearance: {
       theme: "tema",
       accent: "destaque",
+      accentCustom: "Cor personalizada",
       font: "fonte de exibição",
       language: "idioma",
       languagePtBR: "Português (Brasil)",

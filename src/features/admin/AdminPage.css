@@ -218,6 +218,39 @@
 .cd-appearance__swatch--blue { background: #3b82f6; }
 .cd-appearance__swatch--violet { background: #8b5cf6; }
 
+.cd-appearance__swatch--custom {
+  position: relative;
+  border-style: dashed;
+  border-color: var(--text-dim);
+}
+
+.cd-appearance__accent-custom-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+.cd-appearance__accent-custom-input {
+  width: 32px;
+  height: 32px;
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cd-appearance__accent-custom-hex {
+  width: 100px;
+  padding: 4px 8px;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
 .cd-appearance__font {
   display: flex;
   align-items: center;

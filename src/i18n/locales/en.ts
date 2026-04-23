@@ -239,6 +239,7 @@ export const en: Dictionary = {
     appearance: {
       theme: "theme",
       accent: "accent",
+      accentCustom: "Custom color",
       font: "display font",
       language: "language",
       languagePtBR: "Português (Brasil)",
