@@ -5,6 +5,41 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [14.0.0] — 2026-04-23 — Major Release
+
+### Added
+- **Autostart with Windows** (opt-in in Admin → Appearance) — launches minimized to tray via `tauri-plugin-autostart`.
+- **Global hotkey UI** — Admin → Appearance now exposes the tray hotkey as editable text; backend `set_tray_hotkey` re-registers atomically.
+- **Pinned directories** — pin up to 3 favorite dirs per CLI; pins render above recent-dirs on every CliCard.
+- **Session templates** — save a full launch config (CLI + dir + args + toggle + provider) as a named, reusable template.
+- **Native desktop notifications** (opt-in) — toasts for `install_cli`/`update_cli`/`install_tool` completion and at launch time.
+- **History filters** — filter by CLI, provider, and date range (today / 7d / 30d / all).
+- **Export usage stats** — download costs as CSV or JSON with ISO-dated filenames.
+- **Clipboard → initial prompt** — optional toggle for claude/codex/gemini that appends `-p "<clipboard>"` at launch.
+- **Free-form accent color picker** — any hex in addition to the 5 preset swatches. Stored in `ai-launcher:accent-custom`.
+- **Error Boundary** — global React boundary with i18n (EN + pt-BR). UI crashes now show a retry fallback instead of a blank screen.
+- **Zod schema validation** — `importConfig` rejects malformed exports with field-path error messages.
+- **Vitest + smoke coverage** — 34 tests across recent-dirs, pinnedDirs, sessionTemplates, configIO, exportData, useAccent.
+- **Rust unit tests** — 8 tests in `util.rs` covering `strip_ansi`, `parse_version`, arg sanitization.
+- **Playwright E2E** — 2 smoke tests with stubbed Tauri invoke.
+- **CI quality gates** — new `.github/workflows/quality.yml` with tsc, vitest, clippy, cargo audit, e2e (parallel, concurrency-controlled).
+- **thiserror** + `errors::AppError` infrastructure for typed error propagation.
+
+### Changed
+- **`main.rs` modularized** — 3.105 → ~120 lines. 34 commands split across `commands/{cli,tools,updates,config,system}.rs`. Tray moved to `tray.rs`. Shared helpers in `util.rs`.
+- **`LaunchDialog`** refactored from 9 `useState` to a single `useReducer`.
+- **`tauri-plugin-single-instance`** added — reopening the app now focuses the existing window instead of spawning new processes.
+- Archived `docs/PRD-v12.md` → `docs/archive/`. `.playwright-mcp/` added to `.gitignore`.
+
+### Fixed
+- **Multiple tray icons** — resolved by single-instance guard.
+- **Recent dirs dropdown bleed-through** — parent field now establishes stacking context (`z-index: 20`), dropdown bumped to `z-index: 100` with solid `--surface-1` background and backdrop-filter.
+- **Provider select unreadable in dark theme** — invalid `var(--surface)` token replaced with `var(--surface-1)`, explicit `<option>` styling added.
+
+### Deferred to v14.1
+- **Self-updater** via `tauri-plugin-updater` (requires signing key generation + `release.yml` changes).
+- **Session-end notifications** for `launch_cli` (requires retaining child-process handles + async monitor tasks).
+
 ## [13.5.0] — 2026-04-23 — Feature Release
 
 ### Added
