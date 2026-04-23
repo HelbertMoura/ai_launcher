@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
@@ -20,38 +20,114 @@ interface LaunchDialogProps {
 
 const CLAUDE_KEY = "claude";
 
+interface LaunchState {
+  directory: string;
+  args: string;
+  noPerms: boolean;
+  providersState: ProvidersState | null;
+  providerId: string;
+  launching: boolean;
+  error: string | null;
+  recentDirs: string[];
+  showRecent: boolean;
+}
+
+type LaunchAction =
+  | {
+      type: "loadForCli";
+      directory: string;
+      recentDirs: string[];
+      providersState: ProvidersState | null;
+      providerId: string;
+    }
+  | { type: "setDirectory"; value: string }
+  | { type: "setArgs"; value: string }
+  | { type: "setNoPerms"; value: boolean }
+  | { type: "setProviderId"; value: string }
+  | { type: "setShowRecent"; value: boolean }
+  | { type: "startLaunch" }
+  | { type: "launchFailed"; error: string }
+  | { type: "setError"; error: string | null };
+
+function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
+  switch (action.type) {
+    case "loadForCli":
+      return {
+        ...state,
+        directory: action.directory,
+        args: "",
+        noPerms: true,
+        showRecent: false,
+        launching: false,
+        error: null,
+        providersState: action.providersState,
+        providerId: action.providerId,
+        recentDirs: action.recentDirs,
+      };
+    case "setDirectory":
+      return { ...state, directory: action.value };
+    case "setArgs":
+      return { ...state, args: action.value };
+    case "setNoPerms":
+      return { ...state, noPerms: action.value };
+    case "setProviderId":
+      return { ...state, providerId: action.value };
+    case "setShowRecent":
+      return { ...state, showRecent: action.value };
+    case "startLaunch":
+      return { ...state, launching: true, error: null };
+    case "launchFailed":
+      return { ...state, launching: false, error: action.error };
+    case "setError":
+      return { ...state, error: action.error };
+  }
+}
+
+const INITIAL_LAUNCH_STATE: LaunchState = {
+  directory: "",
+  args: "",
+  noPerms: true,
+  providersState: null,
+  providerId: "",
+  launching: false,
+  error: null,
+  recentDirs: [],
+  showRecent: false,
+};
+
 export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const { t } = useTranslation();
-  const [directory, setDirectory] = useState("");
-  const [args, setArgs] = useState("");
-  const [noPerms, setNoPerms] = useState(true);
-  const [providersState, setProvidersState] = useState<ProvidersState | null>(null);
-  const [providerId, setProviderId] = useState<string>("");
-  const [launching, setLaunching] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recentDirs, setRecentDirs] = useState<string[]>([]);
-  const [showRecent, setShowRecent] = useState(false);
+  const [state, dispatch] = useReducer(launchReducer, INITIAL_LAUNCH_STATE);
+  const {
+    directory,
+    args,
+    noPerms,
+    providersState,
+    providerId,
+    launching,
+    error,
+    recentDirs,
+    showRecent,
+  } = state;
 
   const isClaude = cli?.key === CLAUDE_KEY;
 
   useEffect(() => {
     if (!cli) return;
     const lastDir = getLastDir(cli.key);
-    setDirectory(lastDir);
-    setRecentDirs(getRecentDirs(cli.key));
-    setShowRecent(false);
-    setArgs("");
-    setNoPerms(true);
-    setError(null);
-    setLaunching(false);
+    let providersStateLocal: ProvidersState | null = null;
+    let providerIdLocal = "";
     if (cli.key === CLAUDE_KEY) {
-      const state = loadProviders();
-      setProvidersState(state);
-      setProviderId(state.activeId);
-    } else {
-      setProvidersState(null);
-      setProviderId("");
+      providersStateLocal = loadProviders();
+      providerIdLocal = providersStateLocal.activeId;
     }
+    dispatch({
+      type: "loadForCli",
+      directory: lastDir,
+      recentDirs: getRecentDirs(cli.key),
+      providersState: providersStateLocal,
+      providerId: providerIdLocal,
+    });
   }, [cli]);
 
   const providerOptions = useMemo(() => {
@@ -65,20 +141,19 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const pickDirectory = async () => {
     try {
       const picked = await openDialog({ directory: true, multiple: false });
-      if (typeof picked === "string") setDirectory(picked);
+      if (typeof picked === "string") dispatch({ type: "setDirectory", value: picked });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      dispatch({ type: "setError", error: e instanceof Error ? e.message : String(e) });
     }
   };
 
   const doLaunch = async () => {
     if (!cli) return;
     if (!directory.trim()) {
-      setError(t("launchDialog.directoryRequired"));
+      dispatch({ type: "setError", error: t("launchDialog.directoryRequired") });
       return;
     }
-    setLaunching(true);
-    setError(null);
+    dispatch({ type: "startLaunch" });
     try {
       let envVars: Record<string, string> | undefined;
       if (isClaude && providersState) {
@@ -104,9 +179,10 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       });
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLaunching(false);
+      dispatch({
+        type: "launchFailed",
+        error: e instanceof Error ? e.message : String(e),
+      });
     }
   };
 
@@ -137,9 +213,13 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
               className="cd-launch-dialog__input"
               value={directory}
               placeholder={t("launchDialog.directoryPlaceholder")}
-              onChange={(e) => setDirectory(e.target.value)}
-              onFocus={() => recentDirs.length > 0 && setShowRecent(true)}
-              onBlur={() => setTimeout(() => setShowRecent(false), 200)}
+              onChange={(e) => dispatch({ type: "setDirectory", value: e.target.value })}
+              onFocus={() =>
+                recentDirs.length > 0 && dispatch({ type: "setShowRecent", value: true })
+              }
+              onBlur={() =>
+                setTimeout(() => dispatch({ type: "setShowRecent", value: false }), 200)
+              }
             />
             {showRecent && recentDirs.length > 0 && (
               <ul className="cd-launch-dialog__recent-list">
@@ -149,8 +229,8 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
                     className="cd-launch-dialog__recent-item"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      setDirectory(d);
-                      setShowRecent(false);
+                      dispatch({ type: "setDirectory", value: d });
+                      dispatch({ type: "setShowRecent", value: false });
                     }}
                   >
                     <span className="cd-launch-dialog__recent-icon">📁</span>
@@ -176,14 +256,14 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           className="cd-launch-dialog__input"
           value={args}
           placeholder={t("launchDialog.argsPlaceholder")}
-          onChange={(e) => setArgs(e.target.value)}
+          onChange={(e) => dispatch({ type: "setArgs", value: e.target.value })}
         />
       </div>
 
       <div className="cd-launch-dialog__field cd-launch-dialog__field--toggle">
         <Toggle
           checked={noPerms}
-          onChange={setNoPerms}
+          onChange={(value) => dispatch({ type: "setNoPerms", value })}
           label={
             <span>
               <span className="cd-launch-dialog__toggle-main">
@@ -205,7 +285,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           <select
             className="cd-launch-dialog__select"
             value={providerId}
-            onChange={(e) => setProviderId(e.target.value)}
+            onChange={(e) => dispatch({ type: "setProviderId", value: e.target.value })}
           >
             {providerOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>
