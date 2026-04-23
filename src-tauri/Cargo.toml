@@ -25,6 +25,7 @@ dirs = "5"
 ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+thiserror = "1.0"
 
 [features]
 default = ["custom-protocol"]
