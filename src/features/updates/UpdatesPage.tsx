@@ -8,6 +8,7 @@ import { useClis } from "../launcher/useClis";
 import { useTools } from "../tools/useTools";
 import { usePrerequisites } from "../prereqs/usePrerequisites";
 import { useUpdates } from "../../hooks/useUpdates";
+import { ensurePermissionThenNotify } from "../../lib/notifications";
 import "../page.css";
 import "./UpdatesPage.css";
 
@@ -37,6 +38,17 @@ export function UpdatesPage() {
     setError(null);
     try {
       await invoke(cmd, args);
+      const targetName =
+        (typeof args.cliKey === "string" && args.cliKey) ||
+        (typeof args.toolKey === "string" && args.toolKey) ||
+        (typeof args.key === "string" && args.key) ||
+        "";
+      if (cmd === "update_cli" || cmd === "install_cli" || cmd === "install_tool") {
+        void ensurePermissionThenNotify(
+          t("notifications.installDone.title", { name: targetName }),
+          t("notifications.installDone.body"),
+        );
+      }
       await Promise.all([refreshClis(), refreshTools(), refreshPrereqs(), refreshUpdates()]);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -50,6 +62,10 @@ export function UpdatesPage() {
     setError(null);
     try {
       await invoke("update_all_clis");
+      void ensurePermissionThenNotify(
+        t("notifications.installDone.title", { name: t("updates.updateAll") }),
+        t("notifications.installDone.body"),
+      );
       await Promise.all([refreshClis(), refreshTools(), refreshUpdates()]);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
