@@ -107,6 +107,9 @@ export const ptBR = {
     permissionToggle: "Pular prompt de permissões",
     permissionHint:
       "Passa --dangerously-skip-permissions para a CLI. Deixe ligado para uso em projetos próprios.",
+    clipboardPromptLabel: "Usar clipboard como prompt inicial",
+    clipboardPromptHint:
+      "Anexa `-p \"<texto do clipboard>\"` aos args ao lançar",
     provider: "Provider",
     providerHint: "Somente Claude Code. Muda ANTHROPIC_BASE_URL + token.",
     manageProviders: "Gerenciar providers",

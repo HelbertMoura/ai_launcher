@@ -109,6 +109,9 @@ export const en: Dictionary = {
     permissionToggle: "Skip permission prompts",
     permissionHint:
       "Passes --dangerously-skip-permissions to the CLI. Keep enabled for your own projects.",
+    clipboardPromptLabel: "Use clipboard as initial prompt",
+    clipboardPromptHint:
+      "Appends `-p \"<clipboard text>\"` to the CLI args at launch",
     provider: "Provider",
     providerHint: "Claude Code only. Overrides ANTHROPIC_BASE_URL + token.",
     manageProviders: "Manage providers",
