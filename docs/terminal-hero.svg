@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="800" height="480">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1b26"/>
+      <stop offset="100%" stop-color="#16161e"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#292b3e"/>
+      <stop offset="100%" stop-color="#24253a"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Outer shadow -->
+  <rect x="20" y="10" width="760" height="460" rx="12" fill="url(#bg)" filter="url(#shadow)"/>
+
+  <!-- Terminal frame -->
+  <rect x="20" y="10" width="760" height="460" rx="12" fill="url(#bg)" stroke="#3b3d57" stroke-width="1"/>
+
+  <!-- Title bar -->
+  <rect x="20" y="10" width="760" height="36" rx="12" fill="url(#bar)"/>
+  <rect x="20" y="34" width="760" height="12" fill="url(#bar)"/>
+
+  <!-- Traffic lights -->
+  <circle cx="44" cy="28" r="6.5" fill="#ff5f57"/>
+  <circle cx="66" cy="28" r="6.5" fill="#febc2e"/>
+  <circle cx="88" cy="28" r="6.5" fill="#28c840"/>
+
+  <!-- Title text -->
+  <text x="400" y="33" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#6b6f8a" text-anchor="middle" letter-spacing="1">AI LAUNCHER PRO — v12.5.0</text>
+
+  <!-- Content area -->
+  <!-- Header banner -->
+  <text x="50" y="78" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#7aa2f7" font-weight="bold">
+    ┌─ AI LAUNCHER PRO ────────────────────────────── v12.5.0 ──┐
+  </text>
+  <text x="50" y="100" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+  <text x="748" y="100" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <!-- Section title -->
+  <text x="50" y="100" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#bb9af7" font-weight="bold" dx="18">▎ COMMAND DECK</text>
+
+  <text x="50" y="122" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+  <text x="748" y="122" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <!-- CLI entries -->
+  <text x="68" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a">●</text>
+  <text x="112" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> claude-code</text>
+  <text x="280" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca">online</text>
+  <text x="380" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v4.7</text>
+  <text x="748" y="144" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a">●</text>
+  <text x="112" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> codex</text>
+  <text x="280" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca">online</text>
+  <text x="380" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v1.0</text>
+  <text x="748" y="166" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="188" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="188" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#f7768e">○</text>
+  <text x="112" y="188" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#a9b1d6"> gemini</text>
+  <text x="280" y="188" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#f7768e">missing</text>
+  <text x="748" y="188" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a">●</text>
+  <text x="112" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> qwen</text>
+  <text x="280" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca">online</text>
+  <text x="380" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v0.9</text>
+  <text x="748" y="210" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a">●</text>
+  <text x="112" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> crush</text>
+  <text x="280" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca">online</text>
+  <text x="380" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v1.2</text>
+  <text x="748" y="232" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#e0af68">▲</text>
+  <text x="112" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> kilocode</text>
+  <text x="280" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#e0af68">update</text>
+  <text x="380" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v0.5 → v0.6</text>
+  <text x="748" y="254" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="68" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a">●</text>
+  <text x="112" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> opencode</text>
+  <text x="280" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca">online</text>
+  <text x="380" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#565f89">v0.3</text>
+  <text x="748" y="276" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <text x="50" y="298" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+  <text x="748" y="298" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <!-- Status bar -->
+  <text x="50" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│  </text>
+  <text x="96" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#73daca" font-weight="bold">7/8 online</text>
+  <text x="260" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#e0af68">⬆ 1 update</text>
+  <text x="440" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#bb9af7">● ADMIN</text>
+  <text x="620" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#9ece6a" filter="url(#glow)">$0.42 today</text>
+  <text x="748" y="320" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#3b3d57">│</text>
+
+  <!-- Bottom border -->
+  <text x="50" y="342" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#7aa2f7" font-weight="bold">
+    └────────────────────────────────────────────────────────────┘
+  </text>
+
+  <!-- Prompt -->
+  <text x="50" y="374" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#bb9af7" font-weight="bold">$</text>
+  <text x="68" y="374" font-family="SF Mono,Consolas,Monaco,monospace" font-size="13" fill="#c0caf5"> ai-launcher --scan</text>
+
+  <!-- Scan output -->
+  <text x="50" y="396" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#565f89">▸ Scanning system for AI CLIs...</text>
+  <text x="50" y="416" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#9ece6a">✓</text>
+  <text x="66" y="416" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#c0caf5"> Claude Code v4.7</text>
+  <text x="400" y="416" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#565f89">[installed]</text>
+  <text x="50" y="436" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#9ece6a">✓</text>
+  <text x="66" y="436" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#c0caf5"> Codex v1.0</text>
+  <text x="400" y="436" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#565f89">[installed]</text>
+  <text x="50" y="456" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#9ece6a">✓</text>
+  <text x="66" y="456" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#c0caf5"> Qwen v0.9</text>
+  <text x="400" y="456" font-family="SF Mono,Consolas,Monaco,monospace" font-size="12" fill="#565f89">[installed]</text>
+
+  <!-- Blinking cursor -->
+  <rect x="232" y="363" width="8" height="16" fill="#bb9af7" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+</svg>
