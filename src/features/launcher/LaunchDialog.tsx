@@ -10,6 +10,7 @@ import { Toggle } from "../../ui/Toggle";
 import { appendHistory } from "./history";
 import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
 import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
+import { saveTemplate } from "./sessionTemplates";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
@@ -195,6 +196,27 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       size="md"
       footer={
         <>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              if (!cli || !directory.trim()) return;
+              const defaultName = `${cli.name} · ${directory.split(/[\\/]/).pop() || directory}`;
+              const name = window.prompt(t("launchDialog.saveTemplatePrompt"), defaultName);
+              if (!name) return;
+              saveTemplate({
+                name,
+                cliKey: cli.key,
+                cliName: cli.name,
+                directory,
+                args,
+                noPerms,
+                providerId: isClaude ? providerId : null,
+              });
+            }}
+          >
+            {t("launchDialog.saveTemplate")}
+          </Button>
           <Button variant="ghost" size="sm" onClick={onClose}>
             {t("common.cancel")}
           </Button>

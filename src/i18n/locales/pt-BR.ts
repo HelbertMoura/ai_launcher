@@ -92,6 +92,8 @@ export const ptBR = {
     install: "Instalar",
     installing: "Instalando…",
     launch: "Lançar",
+    templates: "Templates salvos",
+    deleteTemplateConfirm: "Excluir template \"{{name}}\"?",
   },
   launchDialog: {
     title: "Lançar {{cli}}",
@@ -112,6 +114,8 @@ export const ptBR = {
     savedAsPreset: "Preset salvo",
     pin: "Fixar este diretório",
     unpin: "Desfixar este diretório",
+    saveTemplate: "Salvar como template",
+    saveTemplatePrompt: "Nome do template:",
   },
   tools: {
     title: "FERRAMENTAS",

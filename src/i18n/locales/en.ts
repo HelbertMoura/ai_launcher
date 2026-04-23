@@ -94,6 +94,8 @@ export const en: Dictionary = {
     install: "Install",
     installing: "Installing…",
     launch: "Launch",
+    templates: "Saved templates",
+    deleteTemplateConfirm: "Delete template \"{{name}}\"?",
   },
   launchDialog: {
     title: "Launch {{cli}}",
@@ -114,6 +116,8 @@ export const en: Dictionary = {
     savedAsPreset: "Preset saved",
     pin: "Pin this directory",
     unpin: "Unpin this directory",
+    saveTemplate: "Save as template",
+    saveTemplatePrompt: "Template name:",
   },
   tools: {
     title: "TOOLS",
