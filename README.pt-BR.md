@@ -1,7 +1,7 @@
 > [🇺🇸 English](./README.md) | 🇧🇷 Português (Brasil)
 
 ```text
-   ┌─ AI LAUNCHER ─────────────────────────── v10.0.0 ──┐
+   ┌─ AI LAUNCHER ─────────────────────────── v11.0.0 ──┐
    │                                                    │
    │   ▎ COMMAND DECK                                   │
    │                                                    │
@@ -19,23 +19,12 @@
 Launcher desktop para CLIs de codificação com IA — detecte, instale, execute e acompanhe custos.
 
 ![Licença: MIT](https://img.shields.io/badge/license-MIT-blue)
-![Versão 10.0.0](https://img.shields.io/badge/version-10.0.0-ff3131)
+![Versão 11.0.0](https://img.shields.io/badge/version-11.0.0-ff3131)
 ![Plataforma: Windows](https://img.shields.io/badge/platform-Windows-0078D4)
 
 ## O que é
 
 O AI Launcher é um app desktop em Tauri v2 que gerencia CLIs de IA para codificação — Claude Code, Codex, Gemini, Qwen, Aider, Copilot e outros — junto com IDEs como VSCode, Cursor, Windsurf e JetBrains AI. Ele detecta o que já está instalado na sua máquina, ajuda a instalar o que falta, executa cada ferramenta com o provider certo e o diretório de trabalho correto, e acompanha o gasto por provider para você saber exatamente quanto cada sessão custa.
-
-## Screenshots
-
-![Aba Launcher — grid de CLIs com chips de status](./docs/screenshots/01-launcher.svg)
-_Aba Launcher — resultado do scan com status, versões e botões de lançamento._
-
-![Aba Admin — seção de providers com três cards](./docs/screenshots/02-admin.svg)
-_Aba Admin — providers, presets, aparência e overrides de CLI._
-
-![Aba Costs — total de hoje e detalhamento por CLI](./docs/screenshots/03-costs.svg)
-_Aba Costs — total de hoje, tiles por CLI e tendência de gasto._
 
 ## Instalação
 
@@ -85,17 +74,15 @@ O launcher sempre roda com acesso total ao sistema (`--dangerously-skip-permissi
 - **Providers** — Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter e endpoints customizados
 - **Presets** — salve combinações de CLI + provider + diretório + args e dispare com `Ctrl+1..9`
 
-## Novidades da v10
+## Novidades da v11
 
-- Reescrita completa do frontend na direção visual **Command Deck** — estética de terminal monoespaçado dark-first com accent LED
-- Nova arquitetura em camadas sob `src/app/`, `src/ui/`, `src/features/`, `src/theme/`, `src/icons/`, `src/hooks/`
-- Sistema de tema baseado em atributos (dark + Hard Light) com restauração pre-paint, sem flash de conteúdo sem estilo
-- Sistema de accent de 5 cores, trocável pela top bar ou pela paleta de comandos
-- Aba Tools de volta — o gerenciamento de IDEs volta a ser superfície de primeira classe
-- Admin unificado — sem toggle, uma única build com acesso total em todo lugar
-- 16 ícones line-art customizados usando `currentColor` e stroke 1.5 para renderização consistente entre temas
-- Paleta de comandos (`⌘K` / `Ctrl+K`) com grupos Navigate, Theme e Accent
-- JetBrains Mono + Inter self-hosted — sem requisições externas de fonte
+- **Seletor de idioma no TopBar** — alternância instantânea PT/EN sem ir ao Admin
+- **Correção do locale pt-BR** — todas as traduções agora resolvem corretamente (fix de configuração do i18next v24)
+- **Cache de scan de Tools** — sessionStorage TTL 10 min, sem re-escaneamento a cada troca de aba
+- **Terminal animado** na página de Ajuda — demo com efeito de digitação do scan e launch de CLIs
+- **Página de Ajuda expandida** — atalhos, FAQ, links do GitHub, branding DevManiac's
+
+### Anterior: v10 — Command Deck
 
 ## Contribuindo
 

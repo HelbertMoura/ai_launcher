@@ -18,9 +18,6 @@ void i18n
       en: { translation: en },
     },
     fallbackLng: "pt-BR",
-    supportedLngs: SUPPORTED_LOCALES as unknown as string[],
-    nonExplicitSupportedLngs: true,
-    load: "currentOnly",
     interpolation: { escapeValue: false },
     detection: {
       order: ["localStorage", "navigator"],

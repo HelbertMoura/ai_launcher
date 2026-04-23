@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [11.0.0] — 2026-04-22 — Localization & Polish
+
+### Added
+- **Language selector in TopBar** — PT/EN toggle button between accent swatches and theme toggle. One-click language switch without navigating to Admin.
+- **Animated Terminal component** (`src/features/help/AnimatedTerminal.tsx`) — typing-effect terminal showing `ai-launcher --scan`, CLI detection results, launch command and version output. Traffic-light dots, blinking cursor, dark background.
+- **Tools scan cache** (`src/features/tools/toolsStore.ts`) — module-level singleton with `sessionStorage` TTL 10 min via `useSyncExternalStore`. Subsequent visits to the Tools tab hydrate instantly instead of re-invoking backend scan on every tab switch.
+- **Help page expansion** — Getting Started guide, keyboard shortcuts table, FAQ/Troubleshooting section, replay tour button, GitHub links (GitHub, README, Issues, Changelog), About card with DevManiac's branding and version info.
+- **GitHub links** in Help page — direct buttons to GitHub repo, README, Issues and Changelog, opened via Tauri `open_external_url`.
+
+### Changed
+- **i18next config fix** — removed `supportedLngs`, `nonExplicitSupportedLngs` and `load: "currentOnly"` from init config to fix i18next v24 bug where `isSupportedCode('pt-BR')` returned false, causing all pt-BR translations to resolve as raw keys.
+- **Version bumped** to 11.0.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+- **README.md and README.pt-BR.md** — removed screenshots (placeholder SVGs), updated version badges and ASCII art to v11.0.0, updated "What's new" section to v11.
+
+### Preserved
+- Rust backend (`src-tauri/`) and all `invoke` contracts.
+- All localStorage keys and shapes from v10.1 (providers, presets, custom IDEs, CLI overrides, history, appearance).
+
 ## [10.1.0] — 2026-04-22 — Command Deck Refinement
 
 ### Added
