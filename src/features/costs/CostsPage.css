@@ -23,6 +23,9 @@
   font-weight: 700;
   color: var(--accent);
   line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cd-costs__hero-sub {
   font-family: var(--font-mono);
@@ -48,6 +51,9 @@
   font-size: var(--text-sm);
   color: var(--text);
   text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cd-costs__cli-row {
   display: flex;

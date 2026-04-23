@@ -1,4 +1,7 @@
+const CLI_PNG = new Set(["claude", "codex", "gemini", "qwen"]);
+
 export function getCliIcon(key: string): string {
+  if (CLI_PNG.has(key)) return `/icons/cli/${key}.png`;
   return `/icons/cli/${key}.svg`;
 }
 

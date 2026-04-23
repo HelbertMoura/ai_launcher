@@ -32,6 +32,17 @@
   gap: var(--s-2);
 }
 
+.cd-cli-card__update {
+  font-size: var(--text-xs);
+  color: var(--warn);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .cd-launch-dialog__field { margin-bottom: var(--s-3); }
 .cd-launch-dialog__label {
   display: block;

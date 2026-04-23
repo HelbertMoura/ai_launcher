@@ -34,3 +34,14 @@
   display: flex;
   gap: var(--s-2);
 }
+
+.cd-tool-card__update {
+  font-size: var(--text-xs);
+  color: var(--warn);
+  animation: tool-pulse 2s infinite;
+}
+
+@keyframes tool-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

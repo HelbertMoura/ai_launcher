@@ -8,6 +8,7 @@ import { Input } from "../../ui/Input";
 import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
 import { appendHistory } from "./history";
+import { getLastDir, saveLastDir } from "../history/useHistory";
 import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
@@ -33,7 +34,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
 
   useEffect(() => {
     if (!cli) return;
-    setDirectory("");
+    setDirectory(getLastDir(cli.key));
     setArgs("");
     setNoPerms(true);
     setError(null);
@@ -86,6 +87,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         noPerms,
         envVars: envVars ?? null,
       });
+      saveLastDir(cli.key, directory);
       appendHistory({
         cli: cli.name,
         cliKey: cli.key,

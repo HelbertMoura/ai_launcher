@@ -7,6 +7,7 @@ import { Skeleton } from "../../ui/Skeleton";
 import { CliCard } from "./CliCard";
 import { LaunchDialog } from "./LaunchDialog";
 import { useClis, type CliInfo } from "./useClis";
+import { useUpdates } from "../../hooks/useUpdates";
 import "../page.css";
 import "./LauncherPage.css";
 
@@ -15,6 +16,10 @@ export function LauncherPage() {
   const { clis, checks, loading, error, refresh } = useClis();
   const [launching, setLaunching] = useState<CliInfo | null>(null);
   const [installing, setInstalling] = useState<string | null>(null);
+  const { summary: updates } = useUpdates();
+
+  const cliHasUpdate = (name: string) =>
+    updates?.cli_updates.some((u) => u.cli === name && u.has_update) ?? false;
 
   const onInstall = async (cli: CliInfo) => {
     setInstalling(cli.key);
@@ -77,6 +82,7 @@ export function LauncherPage() {
               cli={cli}
               check={checks[cli.name]}
               installing={installing === cli.key}
+              hasUpdate={cliHasUpdate(cli.name)}
               onLaunch={setLaunching}
               onInstall={onInstall}
             />

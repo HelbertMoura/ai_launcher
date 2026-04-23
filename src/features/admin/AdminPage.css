@@ -335,3 +335,23 @@
   gap: var(--s-1);
   cursor: pointer;
 }
+
+/* Provider test result indicators */
+.cd-admin-card__test {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-sm);
+  line-height: 1.4;
+}
+
+.cd-admin-card__test--ok {
+  color: #35d07f;
+  background: rgba(53, 208, 127, 0.1);
+}
+
+.cd-admin-card__test--err {
+  color: #ff3131;
+  background: rgba(255, 49, 49, 0.1);
+  word-break: break-word;
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import pkg from "../../package.json";
 import { useAccent } from "../hooks/useAccent";
 import { useTheme } from "../hooks/useTheme";
@@ -6,7 +6,9 @@ import { LauncherPage } from "../features/launcher/LauncherPage";
 import { ToolsPage } from "../features/tools/ToolsPage";
 import { HistoryPage } from "../features/history/HistoryPage";
 import { CostsPage } from "../features/costs/CostsPage";
+import { PrereqsPage } from "../features/prereqs/PrereqsPage";
 import { HelpPage } from "../features/help/HelpPage";
+import { UpdatesPage } from "../features/updates/UpdatesPage";
 import { AdminPage } from "../features/admin/AdminPage";
 import { OnboardingPage } from "../features/onboarding/OnboardingPage";
 import { Sidebar } from "./layout/Sidebar";
@@ -16,7 +18,21 @@ import type { TabId } from "./layout/TabId";
 import { CommandPalette } from "../features/command-palette/CommandPalette";
 import { useCommandPalette } from "../features/command-palette/useCommandPalette";
 import { markOnboarded, readOnboarded } from "./onboarding";
+import { clisStore } from "../features/launcher/clisStore";
+import { useUsage } from "../features/costs/useUsage";
+import { useUpdates } from "../hooks/useUpdates";
 import "./App.css";
+
+const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
+
+const DIGIT_TABS: Record<string, TabId> = {
+  "1": "launcher",
+  "2": "tools",
+  "3": "history",
+  "4": "costs",
+  "5": "prereqs",
+  "6": "updates",
+};
 
 export function App() {
   const [active, setActive] = useState<TabId>("launcher");
@@ -26,6 +42,36 @@ export function App() {
   const palette = useCommandPalette();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "?" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setActive("help");
+        return;
+      }
+
+      if ((IS_MAC ? e.metaKey : e.ctrlKey) && e.key === ",") {
+        e.preventDefault();
+        setActive("admin");
+        return;
+      }
+
+      if ((IS_MAC ? e.metaKey : e.ctrlKey) && DIGIT_TABS[e.key]) {
+        e.preventDefault();
+        setActive(DIGIT_TABS[e.key]);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   if (!onboarded) {
     return (
@@ -57,11 +103,13 @@ export function App() {
         {active === "tools" && <ToolsPage />}
         {active === "history" && <HistoryPage />}
         {active === "costs" && <CostsPage />}
+        {active === "updates" && <UpdatesPage />}
+        {active === "prereqs" && <PrereqsPage />}
         {active === "help" && <HelpPage />}
         {active === "admin" && <AdminPage />}
       </main>
       <div className="cd-app__status">
-        <StatusBar online={0} total={0} todaySpend="$0.00" version={pkg.version} />
+        <StatusBarConnector version={pkg.version} />
       </div>
       <CommandPalette
         open={palette.open}
@@ -75,3 +123,42 @@ export function App() {
   );
 }
 
+function StatusBarConnector({ version }: { version: string }) {
+  const snapshot = clisStore.getSnapshot();
+  const { report } = useUsage();
+  const { summary: updates, refresh: refreshUpdates } = useUpdates();
+
+  const online = useMemo(() => {
+    if (!snapshot.checks) return 0;
+    return Object.values(snapshot.checks).filter((c) => c.installed).length;
+  }, [snapshot.checks]);
+
+  const total = snapshot.clis.length;
+
+  const todaySpend = useMemo(() => {
+    if (!report?.entries?.length) return "$0.00";
+    const today = new Date().toISOString().slice(0, 10);
+    const sum = report.entries
+      .filter((e) => e.date === today)
+      .reduce((acc, e) => acc + e.cost_estimate_usd, 0);
+    return `$${sum.toFixed(2)}`;
+  }, [report]);
+
+  const updatesCount = updates?.total_with_updates ?? 0;
+
+  const handleRefresh = useCallback(() => {
+    void clisStore.refresh();
+    void refreshUpdates();
+  }, [refreshUpdates]);
+
+  return (
+    <StatusBar
+      online={online}
+      total={total}
+      todaySpend={todaySpend}
+      version={version}
+      updatesCount={updatesCount}
+      onRefresh={handleRefresh}
+    />
+  );
+}

@@ -5,6 +5,7 @@ import { Banner } from "../../ui/Banner";
 import { Skeleton } from "../../ui/Skeleton";
 import { ToolCard } from "./ToolCard";
 import { useTools, type ToolInfo } from "./useTools";
+import { useUpdates } from "../../hooks/useUpdates";
 import "../page.css";
 import "./ToolsPage.css";
 
@@ -14,6 +15,10 @@ export function ToolsPage() {
   const [installing, setInstalling] = useState<string | null>(null);
   const [launching, setLaunching] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const { summary: updates } = useUpdates();
+
+  const toolHasUpdate = (name: string) =>
+    updates?.tool_updates.some((u) => u.cli === name && u.has_update) ?? false;
 
   const onLaunch = async (tool: ToolInfo) => {
     setLaunching(tool.key);
@@ -86,6 +91,7 @@ export function ToolsPage() {
               check={checks[tool.name]}
               installing={installing === tool.key}
               launching={launching === tool.key}
+              hasUpdate={toolHasUpdate(tool.name)}
               onLaunch={onLaunch}
               onInstall={onInstall}
             />

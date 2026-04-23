@@ -18,6 +18,7 @@ function monthISO(): string {
 }
 
 function formatUsd(n: number): string {
+  if (!Number.isFinite(n)) return "$0.00";
   return `$${n.toFixed(2)}`;
 }
 
@@ -109,7 +110,7 @@ export function CostsPage() {
                       <span className="cd-costs__cli-val">{formatUsd(r.month)}</span>
                     </div>
                     <div className="cd-costs__cli-entries">
-                      {t("costs.entries", { count: r.entries })}
+                      {t("costs.entriesTracked", { count: r.entries })}
                     </div>
                   </Card>
                 ))}

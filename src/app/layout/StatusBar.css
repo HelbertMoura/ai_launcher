@@ -10,6 +10,55 @@
   font-size: var(--text-xs);
   letter-spacing: 1px;
   color: var(--text-dim);
+  user-select: none;
 }
-.cd-status__cell--accent { color: var(--accent); font-weight: 700; }
-.cd-status__cell--muted { margin-left: auto; }
+
+/* branding — very muted */
+.cd-status__cell--brand {
+  color: var(--border-strong);
+  margin-right: auto;
+  font-weight: 600;
+}
+
+.cd-status__cell--accent {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* updates indicator */
+.cd-status__cell--warn {
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* refresh button */
+.cd-status__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--s-1);
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 1px;
+  cursor: pointer;
+  line-height: 1;
+  border-radius: var(--r-sm);
+  transition: color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.cd-status__btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cd-status__btn:active {
+  color: var(--accent);
+}
+
+.cd-status__cell--muted {
+  color: var(--text-dim);
+}

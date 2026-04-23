@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Theme } from "../../hooks/useTheme";
-import { getLocale, setLocale, SUPPORTED_LOCALES, type Locale } from "../../i18n";
+import { getLocale, setLocale, type Locale } from "../../i18n";
 import "./TopBar.css";
 
 const CMD_KEY_LABEL =
