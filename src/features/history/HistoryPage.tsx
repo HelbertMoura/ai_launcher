@@ -74,6 +74,51 @@ export function HistoryPage() {
   const { items, clear, updateItem, removeItem } = useHistory();
   const providersState = useMemo(() => loadProviders(), []);
 
+  const [filterCli, setFilterCli] = useState<string>("all");
+  const [filterProvider, setFilterProvider] = useState<string>("all");
+  const [filterRange, setFilterRange] = useState<"today" | "week" | "month" | "all">("all");
+
+  const distinctClis = useMemo(() => {
+    const set = new Set<string>();
+    for (const it of items) if (it.cliKey) set.add(it.cliKey);
+    return Array.from(set);
+  }, [items]);
+
+  const distinctProviders = useMemo(() => {
+    const set = new Set<string>();
+    for (const it of items) if (it.providerId) set.add(it.providerId);
+    return Array.from(set);
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const now = Date.now();
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const cutoff: Record<string, number> = {
+      today: now - msPerDay,
+      week: now - 7 * msPerDay,
+      month: now - 30 * msPerDay,
+    };
+    return items.filter((it) => {
+      if (filterCli !== "all" && it.cliKey !== filterCli) return false;
+      if (filterProvider !== "all") {
+        if ((it.providerId ?? "") !== filterProvider) return false;
+      }
+      if (filterRange !== "all") {
+        const t = Date.parse(it.timestamp);
+        if (isNaN(t) || t < cutoff[filterRange]) return false;
+      }
+      return true;
+    });
+  }, [items, filterCli, filterProvider, filterRange]);
+
+  const hasActiveFilters =
+    filterCli !== "all" || filterProvider !== "all" || filterRange !== "all";
+  const clearFilters = () => {
+    setFilterCli("all");
+    setFilterProvider("all");
+    setFilterRange("all");
+  };
+
   const onClear = () => {
     if (items.length === 0) return;
     const ok = window.confirm(t("history.clearConfirm"));
@@ -101,18 +146,69 @@ export function HistoryPage() {
       {items.length === 0 ? (
         <div className="cd-page__empty">{t("history.none")}.</div>
       ) : (
-        <ul className="cd-history__list">
-          {items.map((item, idx) => (
-            <HistoryRow
-              key={`${item.timestamp}-${idx}`}
-              item={item}
-              index={idx}
-              providersState={providersState}
-              onUpdate={updateItem}
-              onRemove={removeItem}
-            />
-          ))}
-        </ul>
+        <>
+          <div className="cd-history__filters">
+            <select
+              className="cd-history__filter-select"
+              value={filterCli}
+              onChange={(e) => setFilterCli(e.target.value)}
+            >
+              <option value="all">{t("history.filter.allClis")}</option>
+              {distinctClis.map((k) => (
+                <option key={k} value={k}>{k}</option>
+              ))}
+            </select>
+
+            <select
+              className="cd-history__filter-select"
+              value={filterProvider}
+              onChange={(e) => setFilterProvider(e.target.value)}
+            >
+              <option value="all">{t("history.filter.allProviders")}</option>
+              {distinctProviders.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+
+            <select
+              className="cd-history__filter-select"
+              value={filterRange}
+              onChange={(e) => setFilterRange(e.target.value as typeof filterRange)}
+            >
+              <option value="all">{t("history.filter.all")}</option>
+              <option value="today">{t("history.filter.today")}</option>
+              <option value="week">{t("history.filter.week")}</option>
+              <option value="month">{t("history.filter.month")}</option>
+            </select>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="cd-history__filter-clear"
+                onClick={clearFilters}
+              >
+                {t("history.filter.clear")}
+              </button>
+            )}
+
+            <span className="cd-history__filter-count">
+              {t("history.filter.countLabel", { count: filtered.length, total: items.length })}
+            </span>
+          </div>
+
+          <ul className="cd-history__list">
+            {filtered.map((item, idx) => (
+              <HistoryRow
+                key={`${item.timestamp}-${idx}`}
+                item={item}
+                index={items.indexOf(item)}
+                providersState={providersState}
+                onUpdate={updateItem}
+                onRemove={removeItem}
+              />
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );

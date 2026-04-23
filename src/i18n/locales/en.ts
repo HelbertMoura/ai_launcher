@@ -152,6 +152,16 @@ export const en: Dictionary = {
     addDescription: "Add note...",
     descriptionPlaceholder: "Session description...",
     providerGone: "Provider \"{{id}}\" was removed. Launch with default provider?",
+    filter: {
+      allClis: "All CLIs",
+      allProviders: "All providers",
+      all: "All time",
+      today: "Today",
+      week: "Last 7 days",
+      month: "Last 30 days",
+      clear: "Clear",
+      countLabel: "{{count}} of {{total}}",
+    },
   },
   costs: {
     title: "COSTS",
