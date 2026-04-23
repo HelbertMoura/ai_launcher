@@ -227,6 +227,12 @@ export const ptBR = {
       label: "Iniciar com o Windows",
       hint: "Abre minimizado na bandeja",
     },
+    hotkey: {
+      label: "Atalho global",
+      hint: "Foca a janela de qualquer lugar. Ex: CmdOrCtrl+Alt+L",
+      save: "Salvar",
+      invalid: "Atalho inválido",
+    },
   },
   prereqs: {
     title: "PRÉ-REQUISITOS",

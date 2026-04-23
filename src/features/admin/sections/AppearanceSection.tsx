@@ -12,6 +12,7 @@ import {
 } from "../../../lib/appearance";
 import { setLocale, SUPPORTED_LOCALES, type Locale } from "../../../i18n";
 import { AutoStartToggle } from "./AutoStartToggle";
+import { HotkeyField } from "./HotkeyField";
 
 const THEMES: Theme[] = ["dark", "light"];
 
@@ -141,6 +142,10 @@ export function AppearanceSection() {
             <AutoStartToggle />
           </div>
         </div>
+      </Card>
+
+      <Card>
+        <HotkeyField />
       </Card>
     </div>
   );
