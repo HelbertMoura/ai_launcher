@@ -223,6 +223,10 @@ export const ptBR = {
       languageEn: "English",
       recommended: "recomendada",
     },
+    autostart: {
+      label: "Iniciar com o Windows",
+      hint: "Abre minimizado na bandeja",
+    },
   },
   prereqs: {
     title: "PRÉ-REQUISITOS",

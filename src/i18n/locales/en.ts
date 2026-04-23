@@ -224,6 +224,10 @@ export const en: Dictionary = {
       languageEn: "English",
       recommended: "recommended",
     },
+    autostart: {
+      label: "Launch at Windows startup",
+      hint: "Starts minimized to tray",
+    },
   },
   prereqs: {
     title: "PREREQUISITES",
