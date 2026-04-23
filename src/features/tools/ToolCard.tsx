@@ -10,6 +10,7 @@ interface ToolCardProps {
   check?: CheckResult;
   installing?: boolean;
   launching?: boolean;
+  hasUpdate?: boolean;
   onLaunch: (tool: ToolInfo) => void;
   onInstall: (tool: ToolInfo) => void;
 }
@@ -19,6 +20,7 @@ export function ToolCard({
   check,
   installing = false,
   launching = false,
+  hasUpdate = false,
   onLaunch,
   onInstall,
 }: ToolCardProps) {
@@ -42,6 +44,7 @@ export function ToolCard({
         <Chip variant={installed ? "online" : "missing"} dot>
           {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
+        {hasUpdate && <span className="cd-tool-card__update" title="Update available">⬆</span>}
       </div>
       <div className="cd-tool-card__actions">
         {installed ? (

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
-import { useHistory, type HistoryItem } from "./useHistory";
+import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
 import "../page.css";
 import "./HistoryPage.css";
 
@@ -29,9 +31,28 @@ function useRelativeTime() {
   };
 }
 
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return `${m}m ${s}s`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
+function StatusBadge({ status }: { status?: SessionStatus }) {
+  if (!status || status === "running") {
+    return <span className="cd-history__status cd-history__status--running" title="Running">●</span>;
+  }
+  if (status === "finished") {
+    return <span className="cd-history__status cd-history__status--finished" title="Finished">✓</span>;
+  }
+  return <span className="cd-history__status cd-history__status--error" title="Error">✗</span>;
+}
+
 export function HistoryPage() {
   const { t } = useTranslation();
-  const { items, clear } = useHistory();
+  const { items, clear, updateItem, removeItem } = useHistory();
 
   const onClear = () => {
     if (items.length === 0) return;
@@ -62,7 +83,13 @@ export function HistoryPage() {
       ) : (
         <ul className="cd-history__list">
           {items.map((item, idx) => (
-            <HistoryRow key={`${item.timestamp}-${idx}`} item={item} />
+            <HistoryRow
+              key={`${item.timestamp}-${idx}`}
+              item={item}
+              index={idx}
+              onUpdate={updateItem}
+              onRemove={removeItem}
+            />
           ))}
         </ul>
       )}
@@ -70,24 +97,106 @@ export function HistoryPage() {
   );
 }
 
-function HistoryRow({ item }: { item: HistoryItem }) {
+function HistoryRow({
+  item,
+  index,
+  onUpdate,
+  onRemove,
+}: {
+  item: HistoryItem;
+  index: number;
+  onUpdate: (index: number, patch: Partial<HistoryItem>) => void;
+  onRemove: (index: number) => void;
+}) {
+  const { t } = useTranslation();
   const relativeTime = useRelativeTime();
+  const [descEditing, setDescEditing] = useState(false);
+  const [descValue, setDescValue] = useState(item.description ?? "");
+  const [relaunching, setRelaunching] = useState(false);
+
+  const saveDescription = () => {
+    onUpdate(index, { description: descValue });
+    setDescEditing(false);
+  };
+
+  const handleReopen = async () => {
+    setRelaunching(true);
+    try {
+      await invoke<string>("launch_cli", {
+        cliKey: item.cliKey,
+        directory: item.directory,
+        args: item.args,
+        noPerms: true,
+        envVars: null,
+      });
+      onUpdate(index, { status: "running", duration: undefined });
+    } catch {
+      onUpdate(index, { status: "error" });
+    } finally {
+      setRelaunching(false);
+    }
+  };
+
   return (
     <li className="cd-history__item">
       <Card>
         <div className="cd-history__row">
           <div className="cd-history__main">
-            <div className="cd-history__cli">{item.cli}</div>
+            <div className="cd-history__cli-row">
+              <StatusBadge status={item.status} />
+              <span className="cd-history__cli">{item.cli}</span>
+              {item.duration != null && (
+                <span className="cd-history__duration">
+                  {formatDuration(item.duration)}
+                </span>
+              )}
+            </div>
             <div className="cd-history__dir" title={item.directory}>
               {truncateDir(item.directory)}
             </div>
             {item.args.trim() && (
               <code className="cd-history__args">{item.args}</code>
             )}
+            {descEditing ? (
+              <div className="cd-history__desc-edit">
+                <input
+                  className="cd-history__desc-input"
+                  value={descValue}
+                  placeholder={t("history.descriptionPlaceholder")}
+                  onChange={(e) => setDescValue(e.target.value)}
+                  onBlur={saveDescription}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveDescription();
+                    if (e.key === "Escape") setDescEditing(false);
+                  }}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <div
+                className={`cd-history__desc ${item.description ? "" : "cd-history__desc--empty"}`}
+                onClick={() => {
+                  setDescValue(item.description ?? "");
+                  setDescEditing(true);
+                }}
+              >
+                {item.description || t("history.addDescription")}
+              </div>
+            )}
           </div>
-          <time className="cd-history__time" dateTime={item.timestamp}>
-            {relativeTime(item.timestamp)}
-          </time>
+          <div className="cd-history__side">
+            <time className="cd-history__time" dateTime={item.timestamp}>
+              {relativeTime(item.timestamp)}
+            </time>
+            <div className="cd-history__actions">
+              <Button size="sm" loading={relaunching} onClick={handleReopen}>
+                {t("history.reopen")}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => onRemove(index)}>
+                ×
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
     </li>

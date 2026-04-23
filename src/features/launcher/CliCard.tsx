@@ -9,11 +9,12 @@ interface CliCardProps {
   cli: CliInfo;
   check?: CheckResult;
   installing?: boolean;
+  hasUpdate?: boolean;
   onLaunch: (cli: CliInfo) => void;
   onInstall: (cli: CliInfo) => void;
 }
 
-export function CliCard({ cli, check, installing = false, onLaunch, onInstall }: CliCardProps) {
+export function CliCard({ cli, check, installing = false, hasUpdate = false, onLaunch, onInstall }: CliCardProps) {
   const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
@@ -34,6 +35,7 @@ export function CliCard({ cli, check, installing = false, onLaunch, onInstall }:
         <Chip variant={installed ? "online" : "missing"} dot>
           {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
+        {hasUpdate && <span className="cd-cli-card__update" title="Update available">⬆</span>}
       </div>
       <div className="cd-cli-card__actions">
         {installed ? (

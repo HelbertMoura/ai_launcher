@@ -36,12 +36,40 @@
   gap: var(--s-4);
   min-height: 220px;
 }
+.cd-onb__brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
 .cd-onb__title {
   margin: 0;
   font-family: var(--font-mono);
   font-size: var(--text-2xl, 28px);
   letter-spacing: 2px;
   color: var(--text);
+}
+.cd-onb__badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+.cd-onb__byline {
+  text-align: center;
+}
+.cd-onb__byline-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.cd-onb__byline-text strong {
+  color: var(--accent);
 }
 .cd-onb__lede {
   margin: 0;
@@ -100,6 +128,76 @@
 .cd-onb__swatch--violet {
   background: oklch(62% 0.22 290);
 }
+
+/* ---- Terminal in onboarding ---- */
+
+.cd-onb__terminal {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 520px;
+}
+.cd-onb__term-accent {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ---- Show on startup toggle ---- */
+
+.cd-onb__toggle-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--border);
+}
+.cd-onb__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  cursor: pointer;
+  user-select: none;
+}
+.cd-onb__toggle input {
+  display: none;
+}
+.cd-onb__toggle-slider {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: var(--border-strong);
+  position: relative;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+.cd-onb__toggle-slider::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text);
+  top: 2px;
+  left: 2px;
+  transition: transform 200ms ease;
+}
+.cd-onb__toggle input:checked + .cd-onb__toggle-slider {
+  background: var(--accent);
+}
+.cd-onb__toggle input:checked + .cd-onb__toggle-slider::after {
+  transform: translateX(16px);
+}
+.cd-onb__toggle-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.cd-onb__toggle-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  padding-left: calc(36px + var(--s-2));
+}
+
 .cd-onb__scan {
   display: flex;
   flex-direction: column;

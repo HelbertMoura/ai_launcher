@@ -1,12 +1,85 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#8B1E2A;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#6E1820;stop-opacity:1" />
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
     </linearGradient>
+    <linearGradient id="rocket" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#e0e0e0"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ff6b35"/>
+      <stop offset="50%" stop-color="#ff4500"/>
+      <stop offset="100%" stop-color="#ff8c00" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="term-bar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2d2d44"/>
+      <stop offset="100%" stop-color="#3d3d5c"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
-  <rect width="256" height="256" rx="48" fill="url(#grad1)"/>
-  <polygon points="128,48 208,88 208,168 128,208 48,168 48,88" fill="none" stroke="#E8E8E8" stroke-width="8"/>
-  <text x="128" y="145" font-family="Arial Black, sans-serif" font-size="72" font-weight="900" fill="#E8E8E8" text-anchor="middle">AI</text>
-  <circle cx="128" cy="190" r="8" fill="#E8E8E8"/>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+
+  <!-- Terminal window -->
+  <rect x="36" y="80" width="184" height="136" rx="14" fill="#16213e" stroke="#2a2a4a" stroke-width="1.5"/>
+
+  <!-- Terminal title bar -->
+  <rect x="36" y="80" width="184" height="28" rx="14" fill="url(#term-bar)"/>
+  <rect x="36" y="94" width="184" height="14" fill="url(#term-bar)"/>
+
+  <!-- Traffic lights -->
+  <circle cx="58" cy="94" r="5" fill="#ff5f57"/>
+  <circle cx="74" cy="94" r="5" fill="#febc2e"/>
+  <circle cx="90" cy="94" r="5" fill="#28c840"/>
+
+  <!-- Terminal prompt lines -->
+  <text x="52" y="132" font-family="monospace" font-size="14" fill="#6bff6b" filter="url(#glow)">$</text>
+  <text x="68" y="132" font-family="monospace" font-size="13" fill="#c0c0d0">ai-launcher</text>
+
+  <text x="52" y="152" font-family="monospace" font-size="12" fill="#7070a0">▸ Detectando CLIs...</text>
+  <text x="52" y="170" font-family="monospace" font-size="12" fill="#28c840">✓ Claude Code</text>
+  <text x="52" y="188" font-family="monospace" font-size="12" fill="#28c840">✓ Gemini CLI</text>
+  <text x="52" y="206" font-family="monospace" font-size="12" fill="#7070a0">▸ ...</text>
+
+  <!-- Rocket body -->
+  <g transform="translate(185, 20)">
+    <!-- Rocket nose cone -->
+    <path d="M10,0 C10,0 20,18 20,30 L0,30 C0,18 10,0 10,0Z" fill="url(#rocket)"/>
+
+    <!-- Rocket body -->
+    <rect x="2" y="28" width="16" height="30" rx="2" fill="url(#rocket)"/>
+
+    <!-- AI window on rocket -->
+    <rect x="5" y="33" width="10" height="10" rx="2" fill="#1a1a2e"/>
+    <text x="10" y="41.5" font-family="monospace" font-size="7" fill="#6bff6b" text-anchor="middle" font-weight="bold">AI</text>
+
+    <!-- Fins -->
+    <path d="M2,48 L-6,60 L2,58Z" fill="#ff6b35"/>
+    <path d="M18,48 L26,60 L18,58Z" fill="#ff6b35"/>
+
+    <!-- Flame -->
+    <g filter="url(#soft-glow)">
+      <path d="M5,58 Q10,78 15,58" fill="url(#flame)" opacity="0.9"/>
+      <path d="M7,58 Q10,72 13,58" fill="#ffcc00" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- Accent glow at bottom -->
+  <ellipse cx="128" cy="240" rx="80" ry="12" fill="#6bff6b" opacity="0.08"/>
 </svg>

@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import { Banner } from "../../../ui/Banner";
 import { Button } from "../../../ui/Button";
 import { Dialog } from "../../../ui/Dialog";
@@ -7,6 +9,18 @@ import type {
   ProviderKind,
   ProviderProfile,
 } from "../../../providers/types";
+
+interface TestResult {
+  ok: boolean;
+  latencyMs?: number;
+  message?: string;
+}
+
+type TestState =
+  | { status: "idle" }
+  | { status: "testing" }
+  | { status: "ok"; ms: number }
+  | { status: "err"; message: string };
 
 interface ProviderEditorProps {
   open: boolean;
@@ -54,14 +68,17 @@ export function ProviderEditor({
   onClose,
   onSave,
 }: ProviderEditorProps) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<ProviderProfile>(emptyProfile);
   const [error, setError] = useState<string | null>(null);
+  const [testState, setTestState] = useState<TestState>({ status: "idle" });
   const isEdit = profile !== null;
 
   useEffect(() => {
     if (open) {
       setDraft(profile ? { ...profile } : emptyProfile());
       setError(null);
+      setTestState({ status: "idle" });
     }
   }, [open, profile]);
 
@@ -103,6 +120,25 @@ export function ProviderEditor({
       dailyBudget: draft.dailyBudget ?? undefined,
       note: draft.note?.trim() || undefined,
     });
+  };
+
+  const handleTest = async () => {
+    setTestState({ status: "testing" });
+    try {
+      const result = await invoke<TestResult>("test_provider_connection", {
+        baseUrl: draft.baseUrl.trim(),
+        apiKey: draft.apiKey,
+        model: draft.mainModel.trim(),
+      });
+      if (result.ok) {
+        setTestState({ status: "ok", ms: result.latencyMs ?? 0 });
+      } else {
+        setTestState({ status: "err", message: result.message ?? "Unknown error" });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setTestState({ status: "err", message: msg });
+    }
   };
 
   return (
@@ -175,6 +211,30 @@ export function ProviderEditor({
           onChange={(e) => update("mainModel", e.target.value)}
           placeholder="claude-sonnet-4-5"
         />
+      </div>
+
+      <div className="cd-admin-field__row" style={{ gap: "var(--s-2)", alignItems: "center" }}>
+        <Button
+          size="sm"
+          variant="ghost"
+          loading={testState.status === "testing"}
+          disabled={!draft.baseUrl.trim() || !draft.apiKey || !draft.mainModel.trim()}
+          onClick={handleTest}
+        >
+          {testState.status === "testing"
+            ? t("admin.providers.testing")
+            : t("admin.providers.testConnection")}
+        </Button>
+        {testState.status === "ok" && (
+          <span className="cd-admin-card__test cd-admin-card__test--ok">
+            ✓ {t("admin.providers.connected", { ms: testState.ms })}
+          </span>
+        )}
+        {testState.status === "err" && (
+          <span className="cd-admin-card__test cd-admin-card__test--err">
+            ✗ {t("admin.providers.failed", { error: testState.message })}
+          </span>
+        )}
       </div>
 
       <div className="cd-admin-field">

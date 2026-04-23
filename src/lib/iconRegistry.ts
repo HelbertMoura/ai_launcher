@@ -1,4 +1,6 @@
-export type BuiltinIconKind = 'cli' | 'tool';
+import { getCliIcon, getToolIcon, hasCliIcon, hasToolIcon } from "../icons/registry";
+
+export type BuiltinIconKind = "cli" | "tool";
 
 export interface BuiltinIconDefinition {
   key: string;
@@ -6,21 +8,16 @@ export interface BuiltinIconDefinition {
   assetPath: string;
 }
 
+const CLI_KEYS = ["claude", "codex", "gemini", "qwen", "kilocode", "opencode", "crush", "droid"];
+const TOOL_KEYS = ["vscode", "cursor", "windsurf", "antgravity", "jetbrains-ai"];
+
 const BUILTIN_ICONS: readonly BuiltinIconDefinition[] = [
-  { key: 'claude', kind: 'cli', assetPath: '/icons/cli/claude.svg' },
-  { key: 'codex', kind: 'cli', assetPath: '/icons/cli/codex.svg' },
-  { key: 'gemini', kind: 'cli', assetPath: '/icons/cli/gemini.svg' },
-  { key: 'qwen', kind: 'cli', assetPath: '/icons/cli/qwen.svg' },
-  { key: 'kilocode', kind: 'cli', assetPath: '/icons/cli/kilo.svg' },
-  { key: 'opencode', kind: 'cli', assetPath: '/icons/cli/opencode.svg' },
-  { key: 'crush', kind: 'cli', assetPath: '/icons/cli/crush.svg' },
-  { key: 'droid', kind: 'cli', assetPath: '/icons/cli/droid.svg' },
-  { key: 'cursor', kind: 'tool', assetPath: '/icons/tool/cursor.svg' },
-  { key: 'vscode', kind: 'tool', assetPath: '/icons/tool/vscode.svg' },
-  { key: 'windsurf', kind: 'tool', assetPath: '/icons/tool/windsurf.svg' },
-  { key: 'antgravity', kind: 'tool', assetPath: '/icons/tool/antgravity.svg' },
-] as const;
+  ...CLI_KEYS.map((key) => ({ key, kind: "cli" as const, assetPath: getCliIcon(key) })),
+  ...TOOL_KEYS.map((key) => ({ key, kind: "tool" as const, assetPath: getToolIcon(key) })),
+];
 
 export function getBuiltinIconAsset(kind: BuiltinIconKind, key: string): string | null {
   return BUILTIN_ICONS.find((item) => item.kind === kind && item.key === key)?.assetPath ?? null;
 }
+
+export { getCliIcon, getToolIcon, hasCliIcon, hasToolIcon };

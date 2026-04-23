@@ -5,6 +5,57 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.5.0] — 2026-04-23 — Feature Release
+
+### Added
+- **Updates tab** — Dedicated surface for CLI, tool and prerequisite updates with Update All button, per-item update/install, and manual refresh. `Ctrl+5` shortcut.
+- **Install from cards** — Install missing CLIs and tools directly from Launch and Tools tabs via inline button.
+- **History improvements** — Reopen sessions (re-launches with same args), add inline descriptions, status badges (running/finished/error with pulse animation), duration tracking, remember last directory per CLI (`ai-launcher:last-dir`).
+- **Test API button** — Test provider connections directly from Admin with latency display and success/error indicators.
+- **Official brand icons** — Real vendor logos from LobeHub Icons (claude, codex, gemini, qwen, opencode, cursor, windsurf, antgravity) and devicons (vscode, jetbrains). All visible in both dark and light themes.
+- **Welcome screen reformulation** — DevManiacs branding with animated terminal, guided tour, "always show on startup" toggle saved in localStorage.
+- **New app icon** — Rocket + terminal design for installer, taskbar and desktop shortcut.
+- **NSIS language selector** — Installer now offers pt-BR / English selection on setup.
+- **i18n keys** — Full `updates` section, `admin.providers.test*`, and `onboarding.step2ShowOnStartup` keys in both EN and pt-BR locales.
+
+### Changed
+- **Icon registry** — `src/icons/registry.ts` now serves PNG for LobeHub-sourced icons and SVG for devicons/custom, ensuring correct light/dark visibility. `lib/iconRegistry.ts` delegates to it.
+- **README.md / README.pt-BR.md** — Redesigned with realistic terminal ASCII art showing live Command Deck output.
+- **Version bumped** to 12.5.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+
+### Fixed
+- **Icons invisible in dark/light mode** — Replaced all `fill="currentColor"` SVGs with fixed-color versions; removed dark-mode-only PNGs.
+- **CLI overrides icons broken** — `iconRegistry.ts` had stale paths (`.svg` instead of `.png` for LobeHub icons, `kilo.svg` instead of `kilocode.svg`). Now delegates to `icons/registry.ts`.
+- **Accent color selector bugged** — TopBar swatches used `var(--accent)` making all colors change together. Fixed with static oklch colors per swatch.
+- **Costs page `formatUsd` NaN** — Added `Number.isFinite` guard before formatting.
+- **Costs page i18n key** — `costs.entries` replaced with `costs.entriesTracked` (key that actually exists).
+- **Costs page text overflow** — Added `overflow: hidden; text-overflow: ellipsis` on CLI names and hero amount.
+- **Welcome screen version hardcoded** — Now reads from `package.json` dynamically.
+- **LaunchDialog directory** — Now remembers last used directory per CLI across sessions.
+
+## [12.0.0] — 2026-04-23 — Evolution Release
+
+### Added
+- **Keyboard shortcuts** — `Ctrl+1-5` for tab navigation, `Ctrl+,` for Admin, `?` for Help. Global `keydown` listener in App.tsx with input/textarea guard.
+- **Prerequisites page** — Dedicated tab checking 13 tools: Node.js, npm, Python, pip, Git, Rust, Cargo, pnpm, yarn, Bun, Windows Terminal, PowerShell 7+, Git LFS, Docker, VS Code, Tauri CLI. Grid layout with install hints for missing tools.
+- **Update detection** — `useUpdates` hook with automatic background check + manual refresh. 1-hour sessionStorage cache. Checks CLI, tool and environment updates via `check_all_updates` Tauri command.
+- **Update badges** — ⬆ indicator on CliCard and ToolCard when newer versions are available.
+- **Rich StatusBar** — Real data from stores (online/total, today's spend), live clock, DevManiac's branding, updates count with warn color, refresh button.
+- **Terminal animation** — Improved animated terminal on Help page showing realistic AI Launcher session (scan → launch → costs).
+
+### Fixed
+- **StatusBar disconnected** — `online={0} total={0}` hardcoded in App.tsx. Now reads from `clisStore` and `useUsage`.
+- **pt-BR translation** — `nav.launcher` was "Launch" (English). Changed to "Lançar".
+- **TopBar accent tokens** — Accent color buttons used hardcoded hex values instead of CSS variables.
+- **Unused imports** — Removed `SUPPORTED_LOCALES` from TopBar.tsx, `TAB_ORDER` from App.tsx.
+
+### Changed
+- **TabId** — Added `prereqs` tab with `Ctrl+5` shortcut.
+- **Sidebar** — Added Prereqs tab in workspace group.
+- **i18n** — Added `prereqs` and `statusBar` sections to both locales.
+- **README** — Complete redesign with centered header, badges, feature table, surfaces guide, tech stack table. Both EN and pt-BR.
+- **Version bumped** to 12.0.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+
 ## [11.0.0] — 2026-04-22 — Localization & Polish
 
 ### Added

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { Chip } from "../../../ui/Chip";
@@ -15,10 +17,24 @@ import type {
 } from "../../../providers/types";
 import { ProviderEditor } from "../editors/ProviderEditor";
 
+interface TestResult {
+  ok: boolean;
+  latencyMs?: number;
+  message?: string;
+}
+
+type TestState =
+  | { status: "idle" }
+  | { status: "testing" }
+  | { status: "ok"; ms: number }
+  | { status: "err"; message: string };
+
 export function ProvidersSection() {
+  const { t } = useTranslation();
   const [state, setState] = useState<ProvidersState>(() => loadProviders());
   const [editing, setEditing] = useState<ProviderProfile | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [testStates, setTestStates] = useState<Record<string, TestState>>({});
 
   const existingIds = useMemo(
     () => state.profiles.map((p) => p.id),
@@ -60,6 +76,34 @@ export function ProvidersSection() {
     setState(next);
   };
 
+  const handleTest = async (profile: ProviderProfile) => {
+    setTestStates((prev) => ({ ...prev, [profile.id]: { status: "testing" } }));
+    try {
+      const result = await invoke<TestResult>("test_provider_connection", {
+        baseUrl: profile.baseUrl,
+        apiKey: profile.apiKey,
+        model: profile.mainModel,
+      });
+      if (result.ok) {
+        setTestStates((prev) => ({
+          ...prev,
+          [profile.id]: { status: "ok", ms: result.latencyMs ?? 0 },
+        }));
+      } else {
+        setTestStates((prev) => ({
+          ...prev,
+          [profile.id]: { status: "err", message: result.message ?? "Unknown error" },
+        }));
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setTestStates((prev) => ({
+        ...prev,
+        [profile.id]: { status: "err", message: msg },
+      }));
+    }
+  };
+
   return (
     <div>
       <div className="cd-admin-section__head">
@@ -82,6 +126,7 @@ export function ProvidersSection() {
         <div className="cd-page__grid">
           {state.profiles.map((p) => {
             const isActive = p.id === state.activeId;
+            const ts = testStates[p.id] ?? { status: "idle" };
             return (
               <Card key={p.id} active={isActive}>
                 <div className="cd-admin-card">
@@ -101,7 +146,27 @@ export function ProvidersSection() {
                       fast: {p.fastModel}
                     </div>
                   )}
+                  {ts.status === "ok" && (
+                    <div className="cd-admin-card__test cd-admin-card__test--ok">
+                      ✓ {t("admin.providers.connected", { ms: ts.ms })}
+                    </div>
+                  )}
+                  {ts.status === "err" && (
+                    <div className="cd-admin-card__test cd-admin-card__test--err">
+                      ✗ {t("admin.providers.failed", { error: ts.message })}
+                    </div>
+                  )}
                   <div className="cd-admin-card__actions">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      loading={ts.status === "testing"}
+                      onClick={() => handleTest(p)}
+                    >
+                      {ts.status === "testing"
+                        ? t("admin.providers.testing")
+                        : t("admin.providers.testConnection")}
+                    </Button>
                     {!isActive && (
                       <Button size="sm" onClick={() => handleActivate(p.id)}>
                         Activate

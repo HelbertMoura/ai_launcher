@@ -3,16 +3,20 @@ export type TabId =
   | "tools"
   | "history"
   | "costs"
+  | "updates"
+  | "prereqs"
   | "admin"
   | "help";
 
-export const TAB_ORDER: TabId[] = ["launcher", "tools", "history", "costs", "admin", "help"];
+export const TAB_ORDER: TabId[] = ["launcher", "tools", "history", "costs", "updates", "prereqs", "admin", "help"];
 
 export const TAB_LABELS: Record<TabId, string> = {
   launcher: "Launch",
   tools: "Tools",
   history: "History",
   costs: "Costs",
+  updates: "Updates",
+  prereqs: "Prereqs",
   admin: "Admin",
   help: "Help",
 };
@@ -23,6 +27,8 @@ export const TAB_I18N_KEYS: Record<TabId, string> = {
   tools: "nav.tools",
   history: "nav.history",
   costs: "nav.costs",
+  updates: "nav.updates",
+  prereqs: "nav.prereqs",
   admin: "nav.admin",
   help: "nav.help",
 };
@@ -36,6 +42,8 @@ export const TAB_KEYS: Record<TabId, string> = {
   tools: `${MOD}+2`,
   history: `${MOD}+3`,
   costs: `${MOD}+4`,
+  updates: `${MOD}+6`,
+  prereqs: `${MOD}+5`,
   admin: `${MOD}+,`,
   help: "?",
 };
