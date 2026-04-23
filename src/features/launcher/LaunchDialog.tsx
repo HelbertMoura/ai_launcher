@@ -22,6 +22,7 @@ interface LaunchDialogProps {
 }
 
 const CLAUDE_KEY = "claude";
+const CLIS_WITH_PROMPT_FLAG = new Set(["claude", "codex", "gemini"]);
 
 interface LaunchState {
   directory: string;
@@ -33,6 +34,7 @@ interface LaunchState {
   error: string | null;
   recentDirs: string[];
   showRecent: boolean;
+  clipboardPrompt: boolean;
 }
 
 type LaunchAction =
@@ -50,7 +52,8 @@ type LaunchAction =
   | { type: "setShowRecent"; value: boolean }
   | { type: "startLaunch" }
   | { type: "launchFailed"; error: string }
-  | { type: "setError"; error: string | null };
+  | { type: "setError"; error: string | null }
+  | { type: "setClipboardPrompt"; value: boolean };
 
 function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
   switch (action.type) {
@@ -66,6 +69,7 @@ function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
         providersState: action.providersState,
         providerId: action.providerId,
         recentDirs: action.recentDirs,
+        clipboardPrompt: false,
       };
     case "setDirectory":
       return { ...state, directory: action.value };
@@ -83,6 +87,8 @@ function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
       return { ...state, launching: false, error: action.error };
     case "setError":
       return { ...state, error: action.error };
+    case "setClipboardPrompt":
+      return { ...state, clipboardPrompt: action.value };
   }
 }
 
@@ -96,6 +102,7 @@ const INITIAL_LAUNCH_STATE: LaunchState = {
   error: null,
   recentDirs: [],
   showRecent: false,
+  clipboardPrompt: false,
 };
 
 export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
@@ -111,9 +118,11 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     error,
     recentDirs,
     showRecent,
+    clipboardPrompt,
   } = state;
 
   const isClaude = cli?.key === CLAUDE_KEY;
+  const supportsPrompt = cli ? CLIS_WITH_PROMPT_FLAG.has(cli.key) : false;
 
   useEffect(() => {
     if (!cli) return;
@@ -163,10 +172,26 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         const stateWithSelected = setActive(providersState, providerId);
         envVars = buildLaunchEnv(stateWithSelected);
       }
+      let finalArgs = args;
+      if (clipboardPrompt && supportsPrompt) {
+        try {
+          const text = await navigator.clipboard.readText();
+          const trimmed = text.trim();
+          if (trimmed) {
+            // JSON.stringify escapes quotes and newlines safely
+            const escaped = JSON.stringify(trimmed);
+            finalArgs = finalArgs ? `${finalArgs} -p ${escaped}` : `-p ${escaped}`;
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("[clipboard] read failed", err);
+          // Continue launch without the prompt
+        }
+      }
       await invoke<string>("launch_cli", {
         cliKey: cli.key,
         directory,
-        args,
+        args: finalArgs,
         noPerms,
         envVars: envVars ?? null,
       });
@@ -327,6 +352,25 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           }
         />
       </div>
+
+      {supportsPrompt && (
+        <div className="cd-launch-dialog__field cd-launch-dialog__field--toggle">
+          <Toggle
+            checked={clipboardPrompt}
+            onChange={(value) => dispatch({ type: "setClipboardPrompt", value })}
+            label={
+              <span>
+                <span className="cd-launch-dialog__toggle-main">
+                  {t("launchDialog.clipboardPromptLabel")}
+                </span>
+                <span className="cd-launch-dialog__hint">
+                  {t("launchDialog.clipboardPromptHint")}
+                </span>
+              </span>
+            }
+          />
+        </div>
+      )}
 
       {isClaude && providersState && (
         <div className="cd-launch-dialog__field">
