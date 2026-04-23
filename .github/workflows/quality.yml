@@ -42,22 +42,30 @@ jobs:
   cargo:
     name: Rust (clippy + test + fmt)
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: src-tauri
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+      - name: Install frontend deps
+        run: npm ci --legacy-peer-deps
+      - name: Build frontend (required by tauri::generate_context!)
+        run: npm run build
       - name: Format check
+        working-directory: src-tauri
         run: cargo fmt --check
       - name: Clippy (deny warnings)
+        working-directory: src-tauri
         run: cargo clippy --no-deps -- -D warnings
       - name: Unit tests
+        working-directory: src-tauri
         run: cargo test
 
   cargo-audit:
