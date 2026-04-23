@@ -83,3 +83,8 @@ coverage/
 
 # Tooling caches
 .playwright-mcp/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
