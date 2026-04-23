@@ -81,7 +81,7 @@
 .cd-launch-dialog__select {
   width: 100%;
   padding: 8px 10px;
-  background: var(--surface);
+  background: var(--surface-1);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
@@ -99,6 +99,11 @@
 .cd-launch-dialog__select:focus {
   outline: none;
   border-color: var(--accent);
+}
+.cd-launch-dialog__select option {
+  background: var(--surface-1);
+  color: var(--text);
+  padding: 6px 10px;
 }
 .cd-tool-card__icon--placeholder,
 .cd-cli-card__icon--placeholder {
