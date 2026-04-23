@@ -150,6 +150,16 @@ export const ptBR = {
     addDescription: "Adicionar nota...",
     descriptionPlaceholder: "Descrição da sessão...",
     providerGone: "Provider \"{{id}}\" foi removido. Lançar com o provider padrão?",
+    filter: {
+      allClis: "Todos os CLIs",
+      allProviders: "Todos os provedores",
+      all: "Todo o período",
+      today: "Hoje",
+      week: "Últimos 7 dias",
+      month: "Últimos 30 dias",
+      clear: "Limpar",
+      countLabel: "{{count}} de {{total}}",
+    },
   },
   costs: {
     title: "CUSTOS",
