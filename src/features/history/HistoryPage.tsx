@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
+import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import "../page.css";
 import "./HistoryPage.css";
 
@@ -122,12 +123,19 @@ function HistoryRow({
   const handleReopen = async () => {
     setRelaunching(true);
     try {
+      let envVars: Record<string, string> | null = null;
+      if (item.cliKey === "claude" && item.providerId) {
+        const state = loadProviders();
+        const stateWithProvider = setActive(state, item.providerId);
+        const built = buildLaunchEnv(stateWithProvider);
+        envVars = built ?? null;
+      }
       await invoke<string>("launch_cli", {
         cliKey: item.cliKey,
         directory: item.directory,
         args: item.args,
         noPerms: true,
-        envVars: null,
+        envVars,
       });
       onUpdate(index, { status: "running", duration: undefined });
     } catch {

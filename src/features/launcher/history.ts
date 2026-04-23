@@ -4,6 +4,7 @@ export interface HistoryItem {
   directory: string;
   args: string;
   timestamp: string;
+  providerId?: string;
 }
 
 const CONFIG_KEY = "ai-launcher-config";

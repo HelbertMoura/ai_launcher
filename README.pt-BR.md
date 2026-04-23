@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 12.5.0](https://img.shields.io/badge/vers%C3%A3o-12.5.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 13.0.0](https://img.shields.io/badge/vers%C3%A3o-13.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -33,6 +33,28 @@
 | 🌐 | **i18n** | Inglês e Português (Brasil) com alternância instantânea |
 | ⌨️ | **Keyboard-First** | Paleta `Ctrl+K`, navegação `Ctrl+1-6`, admin `Ctrl+,`, ajuda `?` |
 | 🔒 | **Privacidade Primeiro** | Tudo fica local — sem telemetria, sem sync na nuvem |
+
+## Screenshots
+
+<div align="center">
+
+| Launcher CLIs | Ferramentas | Diálogo de Launch |
+|:---:|:---:|:---:|
+| ![Launcher CLIs](./docs/screenshots/01-launcher-cli.png) | ![Ferramentas](./docs/screenshots/02-launcher-tools.png) | ![Diálogo](./docs/screenshots/03-launch-dialog.png) |
+
+| Histórico | Providers | Configurações |
+|:---:|:---:|:---:|
+| ![Histórico](./docs/screenshots/04-history.png) | ![Providers](./docs/screenshots/05-providers.png) | ![Config](./docs/screenshots/06-settings.png) |
+
+| Onboarding | Atualizações | Editar Provider |
+|:---:|:---:|:---:|
+| ![Onboarding](./docs/screenshots/07-onboarding.png) | ![Updates](./docs/screenshots/08-updates.png) | ![Editar](./docs/screenshots/09-provider-edit.png) |
+
+| Boas-vindas | Tema Escuro |
+|:---:|:---:|
+| ![Boas-vindas](./docs/screenshots/10-welcome.png) | ![Dark](./docs/screenshots/11-dark-theme.png) |
+
+</div>
 
 ## Instalação Rápida
 
@@ -85,15 +107,23 @@ O app tem 8 superfícies principais acessíveis pela sidebar:
 | **Admin** | Providers (com teste de API), presets, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## Novidades da v12.5
+## Novidades da v13.0
 
-- **Aba Atualizações** — Superfície dedicada para updates de CLIs, ferramentas e pré-requisitos com botão Atualizar Tudo
-- **Instalar pelos cards** — Instale CLIs e ferramentas faltantes direto nas abas Launch e Tools
-- **Histórico avançado** — Reabra sessões, adicione descrições, badges de status (rodando/terminado/erro), tracking de duração, lembra último diretório por CLI
-- **Botão Testar API** — Teste conexões de providers direto do Admin com exibição de latência
-- **Ícones oficiais** — Logos reais dos vendors via LobeHub Icons e devicons, visíveis em ambos os temas
-- **Tela de boas-vindas** — Reformulada com branding DevManiacs, tour guiado e opção "sempre mostrar"
-- **i18n** — Cobertura completa pt-BR e EN para todas as novas funcionalidades
+- **Novo ícone minimalista** — Design Hex Hub em vermelho, limpo e reconhecível em qualquer tamanho
+- **Provider persiste no histórico** — Ao reabrir uma sessão do Claude, restaura o provider exato usado
+- **Dropdown de diretórios recentes** — Últimos 10 diretórios por CLI ao focar no campo, seleção rápida
+- **Screenshots na documentação** — Galeria completa de todas as telas do app no README
+
+<details><summary>Destaques da v12.5</summary>
+
+- Aba Atualizações — Superfície dedicada para updates de CLIs, ferramentas e pré-requisitos
+- Instalar pelos cards — Instale CLIs e ferramentas faltantes direto nas abas
+- Histórico avançado — Reabra sessões, descrições, badges de status, tracking de duração
+- Botão Testar API — Teste conexões de providers com exibição de latência
+- Ícones oficiais — Logos reais via LobeHub Icons e devicons
+- Tela de boas-vindas — Branding DevManiacs, tour guiado
+
+</details>
 
 ## Stack Técnica
 
