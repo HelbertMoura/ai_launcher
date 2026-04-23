@@ -9,7 +9,7 @@
       <stop offset="100%" stop-color="#24253a"/>
     </linearGradient>
     <filter id="shadow">
-      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="14" flood-color="#000" flood-opacity="0.0"/>
     </filter>
     <filter id="glow">
       <feGaussianBlur stdDeviation="2" result="blur"/>
