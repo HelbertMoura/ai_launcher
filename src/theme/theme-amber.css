@@ -1,0 +1,23 @@
+/* Amber — CRT retro dark theme.
+   Warm dark surfaces with signature amber phosphor accent.
+   Evokes vintage terminal monitors. */
+[data-theme="amber"] {
+  color-scheme: dark;
+
+  --bg: #14100a;
+  --surface-1: #1a1510;
+  --surface-2: #211b12;
+  --surface-hover: #2a2218;
+
+  --border: #2a2218;
+  --border-strong: #3d3020;
+
+  --text: #f4e4c1;
+  --text-muted: #b8a789;
+  --text-dim: #8a7a5c;
+
+  --accent: #ffb000;
+  --accent-glow: rgba(255, 176, 0, 0.4);
+  --accent-soft: rgba(255, 176, 0, 0.12);
+  --accent-ink: #14100a;
+}

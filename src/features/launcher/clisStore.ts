@@ -1,5 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { CheckResult, CliInfo } from "./useClis";
+import {
+  loadCustomClis,
+  CUSTOM_CLIS_CHANGED_EVENT,
+  type CustomCli,
+} from "../../lib/customClis";
 
 const CACHE_KEY = "ai-launcher:clis-cache";
 const TTL_MS = 10 * 60 * 1000; // 10 min
@@ -13,6 +18,7 @@ interface CachedPayload {
 interface Snapshot {
   clis: CliInfo[];
   checks: Record<string, CheckResult>;
+  customClis: CustomCli[];
   loading: boolean;
   error: string | null;
 }
@@ -22,6 +28,7 @@ type Listener = (snap: Snapshot) => void;
 let state: Snapshot = {
   clis: [],
   checks: {},
+  customClis: [],
   loading: true,
   error: null,
 };
@@ -68,12 +75,30 @@ function setState(partial: Partial<Snapshot>): void {
   emit();
 }
 
+/** Reload custom CLIs from localStorage and merge into snapshot. */
+function mergeCustomClis(): void {
+  const customClis = loadCustomClis();
+  state = { ...state, customClis };
+  emit();
+}
+
+/** Listen for same-tab custom CLI changes from the Admin panel. */
+function setupCustomCliListener(): () => void {
+  const handler = () => mergeCustomClis();
+  window.addEventListener(CUSTOM_CLIS_CHANGED_EVENT, handler);
+  return () => window.removeEventListener(CUSTOM_CLIS_CHANGED_EVENT, handler);
+}
+
+// Start listening once at module load
+const cleanupCustomCliListener = setupCustomCliListener();
+
 async function load(force = false): Promise<void> {
   if (inflight) return inflight;
   if (!force) {
     const cached = readCache();
     if (cached) {
-      state = { clis: cached.clis, checks: cached.checks, loading: false, error: null };
+      const customClis = loadCustomClis();
+      state = { clis: cached.clis, checks: cached.checks, customClis, loading: false, error: null };
       hydrated = true;
       emit();
       return;
@@ -86,7 +111,8 @@ async function load(force = false): Promise<void> {
       const results = await invoke<CheckResult[]>("check_clis");
       const checks: Record<string, CheckResult> = {};
       for (const r of results) checks[r.name] = r;
-      state = { clis, checks, loading: false, error: null };
+      const customClis = loadCustomClis();
+      state = { clis, checks, customClis, loading: false, error: null };
       hydrated = true;
       writeCache(clis, checks);
       emit();
@@ -121,5 +147,9 @@ export const clisStore = {
   invalidate(): void {
     clearCache();
     hydrated = false;
+  },
+  /** Cleanup the custom CLI event listener (for tests). */
+  destroy(): void {
+    cleanupCustomCliListener();
   },
 };

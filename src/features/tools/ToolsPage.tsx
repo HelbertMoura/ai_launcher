@@ -2,21 +2,28 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
+import { EmptyState, ART_TOOLBOX } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { ToolCard } from "./ToolCard";
+import { CustomIdeCard } from "./CustomIdeCard";
+import { CustomIdeLaunchDialog } from "./CustomIdeLaunchDialog";
 import { useTools, type ToolInfo } from "./useTools";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import type { CustomIde } from "../../lib/customIdes";
 import "../page.css";
 import "./ToolsPage.css";
 
 export function ToolsPage() {
   const { t } = useTranslation();
-  const { tools, checks, loading, error, refresh } = useTools();
+  const { tools, checks, customIdes, loading, error, refresh } = useTools();
   const [installing, setInstalling] = useState<string | null>(null);
   const [launching, setLaunching] = useState<string | null>(null);
+  const [launchingCustomIde, setLaunchingCustomIde] = useState<CustomIde | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const { summary: updates } = useUpdates();
+
+  const allCount = tools.length + customIdes.length;
 
   const toolHasUpdate = (name: string) =>
     updates?.tool_updates.some((u) => u.cli === name && u.has_update) ?? false;
@@ -66,7 +73,7 @@ export function ToolsPage() {
               ? t("common.scanning")
               : t("tools.subCount", {
                   installed: installedCount,
-                  total: tools.length,
+                  total: allCount,
                 })}
           </p>
         </div>
@@ -83,11 +90,18 @@ export function ToolsPage() {
         </div>
       )}
 
-      {!loading && tools.length === 0 && (
-        <div className="cd-page__empty">{t("tools.notRegistered")}</div>
+      {!loading && allCount === 0 && (
+        <EmptyState
+          art={ART_TOOLBOX}
+          title={t("tools.emptyTitle", "No tools yet")}
+          description={t(
+            "tools.emptyHint",
+            "Install IDEs, terminal emulators or add custom tools.",
+          )}
+        />
       )}
 
-      {!loading && tools.length > 0 && (
+      {!loading && allCount > 0 && (
         <div className="cd-page__grid">
           {tools.map((tool) => (
             <ToolCard
@@ -101,8 +115,20 @@ export function ToolsPage() {
               onInstall={onInstall}
             />
           ))}
+          {customIdes.map((cide) => (
+            <CustomIdeCard
+              key={`custom-${cide.key}`}
+              ide={cide}
+              onLaunch={setLaunchingCustomIde}
+            />
+          ))}
         </div>
       )}
+
+      <CustomIdeLaunchDialog
+        ide={launchingCustomIde}
+        onClose={() => setLaunchingCustomIde(null)}
+      />
     </section>
   );
 }

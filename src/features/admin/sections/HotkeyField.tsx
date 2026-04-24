@@ -80,7 +80,7 @@ export function HotkeyField() {
       {status.kind === "error" && (
         <div
           className="cd-muted"
-          style={{ marginTop: 4, fontSize: 12, color: "var(--cd-danger, #d33)" }}
+          style={{ marginTop: 4, fontSize: 12, color: "var(--err)" }}
         >
           {t("admin.hotkey.invalid")}: {status.message}
         </div>

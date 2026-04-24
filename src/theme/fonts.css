@@ -1,3 +1,7 @@
+/* Space Grotesk — display font for page/section headings (v15).
+   Loaded from Google Fonts since we don't ship the .woff2 locally. */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
+
 /* JetBrains Mono — self-hosted from /public/fonts */
 @font-face {
   font-family: "JetBrains Mono";

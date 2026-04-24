@@ -62,3 +62,37 @@
 .cd-status__cell--muted {
   color: var(--text-dim);
 }
+
+/* compact mini-chip (last session, provider latency) */
+.cd-status__cell--mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+/* tiny colored latency dot */
+.cd-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 6px;
+}
+
+.cd-status__dot--ok {
+  background: var(--ok);
+  box-shadow: 0 0 4px var(--ok);
+}
+
+.cd-status__dot--warn {
+  background: var(--warn);
+  box-shadow: 0 0 4px var(--warn);
+}
+
+.cd-status__dot--err {
+  background: var(--err);
+  box-shadow: 0 0 4px var(--err);
+}

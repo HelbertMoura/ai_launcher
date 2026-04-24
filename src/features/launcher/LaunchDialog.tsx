@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
@@ -7,12 +7,16 @@ import { Dialog } from "../../ui/Dialog";
 import { Input } from "../../ui/Input";
 import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
+import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { appendHistory } from "./history";
 import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
 import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
-import { saveTemplate } from "./sessionTemplates";
-import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import { addProfile, loadProfiles } from "../../domain/profileStore";
+import type { LaunchProfile } from "../../domain/types";
+import { buildLaunchEnvAsync, buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import { buildPreview } from "../../lib/commandPreview";
+import type { CommandPreview } from "../../lib/commandPreview";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
 
@@ -35,6 +39,7 @@ interface LaunchState {
   recentDirs: string[];
   showRecent: boolean;
   clipboardPrompt: boolean;
+  showPreview: boolean;
 }
 
 type LaunchAction =
@@ -53,7 +58,8 @@ type LaunchAction =
   | { type: "startLaunch" }
   | { type: "launchFailed"; error: string }
   | { type: "setError"; error: string | null }
-  | { type: "setClipboardPrompt"; value: boolean };
+  | { type: "setClipboardPrompt"; value: boolean }
+  | { type: "setShowPreview"; value: boolean };
 
 function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
   switch (action.type) {
@@ -70,6 +76,7 @@ function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
         providerId: action.providerId,
         recentDirs: action.recentDirs,
         clipboardPrompt: false,
+        showPreview: false,
       };
     case "setDirectory":
       return { ...state, directory: action.value };
@@ -89,6 +96,8 @@ function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
       return { ...state, error: action.error };
     case "setClipboardPrompt":
       return { ...state, clipboardPrompt: action.value };
+    case "setShowPreview":
+      return { ...state, showPreview: action.value };
   }
 }
 
@@ -103,11 +112,13 @@ const INITIAL_LAUNCH_STATE: LaunchState = {
   recentDirs: [],
   showRecent: false,
   clipboardPrompt: false,
+  showPreview: false,
 };
 
 export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
   const { t } = useTranslation();
   const [state, dispatch] = useReducer(launchReducer, INITIAL_LAUNCH_STATE);
+  const [saveTemplateName, setSaveTemplateName] = useState<string | null>(null);
   const {
     directory,
     args,
@@ -119,10 +130,29 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     recentDirs,
     showRecent,
     clipboardPrompt,
+    showPreview,
   } = state;
 
   const isClaude = cli?.key === CLAUDE_KEY;
   const supportsPrompt = cli ? CLIS_WITH_PROMPT_FLAG.has(cli.key) : false;
+
+  // Build command preview for SafeCommandPreview
+  const commandLine = cli
+    ? [cli.command, args].filter(Boolean).join(" ")
+    : "";
+
+  const previewEnv = useMemo(() => {
+    if (isClaude && providersState) {
+      const stateWithSelected = setActive(providersState, providerId);
+      return buildLaunchEnv(stateWithSelected);
+    }
+    return {} as Record<string, string>;
+  }, [isClaude, providersState, providerId]);
+
+  const preview: CommandPreview = useMemo(
+    () => buildPreview(commandLine, directory || ".", previewEnv),
+    [commandLine, directory, previewEnv],
+  );
 
   useEffect(() => {
     if (!cli) return;
@@ -170,7 +200,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       let envVars: Record<string, string> | undefined;
       if (isClaude && providersState) {
         const stateWithSelected = setActive(providersState, providerId);
-        envVars = buildLaunchEnv(stateWithSelected);
+        envVars = await buildLaunchEnvAsync(stateWithSelected);
       }
       let finalArgs = args;
       if (clipboardPrompt && supportsPrompt) {
@@ -188,7 +218,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           // Continue launch without the prompt
         }
       }
-      await invoke<string>("launch_cli", {
+      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
         cliKey: cli.key,
         directory,
         args: finalArgs,
@@ -199,6 +229,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         t("notifications.sessionStarted.title", { cli: cli.name }),
         t("notifications.sessionStarted.body", { dir: directory }),
       );
+      const now = new Date().toISOString();
       saveLastDir(cli.key, directory);
       addRecentDir(cli.key, directory);
       appendHistory({
@@ -206,58 +237,86 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
         cliKey: cli.key,
         directory,
         args,
-        timestamp: new Date().toISOString(),
+        timestamp: now,
         providerId: isClaude ? providerId : undefined,
+        status: "starting",
+        sessionId: result.session_id,
+        startedAt: now,
       });
       onClose();
     } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e);
+      // Record failed launch in history
+      const now = new Date().toISOString();
+      appendHistory({
+        cli: cli.name,
+        cliKey: cli.key,
+        directory,
+        args,
+        timestamp: now,
+        providerId: isClaude ? providerId : undefined,
+        status: "failed",
+        startedAt: now,
+        errorMessage: errMsg,
+      });
       dispatch({
         type: "launchFailed",
-        error: e instanceof Error ? e.message : String(e),
+        error: errMsg,
       });
     }
   };
 
   return (
+    <>
     <Dialog
       open={cli !== null}
       onClose={onClose}
       title={cli ? t("launchDialog.title", { cli: cli.name }) : t("launchDialog.title_default")}
       size="md"
       footer={
-        <>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              if (!cli || !directory.trim()) return;
-              const defaultName = `${cli.name} · ${directory.split(/[\\/]/).pop() || directory}`;
-              const name = window.prompt(t("launchDialog.saveTemplatePrompt"), defaultName);
-              if (!name) return;
-              saveTemplate({
-                name,
-                cliKey: cli.key,
-                cliName: cli.name,
-                directory,
-                args,
-                noPerms,
-                providerId: isClaude ? providerId : null,
-              });
-            }}
-          >
-            {t("launchDialog.saveTemplate")}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button size="sm" loading={launching} onClick={doLaunch}>
-            {t("launcher.launch")}
-          </Button>
-        </>
+        showPreview ? undefined : (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                if (!cli || !directory.trim()) return;
+                const defaultName = `${cli.name} · ${directory.split(/[\\/]/).pop() || directory}`;
+                setSaveTemplateName(defaultName);
+              }}
+            >
+              {t("launchDialog.saveTemplate")}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => dispatch({ type: "setShowPreview", value: true })}
+            >
+              Preview
+            </Button>
+            <Button size="sm" loading={launching} onClick={doLaunch}>
+              {t("launcher.launch")}
+            </Button>
+          </>
+        )
       }
     >
       {error && <Banner variant="err">{error}</Banner>}
 
+      {showPreview ? (
+        <SafeCommandPreview
+          preview={preview}
+          onConfirm={doLaunch}
+          onCancel={() => dispatch({ type: "setShowPreview", value: false })}
+          confirmLabel={t("launcher.launch")}
+          cancelLabel={t("common.cancel")}
+          loading={launching}
+        />
+      ) : (
+      <>
       <div className="cd-launch-dialog__field">
         <label className="cd-launch-dialog__label">{t("launchDialog.directory")}</label>
         <div className="cd-launch-dialog__row">
@@ -289,7 +348,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
                           dispatch({ type: "setShowRecent", value: false });
                         }}
                       >
-                        <span className="cd-launch-dialog__recent-icon">📁</span>
+                        <span className="cd-launch-dialog__recent-icon" aria-hidden="true">&#x25B7;</span>
                         <span className="cd-launch-dialog__recent-path" title={d}>
                           {d.length > 60 ? `…${d.slice(d.length - 58)}` : d}
                         </span>
@@ -310,7 +369,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
                           );
                         }}
                       >
-                        {pinned ? "📌" : "📍"}
+                        {pinned ? "◈" : "○"}
                       </button>
                     </li>
                   );
@@ -393,6 +452,91 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           </div>
         </div>
       )}
+      </>
+      )}
+    </Dialog>
+
+    <InnerSavePrompt
+      open={saveTemplateName !== null}
+      defaultValue={saveTemplateName ?? ""}
+      onCancel={() => setSaveTemplateName(null)}
+      onConfirm={(name) => {
+        if (!cli) return;
+        const now = new Date().toISOString();
+        const profile: LaunchProfile = {
+          id: `profile-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          name,
+          directory,
+          cliKeys: [cli.key],
+          toolKeys: [],
+          providerKey: isClaude ? providerId || undefined : undefined,
+          args: args || undefined,
+          noPerms,
+          tags: [],
+          pinned: false,
+          createdAt: now,
+          updatedAt: now,
+        };
+        const current = loadProfiles();
+        addProfile(current, profile);
+        setSaveTemplateName(null);
+      }}
+    />
+    </>
+  );
+}
+
+function InnerSavePrompt({
+  open,
+  defaultValue,
+  onCancel,
+  onConfirm,
+}: {
+  readonly open: boolean;
+  readonly defaultValue: string;
+  readonly onCancel: () => void;
+  readonly onConfirm: (name: string) => void;
+}) {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    if (open) setValue(defaultValue);
+  }, [open, defaultValue]);
+
+  if (!open) return null;
+
+  const handleConfirm = () => {
+    const name = value.trim();
+    if (name) onConfirm(name);
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      title="Save Template"
+      size="sm"
+      footer={
+        <>
+          <Button size="sm" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleConfirm}>
+            Save
+          </Button>
+        </>
+      }
+    >
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleConfirm();
+          if (e.key === "Escape") onCancel();
+        }}
+        placeholder="Template name"
+        autoFocus
+      />
     </Dialog>
   );
 }

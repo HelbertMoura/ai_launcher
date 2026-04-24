@@ -9,9 +9,10 @@
 .cd-page__heading { display: flex; flex-direction: column; gap: 4px; }
 .cd-page__title {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--text-xl);
-  letter-spacing: 2px;
+  letter-spacing: 0.5px;
   color: var(--text);
 }
 .cd-page__sub {

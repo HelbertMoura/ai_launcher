@@ -1,3 +1,5 @@
+import type { SessionStatus } from "../history/useHistory";
+
 export interface HistoryItem {
   cli: string;
   cliKey: string;
@@ -5,6 +7,10 @@ export interface HistoryItem {
   args: string;
   timestamp: string;
   providerId?: string;
+  status?: SessionStatus;
+  sessionId?: string;
+  startedAt?: string;
+  errorMessage?: string;
 }
 
 const CONFIG_KEY = "ai-launcher-config";

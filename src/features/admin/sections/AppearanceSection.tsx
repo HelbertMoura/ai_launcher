@@ -15,7 +15,7 @@ import { AutoStartToggle } from "./AutoStartToggle";
 import { HotkeyField } from "./HotkeyField";
 import { NotificationsToggle } from "./NotificationsToggle";
 
-const THEMES: Theme[] = ["dark", "light"];
+const THEMES: Theme[] = ["dark", "light", "amber", "glacier"];
 
 function readStoredFont(): FontId {
   try {

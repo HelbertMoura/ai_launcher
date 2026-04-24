@@ -33,7 +33,7 @@ export function PrereqsPage() {
 
       <div className="cd-prereqs__grid">
         {items.map((item) => (
-          <PrereqCard key={item.name} item={item} />
+          <PrereqCard key={item.key} item={item} onInstalled={() => void refresh()} />
         ))}
       </div>
     </section>

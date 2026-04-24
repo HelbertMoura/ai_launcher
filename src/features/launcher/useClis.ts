@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { clisStore } from "./clisStore";
+import type { CustomCli } from "../../lib/customClis";
 
 export interface CliInfo {
   key: string;
@@ -24,6 +25,7 @@ export interface CheckResult {
 interface State {
   clis: CliInfo[];
   checks: Record<string, CheckResult>;
+  customClis: CustomCli[];
   loading: boolean;
   error: string | null;
 }

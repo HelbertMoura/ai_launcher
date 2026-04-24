@@ -1,19 +1,20 @@
-/* Hard Light — intentional flat white. bg, surface-1, surface-2 collapse to #ffffff;
-   layering is achieved via 1px borders and accent glow, not surface elevation. */
+/* Hard Light — improved depth and contrast.
+   Surfaces use subtle elevation via background + border differentiation.
+   Accent glow is preserved but softened for readability. */
 [data-theme="light"] {
   color-scheme: light;
 
-  --bg: #ffffff;
+  --bg: #f5f4f0;
   --surface-1: #ffffff;
-  --surface-2: #ffffff;
-  --surface-hover: #f4f2ec;
+  --surface-2: #fafaf8;
+  --surface-hover: #f0efeb;
 
-  --border: #1a1a1a;
-  --border-strong: #1a1a1a;
+  --border: #d4d2cc;
+  --border-strong: #b0aea6;
 
   --text: #1a1a1a;
-  --text-muted: #555555;
-  --text-dim: #888888;
+  --text-muted: #4a4a4a;
+  --text-dim: #7a7a7a;
 
   --accent-ink: #ffffff;
   --accent-soft: rgba(255, 49, 49, 0.08);

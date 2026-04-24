@@ -32,6 +32,7 @@ pub fn check_tools() -> Vec<CheckResult> {
             };
 
             CheckResult {
+                key: tool.key.clone(),
                 name: tool.name.clone(),
                 installed,
                 version,
