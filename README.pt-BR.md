@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 14.0.0](https://img.shields.io/badge/vers%C3%A3o-14.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 15.0.0](https://img.shields.io/badge/vers%C3%A3o-15.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -26,33 +26,45 @@
 | 🔧 | **Gerenciador de Tools** | Gerencie VS Code, Cursor, Windsurf, Google Antigravity, JetBrains AI e IDEs customizadas |
 | ⬆️ | **Hub de Atualizações** | Aba dedicada para updates de CLIs, ferramentas e pré-requisitos com instalação em um clique |
 | 💰 | **Rastreamento de Custos** | Acompanhe gastos por provider com breakdown diário e mensal |
-| 📋 | **Histórico Avançado** | Log de sessões com reabertura, descrições, badges de status e duração |
+| 📋 | **Histórico Waterfall** | Timeline estilo terminal + log de sessões com reabertura, status dots e duração |
 | 🔍 | **Verificação de Pré-requisitos** | Cheque Node, npm, Bun, Python, Rust, Cargo, Git, Docker e mais |
 | 🔌 | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + endpoints customizados com botão de teste de API |
-| 🎨 | **Customização Completa** | Tema Dark/Light, 5 cores de destaque, 5 fontes mono, overrides de CLIs |
+| 🎨 | **4 Temas + Densidade** | Dark / Light / Amber (CRT retro) / Glacier (frio azul) + toggle compacto/confortável |
 | 🌐 | **i18n** | Inglês e Português (Brasil) com alternância instantânea |
-| ⌨️ | **Keyboard-First** | Paleta `Ctrl+K`, navegação `Ctrl+1-6`, admin `Ctrl+,`, ajuda `?` |
+| ⌨️ | **Keyboard-First** | Paleta rica `Ctrl+K`, navegação `Ctrl+1-8`, admin `Ctrl+,`, ajuda `?` |
 | 🔒 | **Privacidade Primeiro** | Tudo fica local — sem telemetria, sem sync na nuvem |
+| 🏢 | **Workspace Profiles** | Agrupe configurações por repositório, time ou contexto com troca em um clique |
+| 🧩 | **Agent Runbooks** | Sequências automatizadas de setup de ambiente para workflows de agentes IA |
+| 🛡️ | **Budget Guard** | Limites locais de custo por provider com alertas em thresholds configuráveis |
+| 🩺 | **Environment Doctor** | Diagnostique e repare ambientes de dev quebrados com fixes guiados |
+| 👁️ | **Safe Command Preview** | Revise executável, args, env e nível de risco antes de rodar comandos customizados |
+| 🔄 | **Auto-Atualização** | Verificação de updates in-app, download com progresso, validação por checksum |
 
 ## Screenshots
 
 <div align="center">
 
-| Launcher CLIs | Ferramentas | Diálogo de Launch |
-|:---:|:---:|:---:|
-| ![Launcher CLIs](./docs/screenshots/01-launcher-cli.png) | ![Ferramentas](./docs/screenshots/02-launcher-tools.png) | ![Diálogo](./docs/screenshots/03-launch-dialog.png) |
+### Command Deck 2.0 · Dark, Light, Amber, Glacier
 
-| Histórico | Providers | Configurações |
+| Launcher de CLIs | Ferramentas | Paleta de Comandos Rica |
 |:---:|:---:|:---:|
-| ![Histórico](./docs/screenshots/04-history.png) | ![Providers](./docs/screenshots/05-providers.png) | ![Config](./docs/screenshots/06-settings.png) |
+| ![Launcher](./docs/screenshots/v15/01-launcher.png) | ![Tools](./docs/screenshots/v15/02-tools.png) | ![Command Palette](./docs/screenshots/v15/08-palette.png) |
 
-| Onboarding | Atualizações | Editar Provider |
+### Workspace bento · History waterfall · Environment Doctor
+
+| Workspace Profiles | Timeline de Histórico | Environment Doctor |
 |:---:|:---:|:---:|
-| ![Onboarding](./docs/screenshots/07-onboarding.png) | ![Updates](./docs/screenshots/08-updates.png) | ![Editar](./docs/screenshots/09-provider-edit.png) |
+| ![Workspace](./docs/screenshots/v15/05-workspace.png) | ![History](./docs/screenshots/v15/03-history.png) | ![Doctor](./docs/screenshots/v15/06-doctor.png) |
 
-| Boas-vindas | Tema Escuro |
-|:---:|:---:|
-| ![Boas-vindas](./docs/screenshots/10-welcome.png) | ![Dark](./docs/screenshots/11-dark-theme.png) |
+### Atualizações · Custos · Variantes de Tema
+
+| Updates Hub | Rastreamento de Custos | 4 Variantes de Tema |
+|:---:|:---:|:---:|
+| ![Updates](./docs/screenshots/v15/07-updates.png) | ![Costs](./docs/screenshots/v15/04-costs.png) | ![Glacier Palette](./docs/screenshots/v15/v15-glacier-palette.png) |
+
+| Tema Light | Amber (CRT Retro) | Glacier + Densidade Compacta |
+|:---:|:---:|:---:|
+| ![Light](./docs/screenshots/v15/v15-light-doctor.png) | ![Amber](./docs/screenshots/v15/v15-amber-doctor.png) | ![Glacier Compacto](./docs/screenshots/v15/v15-glacier-compact.png) |
 
 </div>
 
@@ -60,7 +72,19 @@
 
 ### Download (Windows)
 
-Baixe o instalador `.msi` no [último release](https://github.com/HelbertMoura/ai_launcher/releases).
+Baixe o instalador `.msi` ou `.exe` no [último release](https://github.com/HelbertMoura/ai_launcher/releases).
+
+```bash
+# Opção 1: Winget (em breve)
+winget install DevManiacs.AILauncher
+
+# Opção 2: Chocolatey (em breve)
+choco install ai-launcher -y
+
+# Opção 3: Download manual
+# Pegue o .msi ou .exe do último release em:
+# https://github.com/HelbertMoura/ai_launcher/releases
+```
 
 > O SmartScreen pode alertar em builds sem assinatura — clique em **Mais informações → Executar mesmo assim**.
 
@@ -76,38 +100,65 @@ npm run tauri build
 ```
 
 O `.msi` é gerado em `src-tauri/target/release/bundle/msi/`.
+O `.exe` NSIS é gerado em `src-tauri/target/release/bundle/nsis/`.
 
 ## Atalhos de Teclado
 
 | Atalho | Ação |
 |--------|------|
-| `Ctrl+K` | Abrir paleta de comandos |
-| `Ctrl+1` | Aba Launch |
+| `Ctrl+K` | Abrir paleta rica de comandos |
+| `Ctrl+1` | Aba Lançar |
 | `Ctrl+2` | Aba Ferramentas |
-| `Ctrl+3` | Aba Histórico |
+| `Ctrl+3` | Aba Histórico (timeline waterfall) |
 | `Ctrl+4` | Aba Custos |
-| `Ctrl+5` | Aba Atualizações |
-| `Ctrl+6` | Aba Pré-requisitos |
+| `Ctrl+5` | Aba Workspaces (grid bento) |
+| `Ctrl+6` | Aba Doctor (diagnóstico do ambiente) |
+| `Ctrl+7` | Aba Atualizações |
+| `Ctrl+8` | Aba Pré-requisitos |
 | `Ctrl+,` | Aba Admin |
 | `?` | Aba Ajuda |
 | `Esc` | Fechar diálogo |
 
 ## Superfícies
 
-O app tem 8 superfícies principais acessíveis pela sidebar:
+O app tem 10 superfícies principais acessíveis pela sidebar:
 
 | Aba | O que faz |
 |-----|-----------|
-| **Launch** | Escaneie CLIs de IA, instale as faltantes, lance com diretório e args customizados |
+| **Lançar** | Escaneie CLIs de IA, instale as faltantes, lance com diretório e args customizados |
 | **Ferramentas** | Detecte e gerencie IDEs — instale ferramentas faltantes com um clique |
-| **Histórico** | Navegue sessões passadas com reabertura, descrições inline, badges de status e duração |
+| **Histórico** | Timeline waterfall estilo terminal + log de sessões com reabertura e dots de status |
 | **Custos** | Breakdown de custo por CLI — totais diários e mensais com tracking de tokens |
-| **Atualizações** | Hub centralizado para updates de CLIs, ferramentas e pré-requisitos — atualize tudo ou individualmente |
+| **Workspaces** | Grid bento: Profiles, Budget, resumo do Doctor, Runbooks, Sessões Recentes |
+| **Doctor** | Health check do ambiente com severidade (crítico/aviso/info) + fixes guiados |
+| **Atualizações** | Hub centralizado para updates de CLIs, ferramentas e pré-requisitos |
 | **Pré-reqs** | Health check do sistema — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
-| **Admin** | Providers (com teste de API), presets, aparência, overrides de CLIs, IDEs customizadas |
+| **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## 🚀 Novidades da v14
+## 🚀 Novidades da v15 — AI Ops Command Center
+
+- **Workspace Profiles** — agrupe configs por repo, time ou contexto com troca em um clique
+- **Agent Runbooks** — sequências automatizadas de setup para workflows de agentes
+- **Provider Budget Guard** — limites locais de custo com alertas configuráveis
+- **Environment Doctor** — diagnostique e repare ambientes de dev quebrados
+- **Safe Command Preview** — revise nível de risco antes de rodar comandos customizados
+- **Auto-Atualização** — verificação de updates in-app com validação por checksum
+- **Launch Profiles unificados** — presets e templates de sessão fundidos em um só modelo
+- **Session Lifecycle** — tracking real de status de processo (iniciando/rodando/completo/falhou)
+- **4 Temas** — dark, light, amber (CRT retro), glacier (frio azul) com ciclagem por `☾`
+- **Paleta de Comandos Rica** — categorias, ícones, chips de atalho, sessões recentes
+- **Bento Workspace** — layout editorial com 5 cards de navegação direta
+- **History Waterfall** — timeline horizontal terminal-native das últimas 24h/7d
+- **Density Toggle** — alternância compacto/confortável via `▦` no topo
+- **Secure Secrets** — API keys via DPAPI (Windows) com fallback transparente
+- **Command Deck 2.0** — hierarquia limpa, zero `alert()` nativo, focus trap em dialogs
+
+### 🐛 Fix crítico (afetava v13/v14)
+
+Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq** em Updates **não faziam nada ao clicar** em versões anteriores. Corrigido adicionando chave canônica ao `CheckResult` e botão real no `PrereqCard`.
+
+<details><summary>Destaques da v14</summary>
 
 - **Início com Windows + atalho global** — abre junto com o sistema, foca de qualquer lugar
 - **Diretórios fixados + templates de sessão** — um clique para relançar seus setups favoritos
@@ -116,11 +167,13 @@ O app tem 8 superfícies principais acessíveis pela sidebar:
 - **Backend modularizado** — `main.rs` de 3105 → ~120 linhas, erros tipados, testes unitários
 - **CI com quality gates** — tsc, vitest, clippy, cargo audit, Playwright E2E em cada PR
 
+</details>
+
 <details><summary>Destaques da v13</summary>
 
 - **Novo ícone minimalista** — Design Hex Hub em vermelho, limpo e reconhecível em qualquer tamanho
 - **Provider persiste no histórico** — Ao reabrir uma sessão do Claude, restaura o provider exato usado
-- **Dropdown de diretórios recentes** — Últimos 10 diretórios por CLI ao focar no campo, seleção rápida
+- **Dropdown de diretórios recentes** — Últimos 10 diretórios por CLI ao focar no campo
 - **Screenshots na documentação** — Galeria completa de todas as telas do app no README
 
 </details>
@@ -141,11 +194,14 @@ O app tem 8 superfícies principais acessíveis pela sidebar:
 | Camada | Tecnologia |
 |--------|-----------|
 | Frontend | React 19 + TypeScript 6 + Vite |
-| Backend | Rust (Tauri v2) |
-| Estilo | CSS Custom Properties (sistema de tokens) |
+| Backend | Rust (Tauri v2) com DPAPI nativo para secrets |
+| Estilo | CSS Custom Properties (sistema de tokens · 4 temas) |
+| Typography | JetBrains Mono · Inter · Space Grotesk (display) |
+| Ícones | Logos oficiais (LobeHub Icons, devicons) + Phosphor Icons |
 | i18n | i18next 24 |
-| Ícones | Logos oficiais de marca (LobeHub Icons, devicons) |
-| Build | Tauri CLI → `.msi` + `.exe` |
+| Testes | Vitest (61 testes), Playwright E2E, cargo test |
+| Build | Tauri CLI → `.msi` + `.exe` (NSIS) |
+| Distribuição | GitHub Releases · Winget (em breve) · Chocolatey (em breve) |
 
 ## Contribuindo
 
@@ -158,13 +214,13 @@ MIT — veja [LICENSE](./LICENSE).
 ## Créditos
 
 - **Autor:** Helbert Moura — [DevManiac's](https://github.com/HelbertMoura)
-- **Ícones** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon)
+- **Ícones** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon), [Phosphor Icons](https://phosphoricons.com/)
 - Nomes de marcas e marcas registradas pertencem aos seus respectivos donos.
 
 ---
 
 <div align="center">
 
-**[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
+**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v15.0.0)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
 </div>
