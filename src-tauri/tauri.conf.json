@@ -1,10 +1,10 @@
 {
   "$schema": "https://v2.tauri.app/schemas/config.schema.json",
   "productName": "AI Launcher",
-  "version": "14.0.0",
+  "version": "15.0.0",
   "identifier": "com.devmaniacs.ailauncher",
   "build": {
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://127.0.0.1:5173",
     "frontendDist": "../dist",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"

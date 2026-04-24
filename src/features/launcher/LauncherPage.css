@@ -38,6 +38,16 @@
   animation: pulse 2s infinite;
 }
 
+.cd-cli-card__pin-icon {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.cd-cli-card__dir-icon {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -290,4 +300,59 @@
 .cd-launcher__template-delete:hover {
   color: var(--err);
   border-color: var(--err);
+}
+
+/* Custom CLI card launch button */
+.cd-cli-card__launch-btn {
+  padding: 4px 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.cd-cli-card__launch-btn:hover {
+  opacity: 0.85;
+}
+
+/* Command preview for custom launch dialogs */
+.cd-custom-launch-preview {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.cd-custom-launch-preview--secondary {
+  color: var(--text-dim);
+  font-size: 11px;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Confirm command checkbox label */
+.cd-launch-dialog__confirm-label {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+.cd-launch-dialog__confirm-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }

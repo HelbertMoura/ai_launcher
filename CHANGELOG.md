@@ -5,6 +5,41 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.0.0] — 2026-04-24 — AI Ops Command Center
+
+### Added
+
+- **FEAT-15.1: Updates Reliability** — Backend `check_all_updates` agora inclui tool_updates no total. Frontend usa chaves canonicas (`u.key ?? u.cli`) em vez de nome exibido para todas as chamadas invoke de update/install.
+- **FEAT-15.2: Unified Presets & Templates** — Modelo unificado `LaunchProfile` substitui `LaunchPreset` (Admin) e `SessionTemplate` (Launcher). Migracao automatica com backup.
+- **FEAT-15.3: Custom Tools Runtime** — Custom CLIs e IDEs integrados ao fluxo principal como cidadaos de primeira classe com badge `Custom`.
+- **FEAT-15.4: Session Lifecycle** — Sessoes agora tem estados reais (`starting`/`running`/`completed`/`failed`/`unknown`). Historico nao mente sobre status.
+- **FEAT-15.5: Provider Adapter Matrix** — Providers definem protocolo (`anthropic_messages`/`openai_chat`/`openai_responses`/`custom`). Teste de conexao usa payload correto por protocolo.
+- **FEAT-15.6: Secure Secrets** — API keys movidas para storage nativo seguro (DPAPI no Windows). Fallback transparente com aviso quando indisponivel.
+- **FEAT-15.7: Command Deck 2.0** — Tokens CSS consolidados, emojis trocados por icones, light theme com profundidade, componentes de dialog/toast/confirmacao proprios.
+- **FEAT-15.8: GitHub & Release Reliability** — Assets de release validados por versao no CI. Release notes separadas por categoria.
+- **FEAT-15.9: Workspace Profiles** — Grupos por repo/time/contexto com troca rapida de diretorio, CLI e provider.
+- **FEAT-15.10: Agent Runbooks** — Sequencias de passos para preparar ambiente e iniciar agentes. Execucao com log por passo.
+- **FEAT-15.11: Provider Budget Guard** — Limites locais de custo/uso por provider com alerta ao atingir 80%.
+- **FEAT-15.12: Environment Doctor** — Diagnostico e reparo de Node, Git, Rust, Python, Bun, CLIs e IDEs com severidade e acao recomendada.
+- **FEAT-15.13: Safe Command Preview** — Preview de comandos customizados com classificacao de risco, dry-run e confirmacao obrigatoria.
+- **FEAT-15.14: Self-Updater** — Verificacao, download e validacao de update do AI Launcher separado de update de ferramentas.
+- **FEAT-15.15: Windows Distribution** — Instalador assinado, publicacao no Winget e Chocolatey.
+- **FEAT-15.16: Accessibility** — Labels descritivos, estados de foco consistentes, navegacao completa por teclado, auditoria axe.
+
+### Changed
+
+- **Version bumped** to 15.0.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
+- **DevUrl** changed from `localhost:5173` to `127.0.0.1:5173` for Windows compatibility.
+- **E2E config** uses `127.0.0.1` instead of `localhost` to fix `getaddrinfo EAI_FAIL` on Windows.
+- **CSS tokens** consolidated — removed undefined `var(--surface)` references, aligned font selector with actual tokens.
+
+### Fixed
+
+- **Updates total bug** — `check_all_updates` now includes `tool_updates` in `total_with_updates` count.
+- **Key vs display name** — CLI and tool update actions now use canonical keys instead of display names.
+- **E2E localhost failure** — Playwright and Vite dev server now use `127.0.0.1` instead of `localhost`.
+- **Undefined CSS tokens** — `var(--surface)` references replaced with existing tokens.
+
 ## [14.0.0] — 2026-04-23 — Major Release
 
 ### Added

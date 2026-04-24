@@ -1,11 +1,22 @@
 use std::collections::HashMap;
 
+use serde::Serialize;
+
 use crate::util::{
     check_cli_installed, compare_versions, encode_powershell_command, find_windows_terminal,
     get_cli_definitions, get_installed_version, log_event, npm_latest, resolve_cli_path_win,
     sanitize_args, stream_install, validate_directory, CheckResult, CliInfo,
     DEFAULT_INSTALL_TIMEOUT_SEC,
 };
+
+/// Result returned by all launch commands.
+#[derive(Debug, Serialize)]
+pub struct LaunchResult {
+    /// Unique session identifier (UUID v4).
+    pub session_id: String,
+    /// Human-readable message (e.g. "Iniciando: claude em C:\\projects").
+    pub message: String,
+}
 
 #[tauri::command]
 pub fn get_all_clis() -> Vec<CliInfo> {
@@ -241,7 +252,9 @@ pub fn launch_cli(
     args: String,
     no_perms: bool,
     env_vars: Option<HashMap<String, String>>,
-) -> Result<String, String> {
+) -> Result<LaunchResult, String> {
+    let session_id = uuid::Uuid::new_v4().to_string();
+
     let clis = get_cli_definitions();
     let cli = clis
         .iter()
@@ -349,7 +362,10 @@ pub fn launch_cli(
             .map_err(|e| format!("Erro ao iniciar: {}", e))?;
     }
 
-    Ok(format!("Iniciando: {} em {}", cmd_line, work_dir))
+    Ok(LaunchResult {
+        session_id,
+        message: format!("Iniciando: {} em {}", cmd_line, work_dir),
+    })
 }
 
 #[tauri::command]
@@ -358,7 +374,9 @@ pub fn launch_custom_cli(
     args: Option<String>,
     directory: Option<String>,
     env: Option<HashMap<String, String>>,
-) -> Result<String, String> {
+) -> Result<LaunchResult, String> {
+    let session_id = uuid::Uuid::new_v4().to_string();
+
     if command.trim().is_empty() {
         return Err("command vazio".to_string());
     }
@@ -442,7 +460,10 @@ pub fn launch_custom_cli(
             .map_err(|e| format!("Erro ao iniciar: {}", e))?;
     }
 
-    Ok(format!("Iniciando: {} em {}", cmd_line, work_dir))
+    Ok(LaunchResult {
+        session_id,
+        message: format!("Iniciando: {} em {}", cmd_line, work_dir),
+    })
 }
 
 #[tauri::command]
@@ -453,17 +474,19 @@ pub fn launch_multi_clis(
     no_perms: bool,
     env_vars: Option<HashMap<String, String>>,
 ) -> Result<String, String> {
-    let mut launched = vec![];
+    let mut count = 0usize;
     for cli_key in cli_keys {
-        if let Ok(msg) = launch_cli(
+        if launch_cli(
             cli_key,
             directory.clone(),
             args.clone(),
             no_perms,
             env_vars.clone(),
-        ) {
-            launched.push(msg);
+        )
+        .is_ok()
+        {
+            count += 1;
         }
     }
-    Ok(format!("Iniciados {} CLIs", launched.len()))
+    Ok(format!("Iniciados {} CLIs", count))
 }

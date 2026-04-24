@@ -5,6 +5,7 @@
 
 mod commands;
 mod errors;
+mod secrets;
 mod tray;
 mod util;
 
@@ -84,6 +85,10 @@ fn main() {
             commands::updates::install_prerequisite,
             commands::updates::update_prerequisite,
             commands::updates::check_environment,
+            // commands::self_update
+            commands::self_update::check_app_update,
+            commands::self_update::download_app_update,
+            commands::self_update::verify_update_checksum,
             // commands::config
             commands::config::reset_all_config,
             commands::config::reset_claude_state,
@@ -99,6 +104,11 @@ fn main() {
             commands::system::set_tray_hotkey,
             commands::system::get_minimize_to_tray,
             commands::system::set_minimize_to_tray,
+            // secrets
+            secrets::store_secret,
+            secrets::get_secret,
+            secrets::delete_secret,
+            secrets::has_secure_storage,
         ])
         .setup(|app| {
             setup_tray(app)?;

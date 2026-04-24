@@ -6,6 +6,8 @@ import { LauncherPage } from "../features/launcher/LauncherPage";
 import { ToolsPage } from "../features/tools/ToolsPage";
 import { HistoryPage } from "../features/history/HistoryPage";
 import { CostsPage } from "../features/costs/CostsPage";
+import { WorkspacePage } from "../features/workspace/WorkspacePage";
+import { DoctorPage } from "../features/workspace/DoctorPage";
 import { PrereqsPage } from "../features/prereqs/PrereqsPage";
 import { HelpPage } from "../features/help/HelpPage";
 import { UpdatesPage } from "../features/updates/UpdatesPage";
@@ -22,6 +24,8 @@ import { clisStore } from "../features/launcher/clisStore";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
+import { ToastContainer } from "../ui/Toast";
+import { migrateApiKeysToSecureStorage } from "../providers/storage";
 import "./App.css";
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
@@ -31,8 +35,10 @@ const DIGIT_TABS: Record<string, TabId> = {
   "2": "tools",
   "3": "history",
   "4": "costs",
-  "5": "prereqs",
-  "6": "updates",
+  "5": "workspace",
+  "6": "doctor",
+  "7": "updates",
+  "8": "prereqs",
 };
 
 export function App() {
@@ -43,6 +49,13 @@ export function App() {
   const palette = useCommandPalette();
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+
+  // One-time migration of API keys to secure storage (runs in background).
+  useEffect(() => {
+    migrateApiKeysToSecureStorage().catch(() => {
+      // Migration failure is non-critical; keys stay in localStorage.
+    });
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -107,6 +120,8 @@ export function App() {
           {active === "tools" && <ToolsPage />}
           {active === "history" && <HistoryPage />}
           {active === "costs" && <CostsPage />}
+          {active === "workspace" && <WorkspacePage />}
+          {active === "doctor" && <DoctorPage />}
           {active === "updates" && <UpdatesPage />}
           {active === "prereqs" && <PrereqsPage />}
           {active === "help" && <HelpPage />}
@@ -123,6 +138,7 @@ export function App() {
           onToggleTheme={toggleTheme}
           onSetAccent={setAccent}
         />
+        <ToastContainer />
       </div>
     </ErrorBoundary>
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
+import { ConfirmDialog } from "../../../ui/ConfirmDialog";
 import {
   addCustomIde,
   CUSTOM_IDES_CHANGED_EVENT,
@@ -15,6 +16,7 @@ export function CustomIdesSection() {
   const [ides, setIdes] = useState<CustomIde[]>(() => loadCustomIdes());
   const [editing, setEditing] = useState<CustomIde | null>(null);
   const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<CustomIde | null>(null);
 
   useEffect(() => {
     const onChange = () => setIdes(loadCustomIdes());
@@ -42,11 +44,15 @@ export function CustomIdesSection() {
   };
 
   const handleDelete = (ide: CustomIde) => {
-    const ok = window.confirm(`Delete custom IDE "${ide.name}"?`);
-    if (!ok) return;
-    const next = removeCustomIde(ides, ide.key);
+    setConfirmDelete(ide);
+  };
+
+  const confirmDeleteIde = () => {
+    if (!confirmDelete) return;
+    const next = removeCustomIde(ides, confirmDelete.key);
     saveCustomIdes(next);
     setIdes(next);
+    setConfirmDelete(null);
   };
 
   return (
@@ -114,6 +120,16 @@ export function CustomIdesSection() {
           setEditing(null);
         }}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        variant="danger"
+        title="Delete Custom IDE"
+        message={`Delete custom IDE "${confirmDelete?.name ?? ""}"?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDeleteIde}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   );

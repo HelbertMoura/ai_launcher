@@ -3,30 +3,38 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
 import { Button } from "../../ui/Button";
+import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { Skeleton } from "../../ui/Skeleton";
 import { CliCard } from "./CliCard";
+import { CustomCliCard } from "./CustomCliCard";
 import { LaunchDialog } from "./LaunchDialog";
+import { CustomCliLaunchDialog } from "./CustomCliLaunchDialog";
 import { useClis, type CliInfo } from "./useClis";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
 import {
-  getTemplates,
-  deleteTemplate,
-  type SessionTemplate,
-} from "./sessionTemplates";
+  loadProfiles,
+  removeProfile,
+} from "../../domain/profileStore";
+import type { LaunchProfile } from "../../domain/types";
+import type { CustomCli } from "../../lib/customClis";
 import "../page.css";
 import "./LauncherPage.css";
 
 export function LauncherPage() {
   const { t } = useTranslation();
-  const { clis, checks, loading, error, refresh } = useClis();
+  const { clis, checks, customClis, loading, error, refresh } = useClis();
   const [launching, setLaunching] = useState<CliInfo | null>(null);
+  const [launchingCustom, setLaunchingCustom] = useState<CustomCli | null>(null);
   const [installing, setInstalling] = useState<string | null>(null);
   const { summary: updates } = useUpdates();
-  const [templates, setTemplates] = useState<SessionTemplate[]>(() =>
-    getTemplates(),
+  const [profiles, setProfiles] = useState<LaunchProfile[]>(() =>
+    loadProfiles(),
   );
-  const refreshTemplates = () => setTemplates(getTemplates());
+  const [confirmDeleteProfile, setConfirmDeleteProfile] = useState<LaunchProfile | null>(null);
+  const refreshProfiles = () => setProfiles(loadProfiles());
+
+  const allCount = clis.length + customClis.length;
 
   const cliHasUpdate = (name: string) =>
     updates?.cli_updates.some((u) => u.cli === name && u.has_update) ?? false;
@@ -47,18 +55,18 @@ export function LauncherPage() {
     }
   };
 
-  const launchTemplate = async (tpl: SessionTemplate) => {
+  const launchProfile = async (profile: LaunchProfile) => {
     try {
-      await invoke("launch_cli", {
-        cliKey: tpl.cliKey,
-        directory: tpl.directory,
-        args: tpl.args,
-        noPerms: tpl.noPerms,
+      await invoke<{ session_id: string; message: string }>("launch_cli", {
+        cliKey: profile.cliKeys[0] ?? "",
+        directory: profile.directory ?? "",
+        args: profile.args ?? "",
+        noPerms: profile.noPerms ?? true,
         envVars: null,
       });
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error("template launch failed", e);
+      console.error("profile launch failed", e);
     }
   };
 
@@ -74,7 +82,7 @@ export function LauncherPage() {
               ? t("common.scanning")
               : t("launcher.installedCount", {
                   installed: installedCount,
-                  total: clis.length,
+                  total: allCount,
                 })}
           </p>
         </div>
@@ -91,45 +99,35 @@ export function LauncherPage() {
 
       {error && <Banner variant="err">{error}</Banner>}
 
-      {templates.length > 0 && (
+      {profiles.length > 0 && (
         <div className="cd-launcher__templates">
           <h3 className="cd-launcher__section-title">
             {t("launcher.templates")}
           </h3>
           <div className="cd-launcher__templates-grid">
-            {templates.map((tpl) => (
-              <div key={tpl.id} className="cd-launcher__template-card">
-                <div className="cd-launcher__template-name">{tpl.name}</div>
+            {profiles.map((p) => (
+              <div key={p.id} className="cd-launcher__template-card">
+                <div className="cd-launcher__template-name">{p.name}</div>
                 <div
                   className="cd-launcher__template-meta"
-                  title={`${tpl.cliName} · ${tpl.directory}`}
+                  title={`${p.cliKeys[0] ?? ""} · ${p.directory ?? ""}`}
                 >
-                  {tpl.cliName} · {tpl.directory}
+                  {p.cliKeys[0] ?? ""} · {p.directory ?? ""}
                 </div>
                 <div className="cd-launcher__template-actions">
                   <button
                     type="button"
                     className="cd-launcher__template-launch"
-                    onClick={() => void launchTemplate(tpl)}
+                    onClick={() => void launchProfile(p)}
                   >
                     {t("launcher.launch")}
                   </button>
                   <button
                     type="button"
                     className="cd-launcher__template-delete"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t("launcher.deleteTemplateConfirm", {
-                            name: tpl.name,
-                          }),
-                        )
-                      ) {
-                        deleteTemplate(tpl.id);
-                        refreshTemplates();
-                      }
-                    }}
+                    onClick={() => setConfirmDeleteProfile(p)}
                     title={t("common.delete")}
+                    aria-label={t("common.delete")}
                   >
                     ✕
                   </button>
@@ -148,11 +146,11 @@ export function LauncherPage() {
         </div>
       )}
 
-      {!loading && clis.length === 0 && (
+      {!loading && allCount === 0 && (
         <div className="cd-page__empty">{t("launcher.empty")}</div>
       )}
 
-      {!loading && clis.length > 0 && (
+      {!loading && allCount > 0 && (
         <div className="cd-page__grid">
           {clis.map((cli) => (
             <CliCard
@@ -165,6 +163,13 @@ export function LauncherPage() {
               onInstall={onInstall}
             />
           ))}
+          {customClis.map((ccli) => (
+            <CustomCliCard
+              key={`custom-${ccli.key}`}
+              cli={ccli}
+              onLaunch={setLaunchingCustom}
+            />
+          ))}
         </div>
       )}
 
@@ -172,8 +177,30 @@ export function LauncherPage() {
         cli={launching}
         onClose={() => {
           setLaunching(null);
-          refreshTemplates();
+          refreshProfiles();
         }}
+      />
+
+      <CustomCliLaunchDialog
+        cli={launchingCustom}
+        onClose={() => setLaunchingCustom(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteProfile !== null}
+        variant="danger"
+        title={t("launcher.deleteTemplateTitle", "Delete Template")}
+        message={t("launcher.deleteTemplateConfirm", {
+          name: confirmDeleteProfile?.name ?? "",
+        })}
+        confirmLabel={t("common.delete", "Delete")}
+        onConfirm={() => {
+          if (confirmDeleteProfile) {
+            setProfiles(removeProfile(profiles, confirmDeleteProfile.id));
+          }
+          setConfirmDeleteProfile(null);
+        }}
+        onCancel={() => setConfirmDeleteProfile(null)}
       />
     </section>
   );
