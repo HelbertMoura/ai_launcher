@@ -7,38 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [15.0.0] — 2026-04-24 — AI Ops Command Center
 
-### Added
+Maior release desde a v1: 16 features do PRD + 11 melhorias visuais + correções críticas dos botões de instalar.
 
-- **FEAT-15.1: Updates Reliability** — Backend `check_all_updates` agora inclui tool_updates no total. Frontend usa chaves canonicas (`u.key ?? u.cli`) em vez de nome exibido para todas as chamadas invoke de update/install.
-- **FEAT-15.2: Unified Presets & Templates** — Modelo unificado `LaunchProfile` substitui `LaunchPreset` (Admin) e `SessionTemplate` (Launcher). Migracao automatica com backup.
-- **FEAT-15.3: Custom Tools Runtime** — Custom CLIs e IDEs integrados ao fluxo principal como cidadaos de primeira classe com badge `Custom`.
-- **FEAT-15.4: Session Lifecycle** — Sessoes agora tem estados reais (`starting`/`running`/`completed`/`failed`/`unknown`). Historico nao mente sobre status.
-- **FEAT-15.5: Provider Adapter Matrix** — Providers definem protocolo (`anthropic_messages`/`openai_chat`/`openai_responses`/`custom`). Teste de conexao usa payload correto por protocolo.
-- **FEAT-15.6: Secure Secrets** — API keys movidas para storage nativo seguro (DPAPI no Windows). Fallback transparente com aviso quando indisponivel.
-- **FEAT-15.7: Command Deck 2.0** — Tokens CSS consolidados, emojis trocados por icones, light theme com profundidade, componentes de dialog/toast/confirmacao proprios.
-- **FEAT-15.8: GitHub & Release Reliability** — Assets de release validados por versao no CI. Release notes separadas por categoria.
-- **FEAT-15.9: Workspace Profiles** — Grupos por repo/time/contexto com troca rapida de diretorio, CLI e provider.
-- **FEAT-15.10: Agent Runbooks** — Sequencias de passos para preparar ambiente e iniciar agentes. Execucao com log por passo.
+### Added — Core (16 features)
+
+- **FEAT-15.1: Updates Reliability** — Backend `check_all_updates` agora inclui tool_updates no total. Frontend usa chaves canônicas (`u.key ?? u.cli`) em vez de nome exibido para todas as chamadas invoke de update/install.
+- **FEAT-15.2: Unified Presets & Templates** — Modelo unificado `LaunchProfile` substitui `LaunchPreset` (Admin) e `SessionTemplate` (Launcher). Migração automática com backup.
+- **FEAT-15.3: Custom Tools Runtime** — Custom CLIs e IDEs integrados ao fluxo principal como cidadãos de primeira classe com badge `Custom`.
+- **FEAT-15.4: Session Lifecycle** — Sessões agora têm estados reais (`starting`/`running`/`completed`/`failed`/`unknown`). Histórico não mente sobre status.
+- **FEAT-15.5: Provider Adapter Matrix** — Providers definem protocolo (`anthropic_messages`/`openai_chat`/`openai_responses`/`custom`). Teste de conexão usa payload correto por protocolo.
+- **FEAT-15.6: Secure Secrets** — API keys movidas para storage nativo seguro (DPAPI no Windows). Fallback transparente com aviso quando indisponível.
+- **FEAT-15.7: Command Deck 2.0** — Tokens CSS consolidados, componentes de dialog/toast/confirmação próprios, zero `alert()`/`confirm()`/`prompt()` nativos.
+- **FEAT-15.8: GitHub & Release Reliability** — Scripts `audit-release.sh` e `generate-latest-json.sh` para validar assets por versão no CI.
+- **FEAT-15.9: Workspace Profiles** — Grupos por repo/time/contexto com troca rápida de diretório, CLI e provider.
+- **FEAT-15.10: Agent Runbooks** — Sequências de passos para preparar ambiente e iniciar agentes. Execução com log por passo.
 - **FEAT-15.11: Provider Budget Guard** — Limites locais de custo/uso por provider com alerta ao atingir 80%.
-- **FEAT-15.12: Environment Doctor** — Diagnostico e reparo de Node, Git, Rust, Python, Bun, CLIs e IDEs com severidade e acao recomendada.
-- **FEAT-15.13: Safe Command Preview** — Preview de comandos customizados com classificacao de risco, dry-run e confirmacao obrigatoria.
-- **FEAT-15.14: Self-Updater** — Verificacao, download e validacao de update do AI Launcher separado de update de ferramentas.
-- **FEAT-15.15: Windows Distribution** — Instalador assinado, publicacao no Winget e Chocolatey.
-- **FEAT-15.16: Accessibility** — Labels descritivos, estados de foco consistentes, navegacao completa por teclado, auditoria axe.
+- **FEAT-15.12: Environment Doctor** — Diagnóstico e reparo de Node, Git, Rust, Python, Bun, CLIs e IDEs com severidade (crítico/aviso/info) e ação recomendada.
+- **FEAT-15.13: Safe Command Preview** — Preview de comandos customizados com classificação de risco (safe/caution/dangerous), dry-run e confirmação obrigatória.
+- **FEAT-15.14: Self-Updater** — Verificação, download e validação de update do AI Launcher separado de update de ferramentas.
+- **FEAT-15.15: Windows Distribution** — Scripts de assinatura + docs para Winget/Chocolatey publishing.
+- **FEAT-15.16: Accessibility** — Labels descritivos, estados de foco consistentes, navegação completa por teclado, focus trap em dialogs.
+
+### Added — Visual (Tier 1/2/3)
+
+- **Dotted grid background** no main (radial-gradient 24px, opacity 0.06 dark / 0.08 light) — reforça identidade terminal-native.
+- **Elaborate focus ring** — outline 1px + offset 3px + 4px accent-soft + 12px glow.
+- **Density toggle** (comfortable / compact) via `[data-density]` tokens — shortcut no TopBar.
+- **Sidebar mini-indicadores** — badges contextuais em History (sessões hoje), Costs ($), Workspaces (pinned), Updates (pending).
+- **StatusBar expandida** — última sessão recente + provider latency dot (green/yellow/red).
+- **EmptyState component** com 5 ASCII art presets (terminal/toolbox/clock/chart/check) — wired em Launcher, Tools, Updates, Costs.
+- **Bento grid Workspace** — CSS Grid com 5 cards (Profiles, Budget, Doctor, Runbooks, Recent Sessions) e navegação click-through.
+- **History timeline waterfall** — bars horizontais com status dots, toggle 24h/7d, waterfall terminal-native.
+- **Rich Command Palette** — categorias (Navigate/Actions/Recent/Theme), ícones, shortcut chips, fuzzy highlight com `<mark>`, recent sessions relaunchable.
+- **4 theme variants** — dark (default) / light / amber (CRT retro, #ffb000) / glacier (cool blue, #4da6ff) com cycle toggle.
+- **Space Grotesk** — nova `--font-display` para títulos de página via `.cd-page__title`.
+- **Phosphor Icons** foundation — `@phosphor-icons/react` instalado, `Icon.tsx` wrapper + `icons.ts` curated exports.
 
 ### Changed
 
 - **Version bumped** to 15.0.0 across `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`.
-- **DevUrl** changed from `localhost:5173` to `127.0.0.1:5173` for Windows compatibility.
-- **E2E config** uses `127.0.0.1` instead of `localhost` to fix `getaddrinfo EAI_FAIL` on Windows.
-- **CSS tokens** consolidated — removed undefined `var(--surface)` references, aligned font selector with actual tokens.
+- **DevUrl** changed from `localhost:5173` to `127.0.0.1:5173` (Windows `getaddrinfo EAI_FAIL` fix).
+- **E2E config** uses `127.0.0.1` instead of `localhost`.
+- **CSS tokens** consolidated — removed undefined `var(--surface)` references, aligned font selector with `--font-mono`.
+- **App.tsx chrome** consolidated — single `ChromeConnector` shares `useUsage` + `useUpdates` across sidebar + statusbar.
+- **Theme cycle** — toggle agora cicla 4 temas em vez de 2 (dark → light → amber → glacier).
 
 ### Fixed
 
+- **🔥 Install buttons completamente quebrados** — botões de "Instalar" e "Corrigir" em Pré-reqs, Doctor e Updates não faziam nada ao clicar. Causa raiz: frontend enviava `{ name }` mas backend esperava `{ key }`, e o `CheckResult` nunca retornava chave canônica (só nome de exibição como "Node.js / npm" que não casava com os match arms do `install_prerequisite`). `PrereqCard` também não tinha botão, só mostrava o comando como texto. **Fix**: campo `key: String` adicionado em `CheckResult`, populado em todos os 14 prereqs, `PrereqCard` ganhou botão real, classify() do Doctor agora casa por key em vez de name.
 - **Updates total bug** — `check_all_updates` now includes `tool_updates` in `total_with_updates` count.
-- **Key vs display name** — CLI and tool update actions now use canonical keys instead of display names.
+- **Key vs display name** (CLI updates) — CLI and tool update actions now use canonical keys instead of display names.
 - **E2E localhost failure** — Playwright and Vite dev server now use `127.0.0.1` instead of `localhost`.
 - **Undefined CSS tokens** — `var(--surface)` references replaced with existing tokens.
+- **Font selector broken** — `appearance.ts` now writes to `--font-mono` (actual token) instead of `--ff-mono` (orphan).
+- **Doctor classify()** — was matching lowercase names ("node.js / npm") against a Set of keys ("node"), never matching. Now classifies by canonical key.
+
+### Security
+
+- API keys no longer persist in plaintext `localStorage` by default. Migration runs in background on boot.
+- `exportData` continues to redact `apiKey`, `Authorization`, `token`, `secret` fields.
+- Safe Command Preview required for all custom commands — dangerous risk level requires double confirmation.
+
+### Stats
+
+- 16 features across 5 milestones + 11 visual improvements
+- 5 commits on `release/v15` branch (backup preserved on `backup/pre-v15-main`)
+- Tests: 61/61 passing (7 files)
+- Build: 459 KB JS (131 KB gzip), 84 KB CSS (13 KB gzip)
+- Dependencies added: `@phosphor-icons/react` (tree-shaken: ~30 bytes gzip for used icons)
 
 ## [14.0.0] — 2026-04-23 — Major Release
 
