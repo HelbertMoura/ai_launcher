@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FloppyDisk } from '../ui/icons';
 import type { LaunchProfile } from '../domain/types';
 import { PresetIcon, PRESET_ICON_IDS } from './PresetIcon';
 
@@ -80,7 +81,10 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             autoFocus
           />
-          <button className="btn" onClick={handleSave}>{t('presets.saveBtn', '💾 Salvar')}</button>
+          <button className="btn cd-icon" onClick={handleSave}>
+            <FloppyDisk size={14} weight="regular" />
+            <span>{t('presets.saveBtn', 'Salvar')}</span>
+          </button>
         </div>
       )}
       {presets.length === 0 && !showAdd && (
