@@ -11,21 +11,12 @@ interface DoctorItem {
   severity: Severity;
 }
 
-const CRITICAL_NAMES = new Set(["node", "node.js", "git"]);
-const WARNING_NAMES = new Set([
-  "python",
-  "python3",
-  "rust",
-  "rustc",
-  "pnpm",
-  "yarn",
-  "bun",
-]);
+const CRITICAL_KEYS = new Set(["node", "git"]);
+const WARNING_KEYS = new Set(["python", "rust", "pnpm", "yarn", "bun"]);
 
-function classify(name: string): Severity {
-  const lower = name.toLowerCase();
-  if (CRITICAL_NAMES.has(lower)) return "critical";
-  if (WARNING_NAMES.has(lower)) return "warning";
+function classify(key: string): Severity {
+  if (CRITICAL_KEYS.has(key)) return "critical";
+  if (WARNING_KEYS.has(key)) return "warning";
   return "info";
 }
 
@@ -49,7 +40,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
       const results = await invoke<PrereqCheck[]>("check_environment");
       const classified = results.map((check) => ({
         check,
-        severity: classify(check.name),
+        severity: classify(check.key),
       }));
       setItems(classified);
     } catch (e) {
@@ -66,9 +57,9 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const handleFix = useCallback(
     async (item: DoctorItem) => {
       if (dryRun) return;
-      setFixing(item.check.name);
+      setFixing(item.check.key);
       try {
-        await invoke("install_prerequisite", { name: item.check.name });
+        await invoke("install_prerequisite", { key: item.check.key });
         // Re-run diagnosis after fix
         await runDiagnosis();
       } catch (e) {
@@ -184,9 +175,9 @@ function DoctorGroup({ title, items, fixing, dryRun, onFix }: DoctorGroupProps) 
       <div className="cd-doc__grid">
         {items.map((item) => (
           <DoctorCard
-            key={item.check.name}
+            key={item.check.key}
             item={item}
-            isFixing={fixing === item.check.name}
+            isFixing={fixing === item.check.key}
             dryRun={dryRun}
             onFix={onFix}
           />

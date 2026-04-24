@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface PrereqCheck {
+  /** Canonical key used by install_prerequisite (e.g. "node", "git", "vscode"). */
+  key: string;
   name: string;
   installed: boolean;
   version: string | null;

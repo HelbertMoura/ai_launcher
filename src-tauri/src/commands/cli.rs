@@ -30,6 +30,7 @@ pub fn check_clis() -> Vec<CheckResult> {
         .map(|cli| {
             let (installed, version) = check_cli_installed(cli);
             CheckResult {
+                key: cli.key.clone(),
                 name: cli.name.clone(),
                 installed,
                 version,

@@ -38,6 +38,8 @@ pub struct ToolInfo {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CheckResult {
+    /// Canonical key matched by `install_prerequisite` (e.g. "node", "git", "vscode").
+    pub key: String,
     pub name: String,
     pub installed: bool,
     pub version: Option<String>,
