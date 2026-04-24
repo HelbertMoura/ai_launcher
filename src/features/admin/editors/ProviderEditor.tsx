@@ -8,7 +8,9 @@ import { Input } from "../../../ui/Input";
 import type {
   ProviderKind,
   ProviderProfile,
+  ProviderProtocol,
 } from "../../../providers/types";
+import { KIND_DEFAULT_PROTOCOL } from "../../../providers/seeds";
 
 interface TestResult {
   ok: boolean;
@@ -40,6 +42,13 @@ const KINDS: ProviderKind[] = [
   "custom",
 ];
 
+const PROTOCOLS: { value: ProviderProtocol; label: string }[] = [
+  { value: "anthropic_messages", label: "Anthropic Messages (/v1/messages)" },
+  { value: "openai_chat", label: "OpenAI Chat (/chat/completions)" },
+  { value: "openai_responses", label: "OpenAI Responses (/responses)" },
+  { value: "custom", label: "Custom" },
+];
+
 function slugify(name: string): string {
   return name
     .trim()
@@ -58,6 +67,7 @@ function emptyProfile(): ProviderProfile {
     mainModel: "",
     fastModel: "",
     contextWindow: 200_000,
+    protocol: "custom",
   };
 }
 
@@ -86,7 +96,17 @@ export function ProviderEditor({
     key: K,
     value: ProviderProfile[K],
   ) => {
-    setDraft((prev) => ({ ...prev, [key]: value }));
+    setDraft((prev) => {
+      const next = { ...prev, [key]: value };
+      // Auto-set protocol when kind changes, only if protocol hasn't been manually set
+      if (key === "kind") {
+        const defaultProto = KIND_DEFAULT_PROTOCOL[value as string];
+        if (defaultProto && !prev.protocol) {
+          next.protocol = defaultProto;
+        }
+      }
+      return next;
+    });
   };
 
   const handleSave = () => {
@@ -129,6 +149,7 @@ export function ProviderEditor({
         baseUrl: draft.baseUrl.trim(),
         apiKey: draft.apiKey,
         model: draft.mainModel.trim(),
+        protocol: draft.protocol ?? null,
       });
       if (result.ok) {
         setTestState({ status: "ok", ms: result.latencyMs ?? 0 });
@@ -185,6 +206,26 @@ export function ProviderEditor({
       </div>
 
       <div className="cd-admin-field">
+        <label className="cd-admin-field__label">Protocol</label>
+        <select
+          className="cd-admin-select"
+          value={draft.protocol ?? "anthropic_messages"}
+          onChange={(e) => update("protocol", e.target.value as ProviderProtocol)}
+        >
+          {PROTOCOLS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        {draft.protocol === "openai_chat" && draft.kind !== "openrouter" && (
+          <Banner variant="warn">
+            OpenAI Chat protocol selected for a non-OpenRouter provider. Make sure your endpoint supports /chat/completions.
+          </Banner>
+        )}
+      </div>
+
+      <div className="cd-admin-field">
         <label className="cd-admin-field__label">Base URL</label>
         <Input
           value={draft.baseUrl}
@@ -211,6 +252,30 @@ export function ProviderEditor({
           onChange={(e) => update("mainModel", e.target.value)}
           placeholder="claude-sonnet-4-5"
         />
+        {draft.knownModels && draft.knownModels.length > 0 && (
+          <div className="cd-admin-field__hint" style={{ marginTop: "var(--s-1)" }}>
+            <span style={{ opacity: 0.6, fontSize: "0.8em" }}>Known models: </span>
+            {draft.knownModels.map((m) => (
+              <button
+                key={m}
+                type="button"
+                className="cd-admin-field__chip"
+                style={{
+                  background: "var(--c-surface-2, #eee)",
+                  border: "none",
+                  borderRadius: "var(--r-sm, 4px)",
+                  padding: "2px 8px",
+                  margin: "2px",
+                  cursor: "pointer",
+                  fontSize: "0.8em",
+                }}
+                onClick={() => update("mainModel", m)}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="cd-admin-field__row" style={{ gap: "var(--s-2)", alignItems: "center" }}>

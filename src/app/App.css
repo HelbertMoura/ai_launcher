@@ -11,5 +11,13 @@
 }
 .cd-app__top { grid-area: top; }
 .cd-app__side { grid-area: side; display: flex; }
-.cd-app__main { grid-area: main; overflow: auto; padding: var(--s-5); }
+.cd-app__main {
+  grid-area: main;
+  overflow: auto;
+  padding: var(--s-5);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--grid-dot-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0;
+}
 .cd-app__status { grid-area: status; }

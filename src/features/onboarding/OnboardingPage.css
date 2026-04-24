@@ -11,7 +11,7 @@
 .cd-onb__panel {
   width: 100%;
   max-width: 640px;
-  background: var(--surface);
+  background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: var(--s-6);
@@ -206,7 +206,7 @@
 .cd-onb__error {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--danger, #e06c75);
+  color: var(--err);
 }
 .cd-onb__results {
   list-style: none;

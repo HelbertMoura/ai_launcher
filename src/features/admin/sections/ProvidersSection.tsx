@@ -4,12 +4,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { Chip } from "../../../ui/Chip";
+import { ConfirmDialog } from "../../../ui/ConfirmDialog";
 import {
   loadProviders,
+  loadProviderApiKey,
   removeProfile,
-  saveProviders,
+  saveProvidersSecure,
   setActive,
   upsertProfile,
+  SECRET_KEY_MARKER,
 } from "../../../providers/storage";
 import type {
   ProviderProfile,
@@ -35,6 +38,7 @@ export function ProvidersSection() {
   const [editing, setEditing] = useState<ProviderProfile | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [testStates, setTestStates] = useState<Record<string, TestState>>({});
+  const [confirmDelete, setConfirmDelete] = useState<ProviderProfile | null>(null);
 
   const existingIds = useMemo(
     () => state.profiles.map((p) => p.id),
@@ -48,14 +52,17 @@ export function ProvidersSection() {
     setEditorOpen(true);
   };
 
-  const openEdit = (profile: ProviderProfile) => {
-    setEditing(profile);
+  const openEdit = async (profile: ProviderProfile) => {
+    // Resolve API key from secure storage before opening the editor.
+    const resolvedKey = await loadProviderApiKey(profile.id, profile.apiKey);
+    setEditing({ ...profile, apiKey: resolvedKey });
     setEditorOpen(true);
   };
 
   const handleSave = (profile: ProviderProfile) => {
     const next = upsertProfile(state, profile);
-    saveProviders(next);
+    // Fire-and-forget secure save; state updates immediately for responsiveness.
+    saveProvidersSecure(next);
     setState(next);
     setEditorOpen(false);
     setEditing(null);
@@ -63,26 +70,35 @@ export function ProvidersSection() {
 
   const handleActivate = (id: string) => {
     const next = setActive(state, id);
-    saveProviders(next);
+    saveProvidersSecure(next);
     setState(next);
   };
 
   const handleDelete = (profile: ProviderProfile) => {
     if (profile.builtin) return;
-    const ok = window.confirm(`Delete provider "${profile.name}"?`);
-    if (!ok) return;
-    const next = removeProfile(state, profile.id);
-    saveProviders(next);
+    setConfirmDelete(profile);
+  };
+
+  const confirmDeleteProvider = () => {
+    if (!confirmDelete) return;
+    const next = removeProfile(state, confirmDelete.id);
+    saveProvidersSecure(next);
     setState(next);
+    setConfirmDelete(null);
   };
 
   const handleTest = async (profile: ProviderProfile) => {
     setTestStates((prev) => ({ ...prev, [profile.id]: { status: "testing" } }));
     try {
+      // Resolve API key from secure storage if needed.
+      const apiKey = profile.apiKey === SECRET_KEY_MARKER
+        ? await loadProviderApiKey(profile.id)
+        : profile.apiKey;
       const result = await invoke<TestResult>("test_provider_connection", {
         baseUrl: profile.baseUrl,
-        apiKey: profile.apiKey,
+        apiKey,
         model: profile.mainModel,
+        protocol: profile.protocol ?? null,
       });
       if (result.ok) {
         setTestStates((prev) => ({
@@ -133,6 +149,9 @@ export function ProvidersSection() {
                   <div className="cd-admin-card__name">{p.name}</div>
                   <div className="cd-admin-card__meta">
                     <Chip variant="neutral">{p.kind}</Chip>
+                    {p.protocol && p.protocol !== 'anthropic_messages' && (
+                      <Chip variant="neutral">{p.protocol}</Chip>
+                    )}
                     {isActive && <Chip variant="online">active</Chip>}
                     {p.builtin && <Chip variant="admin">builtin</Chip>}
                   </div>
@@ -206,6 +225,20 @@ export function ProvidersSection() {
           refresh();
         }}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        variant="danger"
+        title={t("admin.providers.deleteTitle", "Delete Provider")}
+        message={t("admin.providers.deleteConfirm", {
+          defaultValue: `Delete provider "${confirmDelete?.name ?? ""}"?`,
+          name: confirmDelete?.name ?? "",
+        })}
+        confirmLabel={t("common.delete", "Delete")}
+        cancelLabel={t("common.cancel", "Cancel")}
+        onConfirm={confirmDeleteProvider}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   );

@@ -119,7 +119,8 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
         .map_err(|e| format!("Falha interna ao verificar updates: {}", e))?;
 
     let total = cli_updates.iter().filter(|u| u.has_update).count()
-        + env_updates.iter().filter(|u| u.has_update).count();
+        + env_updates.iter().filter(|u| u.has_update).count()
+        + tool_updates.iter().filter(|u| u.has_update).count();
 
     Ok(UpdatesSummary {
         cli_updates,
@@ -153,6 +154,7 @@ pub fn check_environment() -> Vec<CheckResult> {
     let (npm_ok, npm_ver) = run_silent("npm", &["--version"]);
     let (_, node_ver) = run_silent("node", &["--version"]);
     results.push(CheckResult {
+        key: "node".into(),
         name: "Node.js / npm".into(),
         installed: npm_ok,
         version: Some(format!(
@@ -166,6 +168,7 @@ pub fn check_environment() -> Vec<CheckResult> {
     let (py_ok, py_ver) = detect_python();
     let (pip_ok, _) = run_silent("pip", &["--version"]);
     results.push(CheckResult {
+        key: "python".into(),
         name: "Python / pip".into(),
         installed: py_ok || pip_ok,
         version: py_ver.map(|v| format!("Python {}", v)),
@@ -174,6 +177,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (git_ok, git_ver) = run_silent("git", &["--version"]);
     results.push(CheckResult {
+        key: "git".into(),
         name: "Git".into(),
         installed: git_ok,
         version: git_ver,
@@ -182,6 +186,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (rust_ok, rust_ver) = run_silent("rustc", &["--version"]);
     results.push(CheckResult {
+        key: "rust".into(),
         name: "Rust".into(),
         installed: rust_ok,
         version: rust_ver,
@@ -191,6 +196,7 @@ pub fn check_environment() -> Vec<CheckResult> {
     let (cargo_ok, cargo_ver) = run_silent("cargo", &["--version"]);
     if cargo_ok {
         results.push(CheckResult {
+            key: "cargo".into(),
             name: "Cargo".into(),
             installed: true,
             version: cargo_ver,
@@ -200,6 +206,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (pnpm_ok, pnpm_ver) = run_silent("pnpm", &["--version"]);
     results.push(CheckResult {
+        key: "pnpm".into(),
         name: "pnpm".into(),
         installed: pnpm_ok,
         version: pnpm_ver,
@@ -208,6 +215,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (yarn_ok, yarn_ver) = run_silent("yarn", &["--version"]);
     results.push(CheckResult {
+        key: "yarn".into(),
         name: "yarn".into(),
         installed: yarn_ok,
         version: yarn_ver,
@@ -216,6 +224,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (bun_ok, bun_ver) = run_silent("bun", &["--version"]);
     results.push(CheckResult {
+        key: "bun".into(),
         name: "Bun".into(),
         installed: bun_ok,
         version: bun_ver,
@@ -224,6 +233,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let wt_found = find_windows_terminal().is_some();
     results.push(CheckResult {
+        key: "windows-terminal".into(),
         name: "Windows Terminal".into(),
         installed: wt_found,
         version: if wt_found {
@@ -236,6 +246,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (pwsh_ok, pwsh_ver) = run_silent("pwsh", &["--version"]);
     results.push(CheckResult {
+        key: "powershell".into(),
         name: "PowerShell 7+".into(),
         installed: pwsh_ok,
         version: pwsh_ver,
@@ -244,6 +255,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (gitlfs_ok, gitlfs_ver) = run_silent("git", &["lfs", "version"]);
     results.push(CheckResult {
+        key: "git-lfs".into(),
         name: "Git LFS".into(),
         installed: gitlfs_ok,
         version: gitlfs_ver,
@@ -252,6 +264,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (docker_ok, docker_ver) = run_silent("docker", &["--version"]);
     results.push(CheckResult {
+        key: "docker".into(),
         name: "Docker".into(),
         installed: docker_ok,
         version: docker_ver,
@@ -260,6 +273,7 @@ pub fn check_environment() -> Vec<CheckResult> {
 
     let (vscode_ok, vscode_ver) = run_silent("code", &["--version"]);
     results.push(CheckResult {
+        key: "vscode".into(),
         name: "VS Code".into(),
         installed: vscode_ok,
         version: vscode_ver.map(|v| v.lines().next().unwrap_or("").to_string()),
@@ -269,6 +283,7 @@ pub fn check_environment() -> Vec<CheckResult> {
     let (tauri_ok, _) = run_silent("npm", &["list", "-g", "@tauri-apps/cli", "--depth=0"]);
     let (_, tauri_ver) = run_silent("tauri", &["--version"]);
     results.push(CheckResult {
+        key: "tauri-cli".into(),
         name: "Tauri CLI".into(),
         installed: tauri_ok,
         version: tauri_ver,
@@ -319,14 +334,18 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
             )
             .await
         }
-        "tauri" => {
+        "tauri" | "tauri-cli" => {
             stream_install(
                 app,
-                "tauri".into(),
+                "tauri-cli".into(),
                 "npm".into(),
                 vec!["install".into(), "-g".into(), "@tauri-apps/cli".into()],
             )
             .await
+        }
+        "cargo" => {
+            open::that("https://rustup.rs/").map_err(|e| e.to_string())?;
+            Ok("Abrindo rustup.rs (Cargo vem com Rust)".into())
         }
         _ => Err(format!("Pré-requisito desconhecido: {}", key)),
     }

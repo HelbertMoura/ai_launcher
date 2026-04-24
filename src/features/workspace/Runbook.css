@@ -1,0 +1,232 @@
+/* ==============================================================================
+   AI Launcher Pro - Runbook Styles
+   ============================================================================== */
+
+/* Editor */
+.cd-rb-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.cd-rb-editor__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-rb-editor__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cd-rb-editor__steps-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cd-rb-editor__steps-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cd-rb-editor__empty {
+  padding: var(--s-4);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.cd-rb-editor__footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border);
+}
+
+/* Step Editor */
+.cd-rb-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3);
+}
+
+.cd-rb-step__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cd-rb-step__icon {
+  font-size: 16px;
+}
+
+.cd-rb-step__id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.cd-rb-step__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-rb-step__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.cd-rb-step__field--sm {
+  flex: 0 0 45%;
+}
+
+.cd-rb-step__field--auto {
+  flex: 0 0 auto;
+  align-self: flex-end;
+}
+
+.cd-rb-step__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cd-rb-step__row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.cd-rb-step__select {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--surface-1);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.cd-rb-step__actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* Runner */
+.cd-rb-run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.cd-rb-run__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-rb-run__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cd-rb-run__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.cd-rb-run__toggle {
+  display: flex;
+  align-items: center;
+}
+
+.cd-rb-run__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.cd-rb-run__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-rb-run__step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--s-3);
+}
+
+.cd-rb-run__step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cd-rb-run__step-icon {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cd-rb-run__step-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text);
+  flex: 1;
+}
+
+.cd-rb-run__step-type {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.cd-rb-run__step-auto {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+
+.cd-rb-run__output {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

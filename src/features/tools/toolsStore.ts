@@ -1,5 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { CheckResult, ToolInfo } from "./useTools";
+import {
+  loadCustomIdes,
+  CUSTOM_IDES_CHANGED_EVENT,
+  type CustomIde,
+} from "../../lib/customIdes";
 
 const CACHE_KEY = "ai-launcher:tools-cache";
 const TTL_MS = 10 * 60 * 1000; // 10 min
@@ -13,6 +18,7 @@ interface CachedPayload {
 interface Snapshot {
   tools: ToolInfo[];
   checks: Record<string, CheckResult>;
+  customIdes: CustomIde[];
   loading: boolean;
   error: string | null;
 }
@@ -22,6 +28,7 @@ type Listener = (snap: Snapshot) => void;
 let state: Snapshot = {
   tools: [],
   checks: {},
+  customIdes: [],
   loading: true,
   error: null,
 };
@@ -68,12 +75,30 @@ function setState(partial: Partial<Snapshot>): void {
   emit();
 }
 
+/** Reload custom IDEs from localStorage and merge into snapshot. */
+function mergeCustomIdes(): void {
+  const customIdes = loadCustomIdes();
+  state = { ...state, customIdes };
+  emit();
+}
+
+/** Listen for same-tab custom IDE changes from the Admin panel. */
+function setupCustomIdeListener(): () => void {
+  const handler = () => mergeCustomIdes();
+  window.addEventListener(CUSTOM_IDES_CHANGED_EVENT, handler);
+  return () => window.removeEventListener(CUSTOM_IDES_CHANGED_EVENT, handler);
+}
+
+// Start listening once at module load
+const cleanupCustomIdeListener = setupCustomIdeListener();
+
 async function load(force = false): Promise<void> {
   if (inflight) return inflight;
   if (!force) {
     const cached = readCache();
     if (cached) {
-      state = { tools: cached.tools, checks: cached.checks, loading: false, error: null };
+      const customIdes = loadCustomIdes();
+      state = { tools: cached.tools, checks: cached.checks, customIdes, loading: false, error: null };
       hydrated = true;
       emit();
       return;
@@ -86,7 +111,8 @@ async function load(force = false): Promise<void> {
       const results = await invoke<CheckResult[]>("check_tools");
       const checks: Record<string, CheckResult> = {};
       for (const r of results) checks[r.name] = r;
-      state = { tools, checks, loading: false, error: null };
+      const customIdes = loadCustomIdes();
+      state = { tools, checks, customIdes, loading: false, error: null };
       hydrated = true;
       writeCache(tools, checks);
       emit();
@@ -121,5 +147,9 @@ export const toolsStore = {
   invalidate(): void {
     clearCache();
     hydrated = false;
+  },
+  /** Cleanup the custom IDE event listener (for tests). */
+  destroy(): void {
+    cleanupCustomIdeListener();
   },
 };

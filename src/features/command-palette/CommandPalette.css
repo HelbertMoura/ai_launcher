@@ -1,85 +1,284 @@
+/* =====================================================================
+   Command Deck — CommandPalette (v15)
+   Terminal, monospace, sharp, red accent. Inspired by Raycast/Linear.
+   ===================================================================== */
+
 .cd-cmd__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding-top: 14vh;
   z-index: 200;
+  animation: cd-cmd-fade 120ms ease-out;
 }
 
 .cd-cmd {
   width: 560px;
   max-width: calc(100% - var(--s-5));
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
   background: var(--surface-1);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset;
   overflow: hidden;
+  animation: cd-cmd-enter 140ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cd-cmd-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cd-cmd-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----- Prompt row ----- */
+.cd-cmd__prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.cd-cmd__prompt-sigil {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--accent);
+  font-weight: 700;
+  user-select: none;
+  letter-spacing: 0;
 }
 
 .cd-cmd__input {
+  flex: 1;
   width: 100%;
-  padding: var(--s-3) var(--s-4);
   background: transparent;
   border: 0;
-  border-bottom: 1px solid var(--border);
   outline: 0;
   font-family: var(--font-mono);
   font-size: var(--text-md);
   color: var(--text);
+  padding: 0;
+  caret-color: var(--accent);
 }
-.cd-cmd__input::placeholder { color: var(--text-dim); }
-
-.cd-cmd__list {
-  max-height: 360px;
-  overflow-y: auto;
-  padding: var(--s-2);
-}
-
-.cd-cmd__empty {
-  padding: var(--s-5);
-  text-align: center;
-  font-family: var(--font-mono);
+.cd-cmd__input::placeholder {
   color: var(--text-dim);
 }
 
-.cd-cmd__group [cmdk-group-heading] {
-  padding: var(--s-2) var(--s-3);
+/* ----- List + groups ----- */
+.cd-cmd__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--s-2) var(--s-2) var(--s-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.cd-cmd__list::-webkit-scrollbar {
+  width: 8px;
+}
+.cd-cmd__list::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 2px;
+}
+
+.cd-cmd__group {
+  padding: 0 0 var(--s-2);
+}
+
+.cd-cmd__group-heading {
+  padding: var(--s-2) var(--s-3) 6px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 1.5px;
+  font-size: var(--text-xs, 10px);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-dim);
+  font-weight: 600;
 }
 
+/* ----- Row ----- */
 .cd-cmd__item {
   display: flex;
   align-items: center;
   gap: var(--s-3);
+  width: 100%;
   padding: 8px var(--s-3);
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
   border-radius: var(--r-sm);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-family: var(--font-sans, inherit);
+  font-size: var(--text-md);
   color: var(--text);
   cursor: pointer;
   user-select: none;
+  text-align: left;
+  transition:
+    background-color 80ms linear,
+    border-color 80ms linear,
+    box-shadow 120ms ease-out;
 }
-.cd-cmd__item[data-selected="true"] {
-  background: var(--accent-soft);
-  color: var(--text);
+
+.cd-cmd__item:focus {
+  outline: none;
 }
-.cd-cmd__item-kind {
-  font-size: 10px;
-  letter-spacing: 1px;
+
+.cd-cmd__item--selected,
+.cd-cmd__item:hover {
+  background: var(--surface-hover);
+  border-left-color: var(--accent);
+}
+
+.cd-cmd__item--selected {
+  box-shadow: 0 0 0 1px var(--accent-soft) inset;
+}
+
+.cd-cmd__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  font-family: var(--font-mono);
+  font-size: 13px;
   color: var(--text-dim);
-  min-width: 52px;
+}
+
+.cd-cmd__item--selected .cd-cmd__icon {
+  color: var(--accent);
+}
+
+.cd-cmd__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cd-cmd__label {
+  font-family: var(--font-sans, inherit);
+  font-size: var(--text-md);
+  color: var(--text);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cd-cmd__desc {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 11px);
+  color: var(--text-dim);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Match highlight (accent) */
+.cd-cmd__match {
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ----- Right-side shortcut chip ----- */
+.cd-cmd__chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 11px);
+  color: var(--text-dim);
+  padding: 2px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--surface-1);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.cd-cmd__item--selected .cd-cmd__chip {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* ----- Empty state ----- */
+.cd-cmd__empty {
+  padding: var(--s-5) var(--s-4);
+  text-align: center;
+  color: var(--text-dim);
+}
+.cd-cmd__empty-art {
+  margin: 0 0 var(--s-2);
+  font-family: var(--font-mono);
+  font-size: 28px;
+  color: var(--accent);
+  opacity: 0.7;
+  line-height: 1;
+}
+.cd-cmd__empty-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-.cd-cmd__item-label { flex: 1; }
 
+/* ----- Footer hints ----- */
+.cd-cmd__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 6px var(--s-3);
+  border-top: 1px solid var(--border);
+  background: var(--surface-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs, 11px);
+  color: var(--text-dim);
+}
+
+.cd-cmd__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cd-cmd__footer kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text);
+  background: var(--surface-2, var(--surface-1));
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+}
+
+/* ----- Accent swatches (unchanged from v14) ----- */
 .cd-cmd__swatch {
   width: 12px;
   height: 12px;
