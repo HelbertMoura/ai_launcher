@@ -25,6 +25,8 @@ export function Sidebar({ active, onSelect, version }: SidebarProps) {
           <Item id="tools" active={active} onSelect={onSelect} />
           <Item id="history" active={active} onSelect={onSelect} />
           <Item id="costs" active={active} onSelect={onSelect} />
+          <Item id="workspace" active={active} onSelect={onSelect} />
+          <Item id="doctor" active={active} onSelect={onSelect} />
           <Item id="updates" active={active} onSelect={onSelect} />
           <Item id="prereqs" active={active} onSelect={onSelect} />
         </div>

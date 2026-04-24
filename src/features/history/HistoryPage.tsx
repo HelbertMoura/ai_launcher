@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
+import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
-import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import { buildLaunchEnvAsync, loadProviders, setActive } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import "../page.css";
 import "./HistoryPage.css";
@@ -33,7 +34,8 @@ function useRelativeTime() {
   };
 }
 
-function formatDuration(seconds: number): string {
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000);
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -42,14 +44,20 @@ function formatDuration(seconds: number): string {
   return `${h}h ${m % 60}m`;
 }
 
-function StatusBadge({ status }: { status?: SessionStatus }) {
-  if (!status || status === "running") {
-    return <span className="cd-history__status cd-history__status--running" title="Running">●</span>;
+function StatusBadge({ status }: { status: SessionStatus }) {
+  switch (status) {
+    case "starting":
+      return <span className="cd-history__status cd-history__status--starting" title="Starting" aria-label="Starting">●</span>;
+    case "running":
+      return <span className="cd-history__status cd-history__status--running" title="Running" aria-label="Running">●</span>;
+    case "completed":
+      return <span className="cd-history__status cd-history__status--completed" title="Completed" aria-label="Completed">✓</span>;
+    case "failed":
+      return <span className="cd-history__status cd-history__status--failed" title="Failed" aria-label="Failed">✗</span>;
+    case "unknown":
+    default:
+      return <span className="cd-history__status cd-history__status--unknown" title="Unknown" aria-label="Unknown">?</span>;
   }
-  if (status === "finished") {
-    return <span className="cd-history__status cd-history__status--finished" title="Finished">✓</span>;
-  }
-  return <span className="cd-history__status cd-history__status--error" title="Error">✗</span>;
 }
 
 function ProviderBadge({ providerId, profiles }: { providerId?: string; profiles: ProvidersState["profiles"] }) {
@@ -77,6 +85,7 @@ export function HistoryPage() {
   const [filterCli, setFilterCli] = useState<string>("all");
   const [filterProvider, setFilterProvider] = useState<string>("all");
   const [filterRange, setFilterRange] = useState<"today" | "week" | "month" | "all">("all");
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const distinctClis = useMemo(() => {
     const set = new Set<string>();
@@ -121,8 +130,12 @@ export function HistoryPage() {
 
   const onClear = () => {
     if (items.length === 0) return;
-    const ok = window.confirm(t("history.clearConfirm"));
-    if (ok) clear();
+    setConfirmClear(true);
+  };
+
+  const confirmClearHistory = () => {
+    clear();
+    setConfirmClear(false);
   };
 
   return (
@@ -210,6 +223,16 @@ export function HistoryPage() {
           </ul>
         </>
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        variant="danger"
+        title={t("history.clearTitle", "Clear History")}
+        message={t("history.clearConfirm")}
+        confirmLabel={t("history.clear", "Clear")}
+        onConfirm={confirmClearHistory}
+        onCancel={() => setConfirmClear(false)}
+      />
     </section>
   );
 }
@@ -232,42 +255,72 @@ function HistoryRow({
   const [descEditing, setDescEditing] = useState(false);
   const [descValue, setDescValue] = useState(item.description ?? "");
   const [relaunching, setRelaunching] = useState(false);
+  const [confirmProviderGone, setConfirmProviderGone] = useState(false);
 
   const saveDescription = () => {
     onUpdate(index, { description: descValue });
     setDescEditing(false);
   };
 
-  const handleReopen = async () => {
+  const doReopen = async () => {
     setRelaunching(true);
     try {
       let envVars: Record<string, string> | null = null;
       if (item.cliKey === "claude" && item.providerId) {
         const profileExists = providersState.profiles.some(p => p.id === item.providerId);
         if (!profileExists) {
-          const ok = window.confirm(t("history.providerGone", { id: item.providerId }));
-          if (!ok) { setRelaunching(false); return; }
-          const built = buildLaunchEnv(providersState);
+          const built = await buildLaunchEnvAsync(providersState);
           envVars = built ?? null;
         } else {
           const stateWithProvider = setActive(providersState, item.providerId);
-          const built = buildLaunchEnv(stateWithProvider);
+          const built = await buildLaunchEnvAsync(stateWithProvider);
           envVars = built ?? null;
         }
       }
-      await invoke<string>("launch_cli", {
+      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
         cliKey: item.cliKey,
         directory: item.directory,
         args: item.args,
         noPerms: true,
         envVars,
       });
-      onUpdate(index, { status: "running", duration: undefined });
+      const now = new Date().toISOString();
+      onUpdate(index, {
+        status: "starting",
+        sessionId: result.session_id,
+        startedAt: now,
+        completedAt: undefined,
+        duration: undefined,
+        exitCode: undefined,
+        errorMessage: undefined,
+      });
     } catch {
-      onUpdate(index, { status: "error" });
+      const now = new Date().toISOString();
+      onUpdate(index, {
+        status: "failed",
+        startedAt: now,
+        completedAt: now,
+        duration: 0,
+      });
     } finally {
       setRelaunching(false);
     }
+  };
+
+  const handleReopen = () => {
+    if (item.cliKey === "claude" && item.providerId) {
+      const profileExists = providersState.profiles.some(p => p.id === item.providerId);
+      if (!profileExists) {
+        setConfirmProviderGone(true);
+        return;
+      }
+    }
+    void doReopen();
+  };
+
+  const confirmProviderGoneReopen = () => {
+    setConfirmProviderGone(false);
+    void doReopen();
   };
 
   return (
@@ -279,7 +332,7 @@ function HistoryRow({
               <StatusBadge status={item.status} />
               <span className="cd-history__cli">{item.cli}</span>
               <ProviderBadge providerId={item.providerId} profiles={providersState.profiles} />
-              {item.duration != null && (
+              {item.duration != null && item.duration > 0 && (
                 <span className="cd-history__duration">
                   {formatDuration(item.duration)}
                 </span>
@@ -290,6 +343,13 @@ function HistoryRow({
             </div>
             {item.args.trim() && (
               <code className="cd-history__args">{item.args}</code>
+            )}
+            {item.status === "failed" && item.errorMessage && (
+              <div className="cd-history__error" title={item.errorMessage}>
+                {item.errorMessage.length > 80
+                  ? `${item.errorMessage.slice(0, 77)}...`
+                  : item.errorMessage}
+              </div>
             )}
             {descEditing ? (
               <div className="cd-history__desc-edit">
@@ -326,13 +386,26 @@ function HistoryRow({
               <Button size="sm" loading={relaunching} onClick={handleReopen}>
                 {t("history.reopen")}
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => onRemove(index)}>
+              <Button size="sm" variant="ghost" onClick={() => onRemove(index)} aria-label={t("common.remove", "Remove")}>
                 ×
               </Button>
             </div>
           </div>
         </div>
       </Card>
+
+      <ConfirmDialog
+        open={confirmProviderGone}
+        variant="danger"
+        title={t("history.providerGoneTitle", "Provider Unavailable")}
+        message={t("history.providerGone", { id: item.providerId })}
+        confirmLabel={t("history.reopen", "Reopen")}
+        onConfirm={confirmProviderGoneReopen}
+        onCancel={() => {
+          setConfirmProviderGone(false);
+          setRelaunching(false);
+        }}
+      />
     </li>
   );
 }

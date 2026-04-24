@@ -119,7 +119,8 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
         .map_err(|e| format!("Falha interna ao verificar updates: {}", e))?;
 
     let total = cli_updates.iter().filter(|u| u.has_update).count()
-        + env_updates.iter().filter(|u| u.has_update).count();
+        + env_updates.iter().filter(|u| u.has_update).count()
+        + tool_updates.iter().filter(|u| u.has_update).count();
 
     Ok(UpdatesSummary {
         cli_updates,

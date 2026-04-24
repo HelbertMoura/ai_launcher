@@ -14,7 +14,7 @@ interface CommandPaletteProps {
   onSetAccent: (accent: Accent) => void;
 }
 
-const TABS: TabId[] = ["launcher", "tools", "history", "costs", "admin", "help"];
+const TABS: TabId[] = ["launcher", "tools", "history", "costs", "workspace", "doctor", "admin", "help"];
 
 export function CommandPalette({
   open,

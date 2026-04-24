@@ -44,7 +44,7 @@ export function ToolCard({
         <Chip variant={installed ? "online" : "missing"} dot>
           {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
-        {hasUpdate && <span className="cd-tool-card__update" title="Update available">⬆</span>}
+        {hasUpdate && <span className="cd-tool-card__update" title="Update available" aria-label="Update available">&#x2191;</span>}
       </div>
       <div className="cd-tool-card__actions">
         {installed ? (

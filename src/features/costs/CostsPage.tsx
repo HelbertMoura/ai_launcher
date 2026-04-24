@@ -5,6 +5,7 @@ import { Card } from "../../ui/Card";
 import { Skeleton } from "../../ui/Skeleton";
 import { useUsage, type UsageEntry } from "./useUsage";
 import { toCsv, downloadBlob } from "../../lib/exportData";
+import { BudgetDashboard } from "./BudgetDashboard";
 import "../page.css";
 import "./CostsPage.css";
 
@@ -152,6 +153,8 @@ export function CostsPage() {
               </div>
             </>
           )}
+
+          <BudgetDashboard />
         </>
       )}
     </section>

@@ -9,6 +9,7 @@ import { useTools } from "../tools/useTools";
 import { usePrerequisites } from "../prereqs/usePrerequisites";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import { AppUpdater } from "./AppUpdater";
 import "../page.css";
 import "./UpdatesPage.css";
 
@@ -124,37 +125,46 @@ export function UpdatesPage() {
         <div className="cd-page__empty">{t("updates.noUpdates")}</div>
       )}
 
+      {/* App self-update section */}
+      <AppUpdater />
+
       {!updatesLoading && cliUpdates.length > 0 && (
         <Section title={t("updates.cliUpdates")}>
-          {cliUpdates.map((u) => (
-            <Row
-              key={u.cli}
-              name={u.cli}
-              detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
-              actionLabel={t("updates.update")}
-              loadingLabel={t("updates.updating")}
-              busy={busy === `cli:${u.cli}`}
-              disabled={busy !== null}
-              onAction={() => void run(`cli:${u.cli}`, "update_cli", { cliKey: u.cli })}
-            />
-          ))}
+          {cliUpdates.map((u) => {
+            const k = u.key ?? u.cli;
+            return (
+              <Row
+                key={k}
+                name={u.cli}
+                detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
+                actionLabel={t("updates.update")}
+                loadingLabel={t("updates.updating")}
+                busy={busy === `cli:${k}`}
+                disabled={busy !== null}
+                onAction={() => void run(`cli:${k}`, "update_cli", { cliKey: k })}
+              />
+            );
+          })}
         </Section>
       )}
 
       {!updatesLoading && toolUpdates.length > 0 && (
         <Section title={t("updates.toolUpdates")}>
-          {toolUpdates.map((u) => (
-            <Row
-              key={u.cli}
-              name={u.cli}
-              detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
-              actionLabel={t("updates.update")}
-              loadingLabel={t("updates.updating")}
-              busy={busy === `tool:${u.cli}`}
-              disabled={busy !== null}
-              onAction={() => void run(`tool:${u.cli}`, "install_tool", { toolKey: u.cli })}
-            />
-          ))}
+          {toolUpdates.map((u) => {
+            const k = u.key ?? u.cli;
+            return (
+              <Row
+                key={k}
+                name={u.cli}
+                detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
+                actionLabel={t("updates.update")}
+                loadingLabel={t("updates.updating")}
+                busy={busy === `tool:${k}`}
+                disabled={busy !== null}
+                onAction={() => void run(`tool:${k}`, "install_tool", { toolKey: k })}
+              />
+            );
+          })}
         </Section>
       )}
 

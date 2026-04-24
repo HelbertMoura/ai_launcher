@@ -29,25 +29,12 @@ export function applyAccentPreset(accentPreset: AccentPresetId): void {
   if (preset) {
     document.documentElement.setAttribute('data-accent', accentPreset);
     document.documentElement.style.setProperty('--accent', preset.color);
-    document.documentElement.style.setProperty('--accent-hover', adjustBrightness(preset.color, -15));
-    document.documentElement.style.setProperty('--accent-light', preset.color + '1f'); // ~12% opacity
   }
 }
 
 export function applyAccentColor(color: string): void {
   document.documentElement.removeAttribute('data-accent');
   document.documentElement.style.setProperty('--accent', color);
-  document.documentElement.style.setProperty('--accent-hover', adjustBrightness(color, -15));
-  document.documentElement.style.setProperty('--accent-light', color + '1f');
-}
-
-export function adjustBrightness(hex: string, percent: number): string {
-  const clean = hex.replace('#', '');
-  const num = parseInt(clean, 16);
-  const r = Math.min(255, Math.max(0, (num >> 16) + percent));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
-  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 export function applyTheme(theme: ThemeId): void {
@@ -78,6 +65,5 @@ export const FONT_STORAGE_KEY = 'ai-launcher:display-font';
 export function applyFontStack(id: FontId): void {
   const opt = FONT_OPTIONS.find(o => o.id === id);
   if (!opt) return;
-  document.documentElement.style.setProperty('--ff-mono', opt.stack);
-  document.documentElement.style.setProperty('--ff-display', opt.stack);
+  document.documentElement.style.setProperty('--font-mono', opt.stack);
 }

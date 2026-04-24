@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 14.0.0](https://img.shields.io/badge/version-14.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 15.0.0](https://img.shields.io/badge/version-15.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -22,17 +22,23 @@
 
 | | Feature | Description |
 |---|---------|-------------|
-| 🚀 | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Gemini CLI, Qwen, Crush, Droid, Kilocode, OpenCode and more |
-| 🔧 | **Tools Manager** | Manage VS Code, Cursor, Windsurf, Google Antigravity, JetBrains AI and custom IDEs |
-| ⬆️ | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
-| 💰 | **Cost Tracking** | Per-provider spend tracking with daily and monthly breakdowns |
-| 📋 | **Launch History** | Full session log with reopen, descriptions, status badges and duration tracking |
-| 🔍 | **Prerequisites Check** | Verify Node, npm, Bun, Python, Rust, Cargo, Git, Docker and more |
-| 🔌 | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + custom endpoints with API test button |
-| 🎨 | **Full Customization** | Dark/Light theme, 5 accent colors, 5 mono fonts, CLI overrides |
-| 🌐 | **i18n** | English and Portuguese (Brazil) with instant toggle |
-| ⌨️ | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-6` tab nav, `Ctrl+,` admin, `?` help |
-| 🔒 | **Privacy-First** | Everything stays local — no telemetry, no cloud sync |
+| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Gemini CLI, Qwen, Crush, Droid, Kilocode, OpenCode and more |
+| :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, Google Antigravity, JetBrains AI and custom IDEs |
+| :arrow_up: | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
+| :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily and monthly breakdowns |
+| :clipboard: | **Launch History** | Full session log with reopen, descriptions, status badges and duration tracking |
+| :mag: | **Prerequisites Check** | Verify Node, npm, Bun, Python, Rust, Cargo, Git, Docker and more |
+| :electric_plug: | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + custom endpoints with API test button |
+| :art: | **Full Customization** | Dark/Light theme, 5 accent colors, 5 mono fonts, CLI overrides |
+| :globe_with_meridians: | **i18n** | English and Portuguese (Brazil) with instant toggle |
+| :keyboard: | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-6` tab nav, `Ctrl+,` admin, `?` help |
+| :lock: | **Privacy-First** | Everything stays local -- no telemetry, no cloud sync |
+| :office: | **Workspace Profiles** | Group configs by repo, team or context for one-click switching |
+| :jigsaw: | **Agent Runbooks** | Automated environment setup sequences for AI agent workflows |
+| :shield: | **Budget Guard** | Local cost limits per provider with alerts at configurable thresholds |
+| :stethoscope: | **Environment Doctor** | Diagnose and repair broken dev environments with guided fixes |
+| :eye: | **Safe Command Preview** | Review executable, args, env and risk level before running custom commands |
+| :arrows_counterclockwise: | **Self-Updater** | In-app update checks, download with progress, checksum validation |
 
 ## Screenshots
 
@@ -58,11 +64,23 @@
 
 ## Quick Start
 
-### Download (Windows)
+### Install (Windows)
 
-Grab the `.msi` installer from the [latest release](https://github.com/HelbertMoura/ai_launcher/releases).
+<!-- Winget and Chocolatey — coming soon after signed release -->
 
-> SmartScreen may warn on unsigned builds — click **More info → Run anyway**.
+```bash
+# Option 1: Winget (recommended)
+winget install DevManiacs.AILauncher
+
+# Option 2: Chocolatey
+choco install ai-launcher -y
+
+# Option 3: Manual download
+# Grab the .msi or .exe installer from the latest release:
+# https://github.com/HelbertMoura/ai_launcher/releases
+```
+
+> SmartScreen may warn on unsigned builds -- click **More info, then Run anyway**.
 
 ### Build from Source
 
@@ -107,14 +125,29 @@ The app has 8 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), presets, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## 🚀 What's new in v14
+## What's new in v15
 
-- **Autostart + global hotkey** — launch with Windows, focus from anywhere
-- **Pinned dirs + session templates** — one-click relaunch for your favorite setups
-- **History filters, usage export, desktop notifications** — full observability
-- **Free-form accent color picker** — any hex, not just 5 presets
-- **Backend modularized** — `main.rs` from 3105 → ~120 lines, typed errors, unit tests
-- **CI quality gates** — tsc, vitest, clippy, cargo audit, Playwright E2E on every PR
+- **Workspace Profiles** -- group configs by repo, team or context with one-click switching
+- **Agent Runbooks** -- automated setup sequences for AI agent environments
+- **Provider Budget Guard** -- local cost limits per provider with configurable alerts
+- **Environment Doctor** -- diagnose and repair broken dev environments
+- **Safe Command Preview** -- review risk level before running custom commands
+- **Self-Updater** -- in-app update checks with checksum validation
+- **Unified Launch Profiles** -- presets and session templates merged into one model
+- **Session Lifecycle** -- real process status tracking (starting/running/completed/failed)
+- **Windows Distribution** -- Winget and Chocolatey package manifests ready
+- **Command Deck 2.0** -- cleaner hierarchy, improved light theme, consistent icons
+
+<details><summary>v14 highlights</summary>
+
+- **Autostart + global hotkey** -- launch with Windows, focus from anywhere
+- **Pinned dirs + session templates** -- one-click relaunch for your favorite setups
+- **History filters, usage export, desktop notifications** -- full observability
+- **Free-form accent color picker** -- any hex, not just 5 presets
+- **Backend modularized** -- `main.rs` from 3105 to ~120 lines, typed errors, unit tests
+- **CI quality gates** -- tsc, vitest, clippy, cargo audit, Playwright E2E on every PR
+
+</details>
 
 <details><summary>v13 highlights</summary>
 
@@ -145,7 +178,8 @@ The app has 8 main surfaces accessible from the sidebar:
 | Styling | CSS Custom Properties (token system) |
 | i18n | i18next 24 |
 | Icons | Official brand logos (LobeHub Icons, devicons) |
-| Build | Tauri CLI → `.msi` + `.exe` |
+| Build | Tauri CLI -- `.msi` + `.exe` (NSIS) |
+| Distribution | Winget, Chocolatey, GitHub Releases |
 
 ## Contributing
 

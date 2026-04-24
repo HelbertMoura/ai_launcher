@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { Chip } from "../../../ui/Chip";
+import { ConfirmDialog } from "../../../ui/ConfirmDialog";
 import {
-  addPreset,
-  loadPresets,
-  removePreset,
-  updatePreset,
-} from "../../../presets/storage";
-import type { LaunchPreset } from "../../../presets/types";
+  addProfile,
+  loadProfiles,
+  removeProfile,
+  updateProfile,
+} from "../../../domain/profileStore";
+import type { LaunchProfile } from "../../../domain/types";
 import { loadProviders } from "../../../providers/storage";
 import type { ProviderProfile } from "../../../providers/types";
 import { PresetEditor } from "../editors/PresetEditor";
@@ -19,10 +20,11 @@ function truncate(s: string, max = 40): string {
 }
 
 export function PresetsSection() {
-  const [presets, setPresets] = useState<LaunchPreset[]>(() => loadPresets());
+  const [profiles, setProfiles] = useState<LaunchProfile[]>(() => loadProfiles());
   const [providers, setProviders] = useState<ProviderProfile[]>([]);
-  const [editing, setEditing] = useState<LaunchPreset | null>(null);
+  const [editing, setEditing] = useState<LaunchProfile | null>(null);
   const [open, setOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<LaunchProfile | null>(null);
 
   useEffect(() => {
     setProviders(loadProviders().profiles);
@@ -33,25 +35,29 @@ export function PresetsSection() {
     setOpen(true);
   };
 
-  const openEdit = (preset: LaunchPreset) => {
-    setEditing(preset);
+  const openEdit = (profile: LaunchProfile) => {
+    setEditing(profile);
     setOpen(true);
   };
 
-  const handleSave = (preset: LaunchPreset) => {
-    const exists = presets.some((p) => p.id === preset.id);
+  const handleSave = (profile: LaunchProfile) => {
+    const exists = profiles.some((p) => p.id === profile.id);
     const next = exists
-      ? updatePreset(presets, preset.id, preset)
-      : addPreset(presets, preset);
-    setPresets(next);
+      ? updateProfile(profiles, profile.id, profile)
+      : addProfile(profiles, profile);
+    setProfiles(next);
     setOpen(false);
     setEditing(null);
   };
 
-  const handleDelete = (preset: LaunchPreset) => {
-    const ok = window.confirm(`Delete preset "${preset.name}"?`);
-    if (!ok) return;
-    setPresets(removePreset(presets, preset.id));
+  const handleDelete = (profile: LaunchProfile) => {
+    setConfirmDelete(profile);
+  };
+
+  const confirmDeletePreset = () => {
+    if (!confirmDelete) return;
+    setProfiles(removeProfile(profiles, confirmDelete.id));
+    setConfirmDelete(null);
   };
 
   const providerNameById = (id?: string): string | undefined => {
@@ -65,7 +71,7 @@ export function PresetsSection() {
         <div>
           <h3 className="cd-admin-section__title">Launch presets</h3>
           <p className="cd-admin-section__sub">
-            {presets.length} preset{presets.length === 1 ? "" : "s"} saved
+            {profiles.length} profile{profiles.length === 1 ? "" : "s"} saved
           </p>
         </div>
         <Button size="sm" onClick={openNew}>
@@ -73,21 +79,23 @@ export function PresetsSection() {
         </Button>
       </div>
 
-      {presets.length === 0 ? (
-        <div className="cd-page__empty">No presets yet.</div>
+      {profiles.length === 0 ? (
+        <div className="cd-page__empty">No profiles yet.</div>
       ) : (
         <div className="cd-page__grid">
-          {presets.map((p) => {
-            const providerName = providerNameById(p.providerId);
+          {profiles.map((p) => {
+            const providerName = providerNameById(p.providerKey);
+            const cliKey = p.cliKeys[0] ?? "";
+            const icon = p.tags[0] ?? "";
             return (
               <Card key={p.id}>
                 <div className="cd-admin-card">
                   <div className="cd-admin-card__name">
-                    {p.emoji ? `${p.emoji} ` : ""}
+                    {icon ? `${icon} ` : ""}
                     {p.name}
                   </div>
                   <div className="cd-admin-card__meta">
-                    <Chip variant="neutral">{p.cliKey}</Chip>
+                    <Chip variant="neutral">{cliKey}</Chip>
                     {providerName && (
                       <Chip variant="admin">{providerName}</Chip>
                     )}
@@ -95,11 +103,11 @@ export function PresetsSection() {
                   </div>
                   <div
                     className="cd-admin-card__detail"
-                    title={p.directory}
+                    title={p.directory ?? ""}
                   >
-                    {truncate(p.directory)}
+                    {truncate(p.directory ?? "")}
                   </div>
-                  {p.args.trim() && (
+                  {p.args?.trim() && (
                     <div className="cd-admin-card__detail">
                       args: {truncate(p.args)}
                     </div>
@@ -136,6 +144,16 @@ export function PresetsSection() {
           setEditing(null);
         }}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        variant="danger"
+        title="Delete Preset"
+        message={`Delete preset "${confirmDelete?.name ?? ""}"?`}
+        confirmLabel="Delete"
+        onConfirm={confirmDeletePreset}
+        onCancel={() => setConfirmDelete(null)}
       />
     </div>
   );
