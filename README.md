@@ -44,21 +44,27 @@
 
 <div align="center">
 
-| CLI Launcher | Tools Manager | Launch Dialog |
-|:---:|:---:|:---:|
-| ![CLI Launcher](./docs/screenshots/01-launcher-cli.png) | ![Tools](./docs/screenshots/02-launcher-tools.png) | ![Launch Dialog](./docs/screenshots/03-launch-dialog.png) |
+### Command Deck 2.0 · Dark, Light, Amber, Glacier
 
-| History | Providers | Settings |
+| CLI Launcher | Tools | Rich Command Palette |
 |:---:|:---:|:---:|
-| ![History](./docs/screenshots/04-history.png) | ![Providers](./docs/screenshots/05-providers.png) | ![Settings](./docs/screenshots/06-settings.png) |
+| ![Launcher](./docs/screenshots/v15/01-launcher.png) | ![Tools](./docs/screenshots/v15/02-tools.png) | ![Command Palette](./docs/screenshots/v15/08-palette.png) |
 
-| Onboarding | Updates | Provider Edit |
+### Workspace bento · History waterfall · Environment Doctor
+
+| Workspace Profiles | History Timeline | Environment Doctor |
 |:---:|:---:|:---:|
-| ![Onboarding](./docs/screenshots/07-onboarding.png) | ![Updates](./docs/screenshots/08-updates.png) | ![Provider Edit](./docs/screenshots/09-provider-edit.png) |
+| ![Workspace](./docs/screenshots/v15/05-workspace.png) | ![History](./docs/screenshots/v15/03-history.png) | ![Doctor](./docs/screenshots/v15/06-doctor.png) |
 
-| Welcome | Dark Theme |
-|:---:|:---:|
-| ![Welcome](./docs/screenshots/10-welcome.png) | ![Dark Theme](./docs/screenshots/11-dark-theme.png) |
+### Updates · Costs · Theme variants
+
+| Updates Hub | Costs Tracking | 4 Theme Variants |
+|:---:|:---:|:---:|
+| ![Updates](./docs/screenshots/v15/07-updates.png) | ![Costs](./docs/screenshots/v15/04-costs.png) | ![Glacier](./docs/screenshots/v15/v15-glacier-palette.png) |
+
+| Light Theme | Amber (CRT Retro) | Glacier + Compact Density |
+|:---:|:---:|:---:|
+| ![Light](./docs/screenshots/v15/v15-light-doctor.png) | ![Amber](./docs/screenshots/v15/v15-amber-doctor.png) | ![Glacier Compact](./docs/screenshots/v15/v15-glacier-compact.png) |
 
 </div>
 
@@ -99,44 +105,58 @@ The `.msi` lands in `src-tauri/target/release/bundle/msi/`.
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+K` | Open command palette |
+| `Ctrl+K` | Open rich command palette |
 | `Ctrl+1` | Launch tab |
 | `Ctrl+2` | Tools tab |
-| `Ctrl+3` | History tab |
+| `Ctrl+3` | History tab (timeline waterfall) |
 | `Ctrl+4` | Costs tab |
-| `Ctrl+5` | Updates tab |
-| `Ctrl+6` | Prerequisites tab |
+| `Ctrl+5` | Workspaces tab (bento grid) |
+| `Ctrl+6` | Doctor tab (environment diagnosis) |
+| `Ctrl+7` | Updates tab |
+| `Ctrl+8` | Prerequisites tab |
 | `Ctrl+,` | Admin tab |
 | `?` | Help tab |
 | `Esc` | Close dialog |
 
 ## Surfaces
 
-The app has 8 main surfaces accessible from the sidebar:
+The app has 10 main surfaces accessible from the sidebar:
 
 | Tab | What it does |
 |-----|-------------|
 | **Launch** | Scan for AI CLIs, install missing ones, launch with custom directory and args |
 | **Tools** | Detect and manage IDEs — install missing tools with one click |
-| **History** | Browse past sessions with reopen, inline descriptions, status badges and duration |
+| **History** | Terminal-style waterfall timeline + session log with reopen and status dots |
 | **Costs** | Per-CLI cost breakdown — today and monthly totals with token tracking |
+| **Workspaces** | Bento grid: Profiles, Budget, Doctor summary, Runbooks, Recent Sessions |
+| **Doctor** | Environment health check with severity (critical/warning/info) + guided fixes |
 | **Updates** | Central hub for CLI, tool and prerequisite updates — update all or individually |
 | **Prereqs** | System health check — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
-| **Admin** | Providers (with API test), presets, appearance, CLI overrides, custom IDEs |
+| **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## What's new in v15
+## 🚀 What's new in v15 — AI Ops Command Center
 
-- **Workspace Profiles** -- group configs by repo, team or context with one-click switching
-- **Agent Runbooks** -- automated setup sequences for AI agent environments
-- **Provider Budget Guard** -- local cost limits per provider with configurable alerts
-- **Environment Doctor** -- diagnose and repair broken dev environments
-- **Safe Command Preview** -- review risk level before running custom commands
-- **Self-Updater** -- in-app update checks with checksum validation
-- **Unified Launch Profiles** -- presets and session templates merged into one model
-- **Session Lifecycle** -- real process status tracking (starting/running/completed/failed)
-- **Windows Distribution** -- Winget and Chocolatey package manifests ready
-- **Command Deck 2.0** -- cleaner hierarchy, improved light theme, consistent icons
+- **Workspace Profiles** — group configs by repo, team or context with one-click switching
+- **Agent Runbooks** — automated setup sequences for AI agent environments
+- **Provider Budget Guard** — local cost limits per provider with configurable alerts
+- **Environment Doctor** — diagnose and repair broken dev environments with guided fixes
+- **Safe Command Preview** — review risk level before running custom commands
+- **Self-Updater** — in-app update checks, download progress, checksum validation
+- **Unified Launch Profiles** — presets and session templates merged into one model
+- **Session Lifecycle** — real process status tracking (starting/running/completed/failed)
+- **4 Theme variants** — dark, light, amber (CRT retro), glacier (cool blue) with `☾` cycle
+- **Rich Command Palette** — categories, icons, shortcut chips, recent sessions with relaunch
+- **Bento Workspace** — editorial layout with 5 click-through cards
+- **History Waterfall** — horizontal terminal-native timeline (24h / 7d toggle)
+- **Density Toggle** — compact/comfortable via `▦` button in the top bar
+- **Secure Secrets** — API keys via DPAPI (Windows) with transparent fallback
+- **Command Deck 2.0** — clean hierarchy, zero native `alert()`, focus trap in dialogs
+- **Phosphor Icons** foundation — consistent icon set across the app
+
+### 🐛 Critical fix (affected v13/v14)
+
+The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prereq** in Updates **did nothing on click** in prior versions. Fixed by adding a canonical `key` field to `CheckResult` and a real install button in `PrereqCard`.
 
 <details><summary>v14 highlights</summary>
 
