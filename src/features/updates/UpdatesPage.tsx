@@ -180,14 +180,14 @@ export function UpdatesPage() {
         <Section title={t("updates.missingPrereqs")}>
           {missingPrereqs.map((p) => (
             <Row
-              key={p.name}
+              key={p.key}
               name={p.name}
               detail={p.install_command ?? ""}
               actionLabel={t("updates.install")}
               loadingLabel={t("updates.installing")}
-              busy={busy === `prereq:${p.name}`}
+              busy={busy === `prereq:${p.key}`}
               disabled={busy !== null}
-              onAction={() => void run(`prereq:${p.name}`, "install_prerequisite", { key: p.name })}
+              onAction={() => void run(`prereq:${p.key}`, "install_prerequisite", { key: p.key })}
             />
           ))}
         </Section>
