@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Banner } from "../../ui/Banner";
+import { EmptyState, ART_CHECK } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { useClis } from "../launcher/useClis";
 import { useTools } from "../tools/useTools";
@@ -122,7 +123,14 @@ export function UpdatesPage() {
       )}
 
       {!updatesLoading && total === 0 && (
-        <div className="cd-page__empty">{t("updates.noUpdates")}</div>
+        <EmptyState
+          art={ART_CHECK}
+          title={t("updates.noUpdates")}
+          description={t(
+            "updates.noUpdatesHint",
+            "Everything is on the latest version.",
+          )}
+        />
       )}
 
       {/* App self-update section */}

@@ -56,8 +56,209 @@ function StatusBadge({ status }: { status: SessionStatus }) {
       return <span className="cd-history__status cd-history__status--failed" title="Failed" aria-label="Failed">✗</span>;
     case "unknown":
     default:
-      return <span className="cd-history__status cd-history__status--unknown" title="Unknown" aria-label="Unknown">?</span>;
+      return <span className="cd-history__status cd-history__status--unknown" title="Unknown" aria-label="Unknown">◐</span>;
   }
+}
+
+function StatusDot({ status }: { status: SessionStatus }) {
+  const cls =
+    status === "running" || status === "starting"
+      ? "cd-history__dot cd-history__dot--running"
+      : status === "completed"
+        ? "cd-history__dot cd-history__dot--done"
+        : status === "failed"
+          ? "cd-history__dot cd-history__dot--failed"
+          : "cd-history__dot cd-history__dot--unknown";
+  return <span className={cls} aria-hidden />;
+}
+
+type TimelineRange = "24h" | "7d";
+
+interface TimelineBarDatum {
+  item: HistoryItem;
+  index: number;
+  startedMs: number;
+  endedMs: number;
+  durationMs: number;
+  status: SessionStatus;
+}
+
+function formatDurationShort(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+}
+
+function formatClockLabel(ms: number, range: TimelineRange): string {
+  const d = new Date(ms);
+  if (range === "7d") {
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    return `${day}/${month} ${hours}h`;
+  }
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
+function buildTicks(startMs: number, endMs: number, count: number): number[] {
+  if (count < 2) return [startMs, endMs];
+  const step = (endMs - startMs) / (count - 1);
+  return Array.from({ length: count }, (_, i) => startMs + step * i);
+}
+
+function SessionTimeline({
+  sessions,
+  range,
+  onRangeChange,
+}: {
+  sessions: HistoryItem[];
+  range: TimelineRange;
+  onRangeChange: (next: TimelineRange) => void;
+}) {
+  const { t } = useTranslation();
+
+  const now = Date.now();
+  const rangeMs = range === "24h" ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+  const windowStart = now - rangeMs;
+  const windowEnd = now;
+
+  const bars: TimelineBarDatum[] = useMemo(() => {
+    const results: TimelineBarDatum[] = [];
+    sessions.forEach((item, idx) => {
+      const startedMs = Date.parse(item.startedAt || item.timestamp);
+      if (Number.isNaN(startedMs)) return;
+      const endedMs = item.completedAt
+        ? Date.parse(item.completedAt)
+        : item.status === "running" || item.status === "starting"
+          ? now
+          : startedMs + (item.duration ?? 0);
+      const safeEnded = Number.isNaN(endedMs) ? startedMs : endedMs;
+      // Skip if fully outside visible window
+      if (safeEnded < windowStart) return;
+      if (startedMs > windowEnd) return;
+      results.push({
+        item,
+        index: idx,
+        startedMs,
+        endedMs: Math.max(safeEnded, startedMs),
+        durationMs: Math.max(0, safeEnded - startedMs),
+        status: item.status,
+      });
+    });
+    // Most recent first visually, but keep chronological for timeline readability
+    return results.sort((a, b) => b.startedMs - a.startedMs);
+  }, [sessions, now, windowStart, windowEnd]);
+
+  const ticks = buildTicks(windowStart, windowEnd, 5);
+
+  if (bars.length === 0) {
+    return (
+      <div className="cd-timeline__empty">
+        <pre className="cd-timeline__ascii" aria-hidden>
+{`   .----.
+  / .--. \\
+ | |    | |
+  \\ \`--' /
+   \`----'`}
+        </pre>
+        <p className="cd-timeline__empty-text">
+          {t("history.timeline.empty")}
+        </p>
+        {range === "24h" && (
+          <button
+            type="button"
+            className="cd-timeline__empty-link"
+            onClick={() => onRangeChange("7d")}
+          >
+            {t("history.timeline.expandTo7d")}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="cd-timeline__body">
+      <ul className="cd-timeline__rows">
+        {bars.map((b) => {
+          const clampedStart = Math.max(b.startedMs, windowStart);
+          const clampedEnd = Math.min(b.endedMs, windowEnd);
+          const leftPct = ((clampedStart - windowStart) / rangeMs) * 100;
+          let widthPct = ((clampedEnd - clampedStart) / rangeMs) * 100;
+          // Ensure tiny bars remain visible
+          if (widthPct < 0.6) widthPct = 0.6;
+          const isRunning = b.status === "running" || b.status === "starting";
+          const modifier =
+            b.status === "failed"
+              ? "cd-timeline__bar--failed"
+              : isRunning
+                ? "cd-timeline__bar--running"
+                : b.status === "completed"
+                  ? "cd-timeline__bar--done"
+                  : "cd-timeline__bar--unknown";
+          const statusLabel =
+            b.status === "running"
+              ? t("history.timeline.running")
+              : b.status === "starting"
+                ? t("history.timeline.starting")
+                : b.status === "completed"
+                  ? t("history.timeline.done")
+                  : b.status === "failed"
+                    ? t("history.timeline.failed")
+                    : t("history.timeline.unknown");
+          const tooltip = [
+            b.item.cli,
+            b.item.directory,
+            `${formatClockLabel(b.startedMs, range)} → ${formatClockLabel(b.endedMs, range)}`,
+            `${formatDurationShort(b.durationMs)} · ${statusLabel}`,
+          ].join("\n");
+          return (
+            <li className="cd-timeline__row" key={`tl-${b.index}-${b.startedMs}`} title={tooltip}>
+              <span className="cd-timeline__label">{b.item.cli}</span>
+              <div className="cd-timeline__track">
+                <div
+                  className={`cd-timeline__bar ${modifier}`}
+                  style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                />
+              </div>
+              <span className="cd-timeline__meta">
+                <span className="cd-timeline__duration">{formatDurationShort(b.durationMs)}</span>
+                <span className="cd-timeline__sep">·</span>
+                <StatusBadge status={b.status} />
+                <span className="cd-timeline__status-label">{statusLabel}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="cd-timeline__axis" aria-hidden>
+        <div className="cd-timeline__axis-spacer" />
+        <div className="cd-timeline__axis-track">
+          {ticks.map((tms, i) => {
+            const pct = ((tms - windowStart) / rangeMs) * 100;
+            const isLast = i === ticks.length - 1;
+            return (
+              <span
+                key={`tk-${i}`}
+                className="cd-timeline__tick"
+                style={{ left: `${pct}%` }}
+              >
+                {isLast ? t("history.timeline.now") : formatClockLabel(tms, range)}
+              </span>
+            );
+          })}
+        </div>
+        <div className="cd-timeline__axis-spacer cd-timeline__axis-spacer--right" />
+      </div>
+    </div>
+  );
 }
 
 function ProviderBadge({ providerId, profiles }: { providerId?: string; profiles: ProvidersState["profiles"] }) {
@@ -86,6 +287,8 @@ export function HistoryPage() {
   const [filterProvider, setFilterProvider] = useState<string>("all");
   const [filterRange, setFilterRange] = useState<"today" | "week" | "month" | "all">("all");
   const [confirmClear, setConfirmClear] = useState(false);
+  const [timelineOpen, setTimelineOpen] = useState(true);
+  const [timelineRange, setTimelineRange] = useState<TimelineRange>("24h");
 
   const distinctClis = useMemo(() => {
     const set = new Set<string>();
@@ -209,6 +412,53 @@ export function HistoryPage() {
             </span>
           </div>
 
+          <section className={`cd-timeline ${timelineOpen ? "is-open" : "is-closed"}`}>
+            <header className="cd-timeline__head">
+              <button
+                type="button"
+                className="cd-timeline__toggle"
+                aria-expanded={timelineOpen}
+                onClick={() => setTimelineOpen((v) => !v)}
+              >
+                <span className="cd-timeline__chevron" aria-hidden>
+                  {timelineOpen ? "▾" : "▸"}
+                </span>
+                <span className="cd-timeline__title">
+                  {t("history.timeline.heading")}
+                </span>
+                <span className="cd-timeline__sep" aria-hidden>·</span>
+                <span className="cd-timeline__range-label">
+                  {timelineRange === "24h"
+                    ? t("history.timeline.range24h")
+                    : t("history.timeline.range7d")}
+                </span>
+              </button>
+              <div className="cd-timeline__range" role="group" aria-label="Timeline range">
+                <button
+                  type="button"
+                  className={`cd-timeline__range-btn ${timelineRange === "24h" ? "is-active" : ""}`}
+                  onClick={() => setTimelineRange("24h")}
+                >
+                  {t("history.timeline.switchTo24h")}
+                </button>
+                <button
+                  type="button"
+                  className={`cd-timeline__range-btn ${timelineRange === "7d" ? "is-active" : ""}`}
+                  onClick={() => setTimelineRange("7d")}
+                >
+                  {t("history.timeline.switchTo7d")}
+                </button>
+              </div>
+            </header>
+            {timelineOpen && (
+              <SessionTimeline
+                sessions={filtered}
+                range={timelineRange}
+                onRangeChange={setTimelineRange}
+              />
+            )}
+          </section>
+
           <ul className="cd-history__list">
             {filtered.map((item, idx) => (
               <HistoryRow
@@ -323,13 +573,36 @@ function HistoryRow({
     void doReopen();
   };
 
+  const statusLabel =
+    item.status === "running"
+      ? t("history.timeline.running")
+      : item.status === "starting"
+        ? t("history.timeline.starting")
+        : item.status === "completed"
+          ? t("history.timeline.done")
+          : item.status === "failed"
+            ? t("history.timeline.failed")
+            : t("history.timeline.unknown");
+
+  const hoverDetails = [
+    `CLI: ${item.cli}`,
+    item.providerId ? `Provider: ${item.providerId}` : null,
+    `Directory: ${item.directory}`,
+    `Started: ${item.startedAt}`,
+    item.completedAt ? `Ended: ${item.completedAt}` : null,
+    `Status: ${statusLabel}`,
+  ]
+    .filter((x): x is string => Boolean(x))
+    .join("\n");
+
   return (
-    <li className="cd-history__item">
+    <li className="cd-history__item" title={hoverDetails}>
       <Card>
         <div className="cd-history__row">
           <div className="cd-history__main">
             <div className="cd-history__cli-row">
-              <StatusBadge status={item.status} />
+              <StatusDot status={item.status} />
+              <span className="cd-history__status-text">{statusLabel}</span>
               <span className="cd-history__cli">{item.cli}</span>
               <ProviderBadge providerId={item.providerId} profiles={providersState.profiles} />
               {item.duration != null && item.duration > 0 && (

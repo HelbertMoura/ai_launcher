@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
+import { EmptyState, ART_TOOLBOX } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { ToolCard } from "./ToolCard";
 import { CustomIdeCard } from "./CustomIdeCard";
@@ -90,7 +91,14 @@ export function ToolsPage() {
       )}
 
       {!loading && allCount === 0 && (
-        <div className="cd-page__empty">{t("tools.notRegistered")}</div>
+        <EmptyState
+          art={ART_TOOLBOX}
+          title={t("tools.emptyTitle", "No tools yet")}
+          description={t(
+            "tools.emptyHint",
+            "Install IDEs, terminal emulators or add custom tools.",
+          )}
+        />
       )}
 
       {!loading && allCount > 0 && (

@@ -1,4 +1,4 @@
-export type ThemeId = 'light' | 'dark';
+export type ThemeId = 'light' | 'dark' | 'amber' | 'glacier';
 
 export type AccentPresetId = 'ember' | 'coral' | 'amber' | 'sage' | 'slate';
 

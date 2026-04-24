@@ -21,7 +21,7 @@ interface ScanResult {
   install_command: string | null;
 }
 
-const THEMES: Theme[] = ["dark", "light"];
+const THEMES: Theme[] = ["dark", "light", "amber", "glacier"];
 const TOTAL_STEPS = 3;
 
 /* ---- Welcome terminal script ---- */
