@@ -32,3 +32,15 @@ body {
 button {
   font-family: inherit;
 }
+
+/* Baseline alignment helper for Phosphor icons sitting next to text. */
+.cd-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+.cd-icon > svg {
+  flex-shrink: 0;
+}
