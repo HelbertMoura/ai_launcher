@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
 import { Button } from "../../ui/Button";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { EmptyState, ART_TERMINAL } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { CliCard } from "./CliCard";
 import { CustomCliCard } from "./CustomCliCard";
@@ -147,7 +148,14 @@ export function LauncherPage() {
       )}
 
       {!loading && allCount === 0 && (
-        <div className="cd-page__empty">{t("launcher.empty")}</div>
+        <EmptyState
+          art={ART_TERMINAL}
+          title={t("launcher.empty")}
+          description={t(
+            "launcher.emptyHint",
+            "Install Claude, Codex, or add a custom CLI to get started.",
+          )}
+        />
       )}
 
       {!loading && allCount > 0 && (

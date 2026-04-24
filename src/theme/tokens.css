@@ -27,6 +27,7 @@
   /* typography */
   --font-mono: "JetBrains Mono", Menlo, ui-monospace, monospace;
   --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
 
   --text-xs: 11px;
   --text-sm: 13px;
@@ -59,12 +60,34 @@
   --sidebar-w: 184px;
   --topbar-h: 44px;
   --statusbar-h: 26px;
+
+  /* grid background — subtle identity-reinforcing dotted grid (dark default) */
+  --grid-dot-color: rgba(230, 230, 232, 0.06);
+
+  /* density — 1 = comfortable (default), 0.75 = compact */
+  --density: 1;
 }
 
-/* Global focus-visible outline for interactive elements */
+/* Light theme overrides for grid dot opacity */
+:root[data-theme="light"] {
+  --grid-dot-color: rgba(24, 24, 27, 0.08);
+}
+
+/* Compact density — shrink core spacing tokens globally */
+:root[data-density="compact"] {
+  --density: 0.75;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 24px;
+  --s-7: 36px;
+}
+
+/* Global focus-visible outline for interactive elements — Command Deck elaborate ring */
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px var(--accent-soft), 0 0 12px var(--accent-glow);
 }
 
 /* Remove default outline for mouse users */

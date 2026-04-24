@@ -78,3 +78,25 @@
 }
 .cd-top__theme:hover { border-color: var(--accent); }
 .cd-top__theme:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cd-top__density {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: var(--text-md);
+  line-height: 1;
+  width: 28px;
+  height: 24px;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color var(--dur-fast), color var(--dur-fast);
+}
+.cd-top__density:hover { border-color: var(--accent); color: var(--accent); }
+.cd-top__density[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
