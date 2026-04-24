@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
+import { EmptyState, ART_CHART } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { useUsage, type UsageEntry } from "./useUsage";
 import { toCsv, downloadBlob } from "../../lib/exportData";
+import { BudgetDashboard } from "./BudgetDashboard";
 import "../page.css";
 import "./CostsPage.css";
 
@@ -98,7 +100,14 @@ export function CostsPage() {
       )}
 
       {!loading && !hasData && (
-        <div className="cd-page__empty">{t("costs.noData")}</div>
+        <EmptyState
+          art={ART_CHART}
+          title={t("costs.emptyTitle", "No spend tracked yet")}
+          description={t(
+            "costs.emptyHint",
+            "Run a session with a provider to see costs.",
+          )}
+        />
       )}
 
       {!loading && hasData && (
@@ -152,6 +161,8 @@ export function CostsPage() {
               </div>
             </>
           )}
+
+          <BudgetDashboard />
         </>
       )}
     </section>

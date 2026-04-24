@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Banner } from "../../ui/Banner";
+import { EmptyState, ART_CHECK } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
 import { useClis } from "../launcher/useClis";
 import { useTools } from "../tools/useTools";
 import { usePrerequisites } from "../prereqs/usePrerequisites";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import { AppUpdater } from "./AppUpdater";
 import "../page.css";
 import "./UpdatesPage.css";
 
@@ -121,40 +123,56 @@ export function UpdatesPage() {
       )}
 
       {!updatesLoading && total === 0 && (
-        <div className="cd-page__empty">{t("updates.noUpdates")}</div>
+        <EmptyState
+          art={ART_CHECK}
+          title={t("updates.noUpdates")}
+          description={t(
+            "updates.noUpdatesHint",
+            "Everything is on the latest version.",
+          )}
+        />
       )}
+
+      {/* App self-update section */}
+      <AppUpdater />
 
       {!updatesLoading && cliUpdates.length > 0 && (
         <Section title={t("updates.cliUpdates")}>
-          {cliUpdates.map((u) => (
-            <Row
-              key={u.cli}
-              name={u.cli}
-              detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
-              actionLabel={t("updates.update")}
-              loadingLabel={t("updates.updating")}
-              busy={busy === `cli:${u.cli}`}
-              disabled={busy !== null}
-              onAction={() => void run(`cli:${u.cli}`, "update_cli", { cliKey: u.cli })}
-            />
-          ))}
+          {cliUpdates.map((u) => {
+            const k = u.key ?? u.cli;
+            return (
+              <Row
+                key={k}
+                name={u.cli}
+                detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
+                actionLabel={t("updates.update")}
+                loadingLabel={t("updates.updating")}
+                busy={busy === `cli:${k}`}
+                disabled={busy !== null}
+                onAction={() => void run(`cli:${k}`, "update_cli", { cliKey: k })}
+              />
+            );
+          })}
         </Section>
       )}
 
       {!updatesLoading && toolUpdates.length > 0 && (
         <Section title={t("updates.toolUpdates")}>
-          {toolUpdates.map((u) => (
-            <Row
-              key={u.cli}
-              name={u.cli}
-              detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
-              actionLabel={t("updates.update")}
-              loadingLabel={t("updates.updating")}
-              busy={busy === `tool:${u.cli}`}
-              disabled={busy !== null}
-              onAction={() => void run(`tool:${u.cli}`, "install_tool", { toolKey: u.cli })}
-            />
-          ))}
+          {toolUpdates.map((u) => {
+            const k = u.key ?? u.cli;
+            return (
+              <Row
+                key={k}
+                name={u.cli}
+                detail={`${u.current ?? "?"} → ${u.latest ?? "?"}`}
+                actionLabel={t("updates.update")}
+                loadingLabel={t("updates.updating")}
+                busy={busy === `tool:${k}`}
+                disabled={busy !== null}
+                onAction={() => void run(`tool:${k}`, "install_tool", { toolKey: k })}
+              />
+            );
+          })}
         </Section>
       )}
 
@@ -162,14 +180,14 @@ export function UpdatesPage() {
         <Section title={t("updates.missingPrereqs")}>
           {missingPrereqs.map((p) => (
             <Row
-              key={p.name}
+              key={p.key}
               name={p.name}
               detail={p.install_command ?? ""}
               actionLabel={t("updates.install")}
               loadingLabel={t("updates.installing")}
-              busy={busy === `prereq:${p.name}`}
+              busy={busy === `prereq:${p.key}`}
               disabled={busy !== null}
-              onAction={() => void run(`prereq:${p.name}`, "install_prerequisite", { key: p.name })}
+              onAction={() => void run(`prereq:${p.key}`, "install_prerequisite", { key: p.key })}
             />
           ))}
         </Section>

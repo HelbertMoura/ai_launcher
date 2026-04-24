@@ -2,12 +2,27 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./StatusBar.css";
 
+export type LatencyTone = "ok" | "warn" | "err";
+
+export interface LastSessionInfo {
+  cli: string;
+  /** Short relative label (e.g. "2m ago", "just now"). */
+  relative: string;
+}
+
+export interface ProviderLatency {
+  name: string;
+  tone: LatencyTone;
+}
+
 interface StatusBarProps {
   online: number;
   total: number;
   todaySpend: string;
   version: string;
   updatesCount?: number;
+  lastSession?: LastSessionInfo;
+  providerLatency?: ProviderLatency;
   onRefresh?: () => void;
 }
 
@@ -41,6 +56,8 @@ export function StatusBar({
   todaySpend,
   version,
   updatesCount = 0,
+  lastSession,
+  providerLatency,
   onRefresh,
 }: StatusBarProps) {
   const { t } = useTranslation();
@@ -56,9 +73,31 @@ export function StatusBar({
 
       <span className="cd-status__cell cd-status__cell--accent">● ADMIN</span>
 
+      {providerLatency && (
+        <span
+          className="cd-status__cell cd-status__cell--mini"
+          title={`Provider: ${providerLatency.name}`}
+        >
+          <span
+            className={`cd-status__dot cd-status__dot--${providerLatency.tone}`}
+            aria-hidden
+          />
+          {providerLatency.name}
+        </span>
+      )}
+
       <span className="cd-status__cell">
         {todaySpend} {t("statusBar.todaySpend")}
       </span>
+
+      {lastSession && (
+        <span
+          className="cd-status__cell cd-status__cell--mini cd-status__cell--muted"
+          title={`Last session: ${lastSession.cli}`}
+        >
+          ● {lastSession.cli} · {lastSession.relative}
+        </span>
+      )}
 
       {updatesCount > 0 && (
         <span className="cd-status__cell cd-status__cell--warn">

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type SessionStatus = "running" | "finished" | "error";
+export type SessionStatus = "starting" | "running" | "completed" | "failed" | "unknown";
 
 export interface HistoryItem {
   cli: string;
@@ -9,20 +9,59 @@ export interface HistoryItem {
   args: string;
   timestamp: string;
   description?: string;
-  status?: SessionStatus;
-  duration?: number; // seconds
+  status: SessionStatus;
+  sessionId?: string;
+  startedAt: string;
+  completedAt?: string;
+  duration?: number; // ms
+  exitCode?: number | null;
+  errorMessage?: string;
   providerId?: string;
 }
 
 const CONFIG_KEY = "ai-launcher-config";
 const LAST_DIR_KEY = "ai-launcher:last-dir";
 
+/** Migrate legacy items that lack the new session-lifecycle fields. */
+function migrateItem(item: Record<string, unknown>): HistoryItem {
+  const status = item.status as string | undefined;
+  // Map old status values to new ones
+  let migratedStatus: SessionStatus;
+  if (status === "starting" || status === "running" || status === "completed" || status === "failed" || status === "unknown") {
+    migratedStatus = status;
+  } else if (status === "finished") {
+    migratedStatus = "completed";
+  } else if (status === "error") {
+    migratedStatus = "failed";
+  } else {
+    migratedStatus = "unknown";
+  }
+
+  return {
+    cli: (item.cli as string) ?? "",
+    cliKey: (item.cliKey as string) ?? "",
+    directory: (item.directory as string) ?? "",
+    args: (item.args as string) ?? "",
+    timestamp: (item.timestamp as string) ?? new Date().toISOString(),
+    description: item.description as string | undefined,
+    status: migratedStatus,
+    sessionId: item.sessionId as string | undefined,
+    startedAt: (item.startedAt as string) ?? (item.timestamp as string) ?? new Date().toISOString(),
+    completedAt: item.completedAt as string | undefined,
+    duration: item.duration as number | undefined,
+    exitCode: item.exitCode as number | null | undefined,
+    errorMessage: item.errorMessage as string | undefined,
+    providerId: item.providerId as string | undefined,
+  };
+}
+
 function readItems(): HistoryItem[] {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
     if (!raw) return [];
     const cfg = JSON.parse(raw) as Record<string, unknown>;
-    return Array.isArray(cfg.history) ? (cfg.history as HistoryItem[]) : [];
+    if (!Array.isArray(cfg.history)) return [];
+    return (cfg.history as Record<string, unknown>[]).map(migrateItem);
   } catch {
     return [];
   }
@@ -37,6 +76,34 @@ function writeItems(items: HistoryItem[]): void {
   } catch {
     /* ignore */
   }
+}
+
+/** Update the status of a history entry by sessionId. */
+export function updateSessionStatus(
+  sessionId: string,
+  patch: { status: SessionStatus; completedAt?: string; duration?: number; exitCode?: number | null; errorMessage?: string },
+): void {
+  const items = readItems();
+  const idx = items.findIndex((it) => it.sessionId === sessionId);
+  if (idx === -1) return;
+  items[idx] = { ...items[idx], ...patch };
+  writeItems(items);
+}
+
+/** Mark a session as completed or failed. */
+export function markSessionEnded(
+  sessionId: string,
+  outcome: { status: "completed" | "failed"; exitCode?: number | null; errorMessage?: string },
+): void {
+  const completedAt = new Date().toISOString();
+  const items = readItems();
+  const idx = items.findIndex((it) => it.sessionId === sessionId);
+  if (idx === -1) return;
+  const item = items[idx];
+  const startedMs = Date.parse(item.startedAt);
+  const duration = Number.isNaN(startedMs) ? undefined : Date.now() - startedMs;
+  items[idx] = { ...item, ...outcome, completedAt, duration };
+  writeItems(items);
 }
 
 export function useHistory(): {

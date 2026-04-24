@@ -3,18 +3,22 @@ export type TabId =
   | "tools"
   | "history"
   | "costs"
+  | "workspace"
+  | "doctor"
   | "updates"
   | "prereqs"
   | "admin"
   | "help";
 
-export const TAB_ORDER: TabId[] = ["launcher", "tools", "history", "costs", "updates", "prereqs", "admin", "help"];
+export const TAB_ORDER: TabId[] = ["launcher", "tools", "history", "costs", "workspace", "doctor", "updates", "prereqs", "admin", "help"];
 
 export const TAB_LABELS: Record<TabId, string> = {
   launcher: "Launch",
   tools: "Tools",
   history: "History",
   costs: "Costs",
+  workspace: "Workspace",
+  doctor: "Doctor",
   updates: "Updates",
   prereqs: "Prereqs",
   admin: "Admin",
@@ -27,6 +31,8 @@ export const TAB_I18N_KEYS: Record<TabId, string> = {
   tools: "nav.tools",
   history: "nav.history",
   costs: "nav.costs",
+  workspace: "nav.workspace",
+  doctor: "nav.doctor",
   updates: "nav.updates",
   prereqs: "nav.prereqs",
   admin: "nav.admin",
@@ -42,8 +48,10 @@ export const TAB_KEYS: Record<TabId, string> = {
   tools: `${MOD}+2`,
   history: `${MOD}+3`,
   costs: `${MOD}+4`,
-  updates: `${MOD}+6`,
-  prereqs: `${MOD}+5`,
+  workspace: `${MOD}+5`,
+  doctor: `${MOD}+6`,
+  updates: `${MOD}+7`,
+  prereqs: `${MOD}+8`,
   admin: `${MOD}+,`,
   help: "?",
 };

@@ -368,6 +368,7 @@ pub fn test_provider_connection(
     base_url: String,
     api_key: String,
     model: String,
+    protocol: Option<String>,
 ) -> Result<ProviderTestResult, String> {
     if base_url.trim().is_empty() {
         return Ok(ProviderTestResult {
@@ -388,12 +389,37 @@ pub fn test_provider_connection(
             message: "Sem apiKey — preencha antes de testar.".to_string(),
         });
     }
-    let url = format!("{}/v1/messages", base_url.trim_end_matches('/'));
-    let body = serde_json::json!({
-        "model": model,
-        "max_tokens": 1,
-        "messages": [{ "role": "user", "content": "ping" }],
-    });
+    let proto = protocol.as_deref().unwrap_or("anthropic_messages");
+    let (url, body, auth_style) = match proto {
+        "openai_chat" => {
+            let u = format!("{}/chat/completions", base_url.trim_end_matches('/'));
+            let b = serde_json::json!({
+                "model": model,
+                "max_tokens": 1,
+                "messages": [{ "role": "user", "content": "ping" }],
+            });
+            (u, b, "bearer")
+        }
+        "openai_responses" => {
+            let u = format!("{}/responses", base_url.trim_end_matches('/'));
+            let b = serde_json::json!({
+                "model": model,
+                "input": "ping",
+                "max_output_tokens": 1,
+            });
+            (u, b, "bearer")
+        }
+        _ => {
+            // anthropic_messages (default)
+            let u = format!("{}/v1/messages", base_url.trim_end_matches('/'));
+            let b = serde_json::json!({
+                "model": model,
+                "max_tokens": 1,
+                "messages": [{ "role": "user", "content": "ping" }],
+            });
+            (u, b, "anthropic")
+        }
+    };
 
     let agent = ureq::AgentBuilder::new()
         .timeout(std::time::Duration::from_secs(10))
@@ -401,13 +427,19 @@ pub fn test_provider_connection(
         .build();
 
     let t0 = std::time::Instant::now();
-    let resp = agent
+    let mut req = agent
         .post(&url)
-        .set("Content-Type", "application/json")
-        .set("x-api-key", &api_key)
-        .set("Authorization", &format!("Bearer {}", api_key))
-        .set("anthropic-version", "2023-06-01")
-        .send_json(body);
+        .set("Content-Type", "application/json");
+    if auth_style == "anthropic" {
+        req = req
+            .set("x-api-key", &api_key)
+            .set("Authorization", &format!("Bearer {}", api_key))
+            .set("anthropic-version", "2023-06-01");
+    } else {
+        // openai_chat / openai_responses — Bearer token only
+        req = req.set("Authorization", &format!("Bearer {}", api_key));
+    }
+    let resp = req.send_json(body);
     let latency_ms = t0.elapsed().as_millis() as u64;
 
     match resp {
@@ -435,10 +467,14 @@ pub fn test_provider_connection(
         Err(ureq::Error::Status(code, resp)) => {
             let text = resp.into_string().unwrap_or_default();
             let hint = match code {
-                401 | 403 => "Chave inválida ou sem acesso.",
-                404 => "Endpoint não encontrado — verifique a baseUrl.",
-                429 => "Rate-limited, mas o endpoint responde.",
-                _ => "Erro do provider.",
+                401 | 403 => "Authentication failed — invalid API key or no access to this model.",
+                404 => match proto {
+                    "openai_chat" => "Endpoint /chat/completions not found — verify baseUrl is the API root (e.g. https://openrouter.ai/api/v1).",
+                    "openai_responses" => "Endpoint /responses not found — verify baseUrl and protocol.",
+                    _ => "Endpoint /v1/messages not found — verify baseUrl.",
+                },
+                429 => "Rate-limited, but the endpoint is reachable.",
+                _ => "Provider returned an error.",
             };
             let snippet = if text.is_empty() {
                 String::new()

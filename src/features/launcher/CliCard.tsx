@@ -8,7 +8,8 @@ import { getCliIcon, hasCliIcon } from "../../icons/registry";
 import { getRecentDirs, saveLastDir, addRecentDir } from "../history/useHistory";
 import { getPinnedDirs } from "./pinnedDirs";
 import { appendHistory } from "./history";
-import { buildLaunchEnv, loadProviders } from "../../providers/storage";
+import { buildLaunchEnvAsync, loadProviders } from "../../providers/storage";
+import { showToast } from "../../ui/toastStore";
 import type { CheckResult, CliInfo } from "./useClis";
 
 interface CliCardProps {
@@ -37,21 +38,22 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
 
   const quickLaunch = async (dir: string) => {
     setQuickLaunching(true);
+    let envVars: Record<string, string> | undefined;
+    let providerId: string | undefined;
     try {
-      let envVars: Record<string, string> | undefined;
-      let providerId: string | undefined;
       if (cli.key === "claude") {
         const state = loadProviders();
-        envVars = buildLaunchEnv(state);
+        envVars = await buildLaunchEnvAsync(state);
         providerId = state.activeId;
       }
-      await invoke<string>("launch_cli", {
+      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
         cliKey: cli.key,
         directory: dir,
         args: "",
         noPerms: true,
         envVars: envVars ?? null,
       });
+      const now = new Date().toISOString();
       saveLastDir(cli.key, dir);
       addRecentDir(cli.key, dir);
       appendHistory({
@@ -59,11 +61,27 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
         cliKey: cli.key,
         directory: dir,
         args: "",
-        timestamp: new Date().toISOString(),
+        timestamp: now,
         providerId,
+        status: "starting",
+        sessionId: result.session_id,
+        startedAt: now,
       });
     } catch (e) {
-      window.alert(e instanceof Error ? e.message : String(e));
+      const now = new Date().toISOString();
+      // Launch failed immediately — record as failed
+      appendHistory({
+        cli: cli.name,
+        cliKey: cli.key,
+        directory: dir,
+        args: "",
+        timestamp: now,
+        providerId: providerId,
+        status: "failed",
+        startedAt: now,
+        errorMessage: e instanceof Error ? e.message : String(e),
+      });
+      showToast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setQuickLaunching(false);
     }
@@ -86,7 +104,7 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
         <Chip variant={installed ? "online" : "missing"} dot>
           {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
-        {hasUpdate && <span className="cd-cli-card__update" title="Update available">⬆</span>}
+        {hasUpdate && <span className="cd-cli-card__update" title="Update available" aria-label="Update available">&#x2191;</span>}
       </div>
       <div className="cd-cli-card__actions">
         {installed ? (
@@ -110,7 +128,7 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
                 void quickLaunch(d);
               }}
             >
-              📌 {truncateEnd(d)}
+              <span className="cd-cli-card__pin-icon" aria-hidden="true">&#x25C8;</span> {truncateEnd(d)}
             </button>
           ))}
           {recentDirs.map((d) => (
@@ -124,7 +142,7 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
                 void quickLaunch(d);
               }}
             >
-              📂 {truncateEnd(d)}
+              <span className="cd-cli-card__dir-icon" aria-hidden="true">&#x25B7;</span> {truncateEnd(d)}
             </button>
           ))}
         </div>

@@ -6,6 +6,9 @@
 
 export type ProviderKind = 'anthropic' | 'zai' | 'minimax' | 'moonshot' | 'qwen' | 'openrouter' | 'custom';
 
+/** API protocol used by the provider for connection testing and request formatting. */
+export type ProviderProtocol = 'anthropic_messages' | 'openai_chat' | 'openai_responses' | 'custom';
+
 export interface ProviderProfile {
   /** ID estável (slug). Ex: "anthropic", "zai", "zai-test". */
   id: string;
@@ -34,6 +37,10 @@ export interface ProviderProfile {
   builtin?: boolean;
   /** Observação livre mostrada no Admin. */
   note?: string;
+  /** API protocol — controls endpoint and request body format for testing. */
+  protocol?: ProviderProtocol;
+  /** Known models for this provider (shown in UI as suggestions). */
+  knownModels?: string[];
 }
 
 export interface ProvidersState {
