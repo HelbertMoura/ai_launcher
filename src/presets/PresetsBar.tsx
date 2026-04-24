@@ -6,12 +6,13 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { LaunchPreset } from './types';
+import { FloppyDisk } from '../ui/icons';
+import type { LaunchProfile } from '../domain/types';
 import { PresetIcon, PRESET_ICON_IDS } from './PresetIcon';
 
 interface PresetsBarProps {
-  presets: LaunchPreset[];
-  onLaunch: (p: LaunchPreset) => void;
+  presets: LaunchProfile[];
+  onLaunch: (p: LaunchProfile) => void;
   onRemove: (id: string) => void;
   onSave: (name: string, emoji: string) => void;
   onRename: (id: string, name: string) => void;
@@ -80,7 +81,10 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
             onKeyDown={e => e.key === 'Enter' && handleSave()}
             autoFocus
           />
-          <button className="btn" onClick={handleSave}>{t('presets.saveBtn', '💾 Salvar')}</button>
+          <button className="btn cd-icon" onClick={handleSave}>
+            <FloppyDisk size={14} weight="regular" />
+            <span>{t('presets.saveBtn', 'Salvar')}</span>
+          </button>
         </div>
       )}
       {presets.length === 0 && !showAdd && (
@@ -91,14 +95,14 @@ export function PresetsBar({ presets, onLaunch, onRemove, onSave, onRename }: Pr
       {presets.length > 0 && (
         <div className="presets-list">
           {presets.map((p, idx) => (
-            <div key={p.id} className="preset-chip" title={t('presets.chipTitle', '{{cliKey}} · {{dir}}', { cliKey: p.cliKey, dir: p.directory || t('presets.noDir', '(sem dir)') })}>
+            <div key={p.id} className="preset-chip" title={t('presets.chipTitle', '{{cliKey}} · {{dir}}', { cliKey: p.cliKeys[0] ?? '', dir: p.directory || t('presets.noDir', '(sem dir)') })}>
               <button
                 className="preset-chip-main"
                 onClick={() => onLaunch(p)}
                 title={t('presets.launchHint', 'Lançar (Ctrl+{{n}})', { n: idx + 1 })}
               >
                 <span className="preset-chip-emoji" aria-hidden="true">
-                  <PresetIcon id={p.emoji || 'bolt'} size={14} />
+                  <PresetIcon id={p.tags[0] || 'bolt'} size={14} />
                 </span>
                 {renamingId === p.id ? (
                   <input

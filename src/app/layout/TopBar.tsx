@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
+import type { Density } from "../../hooks/useDensity";
 import type { Theme } from "../../hooks/useTheme";
 import { getLocale, setLocale, type Locale } from "../../i18n";
 import "./TopBar.css";
@@ -15,11 +16,37 @@ interface TopBarProps {
   onToggleTheme: () => void;
   accent: Accent;
   onAccent: (a: Accent) => void;
+  density: Density;
+  onToggleDensity: () => void;
 }
 
-export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: TopBarProps) {
+const THEME_ICON: Record<Theme, string> = {
+  dark: "☾",
+  light: "☀",
+  amber: "◉",
+  glacier: "❄",
+};
+
+const THEME_NEXT_I18N_KEY: Record<Theme, string> = {
+  dark: "topBar.themeToLight",
+  light: "topBar.themeToAmber",
+  amber: "topBar.themeToGlacier",
+  glacier: "topBar.themeToDark",
+};
+
+export function TopBar({
+  onCommand,
+  theme,
+  onToggleTheme,
+  accent,
+  onAccent,
+  density,
+  onToggleDensity,
+}: TopBarProps) {
   const { t } = useTranslation();
-  const toggleLabel = theme === "dark" ? t("topBar.themeToLight") : t("topBar.themeToDark");
+  const toggleLabel = t(THEME_NEXT_I18N_KEY[theme]);
+  const densityLabel =
+    density === "compact" ? t("topBar.densityToComfortable") : t("topBar.densityToCompact");
   const locale = getLocale();
   const nextLocale: Locale = locale === "pt-BR" ? "en" : "pt-BR";
 
@@ -59,12 +86,23 @@ export function TopBar({ onCommand, theme, onToggleTheme, accent, onAccent }: To
 
         <button
           type="button"
+          className="cd-top__density"
+          onClick={onToggleDensity}
+          aria-label={densityLabel}
+          aria-pressed={density === "compact"}
+          title={densityLabel}
+        >
+          {density === "compact" ? "▤" : "▦"}
+        </button>
+
+        <button
+          type="button"
           className="cd-top__theme"
           onClick={onToggleTheme}
           aria-label={toggleLabel}
           title={toggleLabel}
         >
-          {theme === "dark" ? "☾" : "☀"}
+          {THEME_ICON[theme]}
         </button>
       </div>
     </header>

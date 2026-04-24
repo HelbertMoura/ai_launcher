@@ -1,6 +1,6 @@
 [package]
 name = "ai-launcher"
-version = "14.0.0"
+version = "15.0.0"
 description = "Desktop launcher for AI coding CLIs (Windows)"
 authors = ["Helbert Moura"]
 license = "MIT"
@@ -28,6 +28,8 @@ ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 thiserror = "1.0"
+uuid = { version = "1", features = ["v4"] }
+sha2 = "0.10"
 
 [features]
 default = ["custom-protocol"]

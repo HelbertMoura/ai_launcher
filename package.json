@@ -1,6 +1,6 @@
 {
   "name": "ai-launcher",
-  "version": "14.0.0",
+  "version": "15.0.0",
   "description": "Desktop launcher for AI coding CLIs — by Helbert Moura | DevManiac's",
   "author": "Helbert Moura",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-dialog": "^2.0.0",

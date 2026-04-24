@@ -1,0 +1,22 @@
+/* Glacier — cool blue light-adjacent theme.
+   Cold surfaces, high clarity, icy accent. */
+[data-theme="glacier"] {
+  color-scheme: light;
+
+  --bg: #e8edf2;
+  --surface-1: #ffffff;
+  --surface-2: #f4f7fa;
+  --surface-hover: #dce4ed;
+
+  --border: #c8d2de;
+  --border-strong: #9aa8ba;
+
+  --text: #1a2332;
+  --text-muted: #4a5a70;
+  --text-dim: #6e7e94;
+
+  --accent: #4da6ff;
+  --accent-glow: rgba(77, 166, 255, 0.4);
+  --accent-soft: rgba(77, 166, 255, 0.12);
+  --accent-ink: #ffffff;
+}

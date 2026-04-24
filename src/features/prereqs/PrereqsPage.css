@@ -126,6 +126,36 @@
 
 .cd-prereq-card__action {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.cd-prereq-card__btn {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 1px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-sm);
+  padding: 4px var(--s-3);
+  cursor: pointer;
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.cd-prereq-card__btn:hover:not(:disabled) {
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.cd-prereq-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cd-prereq-card__error {
+  font-size: var(--text-xs);
+  color: var(--err);
+  margin-top: 4px;
 }
 
 .cd-prereq-card__hint {
@@ -137,8 +167,12 @@
 .cd-prereq-card__cmd {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--accent);
+  color: var(--text-muted);
   background: var(--surface-2);
   padding: 2px var(--s-2);
   border-radius: var(--r-sm);
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

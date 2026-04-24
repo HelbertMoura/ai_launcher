@@ -101,3 +101,130 @@
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* Budget Dashboard */
+.cd-budget {
+  margin-top: var(--s-5);
+}
+
+.cd-budget__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cd-budget__bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--s-4);
+}
+
+.cd-budget__bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cd-budget__bar-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.cd-budget__bar-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.cd-budget__bar-track {
+  height: 28px;
+  border-radius: var(--r-sm);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.cd-budget__bar-fill-info {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  mix-blend-mode: difference;
+}
+
+.cd-budget__bar-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.cd-budget__bar-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cd-budget__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-5);
+}
+
+.cd-budget__empty-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.cd-budget__form-card {
+  padding: var(--s-4);
+}
+
+.cd-budget__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cd-budget__form-row {
+  display: flex;
+  gap: var(--s-3);
+}
+
+.cd-budget__form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  flex: 1;
+}
+
+.cd-budget__form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cd-budget__add-btn {
+  margin-top: var(--s-3);
+}
