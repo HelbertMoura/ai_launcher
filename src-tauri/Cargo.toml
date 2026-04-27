@@ -24,7 +24,7 @@ regex-lite = "0.1"
 open = "5"
 tokio = { version = "1", features = ["process", "io-util", "rt-multi-thread", "macros", "sync"] }
 dirs = "5"
-ureq = { version = "2", features = ["json"] }
+ureq = { version = "3", features = ["json"] }
 base64 = "0.22"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 thiserror = "1.0"
