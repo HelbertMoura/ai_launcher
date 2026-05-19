@@ -265,7 +265,8 @@ pub fn launch_cli(
     let safe_args = sanitize_args(&args)?;
     let work_dir = validate_directory(&directory)?;
 
-    let resolved_cmd = resolve_cli_path_win(&cli.command).unwrap_or_else(|| cli.command.clone());
+    let resolved_cmd =
+        resolve_cli_path_win(&cli.command, &cli.extra_paths).unwrap_or_else(|| cli.command.clone());
 
     let ps_cmd = if resolved_cmd.contains(' ') {
         format!("& '{}'", resolved_cmd.replace('\'', "''"))
@@ -384,7 +385,7 @@ pub fn launch_custom_cli(
     let safe_args = sanitize_args(args.as_deref().unwrap_or(""))?;
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
 
-    let resolved_cmd = resolve_cli_path_win(&command).unwrap_or_else(|| command.clone());
+    let resolved_cmd = resolve_cli_path_win(&command, &[]).unwrap_or_else(|| command.clone());
     let ps_cmd = if resolved_cmd.contains(' ') {
         format!("& '{}'", resolved_cmd.replace('\'', "''"))
     } else {
