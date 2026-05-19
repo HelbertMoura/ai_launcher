@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 15.0.0](https://img.shields.io/badge/version-15.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 15.1.0](https://img.shields.io/badge/version-15.1.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -22,8 +22,8 @@
 
 | | Feature | Description |
 |---|---------|-------------|
-| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Gemini CLI, Qwen, Crush, Droid, Kilocode, OpenCode and more |
-| :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, Google Antigravity, JetBrains AI and custom IDEs |
+| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Gemini CLI, Antigravity, Qwen, Crush, Droid, Kilocode, OpenCode and more |
+| :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, JetBrains AI and custom IDEs |
 | :arrow_up: | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
 | :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily and monthly breakdowns |
 | :clipboard: | **Launch History** | Full session log with reopen, descriptions, status badges and duration tracking |

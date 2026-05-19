@@ -18,6 +18,7 @@ const CLI_KEYS = new Set([
   "droid",
   "kilocode",
   "opencode",
+  "antigravity",
 ]);
 
 export function hasCliIcon(key: string): boolean {
@@ -28,7 +29,6 @@ const TOOL_KEYS = new Set([
   "vscode",
   "cursor",
   "windsurf",
-  "antgravity",
   "jetbrains-ai",
 ]);
 

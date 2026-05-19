@@ -3,7 +3,9 @@
   /* surfaces */
   --bg: #0a0a0b;
   --surface-1: #0d0d0f;
+  --surface-1-alpha: rgba(13, 13, 15, 0.7);
   --surface-2: #111114;
+  --surface-2-alpha: rgba(17, 17, 20, 0.6);
   --surface-hover: #15151a;
   --border: #1a1a1d;
   --border-strong: #2a2a2d;

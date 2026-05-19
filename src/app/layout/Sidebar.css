@@ -1,6 +1,8 @@
 .cd-side {
   width: var(--sidebar-w);
-  background: var(--surface-1);
+  background: var(--surface-1-alpha);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
