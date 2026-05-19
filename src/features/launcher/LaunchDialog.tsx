@@ -26,7 +26,7 @@ interface LaunchDialogProps {
 }
 
 const CLAUDE_KEY = "claude";
-const CLIS_WITH_PROMPT_FLAG = new Set(["claude", "codex", "gemini", "antigravity"]);
+const CLIS_WITH_PROMPT_FLAG = new Set(["claude", "codex", "antigravity"]);
 
 interface LaunchState {
   directory: string;
