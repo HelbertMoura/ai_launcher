@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.0] — 2026-05-19 — Antigravity CLI Real + Electron Versioning + DnD Fix
+
+Release focada em três correções convergentes: a detecção real do Antigravity CLI, a versão do IDE Electron e a usabilidade do drag-and-drop na Dashboard.
+
+### Added
+- **Antigravity CLI (`agy`)** — Detecção via `%LOCALAPPDATA%\agy\bin\agy.exe`, instalação por script PowerShell oficial (`iwr https://antigravity.google/cli/install.ps1 -useb | iex`) e checagem de updates pelo manifesto JSON público do Google.
+- **`extra_paths` e `update_manifest_url`** — Novos campos opcionais em `CliInfo` permitindo CLIs script-installed sem hardcode (preparação para futuros casos similares).
+- **`read_exe_product_version`** — Lê `ProductVersion` do PE para IDEs Electron (Antigravity, Cursor, Windsurf) que não respondem a `--version`.
+- **Drag handle dedicado (⋮⋮)** — Elemento no cabeçalho dos CLI cards com cursor `grab`, opacidade animada e outline tracejado no drop target.
+- **Hook `useDraggable`** — Lógica reutilizável de DnD entre cards.
+
+### Changed
+- **Antigravity CLI** migrado do pacote npm fake `@google/antigravity` (404) para o binário oficial `agy` com flag `--dangerously-skip-permissions`.
+- **`check_tools` e `check_tool_updates`** caem em `ProductVersion` quando `--version` não retorna versão extraível — beneficia também Cursor e Windsurf.
+- **DnD desacoplado do `<Card>`** — só o handle dispara `dragStart`, eliminando o conflito com `mousedown` dos botões filhos.
+
+### Removed
+- **Gemini CLI** — Descontinuado pelo Google; substituído pelo Antigravity em todas as listas, registries e copy.
+- **Hardcode `antigravity`** em `resolve_windows_cmd` (binário real é `.exe`, não `.cmd`).
+- **Ícones `gemini.svg` e `gemini.png`** em `public/icons/cli/`.
+
+### Fixed
+- **Antigravity não detectado** — comando real é `agy`, não `antigravity`; pacote `@google/antigravity` retorna 404 no npm.
+- **Versão do Antigravity IDE ausente** — Electron apps não respondem a `--version`; agora lemos `ProductVersion` (Google v2.0.0).
+- **Drag-and-drop não iniciava** — `<Button>`/`<Chip>` consumiam `mousedown` antes do gesture; handle dedicado resolve.
+
+### Internal
+- Clippy 1.94 — `manual_is_multiple_of` em `self_update.rs` corrigido (pre-existente desde v15.0).
+- 15 testes unitários Rust passando (3 novos: `extra_paths`, `no-gemini`, `agy-command`).
+
 ## [15.1.0] — 2026-05-19 — Antigravity Integration & Glassmorphism
 
 Release focada na integração oficial do Antigravity CLI e refinamento visual premium.
