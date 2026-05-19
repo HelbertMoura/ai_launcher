@@ -10,6 +10,7 @@ import { getPinnedDirs } from "./pinnedDirs";
 import { appendHistory } from "./history";
 import { buildLaunchEnvAsync, loadProviders } from "../../providers/storage";
 import { showToast } from "../../ui/toastStore";
+import type { DragStartHandlers, DropHandlers } from "../../hooks/useDraggable";
 import type { CheckResult, CliInfo } from "./useClis";
 
 interface CliCardProps {
@@ -19,13 +20,26 @@ interface CliCardProps {
   hasUpdate?: boolean;
   onLaunch: (cli: CliInfo) => void;
   onInstall: (cli: CliInfo) => void;
+  startHandlers?: DragStartHandlers;
+  dropHandlers?: DropHandlers;
+  isDropTarget?: boolean;
 }
 
 function truncateEnd(s: string, max = 32): string {
   return s.length <= max ? s : `…${s.slice(s.length - (max - 1))}`;
 }
 
-export function CliCard({ cli, check, installing = false, hasUpdate = false, onLaunch, onInstall }: CliCardProps) {
+export function CliCard({
+  cli,
+  check,
+  installing = false,
+  hasUpdate = false,
+  onLaunch,
+  onInstall,
+  startHandlers,
+  dropHandlers,
+  isDropTarget = false,
+}: CliCardProps) {
   const { t } = useTranslation();
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
@@ -88,8 +102,22 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
   };
 
   return (
-    <Card interactive>
+    <div
+      className={`cd-draggable-item${isDropTarget ? " cd-draggable-item--drop-target" : ""}`}
+      {...(dropHandlers ?? {})}
+    >
+      <Card interactive>
       <div className="cd-cli-card__head">
+        {startHandlers && (
+          <span
+            className="cd-drag-handle"
+            aria-label={t("launcher.dragToReorder")}
+            title={t("launcher.dragToReorder")}
+            {...startHandlers}
+          >
+            ⋮⋮
+          </span>
+        )}
         {hasCliIcon(cli.key) ? (
           <img className="cd-cli-card__icon" src={getCliIcon(cli.key)} alt="" />
         ) : (
@@ -147,6 +175,7 @@ export function CliCard({ cli, check, installing = false, hasUpdate = false, onL
           ))}
         </div>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 }

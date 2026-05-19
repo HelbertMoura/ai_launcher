@@ -2,14 +2,24 @@ import { useTranslation } from "react-i18next";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
 import { getCliIcon, hasCliIcon } from "../../icons/registry";
+import type { DragStartHandlers, DropHandlers } from "../../hooks/useDraggable";
 import type { CustomCli } from "../../lib/customClis";
 
 interface CustomCliCardProps {
   cli: CustomCli;
   onLaunch: (cli: CustomCli) => void;
+  startHandlers?: DragStartHandlers;
+  dropHandlers?: DropHandlers;
+  isDropTarget?: boolean;
 }
 
-export function CustomCliCard({ cli, onLaunch }: CustomCliCardProps) {
+export function CustomCliCard({
+  cli,
+  onLaunch,
+  startHandlers,
+  dropHandlers,
+  isDropTarget = false,
+}: CustomCliCardProps) {
   const { t } = useTranslation();
   const iconSrc =
     cli.iconDataUrl ||
@@ -17,8 +27,22 @@ export function CustomCliCard({ cli, onLaunch }: CustomCliCardProps) {
   const iconEmoji = cli.iconEmoji || "▶";
 
   return (
-    <Card interactive>
+    <div
+      className={`cd-draggable-item${isDropTarget ? " cd-draggable-item--drop-target" : ""}`}
+      {...(dropHandlers ?? {})}
+    >
+      <Card interactive>
       <div className="cd-cli-card__head">
+        {startHandlers && (
+          <span
+            className="cd-drag-handle"
+            aria-label={t("launcher.dragToReorder")}
+            title={t("launcher.dragToReorder")}
+            {...startHandlers}
+          >
+            ⋮⋮
+          </span>
+        )}
         {iconSrc ? (
           <img className="cd-cli-card__icon" src={iconSrc} alt="" />
         ) : (
@@ -41,6 +65,7 @@ export function CustomCliCard({ cli, onLaunch }: CustomCliCardProps) {
           {t("launcher.launch")}
         </button>
       </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
