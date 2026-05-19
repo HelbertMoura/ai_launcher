@@ -349,6 +349,118 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-05-19T23:00:00-03:00"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-05-19T22:09:32.498Z",
+      "error_message": "CSS fix: grid-template-columns, gap",
+      "file": "src/features/page.css",
+      "root_cause": "grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) → repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s-3) → var(--s-4)",
+      "fix": "Changed grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) → repeat(auto-fill, minmax(260px, 1fr)); gap: var(--s-3) → var(--s-4)",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:09:32.498Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-05-19T22:09:45.137Z",
+      "error_message": "CSS fix: padding",
+      "file": "src/ui/Card.css",
+      "root_cause": "padding: var(--s-3) → var(--s-4)",
+      "fix": "Changed padding: var(--s-3) → var(--s-4)",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:09:45.137Z"
+    },
+    {
+      "id": "bug-024",
+      "timestamp": "2026-05-19T22:10:05.544Z",
+      "error_message": "CSS fix: width, height, background",
+      "file": "src/features/launcher/LauncherPage.css",
+      "root_cause": "width: 22px → 32px; height: 22px → 32px; background: var(--surface-hover) → var(--surface-1)",
+      "fix": "Changed width: 22px → 32px; height: 22px → 32px; background: var(--surface-hover) → var(--surface-1)",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-05-19T22:10:45.075Z"
+    },
+    {
+      "id": "bug-025",
+      "timestamp": "2026-05-19T22:10:57.819Z",
+      "error_message": "CSS fix: width, height, background",
+      "file": "src/features/tools/ToolsPage.css",
+      "root_cause": "width: 22px → 32px; height: 22px → 32px; background: var(--surface-hover) → var(--surface-1)",
+      "fix": "Changed width: 22px → 32px; height: 22px → 32px; background: var(--surface-hover) → var(--surface-1)",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:10:57.819Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-05-19T22:11:45.182Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.1\"",
+      "fix": "Changed to \"15.2.2\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:11:45.182Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-05-19T22:11:47.183Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.1\"",
+      "fix": "Changed to \"15.2.2\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:11:47.183Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-05-19T22:11:48.511Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.1\"",
+      "fix": "Changed to \"15.2.2\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:11:48.511Z"
     }
   ]
 }

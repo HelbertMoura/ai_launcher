@@ -29,6 +29,7 @@ const TOOL_KEYS = new Set([
   "cursor",
   "windsurf",
   "jetbrains-ai",
+  "antigravity",
 ]);
 
 export function hasToolIcon(key: string): boolean {

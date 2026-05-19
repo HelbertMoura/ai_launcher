@@ -1,41 +1,78 @@
+/* ============================================================
+   CLI CARD — Premium uniform layout
+   ============================================================ */
+
 .cd-cli-card__head {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
+  gap: var(--s-3);
   margin-bottom: var(--s-3);
+  min-height: 40px;
 }
+
 .cd-cli-card__icon {
-  width: 22px;
-  height: 22px;
-  color: var(--accent);
-}
-.cd-cli-card__icon--placeholder {
-  background: var(--surface-hover);
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   border-radius: var(--r-sm);
-  display: inline-block;
+  object-fit: contain;
 }
-.cd-cli-card__meta { flex: 1; min-width: 0; }
+
+.cd-cli-card__icon--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-1);
+  color: var(--text-dim);
+  font-size: 18px;
+  border: 1px solid var(--border);
+}
+
+.cd-cli-card__meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .cd-cli-card__name {
-  font-family: var(--font-mono);
+  font-family: var(--font-display, var(--font-mono));
   font-weight: 700;
-  font-size: var(--text-sm);
+  font-size: 14px;
+  line-height: 1.2;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .cd-cli-card__cmd {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-dim);
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .cd-cli-card__actions {
   display: flex;
   gap: var(--s-2);
+  margin-top: auto;
+  padding-top: var(--s-2);
+}
+
+.cd-cli-card__actions > * {
+  flex: 1;
 }
 
 .cd-cli-card__update {
-  font-size: var(--text-xs);
+  font-size: 13px;
   color: var(--warn);
   animation: pulse 2s infinite;
+  flex-shrink: 0;
 }
 
 .cd-cli-card__pin-icon {
@@ -200,16 +237,19 @@
 .cd-cli-card__recents {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-top: var(--s-2);
+  gap: 1px;
+  margin-top: var(--s-3);
   border-top: 1px solid var(--border);
   padding-top: var(--s-2);
+  max-height: 60px;
+  overflow: hidden;
 }
 .cd-cli-card__recent-dir {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 6px;
+  padding: 4px 6px;
+  height: 24px;
   background: transparent;
   border: none;
   border-radius: var(--r-sm);
@@ -222,6 +262,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 .cd-cli-card__recent-dir:hover:not(:disabled) {
   background: var(--surface-hover);
@@ -251,19 +292,27 @@
    Nao animar transform aqui ou colide com o transform inline da lib. */
 .cd-draggable-item {
   transition: opacity 0.2s ease, box-shadow 0.15s ease;
-  touch-action: none; /* exigido pelo PointerSensor para evitar scroll em mobile */
+  touch-action: none;
+  min-height: 168px;
+  display: flex;
+}
+
+.cd-draggable-item > .cd-card {
+  flex: 1;
+  width: 100%;
 }
 
 .cd-draggable-item--dragging {
-  opacity: 0.6;
+  opacity: 0.55;
   z-index: 10;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  cursor: grabbing;
 }
 
 .cd-drag-handle {
   cursor: grab;
-  opacity: 0.35;
-  padding: 4px 6px;
+  opacity: 0;
+  padding: 4px 4px;
   font-size: 14px;
   line-height: 1;
   letter-spacing: -3px;
@@ -272,16 +321,23 @@
   transition: opacity 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
   touch-action: none;
+  margin-left: -4px;
+  border-radius: var(--r-sm);
 }
 
 .cd-draggable-item:hover .cd-drag-handle {
-  opacity: 0.85;
+  opacity: 0.6;
+}
+
+.cd-drag-handle:hover {
+  opacity: 1 !important;
   color: var(--accent);
+  background: var(--surface-hover);
 }
 
 .cd-drag-handle:active {
   cursor: grabbing;
-  opacity: 1;
+  opacity: 1 !important;
 }
 .cd-launcher__templates-grid {
   display: grid;

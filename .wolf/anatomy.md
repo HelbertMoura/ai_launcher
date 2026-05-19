@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-04-25T13:25:52.788Z
-> Files: 299 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-19T22:12:08.188Z
+> Files: 302 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -10,7 +10,7 @@
 - `.gitignore` — Git ignore rules (~390 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
-- `CHANGELOG.md` — Change log (~13379 tok)
+- `CHANGELOG.md` — Changelog (~14922 tok)
 - `CITATION.cff` (~208 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `CONTRIBUTING.md` — Contributing to AI Launcher Pro (~1630 tok)
@@ -18,7 +18,7 @@
 - `index.html` — AI Launcher Pro - by Helbert Moura (~546 tok)
 - `LICENSE` — Project license (~290 tok)
 - `package-lock.json` — npm lock file (~50888 tok)
-- `package.json` — Node.js package manifest (~456 tok)
+- `package.json` — Node.js package manifest (~486 tok)
 - `playwright.config.ts` — Playwright test configuration (~146 tok)
 - `README.md` — Project documentation (~2694 tok)
 - `README.pt-BR.md` — Funcionalidades (~2790 tok)
@@ -163,6 +163,7 @@
 - `2026-04-22-v9-soft-workbench-plan.md` — v9.0 "Soft Workbench" Implementation Plan (~473 tok)
 - `2026-04-22-v9.1-soft-workbench-2-plan.md` — AI Launcher Pro v9.1 — Soft Workbench 2.0 Implementation Plan (~5844 tok)
 - `2026-04-23-v14-complete-roadmap-plan.md` — AI Launcher Pro v14 — Roadmap Completo de Implementação (~12867 tok)
+- `2026-05-19-v15.2-antigravity-cli-plan.md` — AI Launcher Pro v15.2 — Antigravity CLI + IDE Version + DnD Fix — Implementation Plan (~14826 tok)
 
 ## docs/superpowers/specs/
 
@@ -170,6 +171,7 @@
 - `2026-04-22-v10-command-deck-design.md` — AI Launcher v10 — Command Deck (~4190 tok)
 - `2026-04-22-v9-soft-workbench-design.md` — v9.0 "Soft Workbench" — Design Spec (~1076 tok)
 - `2026-04-22-v9.1-soft-workbench-2-design.md` — AI Launcher Pro v9.1 — "Soft Workbench 2.0" Design Spec (~2230 tok)
+- `2026-05-19-v15.2-antigravity-cli-design.md` — AI Launcher Pro v15.2 — Antigravity CLI Integration + DnD Fix — Design Spec (~2569 tok)
 
 ## e2e/
 
@@ -195,8 +197,8 @@
 ## src-tauri/
 
 - `build.rs` (~12 tok)
-- `Cargo.toml` — Rust package manifest (~351 tok)
-- `tauri.conf.json` (~541 tok)
+- `Cargo.toml` — Rust package manifest (~316 tok)
+- `tauri.conf.json` (~542 tok)
 
 ## src-tauri/capabilities/
 
@@ -215,17 +217,17 @@
 - `main.rs` (~1390 tok)
 - `secrets.rs` — Secrets file format. `encrypted` flag indicates DPAPI was used. (~2555 tok)
 - `tray.rs` — toggle_main_window, show_and_focus, setup_tray (~2148 tok)
-- `util.rs` — Shared utilities, type definitions, and global helpers. (~10231 tok)
+- `util.rs` — Shared utilities, type definitions, and global helpers. (~11160 tok)
 
 ## src-tauri/src/commands/
 
-- `cli.rs` — Result returned by all launch commands. (~4274 tok)
+- `cli.rs` — Result returned by all launch commands. (~4043 tok)
 - `config.rs` — The entire usage aggregator stays here — it's only called from read_usage_stats. (~5374 tok)
 - `mod.rs` (~30 tok)
-- `self_update.rs` — Self-update commands for AI Launcher. (~3004 tok)
+- `self_update.rs` — Self-update commands for AI Launcher. (~2806 tok)
 - `system.rs` — [tauri::command] (~770 tok)
-- `tools.rs` — get_all_tools, check_tools, install_tool, launch_tool, launch_custom_ide (~1383 tok)
-- `updates.rs` — check_env_updates, check_tool_updates, check_all_updates, check_latest_release + 2 more (~4010 tok)
+- `tools.rs` — get_all_tools, check_tools, install_tool, launch_tool, launch_custom_ide (~1556 tok)
+- `updates.rs` — check_env_updates, check_tool_updates, check_all_updates, check_latest_release, check_environment (~3815 tok)
 
 ## src/
 
@@ -257,11 +259,11 @@
 
 ## src/features/
 
-- `page.css` — Styles: 7 rules (~258 tok)
+- `page.css` — Styles: 7 rules (~265 tok)
 
 ## src/features/admin/
 
-- `AdminPage.css` — Styles: 55 rules (~2218 tok)
+- `AdminPage.css` — Styles: 55 rules (~2248 tok)
 - `AdminPage.tsx` — SECTIONS (~612 tok)
 
 ## src/features/admin/editors/
@@ -297,7 +299,7 @@
 ## src/features/help/
 
 - `AnimatedTerminal.css` — Styles: 24 rules, 1 animations (~746 tok)
-- `AnimatedTerminal.tsx` — p — uses useState, useRef, useCallback, useEffect (~2408 tok)
+- `AnimatedTerminal.tsx` — p (~2409 tok)
 - `HelpPage.css` — Styles: 18 rules (~507 tok)
 - `HelpPage.tsx` — IS_MAC — renders table, modal — uses useState (~1676 tok)
 
@@ -310,19 +312,19 @@
 
 ## src/features/launcher/
 
-- `CliCard.tsx` — truncateEnd — uses useMemo, useState (~1570 tok)
+- `CliCard.tsx` — ID estável usado pelo SortableContext; quando omitido, card não é arrastável. (~1858 tok)
 - `clisStore.ts` — Reload custom CLIs from localStorage and merge into snapshot. (~1166 tok)
-- `CustomCliCard.tsx` — CustomCliCard (~425 tok)
+- `CustomCliCard.tsx` — ID estável usado pelo SortableContext; quando omitido, card não é arrastável. (~686 tok)
 - `CustomCliLaunchDialog.tsx` — INITIAL_STATE — renders modal — uses useReducer, useEffect, useMemo (~2216 tok)
 - `history.ts` — Exports HistoryItem, appendHistory (~368 tok)
-- `LaunchDialog.tsx` — CLAUDE_KEY — renders modal — uses useReducer, useMemo, useEffect (~5157 tok)
-- `LauncherPage.css` — Styles: 53 rules, 1 animations (~2360 tok)
-- `LauncherPage.tsx` — LauncherPage (~2106 tok)
+- `LaunchDialog.tsx` — CLAUDE_KEY — renders modal (~5158 tok)
+- `LauncherPage.css` — Styles: 61 rules (~2892 tok)
+- `LauncherPage.tsx` — LauncherPage (~3059 tok)
 - `pinnedDirs.test.ts` (~393 tok)
 - `pinnedDirs.ts` — Exports getPinnedDirs, pinDir, unpinDir, isPinned (~348 tok)
 - `sessionTemplates.test.ts` — Declares t (~595 tok)
 - `sessionTemplates.ts` — Exports SessionTemplate, getTemplates, getTemplatesForCli, saveTemplate, deleteTemplate (~374 tok)
-- `useClis.ts` — Exports CliInfo, CheckResult, useClis (~330 tok)
+- `useClis.ts` — Exports CliInfo, CheckResult, useClis (~349 tok)
 
 ## src/features/onboarding/
 
@@ -341,7 +343,7 @@
 - `CustomIdeCard.tsx` — CustomIdeCard — uses useState (~728 tok)
 - `CustomIdeLaunchDialog.tsx` — INITIAL_STATE — renders modal — uses useReducer, useEffect, useMemo (~1918 tok)
 - `ToolCard.tsx` — ToolCard (~664 tok)
-- `ToolsPage.css` — Styles: 12 rules, 1 animations (~414 tok)
+- `ToolsPage.css` — Styles: 13 rules (~557 tok)
 - `ToolsPage.tsx` — ToolsPage (~1295 tok)
 - `toolsStore.ts` — Reload custom IDEs from localStorage and merge into snapshot. (~1171 tok)
 - `useTools.ts` — Exports ToolInfo, CheckResult, useTools (~200 tok)
@@ -370,6 +372,7 @@
 - `useAccent.ts` — Exports Accent, ACCENTS, useAccent (~941 tok)
 - `useAppUpdate.ts` — Exports AppUpdateInfo, DownloadProgress, UpdateStatus, useAppUpdate (~1023 tok)
 - `useDensity.ts` — Exports Density, useDensity (~440 tok)
+- `useDraggable.ts` — Hook para reordenação por drag-and-drop entre cards. (~786 tok)
 - `useSidebarIndicators.ts` — Number of sessions started today (YYYY-MM-DD match on startedAt/timestamp). (~947 tok)
 - `useTheme.ts` — Exports Theme, THEMES, nextTheme, useTheme (~463 tok)
 - `useUpdates.ts` — Exports UpdateInfo, UpdatesSummary, useUpdates (~535 tok)
@@ -380,13 +383,13 @@
 
 ## src/i18n/locales/
 
-- `en.ts` — Exports en (~3758 tok)
-- `pt-BR.ts` — Exports ptBR (~3944 tok)
+- `en.ts` — Exports en (~3774 tok)
+- `pt-BR.ts` — Exports ptBR (~3963 tok)
 
 ## src/icons/
 
 - `index.ts` — Curated re-exports pra preservar tree-shaking (~198 tok)
-- `registry.ts` — Exports getCliIcon, getToolIcon, hasCliIcon, hasToolIcon (~199 tok)
+- `registry.ts` — Exports getCliIcon, getToolIcon, hasCliIcon, hasToolIcon (~198 tok)
 - `types.ts` — Exports IconProps, DEFAULT_ICON_SIZE, DEFAULT_STROKE_WIDTH (~50 tok)
 
 ## src/lib/
@@ -401,7 +404,7 @@
 - `customIdes.ts` — AI Launcher Pro - Custom IDEs (v7.0) (~952 tok)
 - `exportData.test.ts` — Declares csv (~895 tok)
 - `exportData.ts` — Redact sensitive fields in a JSON string. (~489 tok)
-- `iconRegistry.ts` — Exports BuiltinIconKind, BuiltinIconDefinition, getBuiltinIconAsset (~262 tok)
+- `iconRegistry.ts` — Exports BuiltinIconKind, BuiltinIconDefinition, getBuiltinIconAsset (~263 tok)
 - `iconUpload.ts` — Exports readIconFileAsDataUrl (~225 tok)
 - `notifications.ts` — Exports isNotificationsEnabled, setNotificationsEnabled, ensurePermissionThenNotify (~294 tok)
 - `secrets.ts` — Whether the Tauri backend with secure storage is available. (~934 tok)
@@ -441,7 +444,7 @@
 - `Banner.tsx` — ROLE (~224 tok)
 - `Button.css` — Styles: 12 rules, 3 vars (~388 tok)
 - `Button.tsx` — Button (~254 tok)
-- `Card.css` — Styles: 4 rules, 1 vars (~138 tok)
+- `Card.css` — Styles: 3 rules, 1 vars (~172 tok)
 - `Card.tsx` — Card (~166 tok)
 - `Chip.css` — Styles: 9 rules (~310 tok)
 - `Chip.tsx` — Chip (~193 tok)

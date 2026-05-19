@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.2] — 2026-05-19 — Dashboard Premium + Fix Ícone Antigravity
+
+Polimento visual de toda a Dashboard (Launcher + Tools + CLI Overrides) e correção do ícone do Antigravity em Tools (typo no nome do arquivo).
+
+### Fixed
+- **Ícone do Antigravity em Tools** — arquivo `public/icons/tool/antgravity.svg` (sem o "i") renomeado para `antigravity.svg`. `TOOL_KEYS` em `src/icons/registry.ts` agora registra `"antigravity"`.
+
+### Changed — Dashboard layout (Launcher, Tools, CLI Overrides)
+- **Cards uniformes**: `min-height: 168px` no wrapper, `display: flex; flex-direction: column; height: 100%` no `.cd-card`. Cards ficam alinhados verticalmente, ações sempre na base via `margin-top: auto`.
+- **Grid mais arejada**: gap de `s-3` → `s-4` (~12px → 16px), `minmax(240px, 1fr)` → `minmax(260px, 1fr)`.
+- **Ícones maiores**: 22×22 → 32×32 (CLI/Tools), 32×32 → 40×40 (Override row). Mais legíveis e impactantes.
+- **Tipografia consistente**: `font-display` (com fallback `font-mono`) para nomes a 14px/700; comandos em mono 10px com `letter-spacing`.
+- **Truncate rígido**: `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` em todos os textos críticos. Nada mais emolando.
+- **Hover premium**: card eleva 1px + sombra suave + glow accent. Transições em `var(--dur-fast)`.
+- **Recents/Pinned dirs**: altura fixa por item (24px) + `max-height: 60px` no container — limita visualmente a 2 itens sem cortar abruptamente.
+- **Drag handle** opacidade 0 por padrão, sobe para 0.6 no hover do card e 1.0 no hover do próprio handle (mais sutil até precisar).
+
+### Internal
+- `Card.css` agora estrutura o card como flex column com `height: 100%` — necessário para alinhamento na grid.
+- `LauncherPage.css` e `ToolsPage.css` ficaram com estrutura visual paralela (mesmo padding, mesma altura, mesmo hover).
+
 ## [15.2.1] — 2026-05-19 — Drag-and-Drop com @dnd-kit
 
 Patch que troca o HTML5 native drag pelo `@dnd-kit` (pointer events). O gesto nativo não disparava em alguns ambientes Windows + WebView2; pointer events são universais.

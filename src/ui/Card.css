@@ -2,17 +2,19 @@
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  padding: var(--s-3);
+  padding: var(--s-4);
   transition: border-color var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease);
+    box-shadow var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-.cd-card--interactive {
-  cursor: pointer;
-}
 .cd-card--interactive:hover {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent-soft);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--accent-soft);
+  transform: translateY(-1px);
 }
 
 .cd-card--active {
