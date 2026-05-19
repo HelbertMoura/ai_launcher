@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use serde::Serialize;
 
 use crate::util::{
-    check_cli_installed, compare_versions, encode_powershell_command, find_windows_terminal,
-    get_cli_definitions, get_installed_version, log_event, npm_latest, resolve_cli_path_win,
-    sanitize_args, stream_install, validate_directory, CheckResult, CliInfo,
+    check_cli_installed, compare_versions, encode_powershell_command, fetch_manifest_version,
+    find_windows_terminal, get_cli_definitions, get_installed_version, log_event, npm_latest,
+    resolve_cli_path_win, sanitize_args, stream_install, validate_directory, CheckResult, CliInfo,
     DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
@@ -47,7 +47,11 @@ pub fn check_cli_updates() -> Vec<crate::util::UpdateInfo> {
         .into_iter()
         .map(|cli| {
             let current = get_installed_version(&cli);
-            let latest = cli.npm_pkg.as_ref().and_then(|p| npm_latest(p));
+            let latest = if let Some(ref url) = cli.update_manifest_url {
+                fetch_manifest_version(url)
+            } else {
+                cli.npm_pkg.as_ref().and_then(|p| npm_latest(p))
+            };
             let has_update = match (&current, &latest) {
                 (Some(c), Some(l)) => compare_versions(c, l),
                 _ => false,

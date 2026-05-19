@@ -2,8 +2,8 @@ use std::os::windows::process::CommandExt;
 
 use crate::util::{
     command_exists, encode_powershell_command, extract_version, find_tool_path,
-    find_windows_terminal, get_tool_definitions, resolve_windows_cmd, run_silent,
-    user_home_dir_string, validate_directory, CheckResult, ToolInfo, CREATE_NO_WINDOW,
+    find_windows_terminal, get_tool_definitions, read_exe_product_version, resolve_windows_cmd,
+    run_silent, user_home_dir_string, validate_directory, CheckResult, ToolInfo, CREATE_NO_WINDOW,
 };
 
 #[tauri::command]
@@ -21,15 +21,32 @@ pub fn check_tools() -> Vec<CheckResult> {
             let has_binary = path.is_some();
             let installed = cmd_in_path || has_binary;
 
-            let version = if cmd_in_path {
-                let (_, v) = run_silent(&tool.command, &["--version"]);
-                v.and_then(|s| extract_version(&s))
-                    .or(Some("detectado".into()))
-            } else if has_binary {
-                Some("detectado".into())
+            // Estratégia: tenta --version (via cmd ou via binário), depois fallback
+            // para ProductVersion do PE (Electron apps não respondem a --version).
+            let version_from_cmd = if cmd_in_path {
+                let parts: Vec<&str> = tool.version_cmd.split_whitespace().collect();
+                let (_, raw) = if parts.len() > 1 {
+                    run_silent(&tool.command, &parts[1..])
+                } else {
+                    run_silent(&tool.command, &["--version"])
+                };
+                raw.as_deref().and_then(extract_version)
+            } else if let Some(ref p) = path {
+                let p_str = p.to_string_lossy().to_string();
+                let parts: Vec<&str> = tool.version_cmd.split_whitespace().collect();
+                let (_, raw) = if parts.len() > 1 {
+                    run_silent(&p_str, &parts[1..])
+                } else {
+                    run_silent(&p_str, &["--version"])
+                };
+                raw.as_deref().and_then(extract_version)
             } else {
                 None
             };
+
+            let version = version_from_cmd
+                .or_else(|| path.as_deref().and_then(read_exe_product_version))
+                .or_else(|| if installed { Some("detectado".into()) } else { None });
 
             CheckResult {
                 key: tool.key.clone(),
