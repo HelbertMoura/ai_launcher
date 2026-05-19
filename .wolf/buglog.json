@@ -1,4 +1,237 @@
 {
   "version": 1,
-  "bugs": []
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-05-19T21:32:21.457Z",
+      "error_message": "CSS fix: ai-launcher, isCustom",
+      "file": "src/features/launcher/LauncherPage.tsx",
+      "root_cause": "ai-launcher: cli-order\", JSON.stringify(newOrder)) → cli-order\", JSON.stringify(next)); isCustom: true → true as const",
+      "fix": "Changed ai-launcher: cli-order\", JSON.stringify(newOrder)) → cli-order\", JSON.stringify(next)); isCustom: true → true as const",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:32:21.457Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-05-19T21:33:02.488Z",
+      "error_message": "Null/undefined access in ",
+      "file": "src/features/launcher/CliCard.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:33:02.488Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-05-19T21:33:34.847Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/launcher/LauncherPage.css",
+      "root_cause": "7 lines replaced/restructured",
+      "fix": "Rewrote 19→36 lines (7 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:33:34.847Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-05-19T21:34:24.284Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/lib/iconRegistry.ts",
+      "root_cause": "Had \"gemini\"",
+      "fix": "Changed to \"qwen\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:34:24.284Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-05-19T21:34:28.721Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/icons/registry.ts",
+      "root_cause": "Had \"gemini\"",
+      "fix": "Changed to \"qwen\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:34:28.721Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-05-19T21:34:49.471Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "Had \"gemini\"",
+      "fix": "Changed to \"antigravity\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:34:49.471Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-05-19T21:35:09.971Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/features/help/AnimatedTerminal.tsx",
+      "root_cause": "Had \"  Gemini CLI    \"",
+      "fix": "Changed to \"  Antigravity   \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:35:09.971Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-05-19T21:35:57.893Z",
+      "error_message": "Wrong reference: Gemini should be Antigravity",
+      "file": "src/i18n/locales/en.ts",
+      "root_cause": "Used \"Gemini\" instead of \"Antigravity\"",
+      "fix": "Changed Gemini → Antigravity",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-19T21:36:24.909Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-05-19T21:36:14.865Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/i18n/locales/en.ts",
+      "root_cause": "Had \"No usage data. Run a supported CLI (Claude Code, ",
+      "fix": "Changed to \"No usage data. Run a supported CLI (Claude Code, ",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-19T21:36:20.206Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-05-19T21:36:34.330Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/i18n/locales/pt-BR.ts",
+      "root_cause": "Had \"Vamos procurar Claude, Codex, Gemini e as demais ",
+      "fix": "Changed to \"Vamos procurar Claude, Codex, Antigravity e as de",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-05-19T21:37:00.175Z"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-05-19T21:38:27.892Z",
+      "error_message": "Significant refactor of ",
+      "file": "CHANGELOG.md",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 17→29 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:38:27.892Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-05-19T22:00:00-03:00",
+      "error_message": "Antigravity CLI nao e detectado mesmo quando instalado",
+      "file": "src-tauri/src/util.rs",
+      "root_cause": "Entrada do Antigravity em get_cli_definitions apontava para o pacote npm inexistente @google/antigravity (404 no registry) e para o comando antigravity, mas o binario real e agy em %LOCALAPPDATA%/agy/bin/agy.exe instalado por script PowerShell oficial.",
+      "fix": "Estender CliInfo com extra_paths e update_manifest_url; substituir entrada antigravity para usar command=agy, install_method=script, install_cmd=iwr ... | iex, extra_paths=[%LOCALAPPDATA%/agy/bin/agy.exe], update_manifest_url=https://antigravity-cli-auto-updater-.../manifests/windows_amd64.json, flag=--dangerously-skip-permissions.",
+      "tags": [
+        "antigravity",
+        "cli",
+        "detection",
+        "rust",
+        "v15.2"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:00:00-03:00"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-05-19T22:00:00-03:00",
+      "error_message": "Antigravity IDE detectado na aba Tools mas sem versao",
+      "file": "src-tauri/src/commands/tools.rs",
+      "root_cause": "Electron apps (Antigravity, Cursor, Windsurf) nao respondem a antigravity --version. O check_tools chamava o binario com --version e descartava o resultado vazio.",
+      "fix": "Adicionar fallback read_exe_product_version(path) que le ProductVersion do PE via PowerShell. Aplicado em check_tools e check_tool_updates.",
+      "tags": [
+        "antigravity",
+        "ide",
+        "electron",
+        "version",
+        "v15.2"
+      ],
+      "related_bugs": [
+        "bug-012"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:00:00-03:00"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-05-19T22:00:00-03:00",
+      "error_message": "Drag-and-drop dos cards de CLI na Dashboard nao funcionava",
+      "file": "src/features/launcher/CliCard.tsx",
+      "root_cause": "A prop draggable estava no wrapper externo do <Card>, mas o Card contem <Button> e <Chip> que consomem mousedown antes do drag iniciar. O gesto nunca disparava onDragStart.",
+      "fix": "Extrair logica para hook useDraggable e mover draggable para um elemento dedicado (drag handle) no cabecalho do card, isolado dos botoes. Adicionar feedback visual de drop-target (outline tracejado).",
+      "tags": [
+        "dnd",
+        "ui",
+        "react",
+        "launcher",
+        "v15.2"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T22:00:00-03:00"
+    }
+  ]
 }
