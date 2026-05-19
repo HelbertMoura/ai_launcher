@@ -232,6 +232,123 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-19T22:00:00-03:00"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-05-19T21:54:38.157Z",
+      "error_message": "Missing guard clause",
+      "file": "src/features/launcher/LauncherPage.tsx",
+      "root_cause": "No early return/throw for edge case: !over || active.id === over.id",
+      "fix": "Added guard clause: if (!over || active.id === over.id)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:54:38.157Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-05-19T21:55:11.521Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/launcher/CliCard.tsx",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 13→18 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:55:11.521Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-05-19T21:55:48.156Z",
+      "error_message": "CSS fix: transition, padding, color",
+      "file": "src/features/launcher/LauncherPage.css",
+      "root_cause": "transition: opacity 0.15s ease → opacity 0.15s ease, color 0.15s ease; padding: 2px 6px → 4px 6px; color: var(--text-dim) → var(--accent)",
+      "fix": "Changed transition: opacity 0.15s ease → opacity 0.15s ease, color 0.15s ease; padding: 2px 6px → 4px 6px; color: var(--text-dim) → var(--accent)",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:55:48.156Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-05-19T21:56:39.242Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.0\"",
+      "fix": "Changed to \"15.2.1\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:56:39.242Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-05-19T21:56:40.809Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.0\"",
+      "fix": "Changed to \"15.2.1\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:56:40.809Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-05-19T21:56:42.384Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.0\"",
+      "fix": "Changed to \"15.2.1\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T21:56:42.384Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-05-19T23:00:00-03:00",
+      "error_message": "Drag-and-drop dos cards nao funciona em Windows + WebView2 (usuario relatou: tento arrastar e nao vai)",
+      "file": "src/features/launcher/CliCard.tsx",
+      "root_cause": "HTML5 native drag (draggable={true} + onDragStart) tem comportamento inconsistente em Windows + WebView2 do Tauri. Mesmo com handle dedicado e configuracao correta, os eventos dragstart/dragend nao disparam em alguns sistemas. Pre-existente desde a v15.2.0.",
+      "fix": "Migrar de HTML5 native drag para @dnd-kit (pointer events). Adicionar @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities. Substituir useDraggable por DndContext + SortableContext + useSortable hook. PointerSensor com activationConstraint distance=8 evita conflito com cliques. Versao bumped para 15.2.1.",
+      "tags": [
+        "dnd",
+        "tauri",
+        "webview2",
+        "react",
+        "v15.2.1",
+        "dnd-kit"
+      ],
+      "related_bugs": [
+        "bug-014"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-05-19T23:00:00-03:00"
     }
   ]
 }

@@ -1,26 +1,28 @@
 import { useTranslation } from "react-i18next";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
 import { getCliIcon, hasCliIcon } from "../../icons/registry";
-import type { DragStartHandlers, DropHandlers } from "../../hooks/useDraggable";
 import type { CustomCli } from "../../lib/customClis";
 
 interface CustomCliCardProps {
   cli: CustomCli;
   onLaunch: (cli: CustomCli) => void;
-  startHandlers?: DragStartHandlers;
-  dropHandlers?: DropHandlers;
-  isDropTarget?: boolean;
+  /** ID estável usado pelo SortableContext; quando omitido, card não é arrastável. */
+  dndId?: string;
 }
 
-export function CustomCliCard({
-  cli,
-  onLaunch,
-  startHandlers,
-  dropHandlers,
-  isDropTarget = false,
-}: CustomCliCardProps) {
+export function CustomCliCard({ cli, onLaunch, dndId }: CustomCliCardProps) {
   const { t } = useTranslation();
+  const sortable = useSortable({ id: dndId ?? `__nosort__:${cli.key}` });
+  const dragStyle = dndId
+    ? {
+        transform: CSS.Transform.toString(sortable.transform),
+        transition: sortable.transition,
+      }
+    : undefined;
+
   const iconSrc =
     cli.iconDataUrl ||
     (hasCliIcon(cli.key) ? getCliIcon(cli.key) : null);
@@ -28,17 +30,19 @@ export function CustomCliCard({
 
   return (
     <div
-      className={`cd-draggable-item${isDropTarget ? " cd-draggable-item--drop-target" : ""}`}
-      {...(dropHandlers ?? {})}
+      ref={dndId ? sortable.setNodeRef : undefined}
+      style={dragStyle}
+      className={`cd-draggable-item${sortable.isDragging ? " cd-draggable-item--dragging" : ""}`}
+      {...(dndId ? sortable.attributes : {})}
     >
       <Card interactive>
       <div className="cd-cli-card__head">
-        {startHandlers && (
+        {dndId && (
           <span
             className="cd-drag-handle"
             aria-label={t("launcher.dragToReorder")}
             title={t("launcher.dragToReorder")}
-            {...startHandlers}
+            {...sortable.listeners}
           >
             ⋮⋮
           </span>

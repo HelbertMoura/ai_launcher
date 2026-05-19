@@ -1,7 +1,21 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import { useDraggable } from "../../hooks/useDraggable";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import { Banner } from "../../ui/Banner";
 import { Button } from "../../ui/Button";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
@@ -95,16 +109,39 @@ export function LauncherPage() {
     });
   }, [clis, customClis, order]);
 
-  const orderedKeys = useMemo(() => sortedClis.map((c) => c.key), [sortedClis]);
+  // dnd-kit usa o mesmo string key como ID — para custom CLIs prefixamos
+  // `custom:` para evitar colisão com keys de CLIs builtin (defensive — keys
+  // são distintas hoje, mas o prefix garante isolamento futuro).
+  const dndId = (cli: { key: string; isCustom: boolean }) =>
+    cli.isCustom ? `custom:${cli.key}` : cli.key;
 
-  const persistOrder = useCallback((next: string[]) => {
-    setOrderState(next);
-    localStorage.setItem("ai-launcher:cli-order", JSON.stringify(next));
+  const sortableIds = useMemo(() => sortedClis.map(dndId), [sortedClis]);
+
+  const persistOrder = useCallback((nextKeys: string[]) => {
+    setOrderState(nextKeys);
+    localStorage.setItem("ai-launcher:cli-order", JSON.stringify(nextKeys));
   }, []);
 
-  const { dropTargetKey, startHandlers, dropHandlers } = useDraggable(
-    orderedKeys,
-    persistOrder,
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const oldIdx = sortableIds.indexOf(String(active.id));
+      const newIdx = sortableIds.indexOf(String(over.id));
+      if (oldIdx === -1 || newIdx === -1) return;
+      const nextIds = arrayMove(sortableIds, oldIdx, newIdx);
+      // Reverter prefix `custom:` ao salvar — localStorage usa só a key crua.
+      const nextKeys = nextIds.map((id) =>
+        id.startsWith("custom:") ? id.slice("custom:".length) : id,
+      );
+      persistOrder(nextKeys);
+    },
+    [sortableIds, persistOrder],
   );
 
   const installedCount = Object.values(checks).filter((c) => c.installed).length;
@@ -195,39 +232,42 @@ export function LauncherPage() {
       )}
 
       {!loading && allCount > 0 && (
-        <div className="cd-page__grid">
-          {sortedClis.map((cli) => {
-            const isDropTarget = dropTargetKey === cli.key;
-            if (!cli.isCustom) {
-              const c = cli as CliInfo & { isCustom: false };
-              return (
-                <CliCard
-                  key={c.key}
-                  cli={c}
-                  check={checks[c.name]}
-                  installing={installing === c.key}
-                  hasUpdate={cliHasUpdate(c.name)}
-                  onLaunch={setLaunching}
-                  onInstall={onInstall}
-                  startHandlers={startHandlers(c.key)}
-                  dropHandlers={dropHandlers(c.key)}
-                  isDropTarget={isDropTarget}
-                />
-              );
-            }
-            const cc = cli as CustomCli & { isCustom: true };
-            return (
-              <CustomCliCard
-                key={`custom-${cc.key}`}
-                cli={cc}
-                onLaunch={setLaunchingCustom}
-                startHandlers={startHandlers(cc.key)}
-                dropHandlers={dropHandlers(cc.key)}
-                isDropTarget={isDropTarget}
-              />
-            );
-          })}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+            <div className="cd-page__grid">
+              {sortedClis.map((cli) => {
+                if (!cli.isCustom) {
+                  const c = cli as CliInfo & { isCustom: false };
+                  return (
+                    <CliCard
+                      key={c.key}
+                      dndId={c.key}
+                      cli={c}
+                      check={checks[c.name]}
+                      installing={installing === c.key}
+                      hasUpdate={cliHasUpdate(c.name)}
+                      onLaunch={setLaunching}
+                      onInstall={onInstall}
+                    />
+                  );
+                }
+                const cc = cli as CustomCli & { isCustom: true };
+                return (
+                  <CustomCliCard
+                    key={`custom-${cc.key}`}
+                    dndId={`custom:${cc.key}`}
+                    cli={cc}
+                    onLaunch={setLaunchingCustom}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <LaunchDialog

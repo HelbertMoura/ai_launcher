@@ -31,6 +31,7 @@
 - **[2026-05-19]** Adicionar CLI nova: SEMPRE validar o nome do binário e a existência do pacote npm rodando `where <cmd>` e `npm view <pkg> version` na máquina real antes de commitar. A entrada original do Antigravity ficou quebrada porque os campos foram preenchidos sem validação (`@google/antigravity` 404, `command: "antigravity"` inexistente).
 - **[2026-05-19]** Para IDEs Electron, NUNCA confiar em `<exe> --version` — Electron mostra dialog/no-op. Ler `ProductVersion` direto do PE.
 - **[2026-05-19]** Drag-and-drop dentro de `<Card>` com botões: NÃO aplicar `draggable` no wrapper externo. Usar handle dedicado isolado dos botões.
+- **[2026-05-19]** HTML5 native drag (`draggable={true}` + `onDragStart`) tem comportamento inconsistente em Windows + WebView2 (Tauri). Mesmo com handle dedicado o gesto pode não disparar. **Solução padrão: usar `@dnd-kit` (pointer events) para qualquer DnD em apps Tauri.**
 - **[2026-05-19]** Não confiar em CHANGELOG pré-existente. Quando há esboço de uma versão ainda não lançada, reescrever do zero com base no que realmente foi implementado.
 
 ## Decision Log
@@ -42,3 +43,4 @@
 - **2026-05-19** — Drag handle `⋮⋮` visível em vez de drag invisível no wrapper. Razão: affordance + zero conflito de `mousedown` com botões filhos. UX fica óbvio para o usuário.
 - **2026-05-19** — Update do IDE Antigravity adiado para v15.3. Razão: endpoint web (`antigravity-hub-auto-updater-...`) retorna 404 nos paths comuns; investigação requer captura de tráfego do app rodando. Versão local (ProductVersion) já mostra "2.0.0" — suficiente para v15.2.
 - **2026-05-19** — Tasks do plano executadas inline com agrupamento (1+2, 4+5+6, 7-12) em vez de commit por task. Razão: dependências fortes entre tasks (clippy reclama de dead_code antes do consumidor existir). Granularidade do plano serve ao tracking, não à granularidade de commit.
+- **2026-05-19** — Trocar HTML5 drag por `@dnd-kit` na v15.2.1. Razão: HTML5 native drag não disparava no ambiente Windows + WebView2 do usuário. `@dnd-kit` usa pointer events (universais), inclui suporte a teclado out-of-the-box e tem `activationConstraint` para não conflitar com cliques. +22 kB gzipped, vale a pena pela robustez.

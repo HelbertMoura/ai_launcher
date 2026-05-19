@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
@@ -10,7 +12,6 @@ import { getPinnedDirs } from "./pinnedDirs";
 import { appendHistory } from "./history";
 import { buildLaunchEnvAsync, loadProviders } from "../../providers/storage";
 import { showToast } from "../../ui/toastStore";
-import type { DragStartHandlers, DropHandlers } from "../../hooks/useDraggable";
 import type { CheckResult, CliInfo } from "./useClis";
 
 interface CliCardProps {
@@ -20,9 +21,8 @@ interface CliCardProps {
   hasUpdate?: boolean;
   onLaunch: (cli: CliInfo) => void;
   onInstall: (cli: CliInfo) => void;
-  startHandlers?: DragStartHandlers;
-  dropHandlers?: DropHandlers;
-  isDropTarget?: boolean;
+  /** ID estável usado pelo SortableContext; quando omitido, card não é arrastável. */
+  dndId?: string;
 }
 
 function truncateEnd(s: string, max = 32): string {
@@ -36,11 +36,16 @@ export function CliCard({
   hasUpdate = false,
   onLaunch,
   onInstall,
-  startHandlers,
-  dropHandlers,
-  isDropTarget = false,
+  dndId,
 }: CliCardProps) {
   const { t } = useTranslation();
+  const sortable = useSortable({ id: dndId ?? `__nosort__:${cli.key}` });
+  const dragStyle = dndId
+    ? {
+        transform: CSS.Transform.toString(sortable.transform),
+        transition: sortable.transition,
+      }
+    : undefined;
   const installed = check?.installed ?? false;
   const version = check?.version ?? null;
   const pinnedDirs = useMemo(() => getPinnedDirs(cli.key), [cli.key]);
@@ -103,17 +108,19 @@ export function CliCard({
 
   return (
     <div
-      className={`cd-draggable-item${isDropTarget ? " cd-draggable-item--drop-target" : ""}`}
-      {...(dropHandlers ?? {})}
+      ref={dndId ? sortable.setNodeRef : undefined}
+      style={dragStyle}
+      className={`cd-draggable-item${sortable.isDragging ? " cd-draggable-item--dragging" : ""}`}
+      {...(dndId ? sortable.attributes : {})}
     >
       <Card interactive>
       <div className="cd-cli-card__head">
-        {startHandlers && (
+        {dndId && (
           <span
             className="cd-drag-handle"
             aria-label={t("launcher.dragToReorder")}
             title={t("launcher.dragToReorder")}
-            {...startHandlers}
+            {...sortable.listeners}
           >
             ⋮⋮
           </span>
