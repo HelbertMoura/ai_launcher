@@ -83,7 +83,7 @@ export const en: Dictionary = {
     step2ShowOnStartupHint: "The welcome screen will appear every time you open the launcher.",
     step3Title: "Detect your CLIs",
     step3Lede:
-      "We'll look for Claude, Codex, Gemini, and the other supported CLIs on your PATH. Nothing is uploaded.",
+      "We'll look for Claude, Codex, Antigravity, and the other supported CLIs on your PATH. Nothing is uploaded.",
     step3ScanNow: "Scan now",
     step3ScanError: "Scan failed: {{error}}",
     indicator: "{{current}} / {{total}}",
@@ -100,6 +100,7 @@ export const en: Dictionary = {
     install: "Install",
     installing: "Installing…",
     launch: "Launch",
+    dragToReorder: "Drag to reorder",
     templates: "Saved templates",
     deleteTemplateConfirm: "Delete template \"{{name}}\"?",
   },
@@ -199,7 +200,7 @@ export const en: Dictionary = {
     entries_other: "{{count}} entries",
     noData: "No usage data yet.",
     empty:
-      "No usage data. Run a supported CLI (Claude Code, Codex, Gemini) at least once.",
+      "No usage data. Run a supported CLI (Claude Code, Codex, Antigravity) at least once.",
     exportCsv: "Export CSV",
     exportJson: "Export JSON",
   },
@@ -208,7 +209,7 @@ export const en: Dictionary = {
     subtitle: "how to use AI Launcher Pro",
     gettingStarted: "// getting started",
     gettingStartedBody:
-      "AI Launcher Pro detects and manages AI coding CLIs (Claude, Codex, Gemini, and more) and IDE tools installed on your machine. Pick a CLI, choose a working directory, and launch it in a fresh terminal session — launcher tracks history and usage locally without sending anything over the network.",
+      "AI Launcher Pro detects and manages AI coding CLIs (Claude, Codex, Antigravity, and more) and IDE tools installed on your machine. Pick a CLI, choose a working directory, and launch it in a fresh terminal session — launcher tracks history and usage locally without sending anything over the network.",
     shortcuts: "// keyboard shortcuts",
     troubleshooting: "// troubleshooting",
     links: "// links",
@@ -236,7 +237,7 @@ export const en: Dictionary = {
       "Make sure the working directory still exists and that you have permission to write there. Windows paths with special characters may need to be picked via the Browse button.",
     faqCostsQ: "Costs page shows no usage data",
     faqCostsA:
-      "Usage is read from each CLI's local log files. Run a supported CLI (Claude Code, Codex, Gemini) at least once so those files are created.",
+      "Usage is read from each CLI's local log files. Run a supported CLI (Claude Code, Codex, Antigravity) at least once so those files are created.",
     faqThemeQ: "Theme or accent color didn't apply",
     faqThemeA:
       "Open the Admin tab and re-pick your theme and accent. If the issue persists, restart the launcher.",

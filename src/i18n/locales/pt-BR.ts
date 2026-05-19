@@ -81,7 +81,7 @@ export const ptBR = {
     step2ShowOnStartupHint: "A tela de boas-vindas vai aparecer toda vez que abrir o launcher.",
     step3Title: "Detectar suas CLIs",
     step3Lede:
-      "Vamos procurar Claude, Codex, Gemini e as demais CLIs suportadas no seu PATH. Nada é enviado para fora.",
+      "Vamos procurar Claude, Codex, Antigravity e as demais CLIs suportadas no seu PATH. Nada é enviado para fora.",
     step3ScanNow: "Escanear agora",
     step3ScanError: "Falha no scan: {{error}}",
     indicator: "{{current}} / {{total}}",
@@ -98,6 +98,7 @@ export const ptBR = {
     install: "Instalar",
     installing: "Instalando…",
     launch: "Lançar",
+    dragToReorder: "Arrastar para reordenar",
     templates: "Templates salvos",
     deleteTemplateConfirm: "Excluir template \"{{name}}\"?",
   },
@@ -197,7 +198,7 @@ export const ptBR = {
     entries_other: "{{count}} registros",
     noData: "Sem dados de uso ainda.",
     empty:
-      "Sem dados de uso. Rode uma CLI suportada (Claude Code, Codex, Gemini) pelo menos uma vez.",
+      "Sem dados de uso. Rode uma CLI suportada (Claude Code, Codex, Antigravity) pelo menos uma vez.",
     exportCsv: "Exportar CSV",
     exportJson: "Exportar JSON",
   },
@@ -206,7 +207,7 @@ export const ptBR = {
     subtitle: "como usar o AI Launcher Pro",
     gettingStarted: "// primeiros passos",
     gettingStartedBody:
-      "O AI Launcher Pro detecta e gerencia CLIs de IA (Claude, Codex, Gemini e outras) e ferramentas (IDEs) instaladas na sua máquina. Escolha uma CLI, um diretório e lance-a em um terminal novo — o launcher registra o histórico e uso localmente, sem enviar nada pela rede.",
+      "O AI Launcher Pro detecta e gerencia CLIs de IA (Claude, Codex, Antigravity e outras) e ferramentas (IDEs) instaladas na sua máquina. Escolha uma CLI, um diretório e lance-a em um terminal novo — o launcher registra o histórico e uso localmente, sem enviar nada pela rede.",
     shortcuts: "// atalhos de teclado",
     troubleshooting: "// solução de problemas",
     links: "// links",
@@ -235,7 +236,7 @@ export const ptBR = {
       "Verifique se o diretório de trabalho existe e se você tem permissão de escrita. Caminhos com caracteres especiais são mais seguros via o botão Procurar.",
     faqCostsQ: "Custos não mostra nenhum dado",
     faqCostsA:
-      "Uso é lido dos logs locais de cada CLI. Rode uma CLI suportada (Claude Code, Codex, Gemini) pelo menos uma vez para os arquivos serem criados.",
+      "Uso é lido dos logs locais de cada CLI. Rode uma CLI suportada (Claude Code, Codex, Antigravity) pelo menos uma vez para os arquivos serem criados.",
     faqThemeQ: "Tema ou cor de destaque não aplicou",
     faqThemeA:
       "Abra a aba Admin e re-selecione tema e destaque. Se persistir, reabra o launcher.",
