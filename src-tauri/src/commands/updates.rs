@@ -4,8 +4,8 @@ use crate::commands::cli::check_cli_updates;
 use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
     fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal,
-    get_tool_definitions, http_agent, npm_latest, run_silent, stream_install, CheckResult,
-    UpdateInfo, UpdatesSummary,
+    get_tool_definitions, http_agent, npm_latest, read_exe_product_version, run_silent,
+    stream_install, CheckResult, UpdateInfo, UpdatesSummary,
 };
 
 #[tauri::command]
@@ -63,8 +63,12 @@ pub fn check_tool_updates() -> Vec<UpdateInfo> {
             }
             let current = if cmd_in_path {
                 let (_, v) = run_silent(&tool.command, &["--version"]);
-                v.and_then(|s| extract_version(&s))
+                v.as_deref()
+                    .and_then(extract_version)
+                    .or_else(|| path.as_deref().and_then(read_exe_product_version))
                     .or_else(|| Some("detectado".to_string()))
+            } else if let Some(ref p) = path {
+                read_exe_product_version(p).or_else(|| Some("detectado".to_string()))
             } else {
                 Some("detectado".to_string())
             };

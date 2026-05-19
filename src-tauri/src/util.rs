@@ -391,6 +391,27 @@ pub fn extract_version(output: &str) -> Option<String> {
     candidates.into_iter().last()
 }
 
+/// Lê a `ProductVersion` dos metadados de um executável PE (Windows).
+/// Usa PowerShell para evitar deps nativas. Retorna `None` se o arquivo não existir
+/// ou não tiver metadados de versão.
+///
+/// Usado para IDEs Electron (Antigravity, Cursor, Windsurf) que não respondem a `--version`.
+pub fn read_exe_product_version(path: &std::path::Path) -> Option<String> {
+    if !path.exists() {
+        return None;
+    }
+    let escaped = path.to_string_lossy().replace('\'', "''");
+    let ps = format!(
+        "(Get-Item -LiteralPath '{}').VersionInfo.ProductVersion",
+        escaped
+    );
+    let (ok, out) = run_silent("powershell", &["-NoProfile", "-Command", &ps]);
+    if !ok {
+        return None;
+    }
+    out.as_deref().and_then(extract_version)
+}
+
 pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
     if let Some(ref npm_pkg) = cli.npm_pkg {
         let (_, out) = run_silent("npm", &["list", "-g", npm_pkg, "--depth=0", "--json"]);
@@ -679,6 +700,16 @@ pub fn fetch_github_latest(repo: &str) -> Option<String> {
     let resp = http_agent().get(&url).call().ok()?;
     let json: serde_json::Value = resp.into_json().ok()?;
     json["tag_name"]
+        .as_str()
+        .map(|s| s.trim_start_matches('v').to_string())
+}
+
+/// Faz GET em uma URL JSON e retorna o campo `.version` como SemVer.
+/// Usado por CLIs script-installed que publicam manifesto público (ex: agy).
+pub fn fetch_manifest_version(url: &str) -> Option<String> {
+    let resp = http_agent().get(url).call().ok()?;
+    let json: serde_json::Value = resp.into_json().ok()?;
+    json["version"]
         .as_str()
         .map(|s| s.trim_start_matches('v').to_string())
 }
@@ -1118,6 +1149,12 @@ mod tests {
         assert!(compare_versions("1.0.0", "2.0.0"));
         assert!(!compare_versions("1.0.0", "1.0.0"));
         assert!(!compare_versions("2.0.0", "1.0.0"));
+    }
+
+    #[test]
+    fn read_exe_product_version_returns_none_for_missing_file() {
+        let p = std::path::Path::new(r"C:\__nonexistent__\fake.exe");
+        assert_eq!(read_exe_product_version(p), None);
     }
 
     #[test]
