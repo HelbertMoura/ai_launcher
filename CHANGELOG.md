@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.1] — 2026-05-19 — Drag-and-Drop com @dnd-kit
+
+Patch que troca o HTML5 native drag pelo `@dnd-kit` (pointer events). O gesto nativo não disparava em alguns ambientes Windows + WebView2; pointer events são universais.
+
+### Added
+- **`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`** (~22 kB gzipped) substituem o handler HTML5.
+- `PointerSensor` com `activationConstraint: { distance: 8 }` — cliques em botões filhos continuam funcionando normalmente (precisa de 8 px de movimento para o gesto começar).
+- `KeyboardSensor` — agora dá pra reordenar pelo teclado (espaço para pegar, setas para mover, espaço de novo para soltar).
+
+### Changed
+- Hook `useDraggable` removido (substituído pelo `useSortable` da lib).
+- `LauncherPage` envolve a grid em `<DndContext>` + `<SortableContext>`.
+- `CliCard`/`CustomCliCard` consomem `dndId` opcional e chamam `useSortable` internamente; o handle ⋮⋮ recebe os `listeners` da lib.
+
+### Fixed
+- **Drag-and-drop não funcionava** em ambiente Windows + WebView2 com HTML5 native drag.
+
 ## [15.2.0] — 2026-05-19 — Antigravity CLI Real + Electron Versioning + DnD Fix
 
 Release focada em três correções convergentes: a detecção real do Antigravity CLI, a versão do IDE Electron e a usabilidade do drag-and-drop na Dashboard.
