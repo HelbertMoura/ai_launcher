@@ -1,4 +1,4 @@
-const CLI_PNG = new Set(["claude", "codex", "gemini", "qwen"]);
+const CLI_PNG = new Set(["claude", "codex", "qwen"]);
 
 export function getCliIcon(key: string): string {
   if (CLI_PNG.has(key)) return `/icons/cli/${key}.png`;
@@ -12,7 +12,6 @@ export function getToolIcon(key: string): string {
 const CLI_KEYS = new Set([
   "claude",
   "codex",
-  "gemini",
   "qwen",
   "crush",
   "droid",

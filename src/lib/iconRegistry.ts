@@ -8,8 +8,8 @@ export interface BuiltinIconDefinition {
   assetPath: string;
 }
 
-const CLI_KEYS = ["claude", "codex", "gemini", "qwen", "kilocode", "opencode", "crush", "droid"];
-const TOOL_KEYS = ["vscode", "cursor", "windsurf", "antgravity", "jetbrains-ai"];
+const CLI_KEYS = ["claude", "codex", "qwen", "kilocode", "opencode", "crush", "droid", "antigravity"];
+const TOOL_KEYS = ["vscode", "cursor", "windsurf", "antigravity", "jetbrains-ai"];
 
 const BUILTIN_ICONS: readonly BuiltinIconDefinition[] = [
   ...CLI_KEYS.map((key) => ({ key, kind: "cli" as const, assetPath: getCliIcon(key) })),
