@@ -245,7 +245,7 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
 
 pub fn resolve_windows_cmd(cmd: &str) -> String {
     match cmd {
-        "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" | "antigravity" => {
+        "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" => {
             format!("{}.cmd", cmd)
         }
         _ => cmd.to_string(),
@@ -413,7 +413,7 @@ pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
             }
         }
     }
-    if let Some(resolved) = resolve_cli_path_win(&cli.command) {
+    if let Some(resolved) = resolve_cli_path_win(&cli.command, &cli.extra_paths) {
         let (_, out) = run_silent(&resolved, &["--version"]);
         if let Some(ref s) = out {
             if let Some(ver) = extract_version(s) {
@@ -683,7 +683,16 @@ pub fn fetch_github_latest(repo: &str) -> Option<String> {
         .map(|s| s.trim_start_matches('v').to_string())
 }
 
-pub fn resolve_cli_path_win(cmd: &str) -> Option<String> {
+pub fn resolve_cli_path_win(cmd: &str, extra_paths: &[String]) -> Option<String> {
+    // 1) Caminhos absolutos extras (com expand_env) — prioridade máxima.
+    //    Usado por CLIs script-installed como `agy` em %LOCALAPPDATA%\agy\bin\agy.exe.
+    for raw in extra_paths {
+        let expanded = expand_env(raw);
+        if std::path::Path::new(&expanded).exists() {
+            return Some(expanded);
+        }
+    }
+    // 2) Caminhos npm conhecidos
     for prefix in [r"%APPDATA%\npm\", r"%LOCALAPPDATA%\npm\"] {
         let base = expand_env(prefix);
         for ext in &["cmd", "exe", "ps1", "bat"] {
@@ -693,6 +702,7 @@ pub fn resolve_cli_path_win(cmd: &str) -> Option<String> {
             }
         }
     }
+    // 3) Fallback: `where`
     let where_results: Vec<String> = {
         let mut c = Command::new("where");
         c.arg(cmd);
@@ -1108,6 +1118,20 @@ mod tests {
         assert!(compare_versions("1.0.0", "2.0.0"));
         assert!(!compare_versions("1.0.0", "1.0.0"));
         assert!(!compare_versions("2.0.0", "1.0.0"));
+    }
+
+    #[test]
+    fn resolve_cli_path_uses_extra_paths_when_file_exists() {
+        use std::io::Write;
+        let tmp = std::env::temp_dir().join("ai-launcher-test-agy");
+        let _ = std::fs::create_dir_all(&tmp);
+        let exe = tmp.join("fake-agy.exe");
+        let mut f = std::fs::File::create(&exe).expect("criar fake exe");
+        let _ = f.write_all(b"fake");
+        let extras = vec![exe.to_string_lossy().to_string()];
+        let resolved = resolve_cli_path_win("nonexistent-cmd-xyz-aabbcc", &extras);
+        assert_eq!(resolved.as_deref(), Some(exe.to_string_lossy().as_ref()));
+        let _ = std::fs::remove_file(&exe);
     }
 
     #[test]
