@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 15.0.0](https://img.shields.io/badge/vers%C3%A3o-15.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 15.1.0](https://img.shields.io/badge/vers%C3%A3o-15.1.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -22,8 +22,8 @@
 
 | | Funcionalidade | Descrição |
 |---|---------------|-----------|
-| 🚀 | **Launcher de CLIs** | Detecte, instale e execute Claude Code, Codex, Gemini CLI, Qwen, Crush, Droid, Kilocode, OpenCode e mais |
-| 🔧 | **Gerenciador de Tools** | Gerencie VS Code, Cursor, Windsurf, Google Antigravity, JetBrains AI e IDEs customizadas |
+| 🚀 | **Launcher de CLIs** | Detecte, instale e execute Claude Code, Codex, Gemini CLI, Antigravity, Qwen, Crush, Droid, Kilocode, OpenCode e mais |
+| 🔧 | **Gerenciador de Tools** | Gerencie VS Code, Cursor, Windsurf, JetBrains AI e IDEs customizadas |
 | ⬆️ | **Hub de Atualizações** | Aba dedicada para updates de CLIs, ferramentas e pré-requisitos com instalação em um clique |
 | 💰 | **Rastreamento de Custos** | Acompanhe gastos por provider com breakdown diário e mensal |
 | 📋 | **Histórico Waterfall** | Timeline estilo terminal + log de sessões com reabertura, status dots e duração |
@@ -221,6 +221,6 @@ MIT — veja [LICENSE](./LICENSE).
 
 <div align="center">
 
-**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v15.0.0)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
+**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v15.1.0)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
 </div>

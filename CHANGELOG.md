@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.1.0] — 2026-05-19 — Antigravity Integration & Glassmorphism
+
+Release focada na integração oficial do Antigravity CLI e refinamento visual premium.
+
+### Added
+- **Antigravity CLI Official Integration** — Migrado de Tool para CLI com suporte completo a updates via NPM (`@google/antigravity`).
+- **Auto-Approval Flag** — Configurada flag `--yolo` para o Antigravity, consistente com o fluxo do Gemini CLI.
+- **Glassmorphism UI** — Efeito de desfoque (`backdrop-filter`) aplicado na Sidebar e TopBar para uma estética mais moderna e premium.
+- **Clipboard Prompt Support** — Antigravity agora suporta a flag de prompt inicial a partir do clipboard.
+
+### Changed
+- **Version bumped** to 15.1.0 em `package.json`, `tauri.conf.json` e `Cargo.toml`.
+- **Icon Registry** atualizado para refletir a nova categoria do Antigravity.
+- **README** atualizado com Antigravity na lista de funcionalidades principais.
+
 ## [15.0.0] — 2026-04-24 — AI Ops Command Center
 
 Maior release desde a v1: 16 features do PRD + 11 melhorias visuais + correções críticas dos botões de instalar.

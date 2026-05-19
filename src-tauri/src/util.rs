@@ -176,6 +176,18 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             install_method: "script".into(),
             install_url: Some("https://docs.factory.ai/cli/getting-started/quickstart".into()),
         },
+        CliInfo {
+            key: "antigravity".into(),
+            name: "Antigravity".into(),
+            command: "antigravity".into(),
+            flag: Some("--yolo".into()),
+            install_cmd: "npm install -g @google/antigravity".into(),
+            version_cmd: "antigravity --version".into(),
+            npm_pkg: Some("@google/antigravity".into()),
+            pip_pkg: None,
+            install_method: "npm".into(),
+            install_url: Some("https://antigravity.google".into()),
+        },
     ]
 }
 
@@ -201,13 +213,6 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             command: "windsurf".into(),
             install_hint: "Download de https://codeium.com/windsurf".into(),
             install_url: Some("https://codeium.com/windsurf".into()),
-        },
-        ToolInfo {
-            key: "antgravity".into(),
-            name: "AntGravity".into(),
-            command: "antigravity".into(),
-            install_hint: "Download de https://antgravity.com".into(),
-            install_url: Some("https://antgravity.com".into()),
         },
     ]
 }

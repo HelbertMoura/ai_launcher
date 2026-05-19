@@ -5,7 +5,10 @@
   gap: var(--s-3);
   padding: 0 var(--s-4);
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface-1-alpha);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
 }
 
 .cd-top__cmd {

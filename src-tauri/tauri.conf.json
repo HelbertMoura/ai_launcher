@@ -1,7 +1,7 @@
 {
   "$schema": "https://v2.tauri.app/schemas/config.schema.json",
   "productName": "AI Launcher",
-  "version": "15.0.0",
+  "version": "15.1.0",
   "identifier": "com.devmaniacs.ailauncher",
   "build": {
     "devUrl": "http://127.0.0.1:5173",
@@ -36,7 +36,7 @@
     "copyright": "Copyright (c) 2026 Helbert Moura | DevManiac's",
     "category": "DeveloperTool",
     "shortDescription": "Desktop launcher for AI coding CLIs",
-    "longDescription": "Centralized hub to discover, install, update and launch AI coding CLIs (Claude Code, Codex, Gemini, Qwen, Kilo Code, OpenCode, Crush, Droid) and developer tools (VS Code, Cursor, Windsurf, AntGravity) — single window, live install progress, no terminal flashing.",
+    "longDescription": "Centralized hub to discover, install, update and launch AI coding CLIs (Claude Code, Codex, Gemini, Antigravity, Qwen, Kilo Code, OpenCode, Crush, Droid) and developer tools (VS Code, Cursor, Windsurf) — single window, live install progress, no terminal flashing.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
