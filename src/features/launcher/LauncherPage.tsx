@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { useDraggable } from "../../hooks/useDraggable";
 import { Banner } from "../../ui/Banner";
 import { Button } from "../../ui/Button";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
@@ -70,6 +71,41 @@ export function LauncherPage() {
       console.error("profile launch failed", e);
     }
   };
+
+  const [order, setOrderState] = useState<string[]>(() => {
+    const saved = localStorage.getItem("ai-launcher:cli-order");
+    return saved ? (JSON.parse(saved) as string[]) : [];
+  });
+
+  const sortedClis = useMemo(() => {
+    const combined: Array<
+      (CliInfo & { isCustom: false }) | (CustomCli & { isCustom: true })
+    > = [
+      ...clis.map((c) => ({ ...c, isCustom: false as const })),
+      ...customClis.map((c) => ({ ...c, isCustom: true as const })),
+    ];
+    if (order.length === 0) return combined;
+    return [...combined].sort((a, b) => {
+      const idxA = order.indexOf(a.key);
+      const idxB = order.indexOf(b.key);
+      if (idxA === -1 && idxB === -1) return 0;
+      if (idxA === -1) return 1;
+      if (idxB === -1) return -1;
+      return idxA - idxB;
+    });
+  }, [clis, customClis, order]);
+
+  const orderedKeys = useMemo(() => sortedClis.map((c) => c.key), [sortedClis]);
+
+  const persistOrder = useCallback((next: string[]) => {
+    setOrderState(next);
+    localStorage.setItem("ai-launcher:cli-order", JSON.stringify(next));
+  }, []);
+
+  const { dropTargetKey, startHandlers, dropHandlers } = useDraggable(
+    orderedKeys,
+    persistOrder,
+  );
 
   const installedCount = Object.values(checks).filter((c) => c.installed).length;
 
@@ -160,24 +196,37 @@ export function LauncherPage() {
 
       {!loading && allCount > 0 && (
         <div className="cd-page__grid">
-          {clis.map((cli) => (
-            <CliCard
-              key={cli.key}
-              cli={cli}
-              check={checks[cli.name]}
-              installing={installing === cli.key}
-              hasUpdate={cliHasUpdate(cli.name)}
-              onLaunch={setLaunching}
-              onInstall={onInstall}
-            />
-          ))}
-          {customClis.map((ccli) => (
-            <CustomCliCard
-              key={`custom-${ccli.key}`}
-              cli={ccli}
-              onLaunch={setLaunchingCustom}
-            />
-          ))}
+          {sortedClis.map((cli) => {
+            const isDropTarget = dropTargetKey === cli.key;
+            if (!cli.isCustom) {
+              const c = cli as CliInfo & { isCustom: false };
+              return (
+                <CliCard
+                  key={c.key}
+                  cli={c}
+                  check={checks[c.name]}
+                  installing={installing === c.key}
+                  hasUpdate={cliHasUpdate(c.name)}
+                  onLaunch={setLaunching}
+                  onInstall={onInstall}
+                  startHandlers={startHandlers(c.key)}
+                  dropHandlers={dropHandlers(c.key)}
+                  isDropTarget={isDropTarget}
+                />
+              );
+            }
+            const cc = cli as CustomCli & { isCustom: true };
+            return (
+              <CustomCliCard
+                key={`custom-${cc.key}`}
+                cli={cc}
+                onLaunch={setLaunchingCustom}
+                startHandlers={startHandlers(cc.key)}
+                dropHandlers={dropHandlers(cc.key)}
+                isDropTarget={isDropTarget}
+              />
+            );
+          })}
         </div>
       )}
 

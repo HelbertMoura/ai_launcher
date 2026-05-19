@@ -13,6 +13,8 @@ export interface CliInfo {
   pip_pkg: string | null;
   install_method: string;
   install_url: string | null;
+  extra_paths: string[];
+  update_manifest_url: string | null;
 }
 
 export interface CheckResult {
