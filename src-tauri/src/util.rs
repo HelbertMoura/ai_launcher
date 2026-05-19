@@ -25,6 +25,10 @@ pub struct CliInfo {
     pub pip_pkg: Option<String>,
     pub install_method: String,
     pub install_url: Option<String>,
+    #[serde(default)]
+    pub extra_paths: Vec<String>,
+    #[serde(default)]
+    pub update_manifest_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -32,6 +36,7 @@ pub struct ToolInfo {
     pub key: String,
     pub name: String,
     pub command: String,
+    pub version_cmd: String,
     pub install_hint: String,
     pub install_url: Option<String>,
 }
@@ -91,6 +96,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "codex".into(),
@@ -103,18 +110,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
-        },
-        CliInfo {
-            key: "gemini".into(),
-            name: "Gemini".into(),
-            command: "gemini".into(),
-            flag: Some("--yolo".into()),
-            install_cmd: "npm install -g @google/gemini-cli".into(),
-            version_cmd: "gemini --version".into(),
-            npm_pkg: Some("@google/gemini-cli".into()),
-            pip_pkg: None,
-            install_method: "npm".into(),
-            install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "qwen".into(),
@@ -127,6 +124,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "kilocode".into(),
@@ -139,6 +138,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "opencode".into(),
@@ -151,6 +152,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "crush".into(),
@@ -163,6 +166,8 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "npm".into(),
             install_url: None,
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "droid".into(),
@@ -175,18 +180,24 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: None,
             install_method: "script".into(),
             install_url: Some("https://docs.factory.ai/cli/getting-started/quickstart".into()),
+            extra_paths: vec![],
+            update_manifest_url: None,
         },
         CliInfo {
             key: "antigravity".into(),
             name: "Antigravity".into(),
-            command: "antigravity".into(),
-            flag: Some("--yolo".into()),
-            install_cmd: "npm install -g @google/antigravity".into(),
-            version_cmd: "antigravity --version".into(),
-            npm_pkg: Some("@google/antigravity".into()),
+            command: "agy".into(),
+            flag: Some("--dangerously-skip-permissions".into()),
+            install_cmd: "iwr https://antigravity.google/cli/install.ps1 -useb | iex".into(),
+            version_cmd: "agy --version".into(),
+            npm_pkg: None,
             pip_pkg: None,
-            install_method: "npm".into(),
-            install_url: Some("https://antigravity.google".into()),
+            install_method: "script".into(),
+            install_url: Some("https://antigravity.google/download".into()),
+            extra_paths: vec!["%LOCALAPPDATA%\\agy\\bin\\agy.exe".into()],
+            update_manifest_url: Some(
+                "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/windows_amd64.json".into(),
+            ),
         },
     ]
 }
@@ -197,6 +208,7 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             key: "vscode".into(),
             name: "VS Code".into(),
             command: "code".into(),
+            version_cmd: "code --version".into(),
             install_hint: "Download de https://code.visualstudio.com".into(),
             install_url: Some("https://code.visualstudio.com/Download".into()),
         },
@@ -204,6 +216,7 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             key: "cursor".into(),
             name: "Cursor".into(),
             command: "cursor".into(),
+            version_cmd: "cursor --version".into(),
             install_hint: "Download de https://cursor.sh".into(),
             install_url: Some("https://cursor.sh".into()),
         },
@@ -211,8 +224,17 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             key: "windsurf".into(),
             name: "Windsurf".into(),
             command: "windsurf".into(),
+            version_cmd: "windsurf --version".into(),
             install_hint: "Download de https://codeium.com/windsurf".into(),
             install_url: Some("https://codeium.com/windsurf".into()),
+        },
+        ToolInfo {
+            key: "antigravity".into(),
+            name: "Antigravity".into(),
+            command: "antigravity".into(),
+            version_cmd: "antigravity --version".into(),
+            install_hint: "Download de https://antigravity.google".into(),
+            install_url: Some("https://antigravity.google".into()),
         },
     ]
 }
@@ -223,7 +245,7 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
 
 pub fn resolve_windows_cmd(cmd: &str) -> String {
     match cmd {
-        "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" => {
+        "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" | "antigravity" => {
             format!("{}.cmd", cmd)
         }
         _ => cmd.to_string(),
@@ -243,6 +265,19 @@ pub fn run_silent_with_timeout(
 
     let cmd_resolved = resolve_windows_cmd(cmd);
     let mut command = Command::new(&cmd_resolved);
+
+    #[cfg(windows)]
+    {
+        let mut path = std::env::var("PATH").unwrap_or_default();
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            path = format!("{};{}\\npm", path, appdata);
+        }
+        if let Ok(localappdata) = std::env::var("LOCALAPPDATA") {
+            path = format!("{};{}\\npm", path, localappdata);
+        }
+        command.env("PATH", path);
+    }
+
     command.args(args);
     command.stdout(std::process::Stdio::piped());
     command.stderr(std::process::Stdio::piped());
@@ -717,7 +752,7 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
             ),
             (expand_env(r"%PROGRAMFILES%\Windsurf"), vec!["Windsurf.exe"]),
         ],
-        "antgravity" => vec![
+        "antigravity" => vec![
             (
                 expand_env(r"%LOCALAPPDATA%\Programs\Antigravity"),
                 vec!["Antigravity.exe"],
@@ -740,7 +775,7 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
         "vscode" => Some("visual studio code"),
         "cursor" => Some("cursor"),
         "windsurf" => Some("windsurf"),
-        "antgravity" => Some("antigravity"),
+        "antigravity" => Some("antigravity"),
         _ => None,
     };
     if let Some(hint) = lnk_hint {
@@ -1073,5 +1108,58 @@ mod tests {
         assert!(compare_versions("1.0.0", "2.0.0"));
         assert!(!compare_versions("1.0.0", "1.0.0"));
         assert!(!compare_versions("2.0.0", "1.0.0"));
+    }
+
+    #[test]
+    fn cli_definitions_have_no_gemini() {
+        let defs = get_cli_definitions();
+        assert!(
+            !defs.iter().any(|c| c.key == "gemini"),
+            "Gemini CLI foi descontinuado e não deve estar em get_cli_definitions"
+        );
+    }
+
+    #[test]
+    fn antigravity_cli_uses_agy_command() {
+        let defs = get_cli_definitions();
+        let ag = defs
+            .iter()
+            .find(|c| c.key == "antigravity")
+            .expect("antigravity deve estar em get_cli_definitions");
+        assert_eq!(ag.command, "agy", "binário real do Antigravity CLI é 'agy'");
+        assert_eq!(ag.install_method, "script");
+        assert!(
+            ag.extra_paths
+                .iter()
+                .any(|p| p.contains(r"\agy\bin\agy.exe")),
+            "extra_paths deve incluir %LOCALAPPDATA%\\agy\\bin\\agy.exe"
+        );
+        assert!(
+            ag.update_manifest_url
+                .as_deref()
+                .map(|u| u.contains("manifests/windows_amd64.json"))
+                .unwrap_or(false),
+            "update_manifest_url deve apontar para o manifesto Google"
+        );
+    }
+
+    #[test]
+    fn cli_info_has_extra_paths_and_manifest_url() {
+        let cli = CliInfo {
+            key: "x".into(),
+            name: "X".into(),
+            command: "x".into(),
+            flag: None,
+            install_cmd: "".into(),
+            version_cmd: "".into(),
+            npm_pkg: None,
+            pip_pkg: None,
+            install_method: "script".into(),
+            install_url: None,
+            extra_paths: vec!["%LOCALAPPDATA%\\x\\x.exe".into()],
+            update_manifest_url: Some("https://example.com/m.json".into()),
+        };
+        assert_eq!(cli.extra_paths.len(), 1);
+        assert!(cli.update_manifest_url.is_some());
     }
 }
