@@ -301,7 +301,7 @@ fn download_with_progress(
 
         if total > 0 {
             let percent = ((downloaded as f64 / total as f64) * 100.0) as u8;
-            if percent != last_percent && percent % 5 == 0 {
+            if percent != last_percent && percent.is_multiple_of(5) {
                 last_percent = percent;
                 let _ = app.emit(
                     "app-update-download",
