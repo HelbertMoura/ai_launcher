@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.5] — 2026-05-20 — Unificação visual das demais abas
+
+Polish final aplicando o padrão visual da Launcher/Tools às outras páginas (Pré-reqs, Doctor, Workspaces). Headers, botões e paddings consistentes em todo o app.
+
+### Changed
+- **Pré-reqs**: header migrado para padrão `cd-page__head` (▎ título 22px + sub uppercase). Botão "RUN" do card de Pré-req agora é ghost com accent border (sóbrio, mesmo padrão CLI/Tools).
+- **Doctor**: header migrado para padrão. Botão "RUN DIAGNOSIS" agora ghost-accent. Removido padding duplicado.
+- **Workspaces**: header migrado para padrão. Botões "Novo/Exportar/Importar" todos no novo padrão ghost-accent com hover preenchido.
+- Removidos paddings de container duplicados (eram redundantes com `cd-page`).
+
+### Internal
+- 3 páginas (`Prereqs`, `Doctor`, `Workspaces`) agora importam `../page.css` e seguem o sistema unificado de heading.
+- CSS legado de header próprio (`cd-prereqs__head`, `cd-doc__head`, `cd-ws__head`, etc.) removido. Marcadores `▎` accent agora consistentes em TODAS as páginas.
+
 ## [15.2.4] — 2026-05-20 — Fix Dashboard (após screenshot) — Botão sóbrio + Altura fixa
 
 Correção honesta de problemas visíveis em screenshot do app rodando: botão "Lançar" estava gritando vermelho saturado em cada card; cards COM diretórios recentes ficavam mais altos que cards SEM (apesar do `min-height`); drag handle ⋮⋮ ficava invisível.

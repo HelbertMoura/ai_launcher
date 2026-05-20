@@ -173,7 +173,7 @@
       "first_read": "2026-05-20T13:33:34.429Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/costs/CostsPage.css": {
-      "count": 1,
+      "count": 2,
       "tokens": 1305,
       "first_read": "2026-05-20T13:33:44.985Z"
     },
@@ -191,6 +191,46 @@
       "count": 1,
       "tokens": 254,
       "first_read": "2026-05-20T13:53:46.600Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/public/images/banner.svg": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-20T14:07:31.224Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/updates/UpdatesPage.css": {
+      "count": 1,
+      "tokens": 715,
+      "first_read": "2026-05-20T14:10:16.240Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css": {
+      "count": 1,
+      "tokens": 1394,
+      "first_read": "2026-05-20T14:10:22.451Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.tsx": {
+      "count": 1,
+      "tokens": 403,
+      "first_read": "2026-05-20T14:10:47.062Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx": {
+      "count": 3,
+      "tokens": 2120,
+      "first_read": "2026-05-20T14:11:07.358Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx": {
+      "count": 2,
+      "tokens": 7823,
+      "first_read": "2026-05-20T14:12:23.980Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css": {
+      "count": 2,
+      "tokens": 4582,
+      "first_read": "2026-05-20T14:13:14.646Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css": {
+      "count": 1,
+      "tokens": 1056,
+      "first_read": "2026-05-20T14:13:44.470Z"
     }
   },
   "files_written": [
@@ -829,6 +869,108 @@
       "action": "edit",
       "tokens": 431,
       "at": "2026-05-20T13:56:36.485Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/public/images/banner.svg",
+      "action": "edit",
+      "tokens": 15,
+      "at": "2026-05-20T14:08:57.711Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.tsx",
+      "action": "edit",
+      "tokens": 383,
+      "at": "2026-05-20T14:11:01.949Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx",
+      "action": "edit",
+      "tokens": 253,
+      "at": "2026-05-20T14:11:29.184Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx",
+      "action": "edit",
+      "tokens": 32,
+      "at": "2026-05-20T14:11:36.043Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css",
+      "action": "edit",
+      "tokens": 37,
+      "at": "2026-05-20T14:11:44.996Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css",
+      "action": "edit",
+      "tokens": 199,
+      "at": "2026-05-20T14:11:54.760Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/updates/UpdatesPage.css",
+      "action": "edit",
+      "tokens": 15,
+      "at": "2026-05-20T14:12:01.280Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx",
+      "action": "edit",
+      "tokens": 91,
+      "at": "2026-05-20T14:12:32.357Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx",
+      "action": "edit",
+      "tokens": 15,
+      "at": "2026-05-20T14:13:01.339Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-05-20T14:13:23.224Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css",
+      "action": "edit",
+      "tokens": 247,
+      "at": "2026-05-20T14:13:40.308Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css",
+      "action": "edit",
+      "tokens": 73,
+      "at": "2026-05-20T14:13:57.992Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css",
+      "action": "edit",
+      "tokens": 206,
+      "at": "2026-05-20T14:14:08.726Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+      "action": "edit",
+      "tokens": 7,
+      "at": "2026-05-20T14:14:35.170Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-05-20T14:14:36.749Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-05-20T14:14:38.807Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+      "action": "edit",
+      "tokens": 324,
+      "at": "2026-05-20T14:14:48.756Z"
     }
   ],
   "edit_counts": {
@@ -851,10 +993,10 @@
     "src/features/help/AnimatedTerminal.tsx": 2,
     "src/i18n/locales/en.ts": 5,
     "src/i18n/locales/pt-BR.ts": 5,
-    "CHANGELOG.md": 5,
-    "package.json": 4,
-    "src-tauri/tauri.conf.json": 4,
-    "src-tauri/Cargo.toml": 4,
+    "CHANGELOG.md": 6,
+    "package.json": 5,
+    "src-tauri/tauri.conf.json": 5,
+    "src-tauri/Cargo.toml": 5,
     "src/features/page.css": 4,
     "src/ui/Card.css": 1,
     "src/features/tools/ToolsPage.css": 3,
@@ -862,11 +1004,19 @@
     "src/ui/Chip.css": 1,
     "src/app/layout/StatusBar.css": 1,
     "src/features/tools/ToolsPage.tsx": 2,
-    "src/ui/EmptyState.css": 1
+    "src/ui/EmptyState.css": 1,
+    "public/images/banner.svg": 1,
+    "src/features/prereqs/PrereqsPage.tsx": 1,
+    "src/features/workspace/DoctorPage.tsx": 2,
+    "src/features/workspace/DoctorPage.css": 2,
+    "src/features/updates/UpdatesPage.css": 1,
+    "src/features/workspace/WorkspacePage.tsx": 2,
+    "src/features/workspace/WorkspacePage.css": 2,
+    "src/features/prereqs/PrereqsPage.css": 2
   },
-  "anatomy_hits": 37,
-  "anatomy_misses": 1,
-  "repeated_reads_warned": 18,
+  "anatomy_hits": 44,
+  "anatomy_misses": 2,
+  "repeated_reads_warned": 23,
   "cerebrum_warnings": 0,
-  "stop_count": 12
+  "stop_count": 14
 }

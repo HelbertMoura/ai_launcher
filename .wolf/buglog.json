@@ -685,6 +685,166 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-20T13:56:22.339Z"
+    },
+    {
+      "id": "bug-043",
+      "timestamp": "2026-05-20T14:08:57.716Z",
+      "error_message": "Wrong reference: gemini should be agy",
+      "file": "public/images/banner.svg",
+      "root_cause": "Used \"gemini\" instead of \"agy\"",
+      "fix": "Changed gemini → agy",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "svg"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:08:57.716Z"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-05-20T14:11:01.953Z",
+      "error_message": "Missing import: ../page.css",
+      "file": "src/features/prereqs/PrereqsPage.tsx",
+      "root_cause": "Module(s) not imported: ../page.css",
+      "fix": "Added import(s) for ../page.css",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:11:01.953Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-05-20T14:11:36.048Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/features/workspace/DoctorPage.tsx",
+      "root_cause": "Had \"./DoctorPage.css\"",
+      "fix": "Changed to \"../page.css\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:11:36.048Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-05-20T14:11:45.002Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/workspace/DoctorPage.css",
+      "root_cause": "16 lines replaced/restructured",
+      "fix": "Rewrote 33→10 lines (16 removed) | Also: font-size: var(--text-xs);; color: var(--bg);",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-20T14:11:54.764Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-05-20T14:13:01.343Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/features/workspace/WorkspacePage.tsx",
+      "root_cause": "Had \"./WorkspacePage.css\"",
+      "fix": "Changed to \"../page.css\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:13:01.343Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-05-20T14:13:23.229Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/workspace/WorkspacePage.css",
+      "root_cause": "17 lines replaced/restructured",
+      "fix": "Rewrote 27→4 lines (17 removed) | Also: font-size: var(--text-xs);; color: var(--bg);",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-20T14:13:40.313Z"
+    },
+    {
+      "id": "bug-049",
+      "timestamp": "2026-05-20T14:13:57.997Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/prereqs/PrereqsPage.css",
+      "root_cause": "38 lines replaced/restructured",
+      "fix": "Rewrote 74→16 lines (38 removed) | Also: font-size: var(--text-xs);; border: 1px solid var(--accent);",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-20T14:14:08.731Z"
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-05-20T14:14:35.175Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.4\"",
+      "fix": "Changed to \"15.2.5\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:14:35.175Z"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-05-20T14:14:36.754Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.4\"",
+      "fix": "Changed to \"15.2.5\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:14:36.754Z"
+    },
+    {
+      "id": "bug-052",
+      "timestamp": "2026-05-20T14:14:38.812Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.4\"",
+      "fix": "Changed to \"15.2.5\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:14:38.812Z"
     }
   ]
 }

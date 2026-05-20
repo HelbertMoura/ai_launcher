@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T13:56:36.461Z
-> Files: 302 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T14:14:48.726Z
+> Files: 303 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -10,7 +10,7 @@
 - `.gitignore` — Git ignore rules (~390 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
-- `CHANGELOG.md` — Changelog (~15672 tok)
+- `CHANGELOG.md` — Changelog (~15936 tok)
 - `CITATION.cff` (~208 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `CONTRIBUTING.md` — Contributing to AI Launcher Pro (~1630 tok)
@@ -181,6 +181,10 @@
 
 - `.gitkeep` (~1 tok)
 
+## public/images/
+
+- `banner.svg` (~2002 tok)
+
 ## scripts/
 
 - `audit-release.sh` — audit-release.sh — Validate that a GitHub release contains only assets (~883 tok)
@@ -334,8 +338,8 @@
 ## src/features/prereqs/
 
 - `PrereqCard.tsx` — PrereqCard — uses useState (~590 tok)
-- `PrereqsPage.css` — Styles: 28 rules (~1056 tok)
-- `PrereqsPage.tsx` — PrereqsPage (~403 tok)
+- `PrereqsPage.css` — Styles: 20 rules (~782 tok)
+- `PrereqsPage.tsx` — PrereqsPage (~396 tok)
 - `usePrerequisites.ts` — Canonical key used by install_prerequisite (e.g. "node", "git", "vscode"). (~278 tok)
 
 ## src/features/tools/
@@ -351,19 +355,19 @@
 ## src/features/updates/
 
 - `AppUpdater.tsx` — AppUpdater (~1681 tok)
-- `UpdatesPage.css` — Styles: 20 rules (~715 tok)
+- `UpdatesPage.css` — Styles: 20 rules (~708 tok)
 - `UpdatesPage.tsx` — UpdatesPage (~2418 tok)
 
 ## src/features/workspace/
 
-- `DoctorPage.css` — Styles: 44 rules (~1394 tok)
-- `DoctorPage.tsx` — If true, shows what would be done without executing fixes. (~2120 tok)
+- `DoctorPage.css` — Styles: 43 rules (~1399 tok)
+- `DoctorPage.tsx` — If true, shows what would be done without executing fixes. (~2139 tok)
 - `Runbook.css` — Styles: 33 rules (~1207 tok)
 - `RunbookEditor.tsx` — AI Launcher Pro - Runbook Editor (~2558 tok)
 - `RunbookRunner.tsx` — Simulate step execution. In a real app this would invoke the Tauri backend (~2064 tok)
 - `runbookStore.ts` — AI Launcher Pro - Runbook Store (~2133 tok)
-- `WorkspacePage.css` — Styles: 93 rules, 3 vars, 1 media queries (~4704 tok)
-- `WorkspacePage.tsx` — CRITICAL_NAMES — uses useState, useCallback (~7810 tok)
+- `WorkspacePage.css` — Styles: 91 rules, 3 vars (~4687 tok)
+- `WorkspacePage.tsx` — CRITICAL_NAMES (~7830 tok)
 - `workspaceStore.ts` — Keys that look like secrets — redacted during export. (~1219 tok)
 
 ## src/hooks/
