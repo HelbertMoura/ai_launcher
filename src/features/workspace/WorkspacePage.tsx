@@ -22,6 +22,7 @@ import { useUsage } from "../costs/useUsage";
 import { getAllBudgetUsage, type BudgetUsage } from "../../providers/budget";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
 import type { TabId } from "../../app/layout/TabId";
+import "../page.css";
 import "./WorkspacePage.css";
 
 type DoctorSeverity = "critical" | "warning" | "info";
@@ -171,11 +172,11 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const sorted = [...pinned, ...unpinned];
 
   return (
-    <section className="cd-ws">
-      <header className="cd-ws__head">
-        <div>
-          <h1 className="cd-ws__title">{t("workspace.title")}</h1>
-          <p className="cd-ws__sub">{t("workspace.subtitle")}</p>
+    <section className="cd-page cd-ws">
+      <header className="cd-page__head">
+        <div className="cd-page__heading">
+          <h2 className="cd-page__title">▎ {t("workspace.title")}</h2>
+          <p className="cd-page__sub">{t("workspace.subtitle")}</p>
         </div>
         <div className="cd-ws__actions">
           <button type="button" className="cd-ws__btn" onClick={handleNew}>

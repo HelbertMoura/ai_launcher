@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
+import "../page.css";
 import "./DoctorPage.css";
 
 type Severity = "critical" | "warning" | "info";
@@ -80,11 +81,11 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const criticalCount = critical.filter((i) => !i.check.installed).length;
 
   return (
-    <section className="cd-doc">
-      <header className="cd-doc__head">
-        <div>
-          <h1 className="cd-doc__title">{t("doctor.title")}</h1>
-          <p className="cd-doc__sub">{t("doctor.subtitle")}</p>
+    <section className="cd-page cd-doc">
+      <header className="cd-page__head">
+        <div className="cd-page__heading">
+          <h2 className="cd-page__title">▎ {t("doctor.title")}</h2>
+          <p className="cd-page__sub">{t("doctor.subtitle")}</p>
         </div>
         <div className="cd-doc__actions">
           <label className="cd-doc__dry-run">

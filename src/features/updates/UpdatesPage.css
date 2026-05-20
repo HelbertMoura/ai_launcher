@@ -1,5 +1,4 @@
 .cd-updates {
-  padding: var(--s-5);
   height: 100%;
   overflow-y: auto;
 }
