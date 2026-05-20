@@ -1,3 +1,4 @@
+/* Accents — base dark (vibrante para fundo escuro) */
 [data-accent="red"] {
   --accent: #ff3131;
   --accent-glow: rgba(255, 49, 49, 0.4);
@@ -23,23 +24,36 @@
   --accent-glow: rgba(185, 130, 255, 0.4);
   --accent-soft: rgba(185, 130, 255, 0.12);
 }
-[data-theme="light"][data-accent="red"] {
-  --accent-soft: rgba(255, 49, 49, 0.1);
-  --accent-glow: rgba(255, 49, 49, 0.15);
+
+/* Temas claros (light + glacier): accents mais escuros para contraste e
+   glows/softs reduzidos para não invadir o branco. */
+[data-theme="light"][data-accent="red"],
+[data-theme="glacier"][data-accent="red"] {
+  --accent: #d62929;
+  --accent-glow: rgba(214, 41, 41, 0.18);
+  --accent-soft: rgba(214, 41, 41, 0.08);
 }
-[data-theme="light"][data-accent="amber"] {
-  --accent-soft: rgba(255, 159, 28, 0.1);
-  --accent-glow: rgba(255, 159, 28, 0.15);
+[data-theme="light"][data-accent="amber"],
+[data-theme="glacier"][data-accent="amber"] {
+  --accent: #d97706;
+  --accent-glow: rgba(217, 119, 6, 0.2);
+  --accent-soft: rgba(217, 119, 6, 0.08);
 }
-[data-theme="light"][data-accent="green"] {
-  --accent-soft: rgba(53, 208, 127, 0.1);
-  --accent-glow: rgba(53, 208, 127, 0.15);
+[data-theme="light"][data-accent="green"],
+[data-theme="glacier"][data-accent="green"] {
+  --accent: #16a34a;
+  --accent-glow: rgba(22, 163, 74, 0.2);
+  --accent-soft: rgba(22, 163, 74, 0.08);
 }
-[data-theme="light"][data-accent="blue"] {
-  --accent-soft: rgba(78, 161, 255, 0.1);
-  --accent-glow: rgba(78, 161, 255, 0.15);
+[data-theme="light"][data-accent="blue"],
+[data-theme="glacier"][data-accent="blue"] {
+  --accent: #2563eb;
+  --accent-glow: rgba(37, 99, 235, 0.2);
+  --accent-soft: rgba(37, 99, 235, 0.08);
 }
-[data-theme="light"][data-accent="violet"] {
-  --accent-soft: rgba(185, 130, 255, 0.1);
-  --accent-glow: rgba(185, 130, 255, 0.15);
+[data-theme="light"][data-accent="violet"],
+[data-theme="glacier"][data-accent="violet"] {
+  --accent: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.2);
+  --accent-soft: rgba(124, 58, 237, 0.08);
 }

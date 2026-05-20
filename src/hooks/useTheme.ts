@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type Theme = "dark" | "light" | "amber" | "glacier";
 
@@ -30,6 +30,12 @@ export function useTheme(): {
   cycleTheme: () => void;
 } {
   const [theme, setThemeState] = useState<Theme>(readSaved);
+
+  // Aplica o tema no DOM no mount inicial — sem isso, o tema salvo no
+  // localStorage só é refletido visualmente quando o usuário clica em mudar.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);

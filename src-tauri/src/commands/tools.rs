@@ -21,23 +21,20 @@ pub fn check_tools() -> Vec<CheckResult> {
             let has_binary = path.is_some();
             let installed = cmd_in_path || has_binary;
 
-            // Estratégia: tenta --version (via cmd ou via binário), depois fallback
-            // para ProductVersion do PE (Electron apps não respondem a --version).
+            // PERIGO: NÃO executar o binário direto via path (`run_silent(&p_str, --version)`)
+            // para apps Electron (Antigravity, Cursor, Windsurf). Eles ABREM a janela quando
+            // recebem flags desconhecidas — bug-016 (Antigravity auto-launch ao abrir Tools).
+            //
+            // Estratégia segura:
+            // 1) Se o comando está no PATH (via launcher CLI: `code`, `cursor` etc), tenta
+            //    --version pelo nome do comando (esses são launchers leves, não Electron).
+            // 2) Senão, vai DIRETO para ProductVersion via PE metadata (não executa nada).
             let version_from_cmd = if cmd_in_path {
                 let parts: Vec<&str> = tool.version_cmd.split_whitespace().collect();
                 let (_, raw) = if parts.len() > 1 {
                     run_silent(&tool.command, &parts[1..])
                 } else {
                     run_silent(&tool.command, &["--version"])
-                };
-                raw.as_deref().and_then(extract_version)
-            } else if let Some(ref p) = path {
-                let p_str = p.to_string_lossy().to_string();
-                let parts: Vec<&str> = tool.version_cmd.split_whitespace().collect();
-                let (_, raw) = if parts.len() > 1 {
-                    run_silent(&p_str, &parts[1..])
-                } else {
-                    run_silent(&p_str, &["--version"])
                 };
                 raw.as_deref().and_then(extract_version)
             } else {

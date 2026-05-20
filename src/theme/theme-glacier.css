@@ -3,20 +3,25 @@
 [data-theme="glacier"] {
   color-scheme: light;
 
+  /* surfaces */
   --bg: #e8edf2;
   --surface-1: #ffffff;
+  --surface-1-alpha: rgba(255, 255, 255, 0.75);
   --surface-2: #f4f7fa;
+  --surface-2-alpha: rgba(244, 247, 250, 0.7);
   --surface-hover: #dce4ed;
 
   --border: #c8d2de;
   --border-strong: #9aa8ba;
 
+  /* text */
   --text: #1a2332;
   --text-muted: #4a5a70;
   --text-dim: #6e7e94;
 
-  --accent: #4da6ff;
-  --accent-glow: rgba(77, 166, 255, 0.4);
-  --accent-soft: rgba(77, 166, 255, 0.12);
+  /* accent */
+  --accent: #2c8de6;
+  --accent-glow: rgba(44, 141, 230, 0.3);
+  --accent-soft: rgba(44, 141, 230, 0.1);
   --accent-ink: #ffffff;
 }
