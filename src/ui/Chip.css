@@ -1,17 +1,22 @@
 .cd-chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s-2);
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
-  padding: 3px 10px;
+  padding: 3px 8px;
+  min-width: 64px;
+  height: 22px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border-strong);
   color: var(--text-muted);
   background: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cd-chip__dot {
