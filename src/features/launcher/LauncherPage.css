@@ -66,6 +66,37 @@
 
 .cd-cli-card__actions > * {
   flex: 1;
+  justify-content: center;
+}
+
+/* Overrides scoped ao card: Launch/Install ficam sóbrios — accent é destaque,
+   não inundação visual. Hover preenche com accent. */
+.cd-cli-card__actions .cd-btn {
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+}
+.cd-cli-card__actions .cd-btn--primary {
+  background: transparent;
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 50%, transparent);
+}
+.cd-cli-card__actions .cd-btn--primary:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.cd-cli-card__actions .cd-btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+.cd-cli-card__actions .cd-btn--ghost:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 
 .cd-cli-card__update {
@@ -78,11 +109,17 @@
 .cd-cli-card__pin-icon {
   color: var(--accent);
   font-size: 10px;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .cd-cli-card__dir-icon {
   color: var(--text-dim);
   font-size: 10px;
+  width: 12px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 @keyframes pulse {
@@ -238,18 +275,19 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  margin-top: var(--s-3);
-  border-top: 1px solid var(--border);
+  margin-top: var(--s-2);
   padding-top: var(--s-2);
-  max-height: 60px;
+  border-top: 1px solid var(--border);
+  max-height: 48px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .cd-cli-card__recent-dir {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  height: 24px;
+  gap: 8px;
+  padding: 3px 4px;
+  height: 22px;
   background: transparent;
   border: none;
   border-radius: var(--r-sm);
@@ -300,7 +338,7 @@
 .cd-draggable-item {
   transition: opacity 0.2s ease, box-shadow 0.15s ease;
   touch-action: none;
-  min-height: 168px;
+  height: 200px;
   display: flex;
   animation: cd-card-enter 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
@@ -345,14 +383,14 @@
 
 .cd-drag-handle {
   cursor: grab;
-  opacity: 0;
-  padding: 4px 4px;
-  font-size: 14px;
+  opacity: 0.35;
+  padding: 4px 6px;
+  font-size: 13px;
   line-height: 1;
   letter-spacing: -3px;
   user-select: none;
   color: var(--text-dim);
-  transition: opacity 0.15s ease, color 0.15s ease;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
   flex-shrink: 0;
   touch-action: none;
   margin-left: -4px;
@@ -360,12 +398,13 @@
 }
 
 .cd-draggable-item:hover .cd-drag-handle {
-  opacity: 0.6;
+  opacity: 0.7;
+  color: var(--text);
 }
 
 .cd-drag-handle:hover {
   opacity: 1 !important;
-  color: var(--accent);
+  color: var(--accent) !important;
   background: var(--surface-hover);
 }
 
@@ -450,21 +489,28 @@
   border-color: var(--err);
 }
 
-/* Custom CLI card launch button */
+/* Custom CLI card launch button — mesmo padrão do CliCard primary */
 .cd-cli-card__launch-btn {
-  padding: 4px 12px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  border: none;
+  width: 100%;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid color-mix(in oklch, var(--accent) 50%, transparent);
   border-radius: var(--r-sm);
   font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: background var(--dur-fast), color var(--dur-fast),
+    border-color var(--dur-fast), box-shadow var(--dur-fast);
 }
 .cd-cli-card__launch-btn:hover {
-  opacity: 0.85;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px var(--accent-glow);
 }
 
 /* Command preview for custom launch dialogs */

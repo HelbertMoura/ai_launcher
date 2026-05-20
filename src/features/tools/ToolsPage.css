@@ -1,3 +1,8 @@
+/* Tools cards mesma altura fixa que CLI cards para alinhamento na grid */
+.cd-page__grid > .cd-card:has(.cd-tool-card__head) {
+  height: 200px;
+}
+
 .cd-tool-card__head {
   display: flex;
   align-items: center;
@@ -55,6 +60,36 @@
 }
 .cd-tool-card__actions > * {
   flex: 1;
+  justify-content: center;
+}
+
+/* Mesmo override sóbrio dos botões no card de Tools */
+.cd-tool-card__actions .cd-btn {
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 7px 12px;
+  border-radius: var(--r-sm);
+}
+.cd-tool-card__actions .cd-btn--primary {
+  background: transparent;
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 50%, transparent);
+}
+.cd-tool-card__actions .cd-btn--primary:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.cd-tool-card__actions .cd-btn--ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border-color: var(--border);
+}
+.cd-tool-card__actions .cd-btn--ghost:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 
 .cd-tool-card__update {

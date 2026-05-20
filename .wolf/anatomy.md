@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T13:34:16.856Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T13:56:36.461Z
 > Files: 302 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -10,7 +10,7 @@
 - `.gitignore` — Git ignore rules (~390 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
-- `CHANGELOG.md` — Changelog (~15311 tok)
+- `CHANGELOG.md` — Changelog (~15672 tok)
 - `CITATION.cff` (~208 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `CONTRIBUTING.md` — Contributing to AI Launcher Pro (~1630 tok)
@@ -259,7 +259,7 @@
 
 ## src/features/
 
-- `page.css` — Styles: 19 rules (~630 tok)
+- `page.css` — Styles: 19 rules (~644 tok)
 
 ## src/features/admin/
 
@@ -318,7 +318,7 @@
 - `CustomCliLaunchDialog.tsx` — INITIAL_STATE — renders modal — uses useReducer, useEffect, useMemo (~2216 tok)
 - `history.ts` — Exports HistoryItem, appendHistory (~368 tok)
 - `LaunchDialog.tsx` — CLAUDE_KEY — renders modal (~5158 tok)
-- `LauncherPage.css` — Styles: 75 rules (~3448 tok)
+- `LauncherPage.css` — Styles: 75 rules, 2 vars (~3879 tok)
 - `LauncherPage.tsx` — LauncherPage (~3059 tok)
 - `pinnedDirs.test.ts` (~393 tok)
 - `pinnedDirs.ts` — Exports getPinnedDirs, pinDir, unpinDir, isPinned (~348 tok)
@@ -343,7 +343,7 @@
 - `CustomIdeCard.tsx` — CustomIdeCard — uses useState (~728 tok)
 - `CustomIdeLaunchDialog.tsx` — INITIAL_STATE — renders modal — uses useReducer, useEffect, useMemo (~1918 tok)
 - `ToolCard.tsx` — ToolCard (~664 tok)
-- `ToolsPage.css` — Styles: 13 rules (~557 tok)
+- `ToolsPage.css` — Styles: 19 rules, 2 vars (~852 tok)
 - `ToolsPage.tsx` — ToolsPage (~1295 tok)
 - `toolsStore.ts` — Reload custom IDEs from localStorage and merge into snapshot. (~1171 tok)
 - `useTools.ts` — Exports ToolInfo, CheckResult, useTools (~200 tok)

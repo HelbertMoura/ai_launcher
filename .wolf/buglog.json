@@ -573,6 +573,118 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-20T13:33:59.483Z"
+    },
+    {
+      "id": "bug-036",
+      "timestamp": "2026-05-20T13:54:15.599Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/launcher/LauncherPage.css",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 12→16 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:54:15.599Z"
+    },
+    {
+      "id": "bug-037",
+      "timestamp": "2026-05-20T13:55:17.557Z",
+      "error_message": "CSS fix: color, letter-spacing",
+      "file": "src/features/page.css",
+      "root_cause": "color: var(--text-dim) → var(--text-muted); letter-spacing: 0.5px → 1px",
+      "fix": "Changed color: var(--text-dim) → var(--text-muted); letter-spacing: 0.5px → 1px",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:55:17.557Z"
+    },
+    {
+      "id": "bug-038",
+      "timestamp": "2026-05-20T13:55:23.608Z",
+      "error_message": "Wrong reference: 168 should be 200",
+      "file": "src/features/launcher/LauncherPage.tsx",
+      "root_cause": "Used \"168\" instead of \"200\"",
+      "fix": "Changed 168 → 200",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:55:23.608Z"
+    },
+    {
+      "id": "bug-039",
+      "timestamp": "2026-05-20T13:55:25.466Z",
+      "error_message": "Wrong reference: 168 should be 200",
+      "file": "src/features/tools/ToolsPage.tsx",
+      "root_cause": "Used \"168\" instead of \"200\"",
+      "fix": "Changed 168 → 200",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:55:25.466Z"
+    },
+    {
+      "id": "bug-040",
+      "timestamp": "2026-05-20T13:56:18.630Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.3\"",
+      "fix": "Changed to \"15.2.4\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:56:18.630Z"
+    },
+    {
+      "id": "bug-041",
+      "timestamp": "2026-05-20T13:56:20.751Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.3\"",
+      "fix": "Changed to \"15.2.4\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:56:20.751Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-05-20T13:56:22.339Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.3\"",
+      "fix": "Changed to \"15.2.4\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:56:22.339Z"
     }
   ]
 }

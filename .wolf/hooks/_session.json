@@ -23,8 +23,8 @@
       "first_read": "2026-05-19T20:48:05.093Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css": {
-      "count": 3,
-      "tokens": 3097,
+      "count": 6,
+      "tokens": 3791,
       "first_read": "2026-05-19T20:59:23.347Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs": {
@@ -128,8 +128,8 @@
       "first_read": "2026-05-19T22:09:24.252Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css": {
-      "count": 2,
-      "tokens": 557,
+      "count": 3,
+      "tokens": 809,
       "first_read": "2026-05-19T22:09:24.862Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/admin/AdminPage.css": {
@@ -176,6 +176,21 @@
       "count": 1,
       "tokens": 1305,
       "first_read": "2026-05-20T13:33:44.985Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/Capturar.PNG": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-05-20T13:51:11.453Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Button.css": {
+      "count": 1,
+      "tokens": 388,
+      "first_read": "2026-05-20T13:53:46.098Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Button.tsx": {
+      "count": 1,
+      "tokens": 254,
+      "first_read": "2026-05-20T13:53:46.600Z"
     }
   },
   "files_written": [
@@ -718,6 +733,102 @@
       "action": "edit",
       "tokens": 459,
       "at": "2026-05-20T13:34:17.292Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 308,
+      "at": "2026-05-20T13:54:05.375Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 159,
+      "at": "2026-05-20T13:54:15.594Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 48,
+      "at": "2026-05-20T13:54:34.855Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 60,
+      "at": "2026-05-20T13:54:41.567Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 206,
+      "at": "2026-05-20T13:54:53.584Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 72,
+      "at": "2026-05-20T13:55:01.085Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 179,
+      "at": "2026-05-20T13:55:10.927Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+      "action": "edit",
+      "tokens": 52,
+      "at": "2026-05-20T13:55:17.552Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-05-20T13:55:23.604Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-05-20T13:55:25.462Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+      "action": "edit",
+      "tokens": 287,
+      "at": "2026-05-20T13:55:36.352Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+      "action": "edit",
+      "tokens": 80,
+      "at": "2026-05-20T13:55:49.458Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+      "action": "edit",
+      "tokens": 7,
+      "at": "2026-05-20T13:56:18.626Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-05-20T13:56:20.746Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-05-20T13:56:22.335Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+      "action": "edit",
+      "tokens": 431,
+      "at": "2026-05-20T13:56:36.485Z"
     }
   ],
   "edit_counts": {
@@ -730,32 +841,32 @@
     "src-tauri/src/commands/updates.rs": 2,
     "src/features/launcher/useClis.ts": 1,
     "src/hooks/useDraggable.ts": 1,
-    "src/features/launcher/LauncherPage.tsx": 7,
+    "src/features/launcher/LauncherPage.tsx": 8,
     "src/features/launcher/CliCard.tsx": 6,
     "src/features/launcher/CustomCliCard.tsx": 2,
-    "src/features/launcher/LauncherPage.css": 9,
+    "src/features/launcher/LauncherPage.css": 16,
     "src/lib/iconRegistry.ts": 1,
     "src/icons/registry.ts": 3,
     "src/features/launcher/LaunchDialog.tsx": 1,
     "src/features/help/AnimatedTerminal.tsx": 2,
     "src/i18n/locales/en.ts": 5,
     "src/i18n/locales/pt-BR.ts": 5,
-    "CHANGELOG.md": 4,
-    "package.json": 3,
-    "src-tauri/tauri.conf.json": 3,
-    "src-tauri/Cargo.toml": 3,
-    "src/features/page.css": 3,
+    "CHANGELOG.md": 5,
+    "package.json": 4,
+    "src-tauri/tauri.conf.json": 4,
+    "src-tauri/Cargo.toml": 4,
+    "src/features/page.css": 4,
     "src/ui/Card.css": 1,
-    "src/features/tools/ToolsPage.css": 1,
+    "src/features/tools/ToolsPage.css": 3,
     "src/features/admin/AdminPage.css": 1,
     "src/ui/Chip.css": 1,
     "src/app/layout/StatusBar.css": 1,
-    "src/features/tools/ToolsPage.tsx": 1,
+    "src/features/tools/ToolsPage.tsx": 2,
     "src/ui/EmptyState.css": 1
   },
-  "anatomy_hits": 35,
-  "anatomy_misses": 0,
-  "repeated_reads_warned": 14,
+  "anatomy_hits": 37,
+  "anatomy_misses": 1,
+  "repeated_reads_warned": 18,
   "cerebrum_warnings": 0,
-  "stop_count": 10
+  "stop_count": 12
 }
