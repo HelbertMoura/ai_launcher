@@ -4,18 +4,23 @@
 [data-theme="amber"] {
   color-scheme: dark;
 
+  /* surfaces */
   --bg: #14100a;
   --surface-1: #1a1510;
+  --surface-1-alpha: rgba(26, 21, 16, 0.7);
   --surface-2: #211b12;
+  --surface-2-alpha: rgba(33, 27, 18, 0.6);
   --surface-hover: #2a2218;
 
   --border: #2a2218;
   --border-strong: #3d3020;
 
+  /* text */
   --text: #f4e4c1;
   --text-muted: #b8a789;
   --text-dim: #8a7a5c;
 
+  /* accent — amber phosphor */
   --accent: #ffb000;
   --accent-glow: rgba(255, 176, 0, 0.4);
   --accent-soft: rgba(255, 176, 0, 0.12);

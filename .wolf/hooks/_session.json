@@ -18,8 +18,8 @@
       "first_read": "2026-05-19T20:48:00.162Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs": {
-      "count": 1,
-      "tokens": 1383,
+      "count": 3,
+      "tokens": 1556,
       "first_read": "2026-05-19T20:48:05.093Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css": {
@@ -28,8 +28,8 @@
       "first_read": "2026-05-19T20:59:23.347Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs": {
-      "count": 1,
-      "tokens": 4010,
+      "count": 2,
+      "tokens": 3815,
       "first_read": "2026-05-19T21:15:45.188Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs": {
@@ -123,7 +123,7 @@
       "first_read": "2026-05-19T22:07:24.486Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolCard.tsx": {
-      "count": 1,
+      "count": 2,
       "tokens": 664,
       "first_read": "2026-05-19T22:09:24.252Z"
     },
@@ -153,7 +153,7 @@
       "first_read": "2026-05-20T13:31:28.016Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx": {
-      "count": 1,
+      "count": 2,
       "tokens": 1295,
       "first_read": "2026-05-20T13:32:43.961Z"
     },
@@ -231,6 +231,51 @@
       "count": 1,
       "tokens": 1056,
       "first_read": "2026-05-20T14:13:44.470Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/tokens.css": {
+      "count": 2,
+      "tokens": 634,
+      "first_read": "2026-05-20T14:23:02.258Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-light.css": {
+      "count": 1,
+      "tokens": 152,
+      "first_read": "2026-05-20T14:23:10.475Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-amber.css": {
+      "count": 1,
+      "tokens": 156,
+      "first_read": "2026-05-20T14:23:11.586Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-glacier.css": {
+      "count": 1,
+      "tokens": 146,
+      "first_read": "2026-05-20T14:23:12.128Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-dark.css": {
+      "count": 1,
+      "tokens": 54,
+      "first_read": "2026-05-20T14:23:12.677Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/accents.css": {
+      "count": 1,
+      "tokens": 388,
+      "first_read": "2026-05-20T14:24:29.695Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/index.css": {
+      "count": 1,
+      "tokens": 295,
+      "first_read": "2026-05-20T14:24:53.479Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useTheme.ts": {
+      "count": 1,
+      "tokens": 463,
+      "first_read": "2026-05-20T14:24:59.221Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useAccent.ts": {
+      "count": 1,
+      "tokens": 941,
+      "first_read": "2026-05-20T14:25:22.817Z"
     }
   },
   "files_written": [
@@ -971,6 +1016,72 @@
       "action": "edit",
       "tokens": 324,
       "at": "2026-05-20T14:14:48.756Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs",
+      "action": "edit",
+      "tokens": 368,
+      "at": "2026-05-20T14:22:19.011Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-light.css",
+      "action": "create",
+      "tokens": 236,
+      "at": "2026-05-20T14:23:34.195Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-glacier.css",
+      "action": "create",
+      "tokens": 179,
+      "at": "2026-05-20T14:23:43.753Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-amber.css",
+      "action": "create",
+      "tokens": 192,
+      "at": "2026-05-20T14:23:53.575Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/tokens.css",
+      "action": "edit",
+      "tokens": 47,
+      "at": "2026-05-20T14:24:24.537Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/accents.css",
+      "action": "create",
+      "tokens": 519,
+      "at": "2026-05-20T14:24:48.415Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useTheme.ts",
+      "action": "edit",
+      "tokens": 330,
+      "at": "2026-05-20T14:25:15.884Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+      "action": "edit",
+      "tokens": 7,
+      "at": "2026-05-20T14:26:22.267Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-05-20T14:26:24.824Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-05-20T14:26:26.596Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+      "action": "edit",
+      "tokens": 536,
+      "at": "2026-05-20T14:26:42.846Z"
     }
   ],
   "edit_counts": {
@@ -979,7 +1090,7 @@
     "src-tauri/src/util.rs": 12,
     "src-tauri/src/commands/self_update.rs": 1,
     "src-tauri/src/commands/cli.rs": 4,
-    "src-tauri/src/commands/tools.rs": 2,
+    "src-tauri/src/commands/tools.rs": 3,
     "src-tauri/src/commands/updates.rs": 2,
     "src/features/launcher/useClis.ts": 1,
     "src/hooks/useDraggable.ts": 1,
@@ -993,10 +1104,10 @@
     "src/features/help/AnimatedTerminal.tsx": 2,
     "src/i18n/locales/en.ts": 5,
     "src/i18n/locales/pt-BR.ts": 5,
-    "CHANGELOG.md": 6,
-    "package.json": 5,
-    "src-tauri/tauri.conf.json": 5,
-    "src-tauri/Cargo.toml": 5,
+    "CHANGELOG.md": 7,
+    "package.json": 6,
+    "src-tauri/tauri.conf.json": 6,
+    "src-tauri/Cargo.toml": 6,
     "src/features/page.css": 4,
     "src/ui/Card.css": 1,
     "src/features/tools/ToolsPage.css": 3,
@@ -1012,11 +1123,17 @@
     "src/features/updates/UpdatesPage.css": 1,
     "src/features/workspace/WorkspacePage.tsx": 2,
     "src/features/workspace/WorkspacePage.css": 2,
-    "src/features/prereqs/PrereqsPage.css": 2
+    "src/features/prereqs/PrereqsPage.css": 2,
+    "src/theme/theme-light.css": 1,
+    "src/theme/theme-glacier.css": 1,
+    "src/theme/theme-amber.css": 1,
+    "src/theme/tokens.css": 1,
+    "src/theme/accents.css": 1,
+    "src/hooks/useTheme.ts": 1
   },
-  "anatomy_hits": 44,
+  "anatomy_hits": 53,
   "anatomy_misses": 2,
-  "repeated_reads_warned": 23,
+  "repeated_reads_warned": 29,
   "cerebrum_warnings": 0,
-  "stop_count": 14
+  "stop_count": 16
 }

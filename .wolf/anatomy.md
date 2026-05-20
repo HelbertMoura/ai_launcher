@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T14:14:48.726Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T14:26:42.823Z
 > Files: 303 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -10,7 +10,7 @@
 - `.gitignore` — Git ignore rules (~390 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
-- `CHANGELOG.md` — Changelog (~15936 tok)
+- `CHANGELOG.md` — Changelog (~16395 tok)
 - `CITATION.cff` (~208 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `CONTRIBUTING.md` — Contributing to AI Launcher Pro (~1630 tok)
@@ -230,7 +230,7 @@
 - `mod.rs` (~30 tok)
 - `self_update.rs` — Self-update commands for AI Launcher. (~2806 tok)
 - `system.rs` — [tauri::command] (~770 tok)
-- `tools.rs` — get_all_tools, check_tools, install_tool, launch_tool, launch_custom_ide (~1556 tok)
+- `tools.rs` — get_all_tools, check_tools, install_tool, launch_tool, launch_custom_ide (~1552 tok)
 - `updates.rs` — check_env_updates, check_tool_updates, check_all_updates, check_latest_release, check_environment (~3815 tok)
 
 ## src/
@@ -378,7 +378,7 @@
 - `useDensity.ts` — Exports Density, useDensity (~440 tok)
 - `useDraggable.ts` — Hook para reordenação por drag-and-drop entre cards. (~786 tok)
 - `useSidebarIndicators.ts` — Number of sessions started today (YYYY-MM-DD match on startedAt/timestamp). (~947 tok)
-- `useTheme.ts` — Exports Theme, THEMES, nextTheme, useTheme (~463 tok)
+- `useTheme.ts` — Exports Theme, THEMES, nextTheme, useTheme (~539 tok)
 - `useUpdates.ts` — Exports UpdateInfo, UpdatesSummary, useUpdates (~535 tok)
 
 ## src/i18n/
@@ -433,14 +433,14 @@
 
 ## src/theme/
 
-- `accents.css` — Styles: 25 vars (~388 tok)
+- `accents.css` — Styles: 30 vars (~519 tok)
 - `fonts.css` — Styles: 6 rules (~338 tok)
 - `index.css` — Styles: 10 rules (~295 tok)
-- `theme-amber.css` — Styles: 13 vars (~156 tok)
+- `theme-amber.css` — Styles: 15 vars (~192 tok)
 - `theme-dark.css` (~54 tok)
-- `theme-glacier.css` — Styles: 13 vars (~146 tok)
-- `theme-light.css` — Styles: 11 vars (~152 tok)
-- `tokens.css` — Styles: 51 vars (~634 tok)
+- `theme-glacier.css` — Styles: 15 vars (~179 tok)
+- `theme-light.css` — Styles: 15 vars (~236 tok)
+- `tokens.css` — Styles: 53 vars (~672 tok)
 
 ## src/ui/
 

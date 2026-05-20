@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.6] — 2026-05-20 — Fixes críticos: Antigravity auto-launch + Temas quebrados
+
+Dois bugs sérios descobertos no smoke test final.
+
+### Fixed
+- **Antigravity IDE abria sozinho ao clicar na aba Ferramentas** (CRÍTICO). Causa: `check_tools` executava o binário Electron com `--version` quando `find_tool_path` o encontrava fora do PATH, e Electron apps abrem a janela ao receberem flags desconhecidas. Fix: pular direto para `read_exe_product_version` (PE metadata, não executa) quando o comando não está no PATH. Aplica-se a Antigravity, Cursor e Windsurf.
+- **Tema salvo não era aplicado no início da sessão** — `useTheme` definia o state mas só aplicava `data-theme` no DOM ao clicar pra mudar; o tema visível no primeiro frame era sempre o padrão (dark). Fix: `useEffect` aplica o atributo no mount.
+- **Temas claros (Light, Glacier) tinham accents do dark**. Vermelho `#ff3131` gritava sobre fundo branco; alphas de superfície `--surface-1-alpha` e `--surface-2-alpha` continuavam com transparência preta, quebrando o glass blur de TopBar/StatusBar.
+- **Tema Glacier não tinha override de grid-dot** (pontinhos invisíveis ou pretos demais).
+
+### Changed
+- `theme-light.css` e `theme-glacier.css` ganham overrides explícitos de `--surface-*-alpha` e `--accent` mais escuros (`#d62929` no light, `#2c8de6` no glacier) compatíveis com fundo claro.
+- `theme-amber.css` ganha `--surface-*-alpha` em tons quentes.
+- `accents.css` ganha overrides escurecidos para os 5 accents (red/amber/green/blue/violet) quando usados em temas claros (light + glacier).
+- `tokens.css` aplica `--grid-dot-color` claro em `light` E `glacier`.
+
+### Internal
+- Comentário de **PERIGO** em `check_tools` documenta o anti-padrão de executar binário Electron via path direto.
+- `useTheme` adiciona dependência `useEffect` no React.
+
 ## [15.2.5] — 2026-05-20 — Unificação visual das demais abas
 
 Polish final aplicando o padrão visual da Launcher/Tools às outras páginas (Pré-reqs, Doctor, Workspaces). Headers, botões e paddings consistentes em todo o app.

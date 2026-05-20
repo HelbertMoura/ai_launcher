@@ -70,8 +70,9 @@
   --density: 1;
 }
 
-/* Light theme overrides for grid dot opacity */
-:root[data-theme="light"] {
+/* Light themes — grid dot precisa ser escuro sobre claro */
+:root[data-theme="light"],
+:root[data-theme="glacier"] {
   --grid-dot-color: rgba(24, 24, 27, 0.08);
 }
 

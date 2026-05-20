@@ -845,6 +845,70 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-20T14:14:38.812Z"
+    },
+    {
+      "id": "bug-053",
+      "timestamp": "2026-05-20T14:24:24.542Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/theme/tokens.css",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 4→5 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:24:24.542Z"
+    },
+    {
+      "id": "bug-054",
+      "timestamp": "2026-05-20T14:26:22.272Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.5\"",
+      "fix": "Changed to \"15.2.6\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:26:22.272Z"
+    },
+    {
+      "id": "bug-055",
+      "timestamp": "2026-05-20T14:26:24.828Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.5\"",
+      "fix": "Changed to \"15.2.6\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:26:24.828Z"
+    },
+    {
+      "id": "bug-056",
+      "timestamp": "2026-05-20T14:26:26.601Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.5\"",
+      "fix": "Changed to \"15.2.6\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T14:26:26.601Z"
     }
   ]
 }
