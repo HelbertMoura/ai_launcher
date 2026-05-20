@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-04-25T13:25:52.003Z",
   "lifetime": {
-    "total_tokens_estimated": 1541482,
-    "total_reads": 417,
-    "total_writes": 1134,
+    "total_tokens_estimated": 1685319,
+    "total_reads": 472,
+    "total_writes": 1268,
     "total_sessions": 1,
-    "anatomy_hits": 411,
-    "anatomy_misses": 6,
-    "repeated_reads_blocked": 192,
-    "estimated_savings_vs_bare_cli": 1341376
+    "anatomy_hits": 464,
+    "anatomy_misses": 8,
+    "repeated_reads_blocked": 221,
+    "estimated_savings_vs_bare_cli": 1480646
   },
   "sessions": [
     {
@@ -8454,6 +8454,1023 @@
         "writes_count": 123,
         "repeated_reads_blocked": 23,
         "anatomy_lookups": 44
+      }
+    },
+    {
+      "id": "session-2026-05-19-1743",
+      "started": "2026-05-19T20:43:20.220Z",
+      "ended": "2026-05-20T14:27:25.459Z",
+      "reads": [
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 11047,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 2653,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 1570,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs",
+          "tokens_estimated": 1556,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 3791,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs",
+          "tokens_estimated": 3815,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs",
+          "tokens_estimated": 4274,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/useClis.ts",
+          "tokens_estimated": 330,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/lib/iconRegistry.ts",
+          "tokens_estimated": 262,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/icons/registry.ts",
+          "tokens_estimated": 193,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/self_update.rs",
+          "tokens_estimated": 3004,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CustomCliCard.tsx",
+          "tokens_estimated": 425,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LaunchDialog.tsx",
+          "tokens_estimated": 5157,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/help/AnimatedTerminal.tsx",
+          "tokens_estimated": 2408,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 3770,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 3959,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 13379,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 351,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 456,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 541,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+          "tokens_estimated": 258,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Card.css",
+          "tokens_estimated": 138,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Card.tsx",
+          "tokens_estimated": 166,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/admin/sections/CliOverridesSection.tsx",
+          "tokens_estimated": 2534,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolCard.tsx",
+          "tokens_estimated": 664,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+          "tokens_estimated": 809,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/admin/AdminPage.css",
+          "tokens_estimated": 2218,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/TopBar.css",
+          "tokens_estimated": 879,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Chip.css",
+          "tokens_estimated": 310,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/StatusBar.css",
+          "tokens_estimated": 570,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx",
+          "tokens_estimated": 1295,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.tsx",
+          "tokens_estimated": 455,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.css",
+          "tokens_estimated": 269,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/history/HistoryPage.css",
+          "tokens_estimated": 3107,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/costs/CostsPage.css",
+          "tokens_estimated": 1305,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/Capturar.PNG",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Button.css",
+          "tokens_estimated": 388,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Button.tsx",
+          "tokens_estimated": 254,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/public/images/banner.svg",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/updates/UpdatesPage.css",
+          "tokens_estimated": 715,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css",
+          "tokens_estimated": 1394,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.tsx",
+          "tokens_estimated": 403,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx",
+          "tokens_estimated": 2120,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx",
+          "tokens_estimated": 7823,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css",
+          "tokens_estimated": 4582,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css",
+          "tokens_estimated": 1056,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/tokens.css",
+          "tokens_estimated": 634,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-light.css",
+          "tokens_estimated": 152,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-amber.css",
+          "tokens_estimated": 156,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-glacier.css",
+          "tokens_estimated": 146,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-dark.css",
+          "tokens_estimated": 54,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/accents.css",
+          "tokens_estimated": 388,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/index.css",
+          "tokens_estimated": 295,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useTheme.ts",
+          "tokens_estimated": 463,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useAccent.ts",
+          "tokens_estimated": 941,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/docs/superpowers/specs/2026-05-19-v15.2-antigravity-cli-design.md",
+          "tokens_estimated": 2873,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/docs/superpowers/specs/2026-05-19-v15.2-antigravity-cli-design.md",
+          "tokens_estimated": 108,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/docs/superpowers/plans/2026-05-19-v15.2-antigravity-cli-plan.md",
+          "tokens_estimated": 16944,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 268,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 139,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 1303,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 344,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/self_update.rs",
+          "tokens_estimated": 20,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 83,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 70,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 466,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 42,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs",
+          "tokens_estimated": 36,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs",
+          "tokens_estimated": 27,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 201,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 246,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 81,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs",
+          "tokens_estimated": 85,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs",
+          "tokens_estimated": 546,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/util.rs",
+          "tokens_estimated": 218,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs",
+          "tokens_estimated": 98,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/cli.rs",
+          "tokens_estimated": 269,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs",
+          "tokens_estimated": 100,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs",
+          "tokens_estimated": 500,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/useClis.ts",
+          "tokens_estimated": 91,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useDraggable.ts",
+          "tokens_estimated": 786,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 339,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 328,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 296,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 53,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 150,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CustomCliCard.tsx",
+          "tokens_estimated": 602,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 193,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/lib/iconRegistry.ts",
+          "tokens_estimated": 53,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/icons/registry.ts",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/icons/registry.ts",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LaunchDialog.tsx",
+          "tokens_estimated": 22,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/help/AnimatedTerminal.tsx",
+          "tokens_estimated": 149,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/help/AnimatedTerminal.tsx",
+          "tokens_estimated": 65,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 46,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 30,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 95,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/en.ts",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 38,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 33,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 88,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/i18n/locales/pt-BR.ts",
+          "tokens_estimated": 49,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 666,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 132,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 434,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 383,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 302,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 130,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CliCard.tsx",
+          "tokens_estimated": 176,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/CustomCliCard.tsx",
+          "tokens_estimated": 686,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 238,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 320,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/icons/registry.ts",
+          "tokens_estimated": 30,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+          "tokens_estimated": 41,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Card.css",
+          "tokens_estimated": 172,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 476,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 277,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 296,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+          "tokens_estimated": 333,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/admin/AdminPage.css",
+          "tokens_estimated": 312,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 532,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 120,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 377,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 217,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+          "tokens_estimated": 201,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Chip.css",
+          "tokens_estimated": 130,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/StatusBar.css",
+          "tokens_estimated": 119,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 304,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+          "tokens_estimated": 351,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 61,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx",
+          "tokens_estimated": 18,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.css",
+          "tokens_estimated": 390,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 459,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 308,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 159,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 48,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 60,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 206,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 72,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+          "tokens_estimated": 179,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+          "tokens_estimated": 52,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+          "tokens_estimated": 18,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx",
+          "tokens_estimated": 18,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+          "tokens_estimated": 287,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css",
+          "tokens_estimated": 80,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 431,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/public/images/banner.svg",
+          "tokens_estimated": 15,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.tsx",
+          "tokens_estimated": 383,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx",
+          "tokens_estimated": 253,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.tsx",
+          "tokens_estimated": 32,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css",
+          "tokens_estimated": 37,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/DoctorPage.css",
+          "tokens_estimated": 199,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/updates/UpdatesPage.css",
+          "tokens_estimated": 15,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx",
+          "tokens_estimated": 91,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.tsx",
+          "tokens_estimated": 15,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/workspace/WorkspacePage.css",
+          "tokens_estimated": 247,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css",
+          "tokens_estimated": 73,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/prereqs/PrereqsPage.css",
+          "tokens_estimated": 206,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 324,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/tools.rs",
+          "tokens_estimated": 368,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-light.css",
+          "tokens_estimated": 236,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-glacier.css",
+          "tokens_estimated": 179,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/theme-amber.css",
+          "tokens_estimated": 192,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/tokens.css",
+          "tokens_estimated": 47,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/theme/accents.css",
+          "tokens_estimated": 519,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/hooks/useTheme.ts",
+          "tokens_estimated": 330,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+          "tokens_estimated": 7,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+          "tokens_estimated": 16,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+          "tokens_estimated": 14,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+          "tokens_estimated": 536,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 99882,
+        "output_tokens_estimated": 43955,
+        "reads_count": 55,
+        "writes_count": 134,
+        "repeated_reads_blocked": 29,
+        "anatomy_lookups": 53
       }
     }
   ],
