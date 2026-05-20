@@ -23,8 +23,8 @@
       "first_read": "2026-05-19T20:48:05.093Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css": {
-      "count": 2,
-      "tokens": 2607,
+      "count": 3,
+      "tokens": 3097,
       "first_read": "2026-05-19T20:59:23.347Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/src/commands/updates.rs": {
@@ -128,14 +128,54 @@
       "first_read": "2026-05-19T22:09:24.252Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.css": {
-      "count": 1,
-      "tokens": 414,
+      "count": 2,
+      "tokens": 557,
       "first_read": "2026-05-19T22:09:24.862Z"
     },
     "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/admin/AdminPage.css": {
       "count": 1,
       "tokens": 2218,
       "first_read": "2026-05-19T22:11:09.595Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/TopBar.css": {
+      "count": 1,
+      "tokens": 879,
+      "first_read": "2026-05-20T13:28:42.049Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Chip.css": {
+      "count": 1,
+      "tokens": 310,
+      "first_read": "2026-05-20T13:31:09.903Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/StatusBar.css": {
+      "count": 1,
+      "tokens": 570,
+      "first_read": "2026-05-20T13:31:28.016Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx": {
+      "count": 1,
+      "tokens": 1295,
+      "first_read": "2026-05-20T13:32:43.961Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.tsx": {
+      "count": 1,
+      "tokens": 455,
+      "first_read": "2026-05-20T13:32:54.311Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.css": {
+      "count": 1,
+      "tokens": 269,
+      "first_read": "2026-05-20T13:32:54.767Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/history/HistoryPage.css": {
+      "count": 1,
+      "tokens": 3107,
+      "first_read": "2026-05-20T13:33:34.429Z"
+    },
+    "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/costs/CostsPage.css": {
+      "count": 1,
+      "tokens": 1305,
+      "first_read": "2026-05-20T13:33:44.985Z"
     }
   },
   "files_written": [
@@ -588,6 +628,96 @@
       "action": "edit",
       "tokens": 532,
       "at": "2026-05-19T22:12:08.209Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 120,
+      "at": "2026-05-20T13:30:21.420Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 377,
+      "at": "2026-05-20T13:30:34.768Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 217,
+      "at": "2026-05-20T13:30:51.462Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+      "action": "edit",
+      "tokens": 201,
+      "at": "2026-05-20T13:31:05.383Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/Chip.css",
+      "action": "edit",
+      "tokens": 130,
+      "at": "2026-05-20T13:31:20.047Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/app/layout/StatusBar.css",
+      "action": "edit",
+      "tokens": 119,
+      "at": "2026-05-20T13:31:38.243Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.css",
+      "action": "edit",
+      "tokens": 304,
+      "at": "2026-05-20T13:31:58.265Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/page.css",
+      "action": "edit",
+      "tokens": 351,
+      "at": "2026-05-20T13:32:17.272Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/launcher/LauncherPage.tsx",
+      "action": "edit",
+      "tokens": 61,
+      "at": "2026-05-20T13:32:26.976Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/features/tools/ToolsPage.tsx",
+      "action": "edit",
+      "tokens": 18,
+      "at": "2026-05-20T13:32:49.385Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src/ui/EmptyState.css",
+      "action": "edit",
+      "tokens": 390,
+      "at": "2026-05-20T13:33:12.791Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/package.json",
+      "action": "edit",
+      "tokens": 7,
+      "at": "2026-05-20T13:33:56.358Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/tauri.conf.json",
+      "action": "edit",
+      "tokens": 16,
+      "at": "2026-05-20T13:33:57.973Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/src-tauri/Cargo.toml",
+      "action": "edit",
+      "tokens": 14,
+      "at": "2026-05-20T13:33:59.478Z"
+    },
+    {
+      "file": "C:/Users/Helbert/Desktop/DevManiacs/ai-launcher-tutra/CHANGELOG.md",
+      "action": "edit",
+      "tokens": 459,
+      "at": "2026-05-20T13:34:17.292Z"
     }
   ],
   "edit_counts": {
@@ -600,28 +730,32 @@
     "src-tauri/src/commands/updates.rs": 2,
     "src/features/launcher/useClis.ts": 1,
     "src/hooks/useDraggable.ts": 1,
-    "src/features/launcher/LauncherPage.tsx": 6,
+    "src/features/launcher/LauncherPage.tsx": 7,
     "src/features/launcher/CliCard.tsx": 6,
     "src/features/launcher/CustomCliCard.tsx": 2,
-    "src/features/launcher/LauncherPage.css": 5,
+    "src/features/launcher/LauncherPage.css": 9,
     "src/lib/iconRegistry.ts": 1,
     "src/icons/registry.ts": 3,
     "src/features/launcher/LaunchDialog.tsx": 1,
     "src/features/help/AnimatedTerminal.tsx": 2,
     "src/i18n/locales/en.ts": 5,
     "src/i18n/locales/pt-BR.ts": 5,
-    "CHANGELOG.md": 3,
-    "package.json": 2,
-    "src-tauri/tauri.conf.json": 2,
-    "src-tauri/Cargo.toml": 2,
-    "src/features/page.css": 1,
+    "CHANGELOG.md": 4,
+    "package.json": 3,
+    "src-tauri/tauri.conf.json": 3,
+    "src-tauri/Cargo.toml": 3,
+    "src/features/page.css": 3,
     "src/ui/Card.css": 1,
     "src/features/tools/ToolsPage.css": 1,
-    "src/features/admin/AdminPage.css": 1
+    "src/features/admin/AdminPage.css": 1,
+    "src/ui/Chip.css": 1,
+    "src/app/layout/StatusBar.css": 1,
+    "src/features/tools/ToolsPage.tsx": 1,
+    "src/ui/EmptyState.css": 1
   },
-  "anatomy_hits": 27,
+  "anatomy_hits": 35,
   "anatomy_misses": 0,
-  "repeated_reads_warned": 12,
+  "repeated_reads_warned": 14,
   "cerebrum_warnings": 0,
-  "stop_count": 8
+  "stop_count": 10
 }

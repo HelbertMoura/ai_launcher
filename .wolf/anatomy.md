@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-19T22:12:08.188Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T13:34:16.856Z
 > Files: 302 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -10,7 +10,7 @@
 - `.gitignore` — Git ignore rules (~390 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
-- `CHANGELOG.md` — Changelog (~14922 tok)
+- `CHANGELOG.md` — Changelog (~15311 tok)
 - `CITATION.cff` (~208 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
 - `CONTRIBUTING.md` — Contributing to AI Launcher Pro (~1630 tok)
@@ -244,7 +244,7 @@
 
 - `Sidebar.css` — Styles: 17 rules (~752 tok)
 - `Sidebar.tsx` — Sidebar (~965 tok)
-- `StatusBar.css` — Styles: 13 rules (~570 tok)
+- `StatusBar.css` — Styles: 13 rules (~595 tok)
 - `StatusBar.tsx` — Short relative label (e.g. "2m ago", "just now"). (~915 tok)
 - `TabId.ts` — i18n keys for each tab (used by Sidebar + CommandPalette). (~390 tok)
 - `TopBar.css` — Styles: 25 rules (~879 tok)
@@ -259,7 +259,7 @@
 
 ## src/features/
 
-- `page.css` — Styles: 7 rules (~265 tok)
+- `page.css` — Styles: 19 rules (~630 tok)
 
 ## src/features/admin/
 
@@ -318,7 +318,7 @@
 - `CustomCliLaunchDialog.tsx` — INITIAL_STATE — renders modal — uses useReducer, useEffect, useMemo (~2216 tok)
 - `history.ts` — Exports HistoryItem, appendHistory (~368 tok)
 - `LaunchDialog.tsx` — CLAUDE_KEY — renders modal (~5158 tok)
-- `LauncherPage.css` — Styles: 61 rules (~2892 tok)
+- `LauncherPage.css` — Styles: 75 rules (~3448 tok)
 - `LauncherPage.tsx` — LauncherPage (~3059 tok)
 - `pinnedDirs.test.ts` (~393 tok)
 - `pinnedDirs.ts` — Exports getPinnedDirs, pinDir, unpinDir, isPinned (~348 tok)
@@ -446,13 +446,13 @@
 - `Button.tsx` — Button (~254 tok)
 - `Card.css` — Styles: 3 rules, 1 vars (~172 tok)
 - `Card.tsx` — Card (~166 tok)
-- `Chip.css` — Styles: 9 rules (~310 tok)
+- `Chip.css` — Styles: 9 rules (~337 tok)
 - `Chip.tsx` — Chip (~193 tok)
 - `ConfirmDialog.css` — Styles: 7 rules (~330 tok)
 - `ConfirmDialog.tsx` — ConfirmDialog — uses useEffect (~912 tok)
 - `Dialog.css` — Styles: 11 rules (~413 tok)
 - `Dialog.tsx` — Dialog — uses useEffect (~621 tok)
-- `EmptyState.css` — Styles: 5 rules (~269 tok)
+- `EmptyState.css` — Styles: 7 rules (~409 tok)
 - `EmptyState.tsx` — ASCII-art empty state for the Command Deck design system. (~455 tok)
 - `ErrorBoundary.css` — Styles: 6 rules (~286 tok)
 - `ErrorBoundary.tsx` — ErrorFallback (~451 tok)

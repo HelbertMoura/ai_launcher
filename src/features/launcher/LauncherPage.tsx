@@ -215,7 +215,7 @@ export function LauncherPage() {
       {loading && (
         <div className="cd-page__grid">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} variant="card" height={92} />
+            <Skeleton key={i} variant="card" height={168} />
           ))}
         </div>
       )}

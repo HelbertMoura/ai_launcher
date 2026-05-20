@@ -461,6 +461,118 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-19T22:11:48.511Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-05-20T13:30:21.426Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/features/launcher/LauncherPage.css",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 11→18 lines (5 removed) | Also: grid-template-columns: repeat(auto-fill, minmax(22; gap: 8px;",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-05-20T13:30:34.774Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-05-20T13:31:20.052Z",
+      "error_message": "CSS fix: font-size, letter-spacing, padding",
+      "file": "src/ui/Chip.css",
+      "root_cause": "font-size: var(--text-xs) → 10px; letter-spacing: 1px → 0.8px; padding: 3px 10px → 3px 8px",
+      "fix": "Changed font-size: var(--text-xs) → 10px; letter-spacing: 1px → 0.8px; padding: 3px 10px → 3px 8px",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:31:20.052Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-05-20T13:31:38.251Z",
+      "error_message": "CSS fix: background, font-size",
+      "file": "src/app/layout/StatusBar.css",
+      "root_cause": "background: var(--surface-1) → var(--surface-1-alpha, var(--surface-1)); font-size: var(--text-xs) → 10px",
+      "fix": "Changed background: var(--surface-1) → var(--surface-1-alpha, var(--surface-1)); font-size: var(--text-xs) → 10px",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:31:38.251Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-05-20T13:33:12.797Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/ui/EmptyState.css",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 49→65 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:33:12.797Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-05-20T13:33:56.362Z",
+      "error_message": "Incorrect value in code",
+      "file": "package.json",
+      "root_cause": "Had \"15.2.2\"",
+      "fix": "Changed to \"15.2.3\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:33:56.363Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-05-20T13:33:57.977Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/tauri.conf.json",
+      "root_cause": "Had \"15.2.2\"",
+      "fix": "Changed to \"15.2.3\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "json"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:33:57.977Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-05-20T13:33:59.483Z",
+      "error_message": "Incorrect value in code",
+      "file": "src-tauri/Cargo.toml",
+      "root_cause": "Had \"15.2.2\"",
+      "fix": "Changed to \"15.2.3\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "toml"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-05-20T13:33:59.483Z"
     }
   ]
 }

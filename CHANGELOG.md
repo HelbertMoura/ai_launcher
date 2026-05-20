@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.3] — 2026-05-20 — Polish v2 — Templates, Header, Stagger e EmptyState
+
+Continuação do redesign visual. Foca em consistência de detalhes: cabeçalho de página, chip de status, templates salvos, animações de entrada e elementos de estado vazio.
+
+### Added
+- **Stagger animation** ao abrir as grids do Launcher e Tools — cards entram com fade-up escalonado (50 ms entre cada, até 8º card). Respeita `prefers-reduced-motion`.
+- **Templates ("Saved templates") redesenhados** — mesma `surface-2 + border + radius` dos cards principais; hover com elevação; nome em `font-display 700`; meta em mono 10px.
+- **Section title com marcador accent** (`▎`) — identifica seções de página com hierarquia visual.
+
+### Changed
+- **Header da página** (`cd-page__head`): título de 18px → 22px, weight 700; underline sutil separando do conteúdo; sub-text em mono 11px.
+- **Chip de status** com `min-width: 64px`, `height: 22px` fixa, `justify-content: center` — chips de versão (ex: `1.0.0`, `MISSING`) agora têm tamanhos coerentes entre cards.
+- **StatusBar** ganha `backdrop-filter: blur(12px)` igual à TopBar (efeito glass consistente top/bottom).
+- **EmptyState** com border tracejada, gradient sutil, arte ASCII em accent com glow + pulse animation 3s. Título de 18px/700.
+- **Skeletons** do Launcher e Tools agora têm `height: 168` (antes 92) — combinam com a altura real dos cards, sem "salto" no carregamento.
+
+### Internal
+- Stagger genérico em `.cd-page__grid > .cd-card` para Tools, Overrides etc. via `:nth-child` + `animation-delay`.
+
 ## [15.2.2] — 2026-05-19 — Dashboard Premium + Fix Ícone Antigravity
 
 Polimento visual de toda a Dashboard (Launcher + Tools + CLI Overrides) e correção do ícone do Antigravity em Tools (typo no nome do arquivo).
