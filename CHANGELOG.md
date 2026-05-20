@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [15.2.4] — 2026-05-20 — Fix Dashboard (após screenshot) — Botão sóbrio + Altura fixa
+
+Correção honesta de problemas visíveis em screenshot do app rodando: botão "Lançar" estava gritando vermelho saturado em cada card; cards COM diretórios recentes ficavam mais altos que cards SEM (apesar do `min-height`); drag handle ⋮⋮ ficava invisível.
+
+### Fixed
+- **Botão "Lançar/Install" mais sóbrio** — variant primary dentro dos cards (Launcher e Tools) agora usa **ghost com borda accent**, fundo transparente. Em hover, preenche com accent. O accent volta a ser destaque, não inundação.
+- **Cards com altura realmente fixa** — `min-height: 168px` → **`height: 200px`** no `.cd-draggable-item` e `.cd-page__grid > .cd-card:has(.cd-tool-card__head)`. Tools cards também alinhados.
+- **Drag handle ⋮⋮ sempre visível** — opacidade base de **0.35** (antes 0), sobe pra 0.7 no hover do card e 1.0 no hover do handle. Fantasma resolvido.
+- **Sub-text do header com peso** — agora `font-weight: 600`, `text-transform: uppercase`, `letter-spacing: 1px`. Identifica como sistema de status, não nota soltinha.
+
+### Changed
+- Recents/Pinned dirs com altura cap menor (`max-height: 48px`) e ícones ▷/◆ em coluna fixa de 12px — alinhamento visual previsível.
+- `cd-cli-card__launch-btn` (Custom CLIs) padronizado com o mesmo padrão ghost-accent do `cd-btn--primary` em card.
+- Skeletons em **200px** (antes 168) para corresponder à altura real.
+
 ## [15.2.3] — 2026-05-20 — Polish v2 — Templates, Header, Stagger e EmptyState
 
 Continuação do redesign visual. Foca em consistência de detalhes: cabeçalho de página, chip de status, templates salvos, animações de entrada e elementos de estado vazio.

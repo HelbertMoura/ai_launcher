@@ -85,7 +85,7 @@ export function ToolsPage() {
       {loading && (
         <div className="cd-page__grid">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} variant="card" height={168} />
+            <Skeleton key={i} variant="card" height={200} />
           ))}
         </div>
       )}
