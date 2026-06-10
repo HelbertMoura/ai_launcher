@@ -1,0 +1,36 @@
+/* Phosphor — P1 CRT green-on-black.
+   The screenshot theme for the AI-CLI crowd: deep black surfaces,
+   signature phosphor-green accent, faint green-tinted text. */
+[data-theme="phosphor"] {
+  color-scheme: dark;
+
+  /* surfaces */
+  --bg: #0a0f0a;
+  --surface-1: #0c130c;
+  --surface-1-alpha: rgba(12, 19, 12, 0.7);
+  --surface-2: #101a10;
+  --surface-2-alpha: rgba(16, 26, 16, 0.6);
+  --surface-hover: #152215;
+
+  --border: #16291a;
+  --border-strong: #234a2c;
+
+  /* text — green-tinted greys */
+  --text: #c8f5cf;
+  --text-muted: #8fc79a;
+  --text-dim: #5e8a67;
+
+  /* accent — phosphor green */
+  --accent: #33ff66;
+  --accent-glow: rgba(51, 255, 102, 0.4);
+  --accent-soft: rgba(51, 255, 102, 0.12);
+  --accent-ink: #0a0f0a;
+
+  /* semantic */
+  --ok: #33ff66;
+  --warn: #ffd23f;
+  --err: #ff5c5c;
+
+  /* grid dot — green tint over black */
+  --grid-dot-color: rgba(51, 255, 102, 0.07);
+}

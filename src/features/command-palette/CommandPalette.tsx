@@ -73,6 +73,9 @@ const THEME_ICONS: Record<Theme, string> = {
   light: "◑",
   amber: "◉",
   glacier: "◎",
+  phosphor: "▣",
+  midnight: "✦",
+  "high-contrast": "◧",
 };
 
 const ACCENT_ICON = "●";

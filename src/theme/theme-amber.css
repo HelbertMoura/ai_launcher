@@ -25,4 +25,9 @@
   --accent-glow: rgba(255, 176, 0, 0.4);
   --accent-soft: rgba(255, 176, 0, 0.12);
   --accent-ink: #14100a;
+
+  /* semantic — warm-tinted to fit the CRT palette (readable on dark amber bg) */
+  --ok: #7fd56b;
+  --warn: #ffb000;
+  --err: #ff6b5c;
 }
