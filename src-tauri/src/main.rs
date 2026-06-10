@@ -113,6 +113,8 @@ fn main() {
             commands::mcp::update_mcp_server,
             commands::mcp::remove_mcp_server,
             commands::mcp::mcp_health_check,
+            // commands::runbook
+            commands::runbook::run_runbook_step,
             // secrets
             secrets::store_secret,
             secrets::get_secret,
