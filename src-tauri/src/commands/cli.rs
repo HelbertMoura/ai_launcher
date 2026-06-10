@@ -23,6 +23,38 @@ pub fn get_all_clis() -> Vec<CliInfo> {
     get_cli_definitions()
 }
 
+/// Read a project's `.ailauncher.json` from a chosen directory (B4).
+///
+/// Returns the raw file contents when present, or `None` when the file does not
+/// exist (the common case — not an error). The directory is validated with the
+/// same `validate_directory` gate used by the launcher. We only join the fixed
+/// filename `.ailauncher.json` (no caller-controlled path component), so there
+/// is no path-traversal surface here. A size cap guards against pathological
+/// files. Parsing/validation of the JSON happens in the frontend (zod).
+#[tauri::command]
+pub fn read_project_profile(directory: String) -> Result<Option<String>, String> {
+    /// Refuse to read absurdly large files (a `.ailauncher.json` is tiny).
+    const MAX_PROFILE_BYTES: u64 = 256 * 1024;
+
+    let work_dir = validate_directory(&directory)?;
+    let path = std::path::Path::new(&work_dir).join(".ailauncher.json");
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let meta =
+        std::fs::metadata(&path).map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
+    if meta.len() > MAX_PROFILE_BYTES {
+        return Err(format!(
+            ".ailauncher.json é grande demais ({} bytes, limite {})",
+            meta.len(),
+            MAX_PROFILE_BYTES
+        ));
+    }
+    let contents = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
+    Ok(Some(contents))
+}
+
 #[tauri::command]
 pub fn check_clis() -> Vec<CheckResult> {
     get_cli_definitions()
@@ -489,4 +521,56 @@ pub fn launch_multi_clis(
         }
     }
     Ok(format!("Iniciados {} CLIs", count))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Create a unique temp directory for a test, returning its path.
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!("ail-b4-{}-{}", tag, nanos));
+        std::fs::create_dir_all(&dir).expect("create temp dir");
+        dir
+    }
+
+    #[test]
+    fn read_project_profile_returns_none_when_absent() {
+        let dir = temp_dir("absent");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(res, Ok(None));
+    }
+
+    #[test]
+    fn read_project_profile_returns_contents_when_present() {
+        let dir = temp_dir("present");
+        let body = r#"{"version":1,"cli":"claude"}"#;
+        std::fs::write(dir.join(".ailauncher.json"), body).expect("write profile");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(res, Ok(Some(body.to_string())));
+    }
+
+    #[test]
+    fn read_project_profile_errors_on_missing_directory() {
+        let res = read_project_profile(r"C:\__ail_b4_definitely_missing_dir__".to_string());
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn read_project_profile_rejects_oversized_file() {
+        let dir = temp_dir("oversized");
+        // 256 KiB + 1 byte — just over the cap.
+        let big = "x".repeat(256 * 1024 + 1);
+        std::fs::write(dir.join(".ailauncher.json"), big).expect("write big profile");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("grande demais"));
+    }
 }

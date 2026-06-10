@@ -19,6 +19,12 @@ import { buildPreview } from "../../lib/commandPreview";
 import type { CommandPreview } from "../../lib/commandPreview";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
+import {
+  readProjectProfile,
+  mergeLaunchEnv,
+  type ProjectProfile,
+} from "../../lib/projectProfile";
+import { loadWorkspaces, getActiveWorkspace } from "../workspace/workspaceStore";
 
 interface LaunchDialogProps {
   cli: CliInfo | null;
@@ -40,6 +46,10 @@ interface LaunchState {
   showRecent: boolean;
   clipboardPrompt: boolean;
   showPreview: boolean;
+  /** Parsed `.ailauncher.json` for the chosen directory, when present. */
+  projectProfile: ProjectProfile | null;
+  /** Non-fatal notice about the project profile (applied / different CLI). */
+  projectNotice: string | null;
 }
 
 type LaunchAction =
@@ -59,7 +69,15 @@ type LaunchAction =
   | { type: "launchFailed"; error: string }
   | { type: "setError"; error: string | null }
   | { type: "setClipboardPrompt"; value: boolean }
-  | { type: "setShowPreview"; value: boolean };
+  | { type: "setShowPreview"; value: boolean }
+  | {
+      type: "applyProjectProfile";
+      profile: ProjectProfile;
+      directory: string;
+      providerId: string;
+      notice: string | null;
+    }
+  | { type: "clearProjectProfile"; notice: string | null };
 
 function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
   switch (action.type) {
@@ -77,9 +95,22 @@ function launchReducer(state: LaunchState, action: LaunchAction): LaunchState {
         recentDirs: action.recentDirs,
         clipboardPrompt: false,
         showPreview: false,
+        projectProfile: null,
+        projectNotice: null,
       };
     case "setDirectory":
-      return { ...state, directory: action.value };
+      // Changing the directory invalidates any previously loaded profile.
+      return { ...state, directory: action.value, projectProfile: null, projectNotice: null };
+    case "applyProjectProfile":
+      return {
+        ...state,
+        projectProfile: action.profile,
+        directory: action.directory,
+        providerId: action.providerId,
+        projectNotice: action.notice,
+      };
+    case "clearProjectProfile":
+      return { ...state, projectProfile: null, projectNotice: action.notice };
     case "setArgs":
       return { ...state, args: action.value };
     case "setNoPerms":
@@ -113,6 +144,8 @@ const INITIAL_LAUNCH_STATE: LaunchState = {
   showRecent: false,
   clipboardPrompt: false,
   showPreview: false,
+  projectProfile: null,
+  projectNotice: null,
 };
 
 export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
@@ -131,6 +164,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     showRecent,
     clipboardPrompt,
     showPreview,
+    projectNotice,
   } = state;
 
   const isClaude = cli?.key === CLAUDE_KEY;
@@ -170,6 +204,9 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       providersState: providersStateLocal,
       providerId: providerIdLocal,
     });
+    // If the remembered directory carries a `.ailauncher.json`, pre-fill from it.
+    if (lastDir.trim()) void loadProjectProfile(lastDir);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cli]);
 
   const providerOptions = useMemo(() => {
@@ -180,10 +217,53 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     }));
   }, [providersState]);
 
+  // B4: read `.ailauncher.json` from a chosen directory and pre-fill the dialog.
+  // Pre-fills directory + provider (when the profile names a provider that
+  // exists). The profile's CLI/env are kept on state and applied at launch.
+  const loadProjectProfile = async (dir: string) => {
+    if (!cli || !dir.trim()) return;
+    try {
+      const profile = await readProjectProfile(dir);
+      if (!profile) {
+        dispatch({ type: "clearProjectProfile", notice: null });
+        return;
+      }
+      // Resolve the directory the profile prefers (its own, else the picked dir).
+      const nextDir = profile.directory?.trim() ? profile.directory : dir;
+      // Pre-select the provider only when it matches an existing profile id.
+      let nextProvider = providerId;
+      if (profile.provider && providersState) {
+        const exists = providersState.profiles.some((p) => p.id === profile.provider);
+        if (exists) nextProvider = profile.provider;
+      }
+      // Notice when the profile targets a different CLI than this dialog.
+      const notice =
+        profile.cli && profile.cli !== cli.key
+          ? t("launchDialog.projectProfile.otherCli", { cli: profile.cli })
+          : t("launchDialog.projectProfile.applied");
+      dispatch({
+        type: "applyProjectProfile",
+        profile,
+        directory: nextDir,
+        providerId: nextProvider,
+        notice,
+      });
+    } catch (e) {
+      // The file exists but is broken — surface it without blocking the launch.
+      dispatch({
+        type: "clearProjectProfile",
+        notice: e instanceof Error ? e.message : String(e),
+      });
+    }
+  };
+
   const pickDirectory = async () => {
     try {
       const picked = await openDialog({ directory: true, multiple: false });
-      if (typeof picked === "string") dispatch({ type: "setDirectory", value: picked });
+      if (typeof picked === "string") {
+        dispatch({ type: "setDirectory", value: picked });
+        await loadProjectProfile(picked);
+      }
     } catch (e) {
       dispatch({ type: "setError", error: e instanceof Error ? e.message : String(e) });
     }
@@ -197,11 +277,24 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     }
     dispatch({ type: "startLaunch" });
     try {
-      let envVars: Record<string, string> | undefined;
+      // Default env: the selected Claude provider's env (when applicable).
+      let defaultEnv: Record<string, string> | undefined;
       if (isClaude && providersState) {
         const stateWithSelected = setActive(providersState, providerId);
-        envVars = await buildLaunchEnvAsync(stateWithSelected);
+        defaultEnv = await buildLaunchEnvAsync(stateWithSelected);
       }
+      // Active workspace env — previously persisted but never applied (the
+      // "decorative workspace" bug). Now merged into the launch env.
+      const activeWorkspace = getActiveWorkspace(loadWorkspaces());
+      const workspaceEnv = activeWorkspace?.envVars;
+      // Project env from `.ailauncher.json` — highest precedence.
+      const projectEnv = state.projectProfile?.env;
+      // Precedence: project > workspace > default.
+      const merged = mergeLaunchEnv(defaultEnv, workspaceEnv, projectEnv);
+      // Pass null when there is nothing to inject (keeps prior backend behavior:
+      // the Rust side only clears ANTHROPIC_*/CLAUDE_* when env_vars is Some).
+      const envVars: Record<string, string> | undefined =
+        Object.keys(merged).length > 0 ? merged : undefined;
       let finalArgs = args;
       if (clipboardPrompt && supportsPrompt) {
         try {
@@ -305,6 +398,9 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
       }
     >
       {error && <Banner variant="err">{error}</Banner>}
+      {projectNotice && !showPreview && (
+        <Banner variant="info">{projectNotice}</Banner>
+      )}
 
       {showPreview ? (
         <SafeCommandPreview
@@ -346,6 +442,7 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
                           e.preventDefault();
                           dispatch({ type: "setDirectory", value: d });
                           dispatch({ type: "setShowRecent", value: false });
+                          void loadProjectProfile(d);
                         }}
                       >
                         <span className="cd-launch-dialog__recent-icon" aria-hidden="true">&#x25B7;</span>
