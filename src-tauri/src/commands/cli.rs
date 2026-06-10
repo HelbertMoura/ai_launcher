@@ -264,6 +264,7 @@ pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 pub fn launch_cli(
+    app: tauri::AppHandle,
     cli_key: String,
     directory: String,
     args: String,
@@ -332,50 +333,7 @@ pub fn launch_cli(
 
     let encoded = encode_powershell_command(&ps_script);
 
-    let mut launched = false;
-
-    if let Some(wt) = find_windows_terminal() {
-        if std::process::Command::new(&wt)
-            .args([
-                "new-tab",
-                "-d",
-                &work_dir,
-                "pwsh",
-                "-NoExit",
-                "-EncodedCommand",
-                &encoded,
-            ])
-            .spawn()
-            .is_ok()
-        {
-            launched = true;
-        }
-    }
-    if !launched
-        && std::process::Command::new("pwsh")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched
-        && std::process::Command::new("powershell")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched {
-        std::process::Command::new("cmd")
-            .args(["/K", &cmd_line])
-            .current_dir(&work_dir)
-            .spawn()
-            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
-    }
+    spawn_and_track(&app, &session_id, &cli_key, &work_dir, &encoded, &cmd_line)?;
 
     Ok(LaunchResult {
         session_id,
@@ -383,8 +341,78 @@ pub fn launch_cli(
     })
 }
 
+/// Spawn a session and register it for lifecycle tracking.
+///
+/// Preference order: Windows Terminal (`wt.exe`) → pwsh → powershell → cmd.
+/// When launched through `wt.exe`, the `wt` process exits immediately after
+/// opening the tab, so the real session cannot be measured — we register it as
+/// "detached" (which emits `session-ended` with status="detached" right away).
+/// For the direct fallbacks, we retain the child handle and track it: a tokio
+/// task awaits the process and emits `session-ended` with the real exit code
+/// and duration when it exits.
+fn spawn_and_track(
+    app: &tauri::AppHandle,
+    session_id: &str,
+    cli_key: &str,
+    work_dir: &str,
+    encoded: &str,
+    cmd_line: &str,
+) -> Result<(), String> {
+    if let Some(wt) = find_windows_terminal() {
+        if std::process::Command::new(&wt)
+            .args([
+                "new-tab",
+                "-d",
+                work_dir,
+                "pwsh",
+                "-NoExit",
+                "-EncodedCommand",
+                encoded,
+            ])
+            .spawn()
+            .is_ok()
+        {
+            crate::commands::session::register_detached(app, session_id, cli_key, work_dir);
+            return Ok(());
+        }
+    }
+
+    // Direct fallbacks: retain the child so the session can be measured.
+    for program in ["pwsh", "powershell"] {
+        if let Ok(child) = tokio::process::Command::new(program)
+            .args(["-NoExit", "-EncodedCommand", encoded])
+            .current_dir(work_dir)
+            .spawn()
+        {
+            crate::commands::session::track_child(
+                app,
+                session_id.to_string(),
+                cli_key.to_string(),
+                work_dir.to_string(),
+                child,
+            );
+            return Ok(());
+        }
+    }
+
+    let child = tokio::process::Command::new("cmd")
+        .args(["/K", cmd_line])
+        .current_dir(work_dir)
+        .spawn()
+        .map_err(|e| format!("Erro ao iniciar: {}", e))?;
+    crate::commands::session::track_child(
+        app,
+        session_id.to_string(),
+        cli_key.to_string(),
+        work_dir.to_string(),
+        child,
+    );
+    Ok(())
+}
+
 #[tauri::command]
 pub fn launch_custom_cli(
+    app: tauri::AppHandle,
     command: String,
     args: Option<String>,
     directory: Option<String>,
@@ -427,50 +455,8 @@ pub fn launch_custom_cli(
     ps_script.push('\n');
 
     let encoded = encode_powershell_command(&ps_script);
-    let mut launched = false;
 
-    if let Some(wt) = find_windows_terminal() {
-        if std::process::Command::new(&wt)
-            .args([
-                "new-tab",
-                "-d",
-                &work_dir,
-                "pwsh",
-                "-NoExit",
-                "-EncodedCommand",
-                &encoded,
-            ])
-            .spawn()
-            .is_ok()
-        {
-            launched = true;
-        }
-    }
-    if !launched
-        && std::process::Command::new("pwsh")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched
-        && std::process::Command::new("powershell")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched {
-        std::process::Command::new("cmd")
-            .args(["/K", &cmd_line])
-            .current_dir(&work_dir)
-            .spawn()
-            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
-    }
+    spawn_and_track(&app, &session_id, "custom", &work_dir, &encoded, &cmd_line)?;
 
     Ok(LaunchResult {
         session_id,
@@ -480,6 +466,7 @@ pub fn launch_custom_cli(
 
 #[tauri::command]
 pub fn launch_multi_clis(
+    app: tauri::AppHandle,
     cli_keys: Vec<String>,
     directory: String,
     args: String,
@@ -489,6 +476,7 @@ pub fn launch_multi_clis(
     let mut count = 0usize;
     for cli_key in cli_keys {
         if launch_cli(
+            app.clone(),
             cli_key,
             directory.clone(),
             args.clone(),

@@ -71,6 +71,9 @@ fn main() {
             commands::cli::launch_cli,
             commands::cli::launch_multi_clis,
             commands::cli::launch_custom_cli,
+            // commands::session
+            commands::session::list_active_sessions,
+            commands::session::kill_session,
             // commands::tools
             commands::tools::get_all_tools,
             commands::tools::check_tools,

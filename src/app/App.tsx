@@ -4,6 +4,7 @@ import { ACCENTS, useAccent, type Accent } from "../hooks/useAccent";
 import { useDensity } from "../hooks/useDensity";
 import { useTheme } from "../hooks/useTheme";
 import { useHistory } from "../features/history/useHistory";
+import { useSessionEvents } from "../features/history/useSessionEvents";
 import { LauncherPage } from "../features/launcher/LauncherPage";
 import { ToolsPage } from "../features/tools/ToolsPage";
 import { HistoryPage } from "../features/history/HistoryPage";
@@ -64,6 +65,10 @@ export function App() {
   const palette = useCommandPalette();
   const history = useHistory();
   const { refresh: refreshUpdates } = useUpdates();
+
+  // Register a single global listener for backend `session-ended` events.
+  // This activates the session-lifecycle history updates (formerly dead code).
+  useSessionEvents();
 
   // Theme toggle cycles through: dark → light → amber → glacier → dark
   const toggleTheme = () => cycleTheme();
