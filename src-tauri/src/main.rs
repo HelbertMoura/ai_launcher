@@ -71,6 +71,7 @@ fn main() {
             commands::cli::launch_cli,
             commands::cli::launch_multi_clis,
             commands::cli::launch_custom_cli,
+            commands::cli::read_project_profile,
             // commands::session
             commands::session::list_active_sessions,
             commands::session::kill_session,

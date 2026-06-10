@@ -129,6 +129,11 @@ export const en: Dictionary = {
     unpin: "Unpin this directory",
     saveTemplate: "Save as template",
     saveTemplatePrompt: "Template name:",
+    projectProfile: {
+      applied: ".ailauncher.json applied to this launch.",
+      otherCli:
+        '.ailauncher.json targets "{{cli}}" — launching this CLI instead.',
+    },
   },
   tools: {
     title: "TOOLS",

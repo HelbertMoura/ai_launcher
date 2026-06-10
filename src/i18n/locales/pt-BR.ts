@@ -127,6 +127,11 @@ export const ptBR = {
     unpin: "Desfixar este diretório",
     saveTemplate: "Salvar como template",
     saveTemplatePrompt: "Nome do template:",
+    projectProfile: {
+      applied: ".ailauncher.json aplicado a este lançamento.",
+      otherCli:
+        '.ailauncher.json aponta para "{{cli}}" — lançando este CLI no lugar.',
+    },
   },
   tools: {
     title: "FERRAMENTAS",
