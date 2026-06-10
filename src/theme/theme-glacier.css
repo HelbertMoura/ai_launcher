@@ -24,4 +24,10 @@
   --accent-glow: rgba(44, 141, 230, 0.3);
   --accent-soft: rgba(44, 141, 230, 0.1);
   --accent-ink: #ffffff;
+
+  /* semantic — tons escuros para WCAG AA (>=4.5:1) sobre o fundo claro azulado;
+     os defaults dark de tokens.css reprovam (~2:1). */
+  --ok: #1a7f37;
+  --warn: #8a5d00;
+  --err: #c62828;
 }
