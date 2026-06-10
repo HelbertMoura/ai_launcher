@@ -5,7 +5,7 @@ use tauri::{
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
-use crate::util::{read_tray_config, DEFAULT_TRAY_HOTKEY};
+use crate::util::{get_cli_definitions, read_tray_config, DEFAULT_TRAY_HOTKEY};
 
 pub fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -33,32 +33,26 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let show = MenuItem::with_id(app, "tray-show", "Abrir AI Launcher", true, None::<&str>)?;
     let sep1 = PredefinedMenuItem::separator(app)?;
 
-    let launch_claude =
-        MenuItem::with_id(app, "tray-launch-claude", "Claude Code", true, None::<&str>)?;
-    let launch_codex = MenuItem::with_id(app, "tray-launch-codex", "Codex", true, None::<&str>)?;
-    let launch_gemini = MenuItem::with_id(app, "tray-launch-gemini", "Gemini", true, None::<&str>)?;
-    let launch_qwen = MenuItem::with_id(app, "tray-launch-qwen", "Qwen", true, None::<&str>)?;
-    let launch_kilocode =
-        MenuItem::with_id(app, "tray-launch-kilocode", "Kilo Code", true, None::<&str>)?;
-    let launch_opencode =
-        MenuItem::with_id(app, "tray-launch-opencode", "OpenCode", true, None::<&str>)?;
-    let launch_crush = MenuItem::with_id(app, "tray-launch-crush", "Crush", true, None::<&str>)?;
-    let launch_droid = MenuItem::with_id(app, "tray-launch-droid", "Droid", true, None::<&str>)?;
-    let launch_menu = Submenu::with_items(
-        app,
-        "Lançar CLI",
-        true,
-        &[
-            &launch_claude,
-            &launch_codex,
-            &launch_gemini,
-            &launch_qwen,
-            &launch_kilocode,
-            &launch_opencode,
-            &launch_crush,
-            &launch_droid,
-        ],
-    )?;
+    // Build the launch submenu dynamically from the canonical CLI definitions,
+    // so removed CLIs (e.g. Gemini) disappear and new ones (e.g. agy) show up
+    // automatically. Menu item ids stay `tray-launch-<key>` for the handler.
+    let launch_items: Vec<MenuItem<tauri::Wry>> = get_cli_definitions()
+        .iter()
+        .map(|cli| {
+            MenuItem::with_id(
+                app,
+                format!("tray-launch-{}", cli.key),
+                &cli.name,
+                true,
+                None::<&str>,
+            )
+        })
+        .collect::<tauri::Result<Vec<_>>>()?;
+    let launch_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = launch_items
+        .iter()
+        .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+        .collect();
+    let launch_menu = Submenu::with_items(app, "Lançar CLI", true, &launch_refs)?;
 
     let update_all = MenuItem::with_id(
         app,
