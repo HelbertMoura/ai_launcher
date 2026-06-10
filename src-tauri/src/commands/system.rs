@@ -19,12 +19,16 @@ pub fn open_in_explorer(path: String) -> Result<String, String> {
 
 #[tauri::command]
 pub fn open_external_url(url: String) -> Result<String, String> {
-    if !url.starts_with("https://") && !url.starts_with("http://") {
+    let trimmed = url.trim();
+    if !trimmed.starts_with("https://") && !trimmed.starts_with("http://") {
         return Err("URL deve começar com http(s)://".into());
     }
-    std::process::Command::new("cmd")
-        .args(["/C", "start", "", &url])
-        .spawn()
+    // Reject control characters and whitespace to avoid argument injection.
+    if trimmed.chars().any(|c| c.is_control() || c.is_whitespace()) {
+        return Err("URL contém caracteres inválidos".into());
+    }
+    // `open::that` uses ShellExecute, avoiding the `cmd /C start` injection vector.
+    open::that(trimmed)
         .map(|_| "Aberto".into())
         .map_err(|e| format!("Erro: {}", e))
 }

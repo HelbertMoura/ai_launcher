@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use serde::Serialize;
 
 use crate::util::{
-    check_cli_installed, compare_versions, encode_powershell_command, fetch_manifest_version,
-    find_windows_terminal, get_cli_definitions, get_installed_version, log_event, npm_latest,
-    resolve_cli_path_win, sanitize_args, stream_install, validate_directory, CheckResult, CliInfo,
-    DEFAULT_INSTALL_TIMEOUT_SEC,
+    append_env_assignments, check_cli_installed, compare_versions, encode_powershell_command,
+    fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
+    log_event, npm_latest, resolve_cli_path_win, sanitize_args, stream_install, validate_directory,
+    CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
 /// Result returned by all launch commands.
@@ -99,12 +99,20 @@ pub async fn install_cli(
                     key_for_work,
                     "npm".into(),
                     vec!["install".into(), "-g".into(), pkg],
+                    secs,
                 )
                 .await
             }
             "pip" => {
                 let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
-                stream_install(app, key_for_work, "pip".into(), vec!["install".into(), pkg]).await
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pip".into(),
+                    vec!["install".into(), pkg],
+                    secs,
+                )
+                .await
             }
             "script" => {
                 stream_install(
@@ -112,6 +120,7 @@ pub async fn install_cli(
                     key_for_work,
                     "pwsh".into(),
                     vec!["-Command".into(), install_cmd],
+                    secs,
                 )
                 .await
             }
@@ -168,6 +177,7 @@ pub async fn update_cli(
                     key_for_work,
                     "npm".into(),
                     vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
+                    secs,
                 )
                 .await
             }
@@ -178,6 +188,7 @@ pub async fn update_cli(
                     key_for_work,
                     "pip".into(),
                     vec!["install".into(), "--upgrade".into(), pkg],
+                    secs,
                 )
                 .await
             }
@@ -187,6 +198,7 @@ pub async fn update_cli(
                     key_for_work,
                     "pwsh".into(),
                     vec!["-Command".into(), install_cmd],
+                    secs,
                 )
                 .await
             }
@@ -313,10 +325,7 @@ pub fn launch_cli(
     }
 
     if let Some(ref vars) = env_vars {
-        for (k, v) in vars {
-            let esc = v.replace('\'', "''");
-            ps_script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-        }
+        append_env_assignments(&mut ps_script, vars);
     }
     ps_script.push_str(&ps_line);
     ps_script.push('\n');
@@ -412,10 +421,7 @@ pub fn launch_custom_cli(
     let mut ps_script =
         String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
     if let Some(ref vars) = env {
-        for (k, v) in vars {
-            let esc = v.replace('\'', "''");
-            ps_script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-        }
+        append_env_assignments(&mut ps_script, vars);
     }
     ps_script.push_str(&ps_line);
     ps_script.push('\n');
