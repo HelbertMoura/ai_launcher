@@ -13,6 +13,7 @@ import {
   getAllBudgetUsage,
   setBudgetLimit,
   removeBudgetLimit,
+  resetBudgetPeriod,
   type BudgetUsage,
 } from '../../providers/budget';
 import './CostsPage.css';
@@ -184,13 +185,11 @@ export function BudgetDashboard() {
   }, []);
 
   const handleReset = useCallback((providerKey: string) => {
-    const usages = getAllBudgetUsage(entries);
-    const usage = usages.find((u) => u.providerKey === providerKey);
-    if (usage) {
-      setBudgetLimit(providerKey, usage.limitUsd, usage.limitUsd > 0 ? 30 : 30);
-    }
+    // Re-anchor the tracking period to today so spend counts fresh from now.
+    // Usage entries come from the read-only backend and are never mutated.
+    resetBudgetPeriod(providerKey);
     setRefreshKey((k) => k + 1);
-  }, [entries]);
+  }, []);
 
   return (
     <div className="cd-budget">
