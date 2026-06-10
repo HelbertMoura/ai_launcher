@@ -9,6 +9,13 @@ interface SafeCommandPreviewProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
+  /** When true, the preview renders without its own Confirm/Cancel buttons.
+   *  Use when embedding inside another dialog (e.g. ConfirmDialog) that owns
+   *  the actions. The dangerous-risk acknowledgement checkbox is still shown
+   *  and reported via onAckChange so the host can gate its confirm button. */
+  hideActions?: boolean;
+  /** Called whenever the dangerous-risk acknowledgement state changes. */
+  onAckChange?: (acknowledged: boolean) => void;
 }
 
 const RISK_COLORS: Record<RiskLevel, string> = {
@@ -30,10 +37,17 @@ export function SafeCommandPreview({
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
   loading = false,
+  hideActions = false,
+  onAckChange,
 }: SafeCommandPreviewProps) {
   const { executable, args, cwd, env, riskLevel, riskReasons } = preview;
   const isDangerous = riskLevel === "dangerous";
   const [acknowledgedRisk, setAcknowledgedRisk] = useState(false);
+
+  const handleAckChange = (acknowledged: boolean) => {
+    setAcknowledgedRisk(acknowledged);
+    onAckChange?.(acknowledged);
+  };
 
   const canConfirm = isDangerous ? acknowledgedRisk : true;
   const commandLine = [executable, ...args].filter(Boolean).join(" ");
@@ -91,13 +105,14 @@ export function SafeCommandPreview({
           <input
             type="checkbox"
             checked={acknowledgedRisk}
-            onChange={(e) => setAcknowledgedRisk(e.target.checked)}
+            onChange={(e) => handleAckChange(e.target.checked)}
           />
           <span>I understand the risks and want to proceed</span>
         </label>
       )}
 
       {/* Actions */}
+      {!hideActions && (
       <div className="cd-safe-preview__actions">
         <button
           type="button"
@@ -117,6 +132,7 @@ export function SafeCommandPreview({
           {loading ? "Running..." : confirmLabel}
         </button>
       </div>
+      )}
     </div>
   );
 }

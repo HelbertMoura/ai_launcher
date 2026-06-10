@@ -327,6 +327,8 @@ export const en: Dictionary = {
     fix: "Fix",
     fixing: "Fixing…",
     wouldFix: "Would auto-fix",
+    confirmFixTitle: "Fix {{name}}?",
+    confirmFixMessage: "Review the command that will be executed before continuing.",
   },
   updates: {
     title: "Updates",

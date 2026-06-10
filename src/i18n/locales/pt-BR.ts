@@ -326,6 +326,8 @@ export const ptBR = {
     fix: "Corrigir",
     fixing: "Corrigindo…",
     wouldFix: "Corrigiria automaticamente",
+    confirmFixTitle: "Corrigir {{name}}?",
+    confirmFixMessage: "Revise o comando que será executado antes de prosseguir.",
   },
   updates: {
     title: "Atualizações",

@@ -27,6 +27,7 @@ import { CommandPalette } from "../features/command-palette/CommandPalette";
 import { useCommandPalette } from "../features/command-palette/useCommandPalette";
 import { markOnboarded, readOnboarded } from "./onboarding";
 import { clisStore } from "../features/launcher/clisStore";
+import { useClis } from "../features/launcher/useClis";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
 import { useSidebarIndicators } from "../hooks/useSidebarIndicators";
@@ -34,7 +35,11 @@ import { loadProviders } from "../providers/storage";
 import type { HistoryItem } from "../features/history/useHistory";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { ToastContainer } from "../ui/Toast";
+import { showToast } from "../ui/toastStore";
 import { migrateApiKeysToSecureStorage } from "../providers/storage";
+import { getBudgetAlerts } from "../providers/budget";
+import type { UsageReport } from "../features/costs/useUsage";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
@@ -81,6 +86,33 @@ export function App() {
     migrateApiKeysToSecureStorage().catch(() => {
       // Migration failure is non-critical; keys stay in localStorage.
     });
+  }, []);
+
+  // On boot, check configured budget limits and surface a toast if any
+  // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
+  // Badge in the TopBar is intentionally out of scope for this batch.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const report = await invoke<UsageReport>("read_usage_stats");
+        if (cancelled) return;
+        const alerts = getBudgetAlerts(report.entries ?? []);
+        if (alerts.length === 0) return;
+        const exceeded = alerts.filter((a) => a.status === "exceeded").length;
+        const variant = exceeded > 0 ? "error" : "warning";
+        const message =
+          exceeded > 0
+            ? `${exceeded} budget limit(s) exceeded`
+            : `${alerts.length} budget alert(s) near limit`;
+        showToast(message, variant);
+      } catch {
+        // Budget check is best-effort; failures must not block boot.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleKeyDown = useCallback(
@@ -272,7 +304,11 @@ function ChromeConnector({
   onToggleDensity,
   openPalette,
 }: ChromeConnectorProps) {
-  const snapshot = clisStore.getSnapshot();
+  // Subscribe to the CLI store so the StatusBar re-renders when checks load.
+  // useClis() subscribes via useSyncExternalStore AND triggers ensureLoaded,
+  // so the bar populates on boot instead of staying stuck at "0/0" until an
+  // unrelated re-render happened to pick up the updated store.
+  const snapshot = useClis();
   const { report } = useUsage();
   const { summary: updates, refresh: refreshUpdates } = useUpdates();
   const [refreshTick, setRefreshTick] = useState(0);

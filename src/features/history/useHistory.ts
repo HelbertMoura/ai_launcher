@@ -22,6 +22,13 @@ export interface HistoryItem {
 const CONFIG_KEY = "ai-launcher-config";
 const LAST_DIR_KEY = "ai-launcher:last-dir";
 
+// A "starting" session that began more than this long ago almost certainly
+// never reached the running state (the app was closed mid-launch, the spawn
+// failed silently, etc.). On load we demote such stale sessions to "unknown"
+// so the timeline stops claiming a launch is still in progress. 6 hours is a
+// generous upper bound for how long a real launch handshake could take.
+const STALE_STARTING_MS = 6 * 60 * 60 * 1000;
+
 /** Migrate legacy items that lack the new session-lifecycle fields. */
 function migrateItem(item: Record<string, unknown>): HistoryItem {
   const status = item.status as string | undefined;
@@ -37,6 +44,18 @@ function migrateItem(item: Record<string, unknown>): HistoryItem {
     migratedStatus = "unknown";
   }
 
+  const startedAt = (item.startedAt as string) ?? (item.timestamp as string) ?? new Date().toISOString();
+
+  // Demote stale "starting" sessions: if a session has been "starting" for
+  // longer than STALE_STARTING_MS, it is stuck and should not keep reporting
+  // an in-progress launch. Leaving it as "starting" makes the timeline lie.
+  if (migratedStatus === "starting") {
+    const startedMs = Date.parse(startedAt);
+    if (!Number.isNaN(startedMs) && Date.now() - startedMs > STALE_STARTING_MS) {
+      migratedStatus = "unknown";
+    }
+  }
+
   return {
     cli: (item.cli as string) ?? "",
     cliKey: (item.cliKey as string) ?? "",
@@ -46,7 +65,7 @@ function migrateItem(item: Record<string, unknown>): HistoryItem {
     description: item.description as string | undefined,
     status: migratedStatus,
     sessionId: item.sessionId as string | undefined,
-    startedAt: (item.startedAt as string) ?? (item.timestamp as string) ?? new Date().toISOString(),
+    startedAt,
     completedAt: item.completedAt as string | undefined,
     duration: item.duration as number | undefined,
     exitCode: item.exitCode as number | null | undefined,
