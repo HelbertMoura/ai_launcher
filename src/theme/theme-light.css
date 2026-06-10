@@ -25,4 +25,10 @@
   --accent-glow: rgba(214, 41, 41, 0.25);
   --accent-soft: rgba(214, 41, 41, 0.08);
   --accent-ink: #ffffff;
+
+  /* semantic — tons escuros: os defaults dark (#35d07f/#ff9f1c/#ff3131)
+     reprovam WCAG AA (~2:1) sobre fundo claro. Estes passam AA (>=4.5:1). */
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --err: #d62929;
 }
