@@ -1,13 +1,14 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T14:26:42.823Z
-> Files: 303 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-05-20T14:35:33.232Z
+> Files: 304 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.editorconfig` — Editor configuration (~61 tok)
 - `.gitattributes` — Git attributes (~97 tok)
 - `.gitignore` — Git ignore rules (~390 tok)
+- `.release-notes-v15.2.6.md` — AI Launcher Pro v15.2.6 (~593 tok)
 - `build_release_v2.ps1` — build_release_v2.ps1 (~363 tok)
 - `build_release.ps1` — build_release.ps1 (~308 tok)
 - `CHANGELOG.md` — Changelog (~16395 tok)
@@ -139,6 +140,7 @@
 ## docs/
 
 - `ARCHITECTURE.md` — AI Launcher Pro — Architecture (~1886 tok)
+- `AUDITORIA-COMPLETA-v15.2.6-plano-v16.md` — Auditoria multi-agente 6 dimensões (108 achados, 31 high confirmados) + roadmap v16 em 4 fases + 20 quick wins (~13000 tok)
 - `fonts-attribution.md` — Fonts (~61 tok)
 - `ICON_OVERRIDES.md` — Troca Manual de Ícones (~305 tok)
 - `icons-attribution.md` — CLI & Tool Icons (~195 tok)

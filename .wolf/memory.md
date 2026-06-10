@@ -158,3 +158,19 @@
 | 11:26 | Edited src-tauri/Cargo.toml | 3→3 lines | ~14 |
 | 11:26 | Edited CHANGELOG.md | expanded (+20 lines) | ~500 |
 | 11:27 | Session end: 134 writes across 45 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 55 reads | ~143837 tok |
+| 11:35 | Created .release-notes-v15.2.6.md | — | ~632 |
+| 11:36 | Session end: 135 writes across 46 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 55 reads | ~144514 tok |
+| 19:20 | Auditoria completa multi-agente lancada (workflow 6 dimensoes: backend/frontend/visual/seguranca/perf/produto) p/ planejar v16 | projeto inteiro | em andamento | ~150k |
+| 19:41 | Auditoria v15.2.6 concluida: 108 achados (31 high confirmados, 0 refutados) + plano v16 em 4 fases | docs/AUDITORIA-COMPLETA-v15.2.6-plano-v16.md | sucesso | ~3.3M (38 agentes) |
+| 21:20 | Batch C QW#7/8/13/15/16 frontend logic fixes | App.tsx, ConfirmDialog.tsx, useHistory.ts, budget.ts(read), DoctorPage.tsx, en.ts, pt-BR.ts | tsc 0 err, vite ok, 61/61 tests | ~12k |
+| 21:30 | Batch C revisor-fixes: QW#7 trocou useSyncExternalStore+useEffect manual por useClis() no ChromeConnector (remove adicao extra, mantem boot da StatusBar); QW#16 substituiu modal manual por ConfirmDialog (estendido com children) + SafeCommandPreview (nova prop hideActions/onAckChange) | src/app/App.tsx, src/ui/ConfirmDialog.tsx, src/ui/SafeCommandPreview.tsx, src/features/workspace/DoctorPage.tsx | tsc 0 erros, build OK, 61/61 testes verdes | ~9k |
+| 21:50 | Batch D: deleted dead Lucide barrel (src/icons/index.ts, types.ts), removed lucide-react dep | src/icons/, package.json, package-lock.json | build+test green (56 tests) | ~6k |
+| 05:55 | Quick wins v16-alpha batches A-D validados (build+56 testes+cargo check+clippy verdes) e commitados em 4 commits na branch feat/v16-alpha-quick-wins | src-tauri/*, src/* | sucesso | ~1.5M (22 agentes) |
+| 05:58 | Batches E (CSS) + F (docs/test) re-lancados em workflow separado apos falha por limite de sessao | src/theme/*, README, e2e | em andamento | ~? |
+| 23:50 | Batch E QW#9-11: semantic colors WCAG AA (light/glacier), amber theme #ffb000 override, prefers-reduced-motion global | theme-light.css theme-glacier.css accents.css tokens.css | build+tsc OK | ~6k |
+| 06:07 | Batch F QW#14+17: README winget/choco marcados 🚧 coming soon (EN+ptBR); novo teste a11y axe-core em e2e | README.md, README.pt-BR.md, e2e/launcher.spec.ts, package.json | done — vite build + tsc(src) + e2e (3 passed) verdes | ~9k |
+| 06:11 | BATCH F revisao: revert 4x theme CSS + remove untracked fora de escopo (docs/AUDITORIA, src-tauri/.wolf, src-tauri/CLAUDE.md); validado build+tsc verdes | src/theme/*.css, README*, e2e/launcher.spec.ts, package.json | DONE | ~3k |
+| 06:15 | Batch F QW#14/#17 validacao: README winget/choco marcados Coming soon (EN+PT), e2e axe a11y test + @axe-core/playwright dep | README.md, README.pt-BR.md, e2e/launcher.spec.ts, package.json | vite build OK (369ms), tsc --noEmit exit0, e2e/ isolated tsc exit0 | ~4k |
+| 06:21 | revisao final batches E/F: build OK, README/e2e/axe OK; temas light/glacier sem override --ok/--warn/--err, reduced-motion ausente de tokens.css | README.md, e2e/launcher.spec.ts, src/theme/*.css | divergencias encontradas | ~9k |
+| 06:05 | Batch E completado manualmente (review final pegou que CSS nao persistira): --ok/--warn/--err AA em light+glacier, prefers-reduced-motion global | src/theme/*.css | sucesso | ~30k |
+| 06:08 | 6 batches commitados (A-F), branch validada: build+56 testes+cargo check+clippy verdes | branch feat/v16-alpha-quick-wins | sucesso | - |

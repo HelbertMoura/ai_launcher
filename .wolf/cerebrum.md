@@ -22,6 +22,15 @@
 - **IDEs Electron não respondem a `--version`** (Antigravity, Cursor, Windsurf). Para a versão real, ler `ProductVersion` do PE via `(Get-Item).VersionInfo.ProductVersion`.
 - **DnD em Cards interativos**: aplicar `draggable` no wrapper que contém botões NÃO funciona porque os filhos consomem `mousedown`. Solução: handle dedicado isolado dos botões.
 - **CliInfo struct serializa para o frontend**: novos campos opcionais precisam `#[serde(default)]` para não quebrar JSON salvo previamente.
+- **`npm run build` NÃO roda tsc** — o script é só `vite build` (rolldown transpila TS mas não checa tipos com rigor). Para validar tipos (incl. `noUnusedLocals`/`noUnusedParameters` que estão `true` no tsconfig), rodar `npx tsc --noEmit` separadamente. `npm run test` = `vitest run`.
+- **i18n type-safe**: `en.ts` importa `Dictionary` derivado de `pt-BR.ts`. Ao adicionar chave nova, adicionar em pt-BR.ts PRIMEIRO (fonte do tipo) e depois em en.ts, senão tsc quebra.
+- **toastStore**: `import { showToast } from "../ui/toastStore"` — `showToast(message, variant)` com variant `success|error|warning|info`. Auto-dismiss em 4s.
+- **ConfirmDialog** (`src/ui/ConfirmDialog.tsx`): modal de confirmação reutilizável; aceita `children` opcional renderizado entre `message` e as actions (ex: embutir um `SafeCommandPreview`). `variant="danger"` foca o botão Cancel no open. NÃO há handler global de Enter (botão focado dispara click nativo).
+- **SafeCommandPreview** (`src/ui/SafeCommandPreview.tsx`): preview de comando com gating de risco. Prop `hideActions` esconde os botões próprios (para usar dentro de outro dialog que dona as actions); `onAckChange(boolean)` reporta o acknowledge do checkbox "dangerous" para o host gatar o confirm. Padrão de composição: `ConfirmDialog` + `SafeCommandPreview hideActions onAckChange` (usado em DoctorPage para o fix).
+- **npm install exige `--legacy-peer-deps`**: `typescript@^6` conflita com o peerOptional `typescript@^5` de `i18next@24` (via react-i18next). `npm install <pkg>` falha com ERESOLVE; usar `npm install <pkg> --legacy-peer-deps`. Não há `.npmrc` no repo.
+- **E2E (Playwright)**: `playwright.config.ts` tem `webServer.command="npm run dev"` na porta `5173` com `reuseExistingServer: !CI`. Rodar specs isolados sem dev server ativo dá timeout no `page.goto` (boot do Vite + 30s test timeout). Para iterar rápido: subir `npm run dev` em background, esperar HTTP 200 na 5173, depois `npx playwright test`. O diretório `e2e/` NÃO está no `tsconfig.json` (só `src`) — para typecheck do spec, usar tsconfig temporário ou rodar o próprio Playwright.
+- **A11y test (axe-core)**: `@axe-core/playwright` instalado. O tema dark atual viola WCAG AA `color-contrast` em labels dimmed (~3.7:1, esperado 4.5:1). O teste de a11y desabilita a regra `color-contrast` (dívida de design, TODO) e ainda guarda regressões estruturais (labels/roles/aria/names). Tauri é stubado via `window.__TAURI_INTERNALS__` no `beforeEach`.
+- **ChromeConnector (App.tsx)**: usa `useClis()` (não `useSyncExternalStore` cru) — o hook já subscreve E dispara `ensureLoaded`, garantindo que a StatusBar popule no boot. `useClis()` retorna `State & { refresh }`; `snapshot.clis`/`snapshot.checks` são os campos usados pela StatusBar.
 
 ## Do-Not-Repeat
 
@@ -33,6 +42,8 @@
 - **[2026-05-19]** Drag-and-drop dentro de `<Card>` com botões: NÃO aplicar `draggable` no wrapper externo. Usar handle dedicado isolado dos botões.
 - **[2026-05-19]** HTML5 native drag (`draggable={true}` + `onDragStart`) tem comportamento inconsistente em Windows + WebView2 (Tauri). Mesmo com handle dedicado o gesto pode não disparar. **Solução padrão: usar `@dnd-kit` (pointer events) para qualquer DnD em apps Tauri.**
 - **[2026-05-19]** Não confiar em CHANGELOG pré-existente. Quando há esboço de uma versão ainda não lançada, reescrever do zero com base no que realmente foi implementado.
+
+- **[2026-06-10]** Reviewers de workflow (spec/quality) que avaliam só o RELATÓRIO TEXTUAL do implementer aprovam coisas que não estão na árvore. O Batch E de CSS foi "aprovado" mas as mudanças de tema nunca persistiram (provável perda por limite de sessão). SEMPRE rodar git diff/npm run build real e conferir os arquivos antes de commitar output de workflow — o finalReview que lê o diff real pegou; os reviewers por-batch que liam só o relatório não pegaram.
 
 ## Decision Log
 
