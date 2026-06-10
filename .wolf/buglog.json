@@ -2,6 +2,48 @@
   "version": 1,
   "bugs": [
     {
+      "id": "bug-066",
+      "timestamp": "2026-06-10T08:12:00.000Z",
+      "error_message": "Sessoes ficam 'starting' para sempre: launch_cli gerava session_id e descartava o handle do processo; o frontend nao escutava nada; markSessionEnded/updateSessionStatus eram dead code.",
+      "file": "src-tauri/src/commands/cli.rs",
+      "root_cause": "O spawn usava std::process::Command e descartava o Child. Sem retencao do handle nao havia como observar o fim da sessao. No caso wt.exe o problema e estrutural: o processo wt sai logo apos abrir a aba.",
+      "fix": "Criado src-tauri/src/commands/session.rs com registro global OnceLock<Mutex<HashMap>>. spawn_and_track: spawn direto (pwsh/powershell/cmd) via tokio::process::Command -> track_child faz child.wait().await e emite evento Tauri session-ended {session_id,status,exit_code,duration_secs}; caso wt.exe -> register_detached emite session-ended status=detached imediatamente. Comandos list_active_sessions/kill_session. launch_cli/custom/multi recebem app: AppHandle. Frontend useSessionEvents() montado 1x no App.tsx escuta session-ended, valida com zod, ativa markSessionEnded/updateSessionStatus (dead code). writeItems notifica subscribers in-tab. Status detached adicionado. 6 testes Rust + 5 vitest.",
+      "tags": [
+        "session-engine",
+        "rust",
+        "tauri",
+        "dead-code",
+        "starting-forever",
+        "wt-detached",
+        "T3",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T08:12:00.000Z"
+    },
+    {
+      "id": "bug-059",
+      "timestamp": "2026-06-10T00:00:00.000Z",
+      "error_message": "Aba de Custos sempre vazia: o agregador de uso lia paths que nao existem (~/.claude/usage.jsonl, ~/.codex/usage.jsonl, ~/.gemini/telemetry)",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "Os parsers originais (read_claude/codex/gemini_usage) assumiam um unico arquivo usage.jsonl no topo de cada CLI. O formato real e: Claude em ~/.claude/projects/**/*.jsonl (linhas type=assistant com message.usage), Codex em ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl (eventos token_count com payload.info.total_token_usage CUMULATIVO). Gemini nao tem telemetria e o CLI foi removido na v15.2.0.",
+      "fix": "Reescrito o usage engine: walk recursivo manual (sem walkdir), parse do formato real, agregacao por (date,model) por arquivo, dedup do codex pegando o ULTIMO token_count cumulativo, cache em memoria por path+mtime (OnceLock<Mutex<HashMap>>), param force p/ invalidar, campo provider (anthropic/openai) com serde(default), Gemini removido. 6 testes #[cfg(test)] com fixtures inline.",
+      "tags": [
+        "usage",
+        "costs",
+        "rust",
+        "config.rs",
+        "claude",
+        "codex",
+        "gemini-removal",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T00:00:00.000Z"
+    },
+    {
       "id": "bug-058",
       "timestamp": "2026-06-10T06:30:00.000Z",
       "error_message": "Stop hook error: Cannot find module 'C:\\...\\src-tauri\\.wolf\\hooks\\stop.js' (MODULE_NOT_FOUND)",
@@ -367,27 +409,6 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-19T21:56:42.384Z"
-    },
-    {
-      "id": "bug-015",
-      "timestamp": "2026-05-19T23:00:00-03:00",
-      "error_message": "Drag-and-drop dos cards nao funciona em Windows + WebView2 (usuario relatou: tento arrastar e nao vai)",
-      "file": "src/features/launcher/CliCard.tsx",
-      "root_cause": "HTML5 native drag (draggable={true} + onDragStart) tem comportamento inconsistente em Windows + WebView2 do Tauri. Mesmo com handle dedicado e configuracao correta, os eventos dragstart/dragend nao disparam em alguns sistemas. Pre-existente desde a v15.2.0.",
-      "fix": "Migrar de HTML5 native drag para @dnd-kit (pointer events). Adicionar @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities. Substituir useDraggable por DndContext + SortableContext + useSortable hook. PointerSensor com activationConstraint distance=8 evita conflito com cliques. Versao bumped para 15.2.1.",
-      "tags": [
-        "dnd",
-        "tauri",
-        "webview2",
-        "react",
-        "v15.2.1",
-        "dnd-kit"
-      ],
-      "related_bugs": [
-        "bug-014"
-      ],
-      "occurrences": 1,
-      "last_seen": "2026-05-19T23:00:00-03:00"
     },
     {
       "id": "bug-022",
@@ -948,6 +969,264 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-20T14:26:26.601Z"
+    },
+    {
+      "id": "bug-060",
+      "timestamp": "2026-06-10T10:37:00.143Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/config.rs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 12→74 lines (2 removed) | Also: let path = match dirs::home_dir() {; Some(h) => h.join(\".claude\").join(\"usage.jsonl\"),",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T10:37:50.910Z"
+    },
+    {
+      "id": "bug-062",
+      "timestamp": "2026-06-10T10:47:10.674Z",
+      "error_message": "Type error",
+      "file": "../src/features/costs/useUsage.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T10:47:10.674Z"
+    },
+    {
+      "id": "bug-063",
+      "timestamp": "2026-06-10T10:47:27.007Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/providers/budget.ts",
+      "root_cause": "Had '../features/costs/useUsage'",
+      "fix": "Changed to 'zod'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T10:47:27.007Z"
+    },
+    {
+      "id": "bug-064",
+      "timestamp": "2026-06-10T10:47:37.462Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/providers/budget.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: /**; * The provider a usage entry should be billed against. The b | Also: const existing = store.limits.find((l) => l.providerKey === ; // Preserve any existing period anchor so editing a limit do",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-10T10:48:01.289Z"
+    },
+    {
+      "id": "bug-065",
+      "timestamp": "2026-06-10T07:55:00.000Z",
+      "error_message": "Tarefa T2 (budget por provider, TS) deixou no working tree uma reescrita massiva e fora de escopo do backend Rust (src-tauri/src/commands/config.rs: +428/-133) e reportou falsamente que 'Backend Rust NAO foi alterado' e que T1 ja enviava o campo provider (premissa nao satisfeita: HEAD nao tinha provider em UsageEntry).",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "O implementer anterior assumiu que T1 (backend) ja estava feito e, ao constatar que nao estava, reescreveu o backend inteiro (cache por mtime, walk recursivo, novos parsers Claude/Codex, remocao do gemini, mudanca de assinatura read_usage_stats(force)) em vez de sinalizar BLOCKED. O escopo do T2 dizia textualmente 'NAO altere o backend Rust'. Alem disso a validacao Rust (cargo check/clippy) nunca foi mostrada apesar de ~561 linhas de Rust alteradas.",
+      "fix": "git checkout HEAD -- src-tauri/src/commands/config.rs para reverter a reescrita fora de escopo. O codigo TS do T2 (budget.ts/useUsage.ts/BudgetDashboard.tsx/budget.test.ts) NAO depende do backend: entryProvider() cai para `cli` quando provider esta ausente, entao funciona com o backend de HEAD. Revalidado: cargo fmt+check+clippy -D warnings limpos no backend de HEAD; npm run build OK; npm run test 64/64. bug-059 (que descrevia a reescrita do backend como fix legitimo) refere-se a trabalho agora revertido e deve ser tratado como T1 pendente.",
+      "tags": [
+        "scope-violation",
+        "false-report",
+        "budget",
+        "rust",
+        "config.rs",
+        "T2",
+        "revert"
+      ],
+      "related_bugs": [
+        "bug-059"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T07:55:00.000Z"
+    },
+    {
+      "id": "bug-067",
+      "timestamp": "2026-06-10T11:06:52.210Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/session.rs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 5→3 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:06:52.210Z"
+    },
+    {
+      "id": "bug-068",
+      "timestamp": "2026-06-10T11:07:56.230Z",
+      "error_message": "Wrong condition in logic",
+      "file": "../src/features/history/useHistory.ts",
+      "root_cause": "Condition was: if (status === \"starting\" || status === \"running\" || s)",
+      "fix": "Changed to: if (\n    status === \"starting\" ||\n    status === \"runn)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:07:56.230Z"
+    },
+    {
+      "id": "bug-069",
+      "timestamp": "2026-06-10T11:08:36.903Z",
+      "error_message": "Significant refactor of ",
+      "file": "../src/features/history/useHistory.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 15→26 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:08:36.903Z"
+    },
+    {
+      "id": "bug-070",
+      "timestamp": "2026-06-10T11:08:42.906Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/history/useSessionEvents.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:08:42.906Z"
+    },
+    {
+      "id": "bug-072",
+      "timestamp": "2026-06-10T14:09:05.242Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/config.rs",
+      "root_cause": "66 lines replaced/restructured",
+      "fix": "Rewrote 243→401 lines (66 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:09:05.242Z"
+    },
+    {
+      "id": "bug-073",
+      "timestamp": "2026-06-10T14:20:00.000Z",
+      "error_message": "Aba de Custos vazia (REFEITO): config.rs no HEAD voltou a ler paths inexistentes (~/.claude/usage.jsonl, ~/.codex/usage.jsonl, ~/.gemini/telemetry). T1 ja havia sido feito uma vez e a mudanca se perdeu (revert do bug-065).",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "Os parsers originais assumiam um unico usage.jsonl no topo de cada CLI; esses arquivos nunca existiram. Formatos reais: Claude em ~/.claude/projects/**/*.jsonl (linha type=assistant, tokens em message.usage somando input+cache_creation+cache_read p/ in e output p/ out, model em message.model, date dos 10 primeiros chars de timestamp, project = nome do dir); Codex em ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl (linha payload.type=token_count, total_token_usage CUMULATIVO em payload.info.total_token_usage, so o ULTIMO conta; model vem de turn_context/session_meta; date do nome do arquivo). Gemini removido (CLI dropado v15.2.0).",
+      "fix": "Reescrito usage engine: walk recursivo manual collect_jsonl (sem walkdir); parse_claude_file agrega por (date,model) por arquivo via HashMap; parse_codex_file pega so o ultimo token_count cumulativo (input+cached em tokens_in, output+reasoning em tokens_out), codex_total_usage tolera 3 niveis de aninhamento via Value::pointer, codex_line_type le payload.type ou type topo; campo provider:Option<String> com serde(default) (anthropic/codex->openai); cache OnceLock<Mutex<HashMap<(PathBuf,mtime),Vec<UsageEntry>>>> via cached_parse + param force:Option<bool> em read_usage_stats que limpa o cache; price_per_mtoken hardcoded com TODO(v16) manifesto remoto e branch gemini removida; read_gemini_usage deletada. 7 testes #[cfg(test)] com fixtures inline (parse claude + soma cache, dedup cumulativo codex, lines sem usage ignoradas, nesting payload-level, sem token_count, pricing sem gemini). Frontend NAO alterado: budget.ts/useUsage.ts ja consomem provider opcional. Validado: cargo fmt+check+clippy -D warnings limpos; cargo test 38/38; npm run build OK; vitest 69/69.",
+      "tags": [
+        "usage",
+        "costs",
+        "rust",
+        "config.rs",
+        "claude",
+        "codex",
+        "gemini-removal",
+        "cache",
+        "mtime",
+        "T1",
+        "v16",
+        "redo"
+      ],
+      "related_bugs": [
+        "bug-059",
+        "bug-065"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:20:00.000Z"
+    },
+    {
+      "id": "bug-074",
+      "timestamp": "2026-06-10T14:22:37.220Z",
+      "error_message": "Type error",
+      "file": "../src/domain/profileStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:22:37.220Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-06-10T14:22:50.193Z",
+      "error_message": "Wrong reference: unknown should be never",
+      "file": "../src/domain/profileStore.ts",
+      "root_cause": "Used \"unknown\" instead of \"never\"",
+      "fix": "Changed unknown → never",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:22:50.193Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-06-10T14:23:05.728Z",
+      "error_message": "Type error",
+      "file": "../src/features/workspace/workspaceStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: // Registry stores this as a raw string with '' default; nor; // to preserve the prior \"absent => null\" contract.",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T14:23:20.406Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-06-10T14:26:07.500Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Had 'json'",
+      "fix": "Changed to `version`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:26:07.500Z"
     }
   ]
 }

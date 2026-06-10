@@ -174,3 +174,79 @@
 | 06:21 | revisao final batches E/F: build OK, README/e2e/axe OK; temas light/glacier sem override --ok/--warn/--err, reduced-motion ausente de tokens.css | README.md, e2e/launcher.spec.ts, src/theme/*.css | divergencias encontradas | ~9k |
 | 06:05 | Batch E completado manualmente (review final pegou que CSS nao persistira): --ok/--warn/--err AA em light+glacier, prefers-reduced-motion global | src/theme/*.css | sucesso | ~30k |
 | 06:08 | 6 batches commitados (A-F), branch validada: build+56 testes+cargo check+clippy verdes | branch feat/v16-alpha-quick-wins | sucesso | - |
+| 07:00 | Session end: 135 writes across 46 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 55 reads | ~144514 tok |
+| 07:35 | Session end: 135 writes across 46 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 56 reads | ~144514 tok |
+| 07:36 | Edited src/commands/config.rs | added optional chaining | ~629 |
+| 07:37 | Edited src/commands/config.rs | modified price_per_mtoken() | ~711 |
+| 07:37 | Edited src/commands/config.rs | modified parse_claude_file() | ~2349 |
+| 07:37 | Edited src/commands/config.rs | modified read_usage_stats() | ~106 |
+| 07:38 | Edited src/commands/config.rs | modified claude_parses_single_assistant_line() | ~1333 |
+| 07:39 | T1 Usage Engine real: reescreveu read_claude/codex_usage p/ formatos reais (.claude/projects/**, .codex/sessions/**/rollout-*), removeu Gemini, +provider field, +cache mtime, +force param, +6 testes | src-tauri/src/commands/config.rs | DONE cargo check/clippy/test 31 ok | ~9000 |
+| 07:39 | Edited ../.wolf/buglog.json | expanded (+21 lines) | ~406 |
+| 07:40 | Edited ../.wolf/cerebrum.md | 1→3 lines | ~349 |
+| 07:47 | Edited ../src/features/costs/useUsage.ts | expanded (+8 lines) | ~166 |
+| 07:47 | Edited ../src/providers/budget.ts | expanded (+7 lines) | ~125 |
+| 07:47 | Edited ../src/providers/budget.ts | added 1 import(s) | ~25 |
+| 07:47 | Edited ../src/providers/budget.ts | added optional chaining | ~305 |
+| 07:47 | Edited ../src/providers/budget.ts | added nullish coalescing | ~388 |
+| 07:48 | Edited ../src/providers/budget.ts | added optional chaining | ~492 |
+| 07:48 | Edited ../src/providers/budget.ts | 24→22 lines | ~166 |
+| 07:48 | Edited ../src/providers/budget.ts | modified for() | ~111 |
+| 07:48 | Edited ../src/providers/budget.ts | 9→7 lines | ~84 |
+| 07:48 | Edited ../src/features/costs/BudgetDashboard.tsx | 6→7 lines | ~41 |
+| 07:48 | Edited ../src/features/costs/BudgetDashboard.tsx | 8→6 lines | ~84 |
+| 07:49 | Created ../src/providers/budget.test.ts | — | ~1672 |
+| 07:49 | Session end: 154 writes across 53 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 64 reads | ~154304 tok |
+| 07:50 | T2 budget por provider: filtro por provider + reset de periodo (anchor) | src/providers/budget.ts, budget.test.ts, useUsage.ts, BudgetDashboard.tsx | DONE, 64 tests pass + tsc/build ok | ~9k |
+| 07:56 | Edited ../.wolf/buglog.json | expanded (+20 lines) | ~542 |
+| 08:05 | Created src/commands/session.rs | — | ~2864 |
+| 08:05 | Edited src/commands/mod.rs | 6→7 lines | ~31 |
+| 08:05 | Edited src/commands/cli.rs | modified launch_cli() | ~86 |
+| 08:06 | Edited src/commands/cli.rs | modified spawn_and_track() | ~669 |
+| 08:06 | Edited src/commands/cli.rs | modified launch_custom_cli() | ~75 |
+| 08:06 | Edited src/commands/cli.rs | modified launch_multi_clis() | ~229 |
+| 08:06 | Edited src/main.rs | 3→6 lines | ~70 |
+| 08:06 | Edited src/commands/session.rs | 5→3 lines | ~29 |
+| 08:06 | Edited src/commands/session.rs | 5→4 lines | ~31 |
+| 08:07 | Edited src/commands/session.rs | 8→7 lines | ~50 |
+| 08:07 | Edited src/commands/session.rs | 6→5 lines | ~43 |
+| 08:07 | Edited ../src/features/history/useHistory.ts | expanded (+6 lines) | ~33 |
+| 08:07 | Edited ../src/features/history/useHistory.ts | modified if() | ~60 |
+| 08:08 | Edited ../src/features/history/useHistory.ts | modified subscribe() | ~237 |
+| 08:08 | Edited ../src/features/history/useHistory.ts | 7→12 lines | ~112 |
+| 08:08 | Created ../src/features/history/useSessionEvents.ts | — | ~625 |
+| 08:08 | Edited ../src/features/history/useHistory.ts | added 1 condition(s) | ~264 |
+| 08:08 | Edited ../src/features/history/useSessionEvents.ts | modified if() | ~117 |
+| 08:08 | Edited ../src/app/App.tsx | added 1 import(s) | ~38 |
+| 08:08 | Edited ../src/app/App.tsx | 2→6 lines | ~75 |
+| 08:10 | Created ../src/features/history/useSessionEvents.test.ts | — | ~800 |
+
+| 08:12 | T3 Session Engine: backend session.rs (registro OnceLock, track_child tokio, register_detached wt, list_active_sessions/kill_session) + cli.rs spawn_and_track + frontend useSessionEvents.ts (listen session-ended, zod, ativa markSessionEnded/updateSessionStatus dead code) | session.rs, cli.rs, mod.rs, main.rs, useHistory.ts, useSessionEvents.ts(+test), App.tsx | cargo check/clippy/test(31) ok; tsc+build+vitest(69) ok | ~9000 |
+| 08:20 | Created ../src/lib/storage/keys.ts | — | ~680 |
+| 08:21 | Created ../src/lib/storage/registry.ts | — | ~2794 |
+| 08:21 | Created ../src/lib/storage/index.ts | — | ~1332 |
+| 11:06 | Session end: 179 writes across 62 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 83 reads | ~151510 tok |
+| 11:09 | Edited src/commands/config.rs | modified price_per_mtoken() | ~3747 |
+| 11:09 | Edited src/commands/config.rs | modified temp_jsonl() | ~2056 |
+| 11:13 | T1 refeito: usage engine real (Claude projects + Codex sessions, dedup cumulativo, cache mtime, provider, gemini removido, 7 testes) | src-tauri/src/commands/config.rs | DONE cargo 38/38 + vitest 69/69 | ~14k |
+| 11:20 | Edited ../src/lib/storage/registry.ts | expanded (+10 lines) | ~131 |
+| 11:20 | Edited ../src/lib/storage/registry.ts | modified backups() | ~228 |
+| 11:20 | Edited ../src/lib/storage/registry.ts | modified registry() | ~265 |
+| 11:21 | Created ../src/lib/configIO.ts | — | ~2892 |
+| 11:22 | Edited ../src/lib/configIO.ts | 7→7 lines | ~34 |
+| 11:22 | Edited ../src/lib/configIO.ts | 10→5 lines | ~81 |
+| 11:22 | Edited ../src/domain/profileStore.ts | modified readAll() | ~237 |
+| 11:22 | Edited ../src/domain/profileStore.ts | modified writeAll() | ~35 |
+| 11:22 | Edited ../src/features/workspace/workspaceStore.ts | added 1 import(s) | ~44 |
+| 11:23 | Edited ../src/features/workspace/workspaceStore.ts | modified readAll() | ~142 |
+| 11:23 | Edited ../src/features/workspace/workspaceStore.ts | modified getActiveWorkspaceId() | ~121 |
+| 11:23 | Created ../src/lib/configIO.test.ts | — | ~2325 |
+| 11:24 | Edited ../src/lib/storage/index.ts | modified readRawForBackup() | ~27 |
+| 11:24 | Edited ../src/lib/storage/keys.ts | 3→1 lines | ~16 |
+| 11:24 | Edited ../src/lib/storage/registry.ts | modified entryById() | ~29 |
+| 11:26 | Edited ../src/lib/storage/registry.ts | 1→3 lines | ~64 |
+
+| 11:26 | T4 persistência unificada: registry completo (+activeWorkspace, onboardingDone, showOnboarding, profilesMigrated), configIO reescrito p/ payload via REGISTRY com compat de backup legado, profileStore+workspaceStore migrados p/ readKey/writeKey, suite configIO.test reescrita (round-trip + corrupção) | src/lib/storage/{index,keys,registry}.ts, src/lib/configIO.ts, src/lib/configIO.test.ts, src/domain/profileStore.ts, src/features/workspace/workspaceStore.ts | build+tsc+75 testes OK | ~14k |
+| 11:42 | Revisao final T1+T4: fmt/check/clippy/build/tsc/test todos verdes; grep confirma config.rs le .claude/projects + .codex/sessions (sem usage.jsonl), gemini removido, provider em UsageEntry; storage/ com zod + configIO registry-driven | config.rs, src/lib/storage/*, configIO.ts | aprovado | ~9k |
+| 11:30 | Beta1 v16 concluida: T1 Usage Engine real (.claude/projects + .codex/sessions), T2 Budget por provider, T3 Session Engine (session-ended events), T4 Persistencia unificada (storage/ zod registry) | config.rs, session.rs, budget.ts, src/lib/storage/* | sucesso: build+tsc+75 vitest+38 cargo+clippy verdes | ~3.3M (32 agentes em 2 workflows) |
+| 11:32 | T1 perdeu-se na 1a rodada (config.rs revertido durante T3/T4, recorrencia bug-057→bug-059); re-executado isolado e persistiu | config.rs | resolvido | - |
