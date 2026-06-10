@@ -7,6 +7,7 @@ export interface AppUpdateInfo {
   version: string;
   current_version: string;
   download_url: string;
+  asset_name: string;
   checksum: string;
   release_notes_url: string;
   release_notes_body: string;
@@ -73,22 +74,32 @@ export function useAppUpdate() {
         downloadUrl: info.download_url,
       });
 
-      // Verify checksum if available.
-      if (info.checksum) {
-        setState((prev) => ({ ...prev, status: "verifying" }));
-        const valid = await invoke<boolean>("verify_update_checksum", {
-          version: info.version,
-          expectedChecksum: info.checksum,
-        });
-        if (!valid) {
-          setState((prev) => ({
-            ...prev,
-            status: "error",
-            error:
-              "Checksum verification failed. The downloaded file may be corrupted. Please try again.",
-          }));
-          return;
-        }
+      // Checksum verification is mandatory. If the backend did not provide a
+      // checksum, the update is untrusted — abort instead of launching it.
+      if (!info.checksum) {
+        setState((prev) => ({
+          ...prev,
+          status: "error",
+          error:
+            "No checksum available for this update. Aborting for safety. Please download the installer manually from the release page.",
+        }));
+        return;
+      }
+
+      setState((prev) => ({ ...prev, status: "verifying" }));
+      const valid = await invoke<boolean>("verify_update_checksum", {
+        version: info.version,
+        filePath,
+        expectedChecksum: info.checksum,
+      });
+      if (!valid) {
+        setState((prev) => ({
+          ...prev,
+          status: "error",
+          error:
+            "Checksum verification failed. The downloaded file may be corrupted. Please try again.",
+        }));
+        return;
       }
 
       setState((prev) => ({ ...prev, status: "ready", progress: { phase: "done", downloaded: 0, total: 0, percent: 100 } }));

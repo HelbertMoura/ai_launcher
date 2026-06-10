@@ -427,9 +427,7 @@ pub fn test_provider_connection(
         .build();
 
     let t0 = std::time::Instant::now();
-    let mut req = agent
-        .post(&url)
-        .set("Content-Type", "application/json");
+    let mut req = agent.post(&url).set("Content-Type", "application/json");
     if auth_style == "anthropic" {
         req = req
             .set("x-api-key", &api_key)
