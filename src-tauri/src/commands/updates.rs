@@ -5,7 +5,7 @@ use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
     fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal,
     get_tool_definitions, http_agent, npm_latest, read_exe_product_version, run_silent,
-    stream_install, CheckResult, UpdateInfo, UpdatesSummary,
+    stream_install, CheckResult, UpdateInfo, UpdatesSummary, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
 #[tauri::command]
@@ -326,6 +326,7 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
                 "pnpm".into(),
                 "npm".into(),
                 vec!["install".into(), "-g".into(), "pnpm".into()],
+                DEFAULT_INSTALL_TIMEOUT_SEC,
             )
             .await
         }
@@ -335,6 +336,7 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
                 "yarn".into(),
                 "npm".into(),
                 vec!["install".into(), "-g".into(), "yarn".into()],
+                DEFAULT_INSTALL_TIMEOUT_SEC,
             )
             .await
         }
@@ -344,6 +346,7 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
                 "tauri-cli".into(),
                 "npm".into(),
                 vec!["install".into(), "-g".into(), "@tauri-apps/cli".into()],
+                DEFAULT_INSTALL_TIMEOUT_SEC,
             )
             .await
         }
@@ -369,6 +372,7 @@ pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<S
             key.clone(),
             "npm".into(),
             vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
+            DEFAULT_INSTALL_TIMEOUT_SEC,
         )
         .await;
     }
