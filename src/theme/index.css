@@ -5,6 +5,9 @@
 @import "./theme-light.css";
 @import "./theme-amber.css";
 @import "./theme-glacier.css";
+@import "./theme-phosphor.css";
+@import "./theme-midnight.css";
+@import "./theme-high-contrast.css";
 @import "./accents.css";
 
 *,

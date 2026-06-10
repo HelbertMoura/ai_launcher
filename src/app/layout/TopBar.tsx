@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Density } from "../../hooks/useDensity";
-import type { Theme } from "../../hooks/useTheme";
+import { nextTheme, type Theme } from "../../hooks/useTheme";
 import { getLocale, setLocale, type Locale } from "../../i18n";
 import "./TopBar.css";
 
@@ -25,13 +25,19 @@ const THEME_ICON: Record<Theme, string> = {
   light: "☀",
   amber: "◉",
   glacier: "❄",
+  phosphor: "▣",
+  midnight: "✦",
+  "high-contrast": "◧",
 };
 
-const THEME_NEXT_I18N_KEY: Record<Theme, string> = {
-  dark: "topBar.themeToLight",
-  light: "topBar.themeToAmber",
-  amber: "topBar.themeToGlacier",
-  glacier: "topBar.themeToDark",
+const THEME_LABEL: Record<Theme, string> = {
+  dark: "Dark",
+  light: "Light",
+  amber: "Amber",
+  glacier: "Glacier",
+  phosphor: "Phosphor",
+  midnight: "Midnight",
+  "high-contrast": "High Contrast",
 };
 
 export function TopBar({
@@ -44,7 +50,7 @@ export function TopBar({
   onToggleDensity,
 }: TopBarProps) {
   const { t } = useTranslation();
-  const toggleLabel = t(THEME_NEXT_I18N_KEY[theme]);
+  const toggleLabel = t("topBar.themeToNext", { theme: THEME_LABEL[nextTheme(theme)] });
   const densityLabel =
     density === "compact" ? t("topBar.densityToComfortable") : t("topBar.densityToCompact");
   const locale = getLocale();

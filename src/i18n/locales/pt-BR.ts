@@ -58,6 +58,7 @@ export const ptBR = {
     themeToDark: "Mudar para tema escuro",
     themeToAmber: "Mudar para tema âmbar",
     themeToGlacier: "Mudar para tema glacier",
+    themeToNext: "Mudar para tema {{theme}}",
     densityToCompact: "Densidade compacta",
     densityToComfortable: "Densidade confortável",
   },

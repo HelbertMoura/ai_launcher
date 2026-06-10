@@ -60,6 +60,7 @@ export const en: Dictionary = {
     themeToDark: "Switch to dark theme",
     themeToAmber: "Switch to amber theme",
     themeToGlacier: "Switch to glacier theme",
+    themeToNext: "Switch to {{theme}} theme",
     densityToCompact: "Compact density",
     densityToComfortable: "Comfortable density",
   },

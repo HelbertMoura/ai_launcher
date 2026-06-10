@@ -15,7 +15,25 @@ import { AutoStartToggle } from "./AutoStartToggle";
 import { HotkeyField } from "./HotkeyField";
 import { NotificationsToggle } from "./NotificationsToggle";
 
-const THEMES: Theme[] = ["dark", "light", "amber", "glacier"];
+const THEMES: Theme[] = [
+  "dark",
+  "light",
+  "amber",
+  "glacier",
+  "phosphor",
+  "midnight",
+  "high-contrast",
+];
+
+const THEME_LABELS: Record<Theme, string> = {
+  dark: "Dark",
+  light: "Light",
+  amber: "Amber",
+  glacier: "Glacier",
+  phosphor: "Phosphor",
+  midnight: "Midnight",
+  "high-contrast": "High Contrast",
+};
 
 function readStoredFont(): FontId {
   try {
@@ -94,7 +112,7 @@ export function AppearanceSection() {
                 variant={theme === th ? "primary" : "ghost"}
                 onClick={() => setTheme(th)}
               >
-                {th}
+                {THEME_LABELS[th]}
               </Button>
             ))}
           </div>
