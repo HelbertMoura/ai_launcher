@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type SessionStatus = "starting" | "running" | "completed" | "failed" | "unknown";
+export type SessionStatus =
+  | "starting"
+  | "running"
+  | "completed"
+  | "failed"
+  | "detached"
+  | "unknown";
 
 export interface HistoryItem {
   cli: string;
@@ -34,7 +40,14 @@ function migrateItem(item: Record<string, unknown>): HistoryItem {
   const status = item.status as string | undefined;
   // Map old status values to new ones
   let migratedStatus: SessionStatus;
-  if (status === "starting" || status === "running" || status === "completed" || status === "failed" || status === "unknown") {
+  if (
+    status === "starting" ||
+    status === "running" ||
+    status === "completed" ||
+    status === "failed" ||
+    status === "detached" ||
+    status === "unknown"
+  ) {
     migratedStatus = status;
   } else if (status === "finished") {
     migratedStatus = "completed";
@@ -86,6 +99,21 @@ function readItems(): HistoryItem[] {
   }
 }
 
+// In-tab change notifier. The browser `storage` event only fires across tabs,
+// so same-tab mutations (e.g. a session-ended listener calling markSessionEnded)
+// would not refresh React state. Subscribers registered here are notified on
+// every write so the history UI updates live.
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function notify(): void {
+  listeners.forEach((l) => l());
+}
+
 function writeItems(items: HistoryItem[]): void {
   try {
     const raw = localStorage.getItem(CONFIG_KEY);
@@ -95,6 +123,7 @@ function writeItems(items: HistoryItem[]): void {
   } catch {
     /* ignore */
   }
+  notify();
 }
 
 /** Update the status of a history entry by sessionId. */
@@ -112,16 +141,27 @@ export function updateSessionStatus(
 /** Mark a session as completed or failed. */
 export function markSessionEnded(
   sessionId: string,
-  outcome: { status: "completed" | "failed"; exitCode?: number | null; errorMessage?: string },
+  outcome: {
+    status: "completed" | "failed";
+    exitCode?: number | null;
+    errorMessage?: string;
+    /** Real process duration in ms (from the backend), preferred when present. */
+    durationMs?: number;
+  },
 ): void {
   const completedAt = new Date().toISOString();
   const items = readItems();
   const idx = items.findIndex((it) => it.sessionId === sessionId);
   if (idx === -1) return;
   const item = items[idx];
-  const startedMs = Date.parse(item.startedAt);
-  const duration = Number.isNaN(startedMs) ? undefined : Date.now() - startedMs;
-  items[idx] = { ...item, ...outcome, completedAt, duration };
+  const { durationMs, ...rest } = outcome;
+  // Prefer the backend-measured duration; fall back to wall clock since start.
+  let duration = durationMs;
+  if (duration === undefined) {
+    const startedMs = Date.parse(item.startedAt);
+    duration = Number.isNaN(startedMs) ? undefined : Date.now() - startedMs;
+  }
+  items[idx] = { ...item, ...rest, completedAt, duration };
   writeItems(items);
 }
 
@@ -162,7 +202,12 @@ export function useHistory(): {
       if (e.key === CONFIG_KEY) refresh();
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    // Also refresh on same-tab writes (e.g. the session-ended listener).
+    const unsub = subscribe(refresh);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      unsub();
+    };
   }, [refresh]);
 
   return { items, clear, refresh, updateItem, removeItem };
