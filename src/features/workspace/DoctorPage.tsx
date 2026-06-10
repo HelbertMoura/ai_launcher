@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
+import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
+import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
 import "../page.css";
 import "./DoctorPage.css";
 
@@ -33,6 +36,14 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [fixing, setFixing] = useState<string | null>(null);
   const [dryRun, setDryRun] = useState(dryRunProp);
+  // Fix awaiting user preview/confirmation before it actually runs.
+  const [pendingFix, setPendingFix] = useState<{
+    item: DoctorItem;
+    preview: CommandPreview;
+  } | null>(null);
+  // Whether the user acknowledged a dangerous command in the preview. Gates the
+  // confirm button so a risky repair cannot run without explicit consent.
+  const [fixAcknowledged, setFixAcknowledged] = useState(false);
 
   const runDiagnosis = useCallback(async () => {
     setLoading(true);
@@ -55,22 +66,41 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     void runDiagnosis();
   }, [runDiagnosis]);
 
+  // Step 1: opening a fix only builds a preview and asks for confirmation.
+  // The repair command is NOT executed until the user confirms.
   const handleFix = useCallback(
-    async (item: DoctorItem) => {
+    (item: DoctorItem) => {
       if (dryRun) return;
-      setFixing(item.check.key);
-      try {
-        await invoke("install_prerequisite", { key: item.check.key });
-        // Re-run diagnosis after fix
-        await runDiagnosis();
-      } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-      } finally {
-        setFixing(null);
-      }
+      const command = item.check.install_command ?? "";
+      const preview = buildPreview(command, "", {});
+      setFixAcknowledged(false);
+      setPendingFix({ item, preview });
     },
-    [dryRun, runDiagnosis],
+    [dryRun],
   );
+
+  // Step 2: the user confirmed in the preview — run the actual repair.
+  const confirmFix = useCallback(async () => {
+    if (!pendingFix) return;
+    const { item } = pendingFix;
+    setPendingFix(null);
+    setFixAcknowledged(false);
+    setFixing(item.check.key);
+    try {
+      await invoke("install_prerequisite", { key: item.check.key });
+      // Re-run diagnosis after fix
+      await runDiagnosis();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setFixing(null);
+    }
+  }, [pendingFix, runDiagnosis]);
+
+  const cancelFix = useCallback(() => {
+    setPendingFix(null);
+    setFixAcknowledged(false);
+  }, []);
 
   const critical = items.filter((i) => i.severity === "critical");
   const warnings = items.filter((i) => i.severity === "warning");
@@ -154,6 +184,36 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
           dryRun={dryRun}
           onFix={handleFix}
         />
+      )}
+
+      {pendingFix && (
+        <ConfirmDialog
+          open
+          variant={
+            pendingFix.preview.riskLevel === "dangerous" ? "danger" : "normal"
+          }
+          title={t("doctor.confirmFixTitle", {
+            name: pendingFix.item.check.name,
+          })}
+          message={t("doctor.confirmFixMessage")}
+          confirmLabel={t("doctor.fix")}
+          cancelLabel={t("common.cancel")}
+          onConfirm={() => {
+            // Block confirmation of a dangerous command until acknowledged.
+            if (pendingFix.preview.riskLevel === "dangerous" && !fixAcknowledged)
+              return;
+            void confirmFix();
+          }}
+          onCancel={cancelFix}
+        >
+          <SafeCommandPreview
+            preview={pendingFix.preview}
+            onConfirm={() => void confirmFix()}
+            onCancel={cancelFix}
+            hideActions
+            onAckChange={setFixAcknowledged}
+          />
+        </ConfirmDialog>
       )}
     </section>
   );
