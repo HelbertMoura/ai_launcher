@@ -2,13 +2,40 @@
   "version": 1,
   "bugs": [
     {
+      "id": "bug-058",
+      "timestamp": "2026-06-10T06:30:00.000Z",
+      "error_message": "Stop hook error: Cannot find module 'C:\\...\\src-tauri\\.wolf\\hooks\\stop.js' (MODULE_NOT_FOUND)",
+      "file": "src-tauri/.claude/settings.json",
+      "root_cause": "Hooks do OpenWolf usam $CLAUDE_PROJECT_DIR/.wolf/hooks/*. Com a sessao iniciada em src-tauri/, CLAUDE_PROJECT_DIR resolve para src-tauri/ mas .wolf so existe na raiz do projeto — entao node nao acha stop.js (nem os outros hooks).",
+      "fix": "Criado symlink src-tauri/.wolf -> ../.wolf (New-Item SymbolicLink) e adicionado src-tauri/.wolf ao .gitignore para nao versionar o link. Hooks passam a resolver normalmente apontando para o .wolf unico da raiz.",
+      "tags": [
+        "openwolf",
+        "hooks",
+        "windows",
+        "symlink",
+        "module-not-found",
+        "tauri",
+        "cwd"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T06:30:00.000Z"
+    },
+    {
       "id": "bug-057",
       "timestamp": "2026-06-10T05:45:00.000Z",
       "error_message": "Workflow review final reportou que Batch E (CSS) nao implementou --ok/--warn/--err em light/glacier nem prefers-reduced-motion em tokens.css, apesar dos reviewers internos do workflow terem aprovado",
       "file": "src/theme/theme-light.css, theme-glacier.css, tokens.css",
       "root_cause": "Os subagentes reviewers (spec + quality) do workflow aprovaram com base no RELATORIO TEXTUAL do implementer, nao no git diff real. O implementer do Batch E relatou ter feito as mudancas de tema mas elas nao persistiram na arvore (provavelmente perda de contexto/limite de sessao). Verificacao baseada em auto-relato falha silenciosamente.",
       "fix": "Implementado manualmente: --ok #1a7f37 / --warn #9a6700 / --err #d62929 em theme-light.css; tons equivalentes em theme-glacier.css; bloco global @media (prefers-reduced-motion: reduce) em tokens.css. Sempre confirmar findings de workflow contra git diff real antes de commitar.",
-      "tags": ["workflow", "verification", "css", "theme", "a11y", "subagent"],
+      "tags": [
+        "workflow",
+        "verification",
+        "css",
+        "theme",
+        "a11y",
+        "subagent"
+      ],
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-10T05:45:00.000Z"
