@@ -250,3 +250,109 @@
 | 11:42 | Revisao final T1+T4: fmt/check/clippy/build/tsc/test todos verdes; grep confirma config.rs le .claude/projects + .codex/sessions (sem usage.jsonl), gemini removido, provider em UsageEntry; storage/ com zod + configIO registry-driven | config.rs, src/lib/storage/*, configIO.ts | aprovado | ~9k |
 | 11:30 | Beta1 v16 concluida: T1 Usage Engine real (.claude/projects + .codex/sessions), T2 Budget por provider, T3 Session Engine (session-ended events), T4 Persistencia unificada (storage/ zod registry) | config.rs, session.rs, budget.ts, src/lib/storage/* | sucesso: build+tsc+75 vitest+38 cargo+clippy verdes | ~3.3M (32 agentes em 2 workflows) |
 | 11:32 | T1 perdeu-se na 1a rodada (config.rs revertido durante T3/T4, recorrencia bug-057→bug-059); re-executado isolado e persistiu | config.rs | resolvido | - |
+| 11:46 | Session end: 197 writes across 66 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 89 reads | ~165082 tok |
+| 13:56 | Session end: 197 writes across 66 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 89 reads | ~165082 tok |
+| 13:58 | Edited Cargo.toml | 2→3 lines | ~21 |
+| 14:00 | Created src/commands/mcp.rs | — | ~9259 |
+| 14:00 | Edited src/commands/mod.rs | 2→3 lines | ~11 |
+| 14:00 | Edited src/main.rs | expanded (+6 lines) | ~83 |
+| 14:45 | B1 MCP backend: novo modulo commands/mcp.rs (list/add/update/remove/health) + toml_edit dep + registro mod.rs/main.rs | src-tauri/src/commands/mcp.rs, mod.rs, main.rs, Cargo.toml | fmt+check+clippy-Dwarnings limpos; cargo test 52/52 (14 novos mcp) | ~32k |
+| 14:03 | Edited ../.wolf/anatomy.md | 1→2 lines | ~235 |
+| 14:11 | Created ../src/features/mcp/types.ts | — | ~552 |
+| 14:11 | Created ../src/features/mcp/catalog.ts | — | ~1592 |
+| 14:12 | Created ../src/features/mcp/mcpStore.ts | — | ~654 |
+| 14:12 | Created ../src/features/mcp/useMcp.ts | — | ~577 |
+| 14:12 | Created ../src/features/mcp/McpServerDialog.tsx | — | ~2664 |
+| 14:13 | Created ../src/features/mcp/McpPage.tsx | — | ~2913 |
+| 14:13 | Created ../src/features/mcp/McpPage.css | — | ~875 |
+| 14:14 | Created ../src/features/mcp/catalog.test.ts | — | ~676 |
+| 14:14 | Edited ../src/app/layout/TabId.ts | 40→43 lines | ~278 |
+| 14:14 | Edited ../src/app/layout/TabId.ts | 12→13 lines | ~82 |
+| 14:14 | Edited ../src/app/App.tsx | 10→11 lines | ~58 |
+| 14:14 | Edited ../src/app/App.tsx | added 1 import(s) | ~49 |
+| 14:14 | Edited ../src/app/App.tsx | 2→3 lines | ~41 |
+| 14:14 | Edited ../src/app/layout/Sidebar.tsx | 2→3 lines | ~76 |
+| 14:14 | Edited ../src/i18n/locales/pt-BR.ts | 4→5 lines | ~29 |
+| 14:15 | Edited ../src/i18n/locales/pt-BR.ts | expanded (+32 lines) | ~386 |
+| 14:15 | Edited ../src/i18n/locales/en.ts | 3→4 lines | ~24 |
+| 14:15 | Edited ../src/i18n/locales/en.ts | expanded (+32 lines) | ~365 |
+| 14:16 | Edited ../src/features/command-palette/CommandPalette.tsx | CSS: mcp | ~29 |
+| 14:16 | Edited ../src/features/command-palette/CommandPalette.tsx | 4→5 lines | ~22 |
+| 14:17 | Edited ../.wolf/anatomy.md | expanded (+11 lines) | ~353 |
+
+| 14:18 | B2 MCP Manager UI: feature src/features/mcp/ (types/catalog/store/hook/dialog/page+css+test), nav (TabId+Sidebar+App+CommandPalette), i18n en+pt-BR. tsc+build+test OK (84 passed). Sem mudanca Rust. | src/features/mcp/*, App.tsx, Sidebar.tsx, TabId.ts, CommandPalette.tsx, en.ts, pt-BR.ts | DONE | ~38k |
+| 14:32 | Created src/commands/runbook.rs | — | ~1836 |
+| 14:32 | Edited src/commands/mod.rs | 2→3 lines | ~14 |
+| 14:32 | Edited src/main.rs | 2→4 lines | ~40 |
+| 14:32 | Edited ../src/features/workspace/RunbookRunner.tsx | added 2 import(s) | ~103 |
+| 14:33 | Edited ../src/features/workspace/RunbookRunner.tsx | added optional chaining | ~518 |
+| 14:33 | Edited ../src/features/workspace/RunbookRunner.tsx | added 1 condition(s) | ~845 |
+| 14:33 | Edited ../src/features/workspace/RunbookRunner.tsx | CSS: name, count, count | ~375 |
+| 14:34 | Created ../src/features/workspace/RunbooksPanel.tsx | — | ~1310 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | added 1 import(s) | ~32 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | 3→4 lines | ~68 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | added optional chaining | ~86 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | 3→3 lines | ~51 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | CSS: onOpen | ~173 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | inline fix | ~17 |
+| 14:34 | Edited ../src/features/workspace/WorkspacePage.tsx | inline fix | ~13 |
+| 14:34 | Edited ../src/i18n/locales/pt-BR.ts | expanded (+23 lines) | ~220 |
+| 14:35 | Edited ../src/i18n/locales/en.ts | expanded (+23 lines) | ~208 |
+| 14:36 | B3 Runbooks reais: backend run_runbook_step (powershell+timeout+sanitize/validate, 7 tests) + RunbookRunner com invoke real e fix stale-closure (cancelRef) + RunbooksPanel cabeado na WorkspacePage (list/edit/run via RunbooksCard) + i18n en/pt-BR | runbook.rs, mod.rs, main.rs, RunbookRunner.tsx, RunbooksPanel.tsx, WorkspacePage.tsx, Runbook.css, en.ts, pt-BR.ts | DONE — cargo fmt/check/clippy/test(59) + tsc/build/vitest(84) verdes | ~28k |
+| 14:45 | Created ../src/lib/projectProfile.ts | — | ~1363 |
+| 14:45 | Edited src/commands/cli.rs | modified get_all_clis() | ~400 |
+| 14:45 | Edited src/commands/cli.rs | modified launch_multi_clis() | ~673 |
+| 14:46 | Edited src/main.rs | 3→4 lines | ~48 |
+| 14:46 | Edited ../src/features/launcher/LaunchDialog.tsx | expanded (+6 lines) | ~168 |
+| 14:46 | Edited ../src/features/launcher/LaunchDialog.tsx | CSS: projectProfile, projectNotice | ~94 |
+| 14:46 | Edited ../src/features/launcher/LaunchDialog.tsx | expanded (+8 lines) | ~90 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | expanded (+13 lines) | ~189 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | CSS: projectProfile, projectNotice | ~39 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | 5→6 lines | ~29 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | added optional chaining | ~643 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | added 1 condition(s) | ~117 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | 5→6 lines | ~92 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | added optional chaining | ~333 |
+| 14:47 | Edited ../src/features/launcher/LaunchDialog.tsx | 3→6 lines | ~54 |
+| 14:48 | Edited ../src/i18n/locales/pt-BR.ts | 3→8 lines | ~80 |
+| 14:48 | Edited ../src/i18n/locales/en.ts | 4→9 lines | ~74 |
+| 14:48 | Edited ../src/features/launcher/LaunchDialog.tsx | modified t() | ~57 |
+| 14:48 | Created ../src/lib/projectProfile.test.ts | — | ~1300 |
+
+## Session: 2026-06-10 B4 (Perfis por projeto)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 14:45 | Criado schema zod + parser + merge env | src/lib/projectProfile.ts | parseProjectProfile/mergeLaunchEnv/readProjectProfile | ~1200 |
+| 14:46 | Comando Rust read_project_profile + 4 testes | src-tauri/src/commands/cli.rs | le .ailauncher.json, valida dir, cap 256KiB | ~900 |
+| 14:47 | Registrado comando no invoke_handler | src-tauri/src/main.rs | read_project_profile | ~60 |
+| 14:48 | LaunchDialog: pre-fill + merge env (fix workspace decorativo) | src/features/launcher/LaunchDialog.tsx | precedencia projeto>workspace>default | ~1400 |
+| 14:49 | i18n keys projectProfile (applied/otherCli) | src/i18n/locales/{en,pt-BR}.ts | banner info | ~120 |
+| 14:50 | Testes vitest projectProfile (parse+merge) | src/lib/projectProfile.test.ts | 15/15 | ~900 |
+| 14:51 | Validacao: cargo fmt+check+clippy -D warnings limpos; cargo test 63/63; tsc limpo; build OK; vitest 99/99 | — | tudo verde | ~200 |
+| 14:51 | Edited ../.wolf/cerebrum.md | 1→3 lines | ~502 |
+| 14:52 | Edited ../.wolf/buglog.json | expanded (+20 lines) | ~484 |
+| 16:03 | Created ../src/theme/theme-phosphor.css | — | ~256 |
+| 16:03 | Created ../src/theme/theme-midnight.css | — | ~236 |
+| 16:03 | Created ../src/theme/theme-high-contrast.css | — | ~370 |
+| 16:03 | Created ../src/theme/contract.ts | — | ~555 |
+| 16:03 | Edited ../src/theme/index.css | 3→6 lines | ~53 |
+| 16:04 | Edited ../src/hooks/useTheme.ts | modified isTheme() | ~128 |
+| 16:04 | Edited ../src/features/admin/sections/AppearanceSection.tsx | expanded (+18 lines) | ~94 |
+| 16:04 | Edited ../src/features/admin/sections/AppearanceSection.tsx | 4→4 lines | ~34 |
+| 16:04 | Edited ../src/features/onboarding/OnboardingPage.tsx | expanded (+18 lines) | ~94 |
+| 16:04 | Edited ../src/features/onboarding/OnboardingPage.tsx | 4→4 lines | ~39 |
+| 16:05 | Created ../src/theme/theme-contract.test.ts | — | ~746 |
+| 16:06 | Edited ../src/theme/theme-amber.css | CSS: --ok, --warn, --err | ~86 |
+| 16:06 | Created ../src/theme/theme-contract.test.ts | — | ~721 |
+| 16:07 | Edited ../src/app/layout/TopBar.tsx | expanded (+6 lines) | ~106 |
+| 16:07 | Edited ../src/app/layout/TopBar.tsx | inline fix | ~18 |
+| 16:07 | Edited ../src/app/layout/TopBar.tsx | inline fix | ~26 |
+| 16:07 | Edited ../src/i18n/locales/en.ts | 2→3 lines | ~38 |
+| 16:08 | Edited ../src/i18n/locales/pt-BR.ts | 2→3 lines | ~39 |
+| 16:08 | Edited ../src/features/command-palette/CommandPalette.tsx | CSS: phosphor, midnight | ~47 |
+| 16:09 | Created ../src/theme/theme-contract.test.ts | — | ~747 |
+| 16:10 | Edited ../src/theme/theme-contract.test.ts | modified loadCss() | ~308 |
+| 16:11 | Edited ../tsconfig.json | 2→3 lines | ~24 |
+| 16:20 | Beta2 v16 concluida: B1 MCP backend (mcp.rs CRUD 3 formatos+backup), B2 MCP Manager UI, B3 Runbooks reais (run_runbook_step), B4 perfis por projeto (.ailauncher.json+env merge), B5 Theme Foundry (contract+teste+3 temas Phosphor/Midnight/HighContrast) | mcp.rs, src/features/mcp/, runbook, projectProfile, src/theme/* | sucesso: build+tsc+122 vitest+63 cargo+clippy verdes | ~3M (28+8 agentes) |
+| 16:22 | B5 implementado inline (limite de sessao no workflow); teste de contrato pegou amber sem --ok/--warn/--err e 3 Record<Theme> incompletos (TopBar/CommandPalette/Appearance) | src/theme/*, useTheme.ts | resolvido | ~80k |

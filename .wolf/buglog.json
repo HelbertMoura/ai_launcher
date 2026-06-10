@@ -1227,6 +1227,301 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-10T14:26:07.500Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-06-10T17:14:35.944Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Had \"../features/history/HistoryPage\"",
+      "fix": "Changed to \"../features/mcp/McpPage\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:14:40.530Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-06-10T17:14:46.192Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/app/layout/Sidebar.tsx",
+      "root_cause": "Had \"history\"",
+      "fix": "Changed to \"mcp\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:14:46.192Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-06-10T17:32:16.915Z",
+      "error_message": "Wrong reference: self_update should be runbook",
+      "file": "src/commands/mod.rs",
+      "root_cause": "Used \"self_update\" instead of \"runbook\"",
+      "fix": "Changed self_update → runbook",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:32:16.915Z"
+    },
+    {
+      "id": "bug-078",
+      "timestamp": "2026-06-10T17:33:09.048Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:33:09.048Z"
+    },
+    {
+      "id": "bug-079",
+      "timestamp": "2026-06-10T17:33:30.415Z",
+      "error_message": "CSS fix: status",
+      "file": "../src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "status: 'skipped', output: 'Stopped by user.' → 'skipped', output: t('runbook.run.stopped')",
+      "fix": "Changed status: 'skipped', output: 'Stopped by user.' → 'skipped', output: t('runbook.run.stopped')",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:33:30.415Z"
+    },
+    {
+      "id": "bug-080",
+      "timestamp": "2026-06-10T17:34:22.191Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/workspace/WorkspacePage.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:34:22.191Z"
+    },
+    {
+      "id": "bug-081",
+      "timestamp": "2026-06-10T17:37:44.666Z",
+      "error_message": "RunbookRunner: executeStep era setTimeout mock (ok:true sempre); loop quebrava na 1a iteracao por if(!running)break com running stale; RunbookRunner/RunbookEditor orfaos (nao montados)",
+      "file": "src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "executeStep simulado nunca chamava o backend; flag de cancelamento usava state running capturado stale pelo closure async (false logo apos setRunning(true)); UI nao tinha caminho de edicao/exclusao/execucao",
+      "fix": "Novo comando Rust run_runbook_step (powershell+timeout+sanitize_args+validate_directory). executeStep agora invoke real mapeando snake->camel. Flag de cancelamento migrada para useRef (cancelRef.current). RunbooksPanel.tsx cabeado na WorkspacePage (list/edit/run) via estado showRunbooks; RunbooksCard.onOpen abre o painel.",
+      "tags": [
+        "runbook",
+        "stale-closure",
+        "useRef",
+        "tauri-invoke",
+        "phantom-feature",
+        "b3"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:37:44.666Z"
+    },
+    {
+      "id": "bug-082",
+      "timestamp": "2026-06-10T17:46:55.789Z",
+      "error_message": "CSS fix: type",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "type: \"setShowPreview\" → \"clearProjectProfile\"",
+      "fix": "Changed type: \"setShowPreview\" → \"clearProjectProfile\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:48:36.654Z"
+    },
+    {
+      "id": "bug-083",
+      "timestamp": "2026-06-10T17:47:01.433Z",
+      "error_message": "Wrong return value",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "Was returning: { ...state, directory: action.value };",
+      "fix": "Now returns: { ...state, directory: action.value, projectProfil",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:47:01.433Z"
+    },
+    {
+      "id": "bug-084",
+      "timestamp": "2026-06-10T17:47:23.522Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // Default env: the selected Claude provider's env (when app; let defaultEnv: Record<string, string> | undefined;",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:47:44.720Z"
+    },
+    {
+      "id": "bug-085",
+      "timestamp": "2026-06-10T14:51:00.000Z",
+      "error_message": "Workspace decorativo: WorkspaceProfile.envVars (e directory) eram persistidos mas NUNCA aplicados a nenhum launch — a auditoria notou que o env do workspace ativo nao chegava ao launch_cli.",
+      "file": "src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "doLaunch so montava envVars a partir do provider Claude selecionado (buildLaunchEnvAsync). O env do workspace ativo e o env de perfil de projeto nunca eram lidos nem mesclados, entao a config de workspace era puramente cosmetica.",
+      "fix": "B4: novo src/lib/projectProfile.ts com mergeLaunchEnv(default, workspace, project) — precedencia projeto>workspace>default. doLaunch agora le getActiveWorkspace(loadWorkspaces()).envVars + projectProfile.env (de .ailauncher.json via comando Rust read_project_profile) e mescla com o provider-env. Passa null ao backend quando merged vazio (preserva contrato Rust de so limpar ANTHROPIC_*/CLAUDE_* quando env_vars=Some). LaunchDialog le o .ailauncher.json em pickDirectory/recent-dir/boot e pre-preenche directory/provider. 15 testes vitest (parse + merge) + 4 testes Rust (read_project_profile). Validado: cargo fmt+check+clippy -D warnings; cargo test 63/63; tsc limpo; build OK; vitest 99/99.",
+      "tags": [
+        "workspace",
+        "decorative",
+        "env-merge",
+        "project-profile",
+        "ailauncher-json",
+        "b4",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:51:00.000Z"
+    },
+    {
+      "id": "bug-086",
+      "timestamp": "2026-06-10T19:03:55.130Z",
+      "error_message": "Missing import: ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "file": "../src/theme/index.css",
+      "root_cause": "Module(s) not imported: ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "fix": "Added import(s) for ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:03:55.130Z"
+    },
+    {
+      "id": "bug-087",
+      "timestamp": "2026-06-10T19:04:01.454Z",
+      "error_message": "Wrong operator: || should be &&",
+      "file": "../src/hooks/useTheme.ts",
+      "root_cause": "Used \"||\" instead of \"&&\"",
+      "fix": "Changed operator || → &&",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:01.454Z"
+    },
+    {
+      "id": "bug-088",
+      "timestamp": "2026-06-10T19:04:31.156Z",
+      "error_message": "CSS fix: THEMES",
+      "file": "../src/features/admin/sections/AppearanceSection.tsx",
+      "root_cause": "THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "fix": "Changed THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:31.156Z"
+    },
+    {
+      "id": "bug-089",
+      "timestamp": "2026-06-10T19:04:53.253Z",
+      "error_message": "CSS fix: THEMES",
+      "file": "../src/features/onboarding/OnboardingPage.tsx",
+      "root_cause": "THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "fix": "Changed THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:53.253Z"
+    },
+    {
+      "id": "bug-090",
+      "timestamp": "2026-06-10T19:07:38.657Z",
+      "error_message": "Type error",
+      "file": "../src/app/layout/TopBar.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:07:38.657Z"
+    },
+    {
+      "id": "bug-091",
+      "timestamp": "2026-06-10T19:07:56.814Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Had \"Compact density\"",
+      "fix": "Changed to \"Switch to {{theme}} theme\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:07:56.814Z"
+    },
+    {
+      "id": "bug-092",
+      "timestamp": "2026-06-10T19:08:05.757Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/pt-BR.ts",
+      "root_cause": "Had \"Densidade compacta\"",
+      "fix": "Changed to \"Mudar para tema {{theme}}\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:08:05.757Z"
     }
   ]
 }
