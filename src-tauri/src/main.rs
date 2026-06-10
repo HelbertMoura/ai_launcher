@@ -107,6 +107,12 @@ fn main() {
             commands::system::set_tray_hotkey,
             commands::system::get_minimize_to_tray,
             commands::system::set_minimize_to_tray,
+            // commands::mcp
+            commands::mcp::list_mcp_servers,
+            commands::mcp::add_mcp_server,
+            commands::mcp::update_mcp_server,
+            commands::mcp::remove_mcp_server,
+            commands::mcp::mcp_health_check,
             // secrets
             secrets::store_secret,
             secrets::get_secret,

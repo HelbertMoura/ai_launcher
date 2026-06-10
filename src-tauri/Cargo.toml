@@ -30,6 +30,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 thiserror = "1.0"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
+toml_edit = "0.22"
 
 [features]
 default = ["custom-protocol"]
