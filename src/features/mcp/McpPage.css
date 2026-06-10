@@ -1,0 +1,180 @@
+.cd-mcp__head-actions {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+}
+
+.cd-mcp__group {
+  margin-bottom: var(--s-6);
+}
+
+.cd-mcp__group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.cd-mcp__group-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+
+.cd-mcp__group-head .cd-btn {
+  margin-left: auto;
+}
+
+/* ---- Server card ---- */
+
+.cd-mcp__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-mcp__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.cd-mcp__card-name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-mcp__card-badges {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.cd-mcp__card-cmd,
+.cd-mcp__catalog-cmd {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface-2, rgba(127, 127, 127, 0.08));
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 6px 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cd-mcp__card-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.cd-mcp__card-foot,
+.cd-mcp__catalog-foot {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: auto;
+  padding-top: var(--s-2);
+}
+
+/* ---- Catalog ---- */
+
+.cd-mcp__catalog {
+  margin-top: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--border);
+}
+
+.cd-mcp__catalog-sub {
+  margin: 4px 0 var(--s-4);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.cd-mcp__catalog-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.cd-mcp__catalog-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.cd-mcp__catalog-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ---- Dialog form ---- */
+
+.cd-mcp-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cd-mcp-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cd-mcp-form__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.cd-mcp-form__select {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 8px 10px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+
+.cd-mcp-form__hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.cd-mcp-form__hint--err {
+  color: var(--danger, #e5484d);
+}
+
+.cd-mcp-form__kv {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.cd-mcp-form__error {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--danger, #e5484d);
+}

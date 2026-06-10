@@ -7,6 +7,7 @@ import { useHistory } from "../features/history/useHistory";
 import { useSessionEvents } from "../features/history/useSessionEvents";
 import { LauncherPage } from "../features/launcher/LauncherPage";
 import { ToolsPage } from "../features/tools/ToolsPage";
+import { McpPage } from "../features/mcp/McpPage";
 import { HistoryPage } from "../features/history/HistoryPage";
 import { CostsPage } from "../features/costs/CostsPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
@@ -48,12 +49,13 @@ const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navig
 const DIGIT_TABS: Record<string, TabId> = {
   "1": "launcher",
   "2": "tools",
-  "3": "history",
-  "4": "costs",
-  "5": "workspace",
-  "6": "doctor",
-  "7": "updates",
-  "8": "prereqs",
+  "3": "mcp",
+  "4": "history",
+  "5": "costs",
+  "6": "workspace",
+  "7": "doctor",
+  "8": "updates",
+  "9": "prereqs",
 };
 
 export function App() {
@@ -180,6 +182,7 @@ export function App() {
         <main className="cd-app__main">
           {active === "launcher" && <LauncherPage />}
           {active === "tools" && <ToolsPage />}
+          {active === "mcp" && <McpPage />}
           {active === "history" && <HistoryPage />}
           {active === "costs" && <CostsPage />}
           {active === "workspace" && <WorkspacePage onNavigate={setActive} />}
