@@ -5,6 +5,7 @@ import type { PrereqCheck } from "../prereqs/usePrerequisites";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
+import { reportDoctorResults } from "../inbox/inboxStore";
 import "../page.css";
 import "./DoctorPage.css";
 
@@ -55,6 +56,9 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
         severity: classify(check.key),
       }));
       setItems(classified);
+      reportDoctorResults(
+        results.map((r) => ({ key: r.key, name: r.name, installed: r.installed })),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
