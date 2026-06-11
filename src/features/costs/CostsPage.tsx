@@ -7,6 +7,9 @@ import { Skeleton } from "../../ui/Skeleton";
 import { useUsage, type UsageEntry } from "./useUsage";
 import { toCsv, downloadBlob } from "../../lib/exportData";
 import { BudgetDashboard } from "./BudgetDashboard";
+import { AreaChart } from "../../ui/charts/AreaChart";
+import { BarList } from "../../ui/charts/BarList";
+import { byModel, byProject, dailySeries, trend } from "./analytics";
 import "../page.css";
 import "./CostsPage.css";
 
@@ -58,6 +61,28 @@ export function CostsPage() {
       .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
     return { todayTotal, cliRollups: rollup(entries) };
   }, [report]);
+
+  const analytics = useMemo(() => {
+    const entries = report?.entries ?? [];
+    return {
+      series: dailySeries(entries, 30),
+      projects: byProject(entries, 30, 8),
+      models: byModel(entries, 30),
+      trend30: trend(entries, 30),
+    };
+  }, [report]);
+
+  const trendLabel = useMemo(() => {
+    const { deltaPct } = analytics.trend30;
+    if (deltaPct === null) return t("costs.trendNew");
+    const signed = `${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(0)}%`;
+    return t("costs.trendVsPrev", { delta: signed });
+  }, [analytics.trend30, t]);
+
+  const tokens30d = useMemo(
+    () => analytics.series.reduce((s, p) => s + p.tokensIn + p.tokensOut, 0),
+    [analytics.series],
+  );
 
   const hasData = (report?.entries.length ?? 0) > 0;
   const entries = report?.entries ?? [];
@@ -137,6 +162,48 @@ export function CostsPage() {
               </button>
             </div>
           </Card>
+
+          <div className="cd-page__grid cd-costs__analytics-cards">
+            <Card className="cd-costs__stat">
+              <div className="cd-costs__stat-label">{t("costs.cost30d")}</div>
+              <div className="cd-costs__stat-value">{formatUsd(analytics.trend30.currentUsd)}</div>
+              <div className="cd-costs__stat-sub">{trendLabel}</div>
+            </Card>
+            <Card className="cd-costs__stat">
+              <div className="cd-costs__stat-label">{t("costs.tokens30d")}</div>
+              <div className="cd-costs__stat-value">{tokens30d.toLocaleString()}</div>
+            </Card>
+          </div>
+
+          <Card className="cd-costs__chart-card">
+            <h3 className="cd-costs__section">{t("costs.seriesTitle")}</h3>
+            <AreaChart
+              data={analytics.series.map((p) => ({ label: p.date.slice(5), value: p.costUsd }))}
+              ariaLabel={t("costs.seriesTitle")}
+              formatValue={formatUsd}
+            />
+          </Card>
+
+          <div className="cd-page__grid cd-costs__rankings">
+            <Card>
+              <h3 className="cd-costs__section">{t("costs.topProjects")}</h3>
+              <BarList
+                items={analytics.projects.map((r) => ({ label: r.label, value: r.costUsd, share: r.share }))}
+                ariaLabel={t("costs.topProjects")}
+                formatValue={formatUsd}
+                fallbackLabel={t("costs.otherBucket")}
+              />
+            </Card>
+            <Card>
+              <h3 className="cd-costs__section">{t("costs.byModelTitle")}</h3>
+              <BarList
+                items={analytics.models.map((r) => ({ label: r.label, value: r.costUsd, share: r.share }))}
+                ariaLabel={t("costs.byModelTitle")}
+                formatValue={formatUsd}
+                fallbackLabel={t("costs.otherBucket")}
+              />
+            </Card>
+          </div>
 
           {cliRollups.length > 0 && (
             <>
