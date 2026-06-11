@@ -1,11 +1,17 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-10T19:11:46.805Z
-> Files: 60 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-11T10:36:34.180Z
+> Files: 63 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../
 
 - `tsconfig.json` — TypeScript configuration (~183 tok)
+
+## ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/
+
+- `MEMORY.md` — Memory Index (~85 tok)
+- `v16-roadmap-progress.md` (~446 tok)
+- `workflow-commit-imediato.md` (~392 tok)
 
 ## ../.wolf/
 

@@ -356,3 +356,25 @@
 | 16:11 | Edited ../tsconfig.json | 2→3 lines | ~24 |
 | 16:20 | Beta2 v16 concluida: B1 MCP backend (mcp.rs CRUD 3 formatos+backup), B2 MCP Manager UI, B3 Runbooks reais (run_runbook_step), B4 perfis por projeto (.ailauncher.json+env merge), B5 Theme Foundry (contract+teste+3 temas Phosphor/Midnight/HighContrast) | mcp.rs, src/features/mcp/, runbook, projectProfile, src/theme/* | sucesso: build+tsc+122 vitest+63 cargo+clippy verdes | ~3M (28+8 agentes) |
 | 16:22 | B5 implementado inline (limite de sessao no workflow); teste de contrato pegou amber sem --ok/--warn/--err e 3 Record<Theme> incompletos (TopBar/CommandPalette/Appearance) | src/theme/*, useTheme.ts | resolvido | ~80k |
+| 16:13 | Session end: 283 writes across 94 files (2026-05-19-v15.2-antigravity-cli-design.md, 2026-05-19-v15.2-antigravity-cli-plan.md, util.rs, self_update.rs, cli.rs) | 122 reads | ~204938 tok |
+
+---
+## MARCO — Estado para proxima sessao (2026-06-11)
+
+**Branch:** `feat/v16-alpha-quick-wins` @ `8502f39` — 20 commits sobre `main`, arvore limpa, NADA pushado.
+**Validacao na branch:** build ok, tsc ok, 122 testes vitest ok, 63 testes cargo ok, clippy -D warnings ok. (NUNCA rodado `npm run tauri build` completo — so cargo check.)
+
+**Concluido (3 fases do roadmap v16, doc: docs/AUDITORIA-COMPLETA-v15.2.6-plano-v16.md):**
+- v16-alpha (QW A-F): seguranca (open::that, env-key validation, sanitize_args, checksum obrigatorio, kill_on_drop, npm via HTTP, tray dinamico), frontend (StatusBar subscribe, ConfirmDialog Enter, sessoes starting→unknown, budget alerts, Doctor preview), cleanup (lucide-react removido, presets/sessionTemplates/appSettings deletados), tema (--ok/--warn/--err AA em light/glacier, prefers-reduced-motion), docs (winget/choco "coming soon", axe e2e). + fix hook OpenWolf (symlink src-tauri/.wolf).
+- v16-beta1 (T1-T4): Usage Engine real (~/.claude/projects/**/*.jsonl + ~/.codex/sessions/**/rollout-*.jsonl, gemini removido, provider, cache mtime), Budget por provider, Session Engine (session-ended events, wt.exe=detached), persistencia unificada (src/lib/storage com zod registry).
+- v16-beta2 (B1-B5): MCP Manager backend (mcp.rs CRUD 3 formatos+backup) + UI (src/features/mcp/), Runbooks reais (run_runbook_step), perfis por projeto (.ailauncher.json + env merge), Theme Foundry (src/theme/contract.ts + theme-contract.test.ts + temas phosphor/midnight/high-contrast).
+
+**PROXIMO PASSO (decisao do usuario pendente):**
+1. RECOMENDADO ANTES DE TUDO: `npm run tauri build` (ou `npm run tauri dev`) real — 20 commits sem rodar o app empacotado. Validar de ponta a ponta.
+2. v16.0 "Polimento e distribuicao" (ultima fase): Agent Analytics, Agent Inbox na TopBar, epico AA completo (axe no CI, ARIA combobox no palette, h1 por pagina), assinatura Authenticode + winget/choco real.
+3. Abrir PR feat/v16-alpha-quick-wins → main (renomear a branch faz sentido — ela cresceu pra muito alem de "quick-wins"; sugerir `feat/v16` no PR).
+
+**Padrao de execucao que funcionou:** workflow sequencial (tarefas nao conflitam na arvore) com review spec+qualidade (rust-reviewer/typescript-reviewer) E **commit imediato pos-aprovacao dentro do workflow** (sem isso, T1 da beta1 se perdeu — bug-059). Limite de sessao da conta bate em workflows longos (~25-30 agentes); fatiar em <5 tarefas grandes por workflow. SEMPRE validar diff real (grep do conteudo, nao auto-relato) antes de commitar — bug-057/059.
+| 07:36 | Created ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/v16-roadmap-progress.md | — | ~455 |
+| 07:36 | Created ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/workflow-commit-imediato.md | — | ~398 |
+| 07:36 | Created ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/MEMORY.md | — | ~91 |
