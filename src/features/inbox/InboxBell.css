@@ -1,0 +1,160 @@
+/* Inbox bell + dropdown panel — themed exclusively via Theme Foundry vars. */
+.cd-inbox {
+  position: relative;
+}
+
+.cd-inbox__bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.cd-inbox__bell:hover,
+.cd-inbox__bell:focus-visible {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.cd-inbox__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
+.cd-inbox__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  z-index: 60;
+  overflow: hidden;
+}
+
+.cd-inbox__head {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cd-inbox__head-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.cd-inbox__list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cd-inbox__empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.cd-inbox__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.cd-inbox__item:hover,
+.cd-inbox__item:focus-visible {
+  background: var(--surface-hover);
+}
+
+.cd-inbox__item--unread {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.cd-inbox__item-icon {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.cd-inbox__item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cd-inbox__item-title {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-inbox__item-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.cd-inbox__item-time {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-inbox__foot {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.cd-inbox__foot-btn {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.cd-inbox__foot-btn:hover,
+.cd-inbox__foot-btn:focus-visible {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
