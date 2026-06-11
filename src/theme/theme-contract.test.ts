@@ -8,6 +8,7 @@ import {
   DARK_DEFAULT_BG,
   type ThemeId,
 } from "./contract";
+import { contrastRatio } from "./contrast";
 
 // This test runs in Node (vitest), so it reads the stylesheets straight from
 // disk. We resolve paths relative to this file via import.meta.url. (Vite's
@@ -75,6 +76,55 @@ describe("theme contract", () => {
           expect(vars.get("--accent")).toBeDefined();
         });
       }
+    });
+  }
+});
+
+// --- WCAG AA contrast guard (v16.0 a11y epic) --------------------------------
+// Text and semantic tokens must reach AA (4.5:1) against every core surface in
+// every theme; the high-contrast theme aims AAA (7:1) for plain text. This is
+// the regression lock for the "dimmed labels at 3.7:1" design debt.
+
+const TEXT_TOKENS = ["--text", "--text-muted", "--text-dim", "--ok", "--warn", "--err"] as const;
+const SURFACE_TOKENS = ["--bg", "--surface-1", "--surface-2"] as const;
+const AA_MIN = 4.5;
+const HC_TEXT_MIN = 7;
+
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+
+function makeResolver(id: ThemeId): (token: string) => string {
+  const themeVars = readThemeVars(id);
+  const defaults = readThemeVars("dark"); // tokens.css holds the :root defaults
+  return (token: string): string => {
+    const value = themeVars.get(token) ?? defaults.get(token);
+    if (!value || !HEX_RE.test(value)) {
+      throw new Error(
+        `theme "${id}": token ${token} must resolve to a plain #rrggbb hex for the contrast guard (got: ${value ?? "undefined"})`,
+      );
+    }
+    return value;
+  };
+}
+
+describe("theme contract: WCAG AA contrast", () => {
+  for (const id of THEME_IDS) {
+    it(`${id}: text/semantic tokens reach >= ${AA_MIN}:1 on every surface`, () => {
+      const resolve = makeResolver(id);
+      const failures: string[] = [];
+      for (const textToken of TEXT_TOKENS) {
+        const fg = resolve(textToken);
+        for (const surfaceToken of SURFACE_TOKENS) {
+          const bg = resolve(surfaceToken);
+          const ratio = contrastRatio(fg, bg);
+          const min = id === "high-contrast" && textToken === "--text" ? HC_TEXT_MIN : AA_MIN;
+          if (ratio < min) {
+            failures.push(
+              `${textToken} (${fg}) vs ${surfaceToken} (${bg}) = ${ratio.toFixed(2)} (min ${min})`,
+            );
+          }
+        }
+      }
+      expect(failures, `theme "${id}" AA failures:\n${failures.join("\n")}`).toEqual([]);
     });
   }
 });
