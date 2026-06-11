@@ -78,8 +78,17 @@ function rank(
     costUsd,
     share: total > 0 ? costUsd / total : 0,
   }));
-  if (restUsd > 0) rows.push({ label: null, costUsd: restUsd, share: total > 0 ? restUsd / total : 0 });
-  return rows;
+  if (restUsd === 0) return rows;
+  // The aggregated "other" bucket shares the null label with unknown entries;
+  // if a null row already ranked into the top, merge instead of duplicating.
+  const nullIdx = rows.findIndex((r) => r.label === null);
+  if (nullIdx >= 0) {
+    const mergedUsd = rows[nullIdx].costUsd + restUsd;
+    return rows.map((r, i) =>
+      i === nullIdx ? { label: null, costUsd: mergedUsd, share: total > 0 ? mergedUsd / total : 0 } : r,
+    );
+  }
+  return [...rows, { label: null, costUsd: restUsd, share: total > 0 ? restUsd / total : 0 }];
 }
 
 export function byProject(entries: UsageEntry[], days = 30, topN = 8, today = todayISO()): RankRow[] {
