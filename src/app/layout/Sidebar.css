@@ -63,6 +63,9 @@
   font-weight: 700;
 }
 .cd-side__item-key { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+/* The active item sits on an accent-tinted surface; dim text drops below AA
+   there (axe: 4.37 on the composited bg) - promote to muted for that state. */
+.cd-side__item--on .cd-side__item-key { color: var(--text-muted); }
 
 .cd-side__item-trail {
   display: inline-flex;

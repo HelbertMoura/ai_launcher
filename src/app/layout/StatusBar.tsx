@@ -65,7 +65,9 @@ export function StatusBar({
 
   return (
     <footer className="cd-status">
-      <span className="cd-status__cell cd-status__cell--brand">
+      {/* Decorative watermark: intentionally faint, hidden from AT so the
+          axe color-contrast rule doesn't apply (it is not informative text). */}
+      <span className="cd-status__cell cd-status__cell--brand" aria-hidden="true">
         {t("statusBar.branding")}
       </span>
 

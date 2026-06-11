@@ -69,11 +69,10 @@ test.describe("AI Launcher Pro smoke", () => {
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa"])
-      // TODO(a11y): re-enable color-contrast once the dark theme tokens are
-      // tuned to WCAG AA (several dimmed labels currently sit around 3.7:1).
-      // Tracked as design debt; this test still guards structural a11y
-      // regressions (missing labels, roles, names, ARIA misuse).
-      .disableRules(["color-contrast"])
+      // WCAG 1.4.3 "pure decoration" exception: the StatusBar brand watermark
+      // is intentionally faint, aria-hidden, and carries no information. The
+      // color-contrast rule stays ACTIVE for everything else on the page.
+      .exclude(".cd-status__cell--brand")
       .analyze();
 
     const seriousOrCritical = results.violations.filter(
