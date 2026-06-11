@@ -5,6 +5,53 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [16.0.0] — 2026-06-11 — Analytics, Inbox, Acessibilidade AA e fundações v16
+
+Release maior consolidando quatro fases (alpha → beta1 → beta2 → 16.0). Distribuição assinada (Authenticode + winget/choco) ficou para uma fase própria pós-release — a infraestrutura já existe (`release.yml` com signing opt-in, manifests em `dist/`), pendente apenas do certificado.
+
+### Added — Agent Analytics
+- A aba **Costs virou Analytics**: série temporal de custo/dia (30 dias), ranking de top projetos e breakdown por modelo, cards de resumo com tendência vs período anterior.
+- Módulo puro de agregação (`dailySeries`, `byProject`, `byModel`, `trend`) com testes unitários completos; buckets "outros" mesclados sem duplicação.
+- Componentes de gráfico **SVG próprios** (`AreaChart`, `BarList`) tematizados via Theme Foundry — zero dependência nova no bundle.
+
+### Added — Agent Inbox
+- **Sino com badge de não-lidas na TopBar** e painel dropdown acessível (Esc fecha com retorno de foco, navegação por setas, click-outside).
+- Quatro fontes de eventos: fim de sessão (com CLI e duração), alertas de budget por provider, updates de CLI disponíveis e falhas do Doctor.
+- Store persistido com **dedup por chave estável** (`update:<cli>:<versão>`, `budget:<provider>:<mês>`...): re-push idêntico preserva o estado de lido (sem re-notificar a cada boot); Doctor notifica apenas na transição ok→falha; cap de 50 eventos descartando lidos primeiro.
+
+### Added — Beta2 (MCP, Runbooks, Perfis, Temas)
+- **MCP Manager**: aba com CRUD de servidores MCP nas configs do Claude (`.mcp.json`), Codex (`config.toml`) e Gemini (`mcp_config.json`), com backup automático antes de escrever, mais catálogo de servidores.
+- **Runbooks reais**: execução de steps via backend (`run_runbook_step` com timeout e sanitização) e UI cabeada na Workspace.
+- **Perfis por projeto**: `.ailauncher.json` na raiz do projeto pré-configura CLI/provider/env; merge de env com precedência projeto > workspace > default (corrige workspace "decorativo").
+- **Theme Foundry**: contrato de tema com teste anti-regressão + 3 temas novos (Phosphor, Midnight, High Contrast) — total de 7 temas.
+
+### Added — Beta1 (Engines)
+- **Usage Engine real**: parsing da telemetria do Claude (`~/.claude/projects/**/*.jsonl`) e Codex (`~/.codex/sessions/**/rollout-*.jsonl`) com cache por mtime; provider lógico por entrada.
+- **Budget por provider**: limites com período e threshold de alerta, dashboard e alertas no boot.
+- **Session Engine**: eventos `session-ended` do backend (status, exit code, duração real); launches via Windows Terminal marcados como `detached`.
+- **Persistência unificada**: registry central com validação zod em todas as chaves (`src/lib/storage`); backups de config gerados a partir do registry.
+
+### Accessibility (épico AA)
+- **Dívida de contraste paga**: tokens `--text-dim`/`--ok`/`--warn` ajustados para WCAG AA (≥4.5:1) nos 7 temas; trava de regressão programática no teste de contrato (cálculo de luminância das CSS vars).
+- Regra **`color-contrast` do axe reativada** no e2e (rodava desabilitada desde a v16-alpha); única exclusão: marca d'água decorativa da StatusBar (exceção WCAG 1.4.3, documentada).
+- **Command Palette com padrão ARIA combobox completo** (`aria-activedescendant`, listbox/option/group) e retorno de foco ao fechar.
+- **Um `<h1>` por página** nas 11 abas com hierarquia h1→h2 coerente.
+
+### Security (alpha)
+- Fechamento de injeção de comando e hardening de spawns de processo (`sanitize_args`, validação de env-keys, `kill_on_drop`).
+- Cadeia de integridade de updates reforçada (checksum obrigatório); links externos via `open::that`.
+
+### Fixed
+- StatusBar populando no boot (subscribe do store de CLIs), sessões eternamente "starting" → status real, alertas de budget mortos reativados, ConfirmDialog sem handler global de Enter.
+- Duplicação do bucket "outros" no ranking de projetos quando havia projetos sem nome no top-N.
+
+### Changed
+- Limpeza: `lucide-react` removido (ícones via Phosphor), módulos mortos deletados (presets, sessionTemplates, appSettings).
+- `prefers-reduced-motion` respeitado nas animações.
+
+### Removed
+- Telemetria do Gemini no Usage Engine (CLI removido na v15.2.0, sem fonte de dados).
+
 ## [15.2.6] — 2026-05-20 — Fixes críticos: Antigravity auto-launch + Temas quebrados
 
 Dois bugs sérios descobertos no smoke test final.
