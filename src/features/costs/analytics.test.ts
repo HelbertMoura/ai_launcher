@@ -57,6 +57,19 @@ describe("byProject", () => {
     const rows = byProject([entry({ project: null, cost_estimate_usd: 2 })], 30, 8, "2026-06-10");
     expect(rows[0].label).toBeNull();
   });
+
+  it("merges the rest bucket into a null row already in the top (never two 'other' rows)", () => {
+    const entries = [
+      entry({ project: null, cost_estimate_usd: 6 }),
+      entry({ project: "beta", cost_estimate_usd: 3 }),
+      entry({ project: "gamma", cost_estimate_usd: 1 }),
+    ];
+    const rows = byProject(entries, 30, 2, "2026-06-10");
+    const nullRows = rows.filter((r) => r.label === null);
+    expect(nullRows).toHaveLength(1);
+    expect(nullRows[0].costUsd).toBe(7);
+    expect(nullRows[0].share).toBe(0.7);
+  });
 });
 
 describe("byModel", () => {
