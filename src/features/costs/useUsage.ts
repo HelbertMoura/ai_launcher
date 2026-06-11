@@ -4,6 +4,14 @@ import { invoke } from "@tauri-apps/api/core";
 export interface UsageEntry {
   date: string;
   cli: string;
+  /**
+   * Logical provider behind the CLI (e.g. "anthropic" for Claude, "openai" for
+   * Codex), sent by the backend (T1). The cli->provider mapping is NOT 1:1 —
+   * several providers run through `claude` with env vars — so budgets group by
+   * this field. May be null/absent for legacy entries; callers fall back to
+   * `cli` as the provider in that case.
+   */
+  provider?: string | null;
   model: string | null;
   tokens_in: number;
   tokens_out: number;

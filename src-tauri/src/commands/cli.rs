@@ -3,10 +3,10 @@ use std::collections::HashMap;
 use serde::Serialize;
 
 use crate::util::{
-    check_cli_installed, compare_versions, encode_powershell_command, fetch_manifest_version,
-    find_windows_terminal, get_cli_definitions, get_installed_version, log_event, npm_latest,
-    resolve_cli_path_win, sanitize_args, stream_install, validate_directory, CheckResult, CliInfo,
-    DEFAULT_INSTALL_TIMEOUT_SEC,
+    append_env_assignments, check_cli_installed, compare_versions, encode_powershell_command,
+    fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
+    log_event, npm_latest, resolve_cli_path_win, sanitize_args, stream_install, validate_directory,
+    CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
 /// Result returned by all launch commands.
@@ -21,6 +21,38 @@ pub struct LaunchResult {
 #[tauri::command]
 pub fn get_all_clis() -> Vec<CliInfo> {
     get_cli_definitions()
+}
+
+/// Read a project's `.ailauncher.json` from a chosen directory (B4).
+///
+/// Returns the raw file contents when present, or `None` when the file does not
+/// exist (the common case — not an error). The directory is validated with the
+/// same `validate_directory` gate used by the launcher. We only join the fixed
+/// filename `.ailauncher.json` (no caller-controlled path component), so there
+/// is no path-traversal surface here. A size cap guards against pathological
+/// files. Parsing/validation of the JSON happens in the frontend (zod).
+#[tauri::command]
+pub fn read_project_profile(directory: String) -> Result<Option<String>, String> {
+    /// Refuse to read absurdly large files (a `.ailauncher.json` is tiny).
+    const MAX_PROFILE_BYTES: u64 = 256 * 1024;
+
+    let work_dir = validate_directory(&directory)?;
+    let path = std::path::Path::new(&work_dir).join(".ailauncher.json");
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let meta =
+        std::fs::metadata(&path).map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
+    if meta.len() > MAX_PROFILE_BYTES {
+        return Err(format!(
+            ".ailauncher.json é grande demais ({} bytes, limite {})",
+            meta.len(),
+            MAX_PROFILE_BYTES
+        ));
+    }
+    let contents = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
+    Ok(Some(contents))
 }
 
 #[tauri::command]
@@ -99,12 +131,20 @@ pub async fn install_cli(
                     key_for_work,
                     "npm".into(),
                     vec!["install".into(), "-g".into(), pkg],
+                    secs,
                 )
                 .await
             }
             "pip" => {
                 let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
-                stream_install(app, key_for_work, "pip".into(), vec!["install".into(), pkg]).await
+                stream_install(
+                    app,
+                    key_for_work,
+                    "pip".into(),
+                    vec!["install".into(), pkg],
+                    secs,
+                )
+                .await
             }
             "script" => {
                 stream_install(
@@ -112,6 +152,7 @@ pub async fn install_cli(
                     key_for_work,
                     "pwsh".into(),
                     vec!["-Command".into(), install_cmd],
+                    secs,
                 )
                 .await
             }
@@ -168,6 +209,7 @@ pub async fn update_cli(
                     key_for_work,
                     "npm".into(),
                     vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
+                    secs,
                 )
                 .await
             }
@@ -178,6 +220,7 @@ pub async fn update_cli(
                     key_for_work,
                     "pip".into(),
                     vec!["install".into(), "--upgrade".into(), pkg],
+                    secs,
                 )
                 .await
             }
@@ -187,6 +230,7 @@ pub async fn update_cli(
                     key_for_work,
                     "pwsh".into(),
                     vec!["-Command".into(), install_cmd],
+                    secs,
                 )
                 .await
             }
@@ -252,6 +296,7 @@ pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
 
 #[tauri::command]
 pub fn launch_cli(
+    app: tauri::AppHandle,
     cli_key: String,
     directory: String,
     args: String,
@@ -313,60 +358,14 @@ pub fn launch_cli(
     }
 
     if let Some(ref vars) = env_vars {
-        for (k, v) in vars {
-            let esc = v.replace('\'', "''");
-            ps_script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-        }
+        append_env_assignments(&mut ps_script, vars);
     }
     ps_script.push_str(&ps_line);
     ps_script.push('\n');
 
     let encoded = encode_powershell_command(&ps_script);
 
-    let mut launched = false;
-
-    if let Some(wt) = find_windows_terminal() {
-        if std::process::Command::new(&wt)
-            .args([
-                "new-tab",
-                "-d",
-                &work_dir,
-                "pwsh",
-                "-NoExit",
-                "-EncodedCommand",
-                &encoded,
-            ])
-            .spawn()
-            .is_ok()
-        {
-            launched = true;
-        }
-    }
-    if !launched
-        && std::process::Command::new("pwsh")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched
-        && std::process::Command::new("powershell")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched {
-        std::process::Command::new("cmd")
-            .args(["/K", &cmd_line])
-            .current_dir(&work_dir)
-            .spawn()
-            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
-    }
+    spawn_and_track(&app, &session_id, &cli_key, &work_dir, &encoded, &cmd_line)?;
 
     Ok(LaunchResult {
         session_id,
@@ -374,8 +373,78 @@ pub fn launch_cli(
     })
 }
 
+/// Spawn a session and register it for lifecycle tracking.
+///
+/// Preference order: Windows Terminal (`wt.exe`) → pwsh → powershell → cmd.
+/// When launched through `wt.exe`, the `wt` process exits immediately after
+/// opening the tab, so the real session cannot be measured — we register it as
+/// "detached" (which emits `session-ended` with status="detached" right away).
+/// For the direct fallbacks, we retain the child handle and track it: a tokio
+/// task awaits the process and emits `session-ended` with the real exit code
+/// and duration when it exits.
+fn spawn_and_track(
+    app: &tauri::AppHandle,
+    session_id: &str,
+    cli_key: &str,
+    work_dir: &str,
+    encoded: &str,
+    cmd_line: &str,
+) -> Result<(), String> {
+    if let Some(wt) = find_windows_terminal() {
+        if std::process::Command::new(&wt)
+            .args([
+                "new-tab",
+                "-d",
+                work_dir,
+                "pwsh",
+                "-NoExit",
+                "-EncodedCommand",
+                encoded,
+            ])
+            .spawn()
+            .is_ok()
+        {
+            crate::commands::session::register_detached(app, session_id, cli_key, work_dir);
+            return Ok(());
+        }
+    }
+
+    // Direct fallbacks: retain the child so the session can be measured.
+    for program in ["pwsh", "powershell"] {
+        if let Ok(child) = tokio::process::Command::new(program)
+            .args(["-NoExit", "-EncodedCommand", encoded])
+            .current_dir(work_dir)
+            .spawn()
+        {
+            crate::commands::session::track_child(
+                app,
+                session_id.to_string(),
+                cli_key.to_string(),
+                work_dir.to_string(),
+                child,
+            );
+            return Ok(());
+        }
+    }
+
+    let child = tokio::process::Command::new("cmd")
+        .args(["/K", cmd_line])
+        .current_dir(work_dir)
+        .spawn()
+        .map_err(|e| format!("Erro ao iniciar: {}", e))?;
+    crate::commands::session::track_child(
+        app,
+        session_id.to_string(),
+        cli_key.to_string(),
+        work_dir.to_string(),
+        child,
+    );
+    Ok(())
+}
+
 #[tauri::command]
 pub fn launch_custom_cli(
+    app: tauri::AppHandle,
     command: String,
     args: Option<String>,
     directory: Option<String>,
@@ -412,59 +481,14 @@ pub fn launch_custom_cli(
     let mut ps_script =
         String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
     if let Some(ref vars) = env {
-        for (k, v) in vars {
-            let esc = v.replace('\'', "''");
-            ps_script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-        }
+        append_env_assignments(&mut ps_script, vars);
     }
     ps_script.push_str(&ps_line);
     ps_script.push('\n');
 
     let encoded = encode_powershell_command(&ps_script);
-    let mut launched = false;
 
-    if let Some(wt) = find_windows_terminal() {
-        if std::process::Command::new(&wt)
-            .args([
-                "new-tab",
-                "-d",
-                &work_dir,
-                "pwsh",
-                "-NoExit",
-                "-EncodedCommand",
-                &encoded,
-            ])
-            .spawn()
-            .is_ok()
-        {
-            launched = true;
-        }
-    }
-    if !launched
-        && std::process::Command::new("pwsh")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched
-        && std::process::Command::new("powershell")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched {
-        std::process::Command::new("cmd")
-            .args(["/K", &cmd_line])
-            .current_dir(&work_dir)
-            .spawn()
-            .map_err(|e| format!("Erro ao iniciar: {}", e))?;
-    }
+    spawn_and_track(&app, &session_id, "custom", &work_dir, &encoded, &cmd_line)?;
 
     Ok(LaunchResult {
         session_id,
@@ -474,6 +498,7 @@ pub fn launch_custom_cli(
 
 #[tauri::command]
 pub fn launch_multi_clis(
+    app: tauri::AppHandle,
     cli_keys: Vec<String>,
     directory: String,
     args: String,
@@ -483,6 +508,7 @@ pub fn launch_multi_clis(
     let mut count = 0usize;
     for cli_key in cli_keys {
         if launch_cli(
+            app.clone(),
             cli_key,
             directory.clone(),
             args.clone(),
@@ -495,4 +521,56 @@ pub fn launch_multi_clis(
         }
     }
     Ok(format!("Iniciados {} CLIs", count))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Create a unique temp directory for a test, returning its path.
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!("ail-b4-{}-{}", tag, nanos));
+        std::fs::create_dir_all(&dir).expect("create temp dir");
+        dir
+    }
+
+    #[test]
+    fn read_project_profile_returns_none_when_absent() {
+        let dir = temp_dir("absent");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(res, Ok(None));
+    }
+
+    #[test]
+    fn read_project_profile_returns_contents_when_present() {
+        let dir = temp_dir("present");
+        let body = r#"{"version":1,"cli":"claude"}"#;
+        std::fs::write(dir.join(".ailauncher.json"), body).expect("write profile");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(res, Ok(Some(body.to_string())));
+    }
+
+    #[test]
+    fn read_project_profile_errors_on_missing_directory() {
+        let res = read_project_profile(r"C:\__ail_b4_definitely_missing_dir__".to_string());
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn read_project_profile_rejects_oversized_file() {
+        let dir = temp_dir("oversized");
+        // 256 KiB + 1 byte — just over the cap.
+        let big = "x".repeat(256 * 1024 + 1);
+        std::fs::write(dir.join(".ailauncher.json"), big).expect("write big profile");
+        let res = read_project_profile(dir.to_string_lossy().into_owned());
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("grande demais"));
+    }
 }

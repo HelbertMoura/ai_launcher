@@ -1,6 +1,7 @@
 export type TabId =
   | "launcher"
   | "tools"
+  | "mcp"
   | "history"
   | "costs"
   | "workspace"
@@ -10,11 +11,12 @@ export type TabId =
   | "admin"
   | "help";
 
-export const TAB_ORDER: TabId[] = ["launcher", "tools", "history", "costs", "workspace", "doctor", "updates", "prereqs", "admin", "help"];
+export const TAB_ORDER: TabId[] = ["launcher", "tools", "mcp", "history", "costs", "workspace", "doctor", "updates", "prereqs", "admin", "help"];
 
 export const TAB_LABELS: Record<TabId, string> = {
   launcher: "Launch",
   tools: "Tools",
+  mcp: "MCP",
   history: "History",
   costs: "Costs",
   workspace: "Workspace",
@@ -29,6 +31,7 @@ export const TAB_LABELS: Record<TabId, string> = {
 export const TAB_I18N_KEYS: Record<TabId, string> = {
   launcher: "nav.launcher",
   tools: "nav.tools",
+  mcp: "nav.mcp",
   history: "nav.history",
   costs: "nav.costs",
   workspace: "nav.workspace",
@@ -46,12 +49,13 @@ const MOD = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigato
 export const TAB_KEYS: Record<TabId, string> = {
   launcher: `${MOD}+1`,
   tools: `${MOD}+2`,
-  history: `${MOD}+3`,
-  costs: `${MOD}+4`,
-  workspace: `${MOD}+5`,
-  doctor: `${MOD}+6`,
-  updates: `${MOD}+7`,
-  prereqs: `${MOD}+8`,
+  mcp: `${MOD}+3`,
+  history: `${MOD}+4`,
+  costs: `${MOD}+5`,
+  workspace: `${MOD}+6`,
+  doctor: `${MOD}+7`,
+  updates: `${MOD}+8`,
+  prereqs: `${MOD}+9`,
   admin: `${MOD}+,`,
   help: "?",
 };

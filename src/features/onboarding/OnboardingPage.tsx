@@ -21,7 +21,25 @@ interface ScanResult {
   install_command: string | null;
 }
 
-const THEMES: Theme[] = ["dark", "light", "amber", "glacier"];
+const THEMES: Theme[] = [
+  "dark",
+  "light",
+  "amber",
+  "glacier",
+  "phosphor",
+  "midnight",
+  "high-contrast",
+];
+
+const THEME_LABELS: Record<Theme, string> = {
+  dark: "Dark",
+  light: "Light",
+  amber: "Amber",
+  glacier: "Glacier",
+  phosphor: "Phosphor",
+  midnight: "Midnight",
+  "high-contrast": "High Contrast",
+};
 const TOTAL_STEPS = 3;
 
 /* ---- Welcome terminal script ---- */
@@ -256,7 +274,7 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
                     variant={theme === th ? "primary" : "ghost"}
                     onClick={() => setTheme(th)}
                   >
-                    {th}
+                    {THEME_LABELS[th]}
                   </Button>
                 ))}
               </div>

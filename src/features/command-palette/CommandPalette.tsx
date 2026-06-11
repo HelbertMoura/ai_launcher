@@ -45,6 +45,7 @@ interface CommandRow {
 const TAB_ICONS: Record<TabId, string> = {
   launcher: "▶",
   tools: "⚙",
+  mcp: "◇",
   history: "⟲",
   costs: "$",
   workspace: "⌂",
@@ -58,6 +59,7 @@ const TAB_ICONS: Record<TabId, string> = {
 const NAV_TABS: TabId[] = [
   "launcher",
   "tools",
+  "mcp",
   "history",
   "costs",
   "workspace",
@@ -71,6 +73,9 @@ const THEME_ICONS: Record<Theme, string> = {
   light: "◑",
   amber: "◉",
   glacier: "◎",
+  phosphor: "▣",
+  midnight: "✦",
+  "high-contrast": "◧",
 };
 
 const ACCENT_ICON = "●";
@@ -178,13 +183,19 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  // Reset query/selection when palette opens, then focus input.
+  // Reset query/selection when palette opens, then focus input; restore focus
+  // to the invoking element when it closes (ARIA combobox dialog pattern).
   useEffect(() => {
     if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
       setQuery("");
       setSelectedIndex(0);
       requestAnimationFrame(() => inputRef.current?.focus());
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus?.();
+      previousFocusRef.current = null;
     }
   }, [open]);
 
@@ -475,9 +486,16 @@ export function CommandPalette({
             spellCheck={false}
             autoComplete="off"
             aria-label={t("palette.placeholder")}
+            role="combobox"
+            aria-expanded="true"
+            aria-controls="cd-cmd-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              flatRows[selectedIndex] ? `cd-cmd-opt-${flatRows[selectedIndex].id}` : undefined
+            }
           />
         </div>
-        <div className="cd-cmd__list" ref={listRef} role="listbox">
+        <div className="cd-cmd__list" ref={listRef} role="listbox" id="cd-cmd-listbox">
           {flatRows.length === 0 ? (
             <div className="cd-cmd__empty">
               <pre className="cd-cmd__empty-art" aria-hidden>{`> _`}</pre>
@@ -485,8 +503,19 @@ export function CommandPalette({
             </div>
           ) : (
             groupedSections.map((section) => (
-              <div key={section.key} className="cd-cmd__group">
-                <div className="cd-cmd__group-heading">{t(section.titleKey)}</div>
+              <div
+                key={section.key}
+                className="cd-cmd__group"
+                role="group"
+                aria-labelledby={`cd-cmd-group-${section.key}`}
+              >
+                <div
+                  className="cd-cmd__group-heading"
+                  id={`cd-cmd-group-${section.key}`}
+                  role="presentation"
+                >
+                  {t(section.titleKey)}
+                </div>
                 {section.rows.map((row) => {
                   const globalIndex = flatRows.indexOf(row);
                   const selected = globalIndex === selectedIndex;
@@ -494,6 +523,7 @@ export function CommandPalette({
                     <button
                       type="button"
                       key={row.id}
+                      id={`cd-cmd-opt-${row.id}`}
                       ref={(el) => {
                         itemRefs.current[globalIndex] = el;
                       }}

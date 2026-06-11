@@ -1,0 +1,45 @@
+/* High Contrast — WCAG AAA black/white with a saturated accent.
+   Pure black surfaces, pure white text, thick high-contrast borders.
+   Also honored by users who request prefers-contrast. */
+[data-theme="high-contrast"] {
+  color-scheme: dark;
+
+  /* surfaces — pure black, distinct steps stay near-black for AAA text */
+  --bg: #000000;
+  --surface-1: #000000;
+  --surface-1-alpha: rgba(0, 0, 0, 0.85);
+  --surface-2: #0a0a0a;
+  --surface-2-alpha: rgba(10, 10, 10, 0.8);
+  --surface-hover: #1a1a1a;
+
+  --border: #ffffff;
+  --border-strong: #ffffff;
+
+  /* text — pure white / high-contrast greys (all >= 7:1 on black) */
+  --text: #ffffff;
+  --text-muted: #e0e0e0;
+  --text-dim: #bcbcbc;
+
+  /* accent — bright cyan (high luminance contrast on black) */
+  --accent: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.5);
+  --accent-soft: rgba(0, 229, 255, 0.18);
+  --accent-ink: #000000;
+
+  /* semantic — bright, AAA on black */
+  --ok: #5cff8f;
+  --warn: #ffe14d;
+  --err: #ff6b6b;
+
+  /* grid dot — visible white */
+  --grid-dot-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Users who ask the OS for more contrast get this theme's treatment by default
+   when no explicit theme is chosen. */
+@media (prefers-contrast: more) {
+  :root:not([data-theme]) {
+    --border: #ffffff;
+    --text: #ffffff;
+  }
+}

@@ -2,6 +2,87 @@
   "version": 1,
   "bugs": [
     {
+      "id": "bug-066",
+      "timestamp": "2026-06-10T08:12:00.000Z",
+      "error_message": "Sessoes ficam 'starting' para sempre: launch_cli gerava session_id e descartava o handle do processo; o frontend nao escutava nada; markSessionEnded/updateSessionStatus eram dead code.",
+      "file": "src-tauri/src/commands/cli.rs",
+      "root_cause": "O spawn usava std::process::Command e descartava o Child. Sem retencao do handle nao havia como observar o fim da sessao. No caso wt.exe o problema e estrutural: o processo wt sai logo apos abrir a aba.",
+      "fix": "Criado src-tauri/src/commands/session.rs com registro global OnceLock<Mutex<HashMap>>. spawn_and_track: spawn direto (pwsh/powershell/cmd) via tokio::process::Command -> track_child faz child.wait().await e emite evento Tauri session-ended {session_id,status,exit_code,duration_secs}; caso wt.exe -> register_detached emite session-ended status=detached imediatamente. Comandos list_active_sessions/kill_session. launch_cli/custom/multi recebem app: AppHandle. Frontend useSessionEvents() montado 1x no App.tsx escuta session-ended, valida com zod, ativa markSessionEnded/updateSessionStatus (dead code). writeItems notifica subscribers in-tab. Status detached adicionado. 6 testes Rust + 5 vitest.",
+      "tags": [
+        "session-engine",
+        "rust",
+        "tauri",
+        "dead-code",
+        "starting-forever",
+        "wt-detached",
+        "T3",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T08:12:00.000Z"
+    },
+    {
+      "id": "bug-059",
+      "timestamp": "2026-06-10T00:00:00.000Z",
+      "error_message": "Aba de Custos sempre vazia: o agregador de uso lia paths que nao existem (~/.claude/usage.jsonl, ~/.codex/usage.jsonl, ~/.gemini/telemetry)",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "Os parsers originais (read_claude/codex/gemini_usage) assumiam um unico arquivo usage.jsonl no topo de cada CLI. O formato real e: Claude em ~/.claude/projects/**/*.jsonl (linhas type=assistant com message.usage), Codex em ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl (eventos token_count com payload.info.total_token_usage CUMULATIVO). Gemini nao tem telemetria e o CLI foi removido na v15.2.0.",
+      "fix": "Reescrito o usage engine: walk recursivo manual (sem walkdir), parse do formato real, agregacao por (date,model) por arquivo, dedup do codex pegando o ULTIMO token_count cumulativo, cache em memoria por path+mtime (OnceLock<Mutex<HashMap>>), param force p/ invalidar, campo provider (anthropic/openai) com serde(default), Gemini removido. 6 testes #[cfg(test)] com fixtures inline.",
+      "tags": [
+        "usage",
+        "costs",
+        "rust",
+        "config.rs",
+        "claude",
+        "codex",
+        "gemini-removal",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T00:00:00.000Z"
+    },
+    {
+      "id": "bug-058",
+      "timestamp": "2026-06-10T06:30:00.000Z",
+      "error_message": "Stop hook error: Cannot find module 'C:\\...\\src-tauri\\.wolf\\hooks\\stop.js' (MODULE_NOT_FOUND)",
+      "file": "src-tauri/.claude/settings.json",
+      "root_cause": "Hooks do OpenWolf usam $CLAUDE_PROJECT_DIR/.wolf/hooks/*. Com a sessao iniciada em src-tauri/, CLAUDE_PROJECT_DIR resolve para src-tauri/ mas .wolf so existe na raiz do projeto — entao node nao acha stop.js (nem os outros hooks).",
+      "fix": "Criado symlink src-tauri/.wolf -> ../.wolf (New-Item SymbolicLink) e adicionado src-tauri/.wolf ao .gitignore para nao versionar o link. Hooks passam a resolver normalmente apontando para o .wolf unico da raiz.",
+      "tags": [
+        "openwolf",
+        "hooks",
+        "windows",
+        "symlink",
+        "module-not-found",
+        "tauri",
+        "cwd"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T06:30:00.000Z"
+    },
+    {
+      "id": "bug-057",
+      "timestamp": "2026-06-10T05:45:00.000Z",
+      "error_message": "Workflow review final reportou que Batch E (CSS) nao implementou --ok/--warn/--err em light/glacier nem prefers-reduced-motion em tokens.css, apesar dos reviewers internos do workflow terem aprovado",
+      "file": "src/theme/theme-light.css, theme-glacier.css, tokens.css",
+      "root_cause": "Os subagentes reviewers (spec + quality) do workflow aprovaram com base no RELATORIO TEXTUAL do implementer, nao no git diff real. O implementer do Batch E relatou ter feito as mudancas de tema mas elas nao persistiram na arvore (provavelmente perda de contexto/limite de sessao). Verificacao baseada em auto-relato falha silenciosamente.",
+      "fix": "Implementado manualmente: --ok #1a7f37 / --warn #9a6700 / --err #d62929 em theme-light.css; tons equivalentes em theme-glacier.css; bloco global @media (prefers-reduced-motion: reduce) em tokens.css. Sempre confirmar findings de workflow contra git diff real antes de commitar.",
+      "tags": [
+        "workflow",
+        "verification",
+        "css",
+        "theme",
+        "a11y",
+        "subagent"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T05:45:00.000Z"
+    },
+    {
       "id": "bug-001",
       "timestamp": "2026-05-19T21:32:21.457Z",
       "error_message": "CSS fix: ai-launcher, isCustom",
@@ -328,27 +409,6 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-19T21:56:42.384Z"
-    },
-    {
-      "id": "bug-015",
-      "timestamp": "2026-05-19T23:00:00-03:00",
-      "error_message": "Drag-and-drop dos cards nao funciona em Windows + WebView2 (usuario relatou: tento arrastar e nao vai)",
-      "file": "src/features/launcher/CliCard.tsx",
-      "root_cause": "HTML5 native drag (draggable={true} + onDragStart) tem comportamento inconsistente em Windows + WebView2 do Tauri. Mesmo com handle dedicado e configuracao correta, os eventos dragstart/dragend nao disparam em alguns sistemas. Pre-existente desde a v15.2.0.",
-      "fix": "Migrar de HTML5 native drag para @dnd-kit (pointer events). Adicionar @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities. Substituir useDraggable por DndContext + SortableContext + useSortable hook. PointerSensor com activationConstraint distance=8 evita conflito com cliques. Versao bumped para 15.2.1.",
-      "tags": [
-        "dnd",
-        "tauri",
-        "webview2",
-        "react",
-        "v15.2.1",
-        "dnd-kit"
-      ],
-      "related_bugs": [
-        "bug-014"
-      ],
-      "occurrences": 1,
-      "last_seen": "2026-05-19T23:00:00-03:00"
     },
     {
       "id": "bug-022",
@@ -909,6 +969,916 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-05-20T14:26:26.601Z"
+    },
+    {
+      "id": "bug-060",
+      "timestamp": "2026-06-10T10:37:00.143Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/config.rs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 12→74 lines (2 removed) | Also: let path = match dirs::home_dir() {; Some(h) => h.join(\".claude\").join(\"usage.jsonl\"),",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T10:37:50.910Z"
+    },
+    {
+      "id": "bug-062",
+      "timestamp": "2026-06-10T10:47:10.674Z",
+      "error_message": "Type error",
+      "file": "../src/features/costs/useUsage.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T10:47:10.674Z"
+    },
+    {
+      "id": "bug-063",
+      "timestamp": "2026-06-10T10:47:27.007Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/providers/budget.ts",
+      "root_cause": "Had '../features/costs/useUsage'",
+      "fix": "Changed to 'zod'",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T10:47:27.007Z"
+    },
+    {
+      "id": "bug-064",
+      "timestamp": "2026-06-10T10:47:37.462Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/providers/budget.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: /**; * The provider a usage entry should be billed against. The b | Also: const existing = store.limits.find((l) => l.providerKey === ; // Preserve any existing period anchor so editing a limit do",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-10T10:48:01.289Z"
+    },
+    {
+      "id": "bug-065",
+      "timestamp": "2026-06-10T07:55:00.000Z",
+      "error_message": "Tarefa T2 (budget por provider, TS) deixou no working tree uma reescrita massiva e fora de escopo do backend Rust (src-tauri/src/commands/config.rs: +428/-133) e reportou falsamente que 'Backend Rust NAO foi alterado' e que T1 ja enviava o campo provider (premissa nao satisfeita: HEAD nao tinha provider em UsageEntry).",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "O implementer anterior assumiu que T1 (backend) ja estava feito e, ao constatar que nao estava, reescreveu o backend inteiro (cache por mtime, walk recursivo, novos parsers Claude/Codex, remocao do gemini, mudanca de assinatura read_usage_stats(force)) em vez de sinalizar BLOCKED. O escopo do T2 dizia textualmente 'NAO altere o backend Rust'. Alem disso a validacao Rust (cargo check/clippy) nunca foi mostrada apesar de ~561 linhas de Rust alteradas.",
+      "fix": "git checkout HEAD -- src-tauri/src/commands/config.rs para reverter a reescrita fora de escopo. O codigo TS do T2 (budget.ts/useUsage.ts/BudgetDashboard.tsx/budget.test.ts) NAO depende do backend: entryProvider() cai para `cli` quando provider esta ausente, entao funciona com o backend de HEAD. Revalidado: cargo fmt+check+clippy -D warnings limpos no backend de HEAD; npm run build OK; npm run test 64/64. bug-059 (que descrevia a reescrita do backend como fix legitimo) refere-se a trabalho agora revertido e deve ser tratado como T1 pendente.",
+      "tags": [
+        "scope-violation",
+        "false-report",
+        "budget",
+        "rust",
+        "config.rs",
+        "T2",
+        "revert"
+      ],
+      "related_bugs": [
+        "bug-059"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T07:55:00.000Z"
+    },
+    {
+      "id": "bug-067",
+      "timestamp": "2026-06-10T11:06:52.210Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/session.rs",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 5→3 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:06:52.210Z"
+    },
+    {
+      "id": "bug-068",
+      "timestamp": "2026-06-10T11:07:56.230Z",
+      "error_message": "Wrong condition in logic",
+      "file": "../src/features/history/useHistory.ts",
+      "root_cause": "Condition was: if (status === \"starting\" || status === \"running\" || s)",
+      "fix": "Changed to: if (\n    status === \"starting\" ||\n    status === \"runn)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:07:56.230Z"
+    },
+    {
+      "id": "bug-069",
+      "timestamp": "2026-06-10T11:08:36.903Z",
+      "error_message": "Significant refactor of ",
+      "file": "../src/features/history/useHistory.ts",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 15→26 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:08:36.903Z"
+    },
+    {
+      "id": "bug-070",
+      "timestamp": "2026-06-10T11:08:42.906Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/history/useSessionEvents.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T11:08:42.906Z"
+    },
+    {
+      "id": "bug-072",
+      "timestamp": "2026-06-10T14:09:05.242Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/commands/config.rs",
+      "root_cause": "66 lines replaced/restructured",
+      "fix": "Rewrote 243→401 lines (66 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:09:05.242Z"
+    },
+    {
+      "id": "bug-073",
+      "timestamp": "2026-06-10T14:20:00.000Z",
+      "error_message": "Aba de Custos vazia (REFEITO): config.rs no HEAD voltou a ler paths inexistentes (~/.claude/usage.jsonl, ~/.codex/usage.jsonl, ~/.gemini/telemetry). T1 ja havia sido feito uma vez e a mudanca se perdeu (revert do bug-065).",
+      "file": "src-tauri/src/commands/config.rs",
+      "root_cause": "Os parsers originais assumiam um unico usage.jsonl no topo de cada CLI; esses arquivos nunca existiram. Formatos reais: Claude em ~/.claude/projects/**/*.jsonl (linha type=assistant, tokens em message.usage somando input+cache_creation+cache_read p/ in e output p/ out, model em message.model, date dos 10 primeiros chars de timestamp, project = nome do dir); Codex em ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl (linha payload.type=token_count, total_token_usage CUMULATIVO em payload.info.total_token_usage, so o ULTIMO conta; model vem de turn_context/session_meta; date do nome do arquivo). Gemini removido (CLI dropado v15.2.0).",
+      "fix": "Reescrito usage engine: walk recursivo manual collect_jsonl (sem walkdir); parse_claude_file agrega por (date,model) por arquivo via HashMap; parse_codex_file pega so o ultimo token_count cumulativo (input+cached em tokens_in, output+reasoning em tokens_out), codex_total_usage tolera 3 niveis de aninhamento via Value::pointer, codex_line_type le payload.type ou type topo; campo provider:Option<String> com serde(default) (anthropic/codex->openai); cache OnceLock<Mutex<HashMap<(PathBuf,mtime),Vec<UsageEntry>>>> via cached_parse + param force:Option<bool> em read_usage_stats que limpa o cache; price_per_mtoken hardcoded com TODO(v16) manifesto remoto e branch gemini removida; read_gemini_usage deletada. 7 testes #[cfg(test)] com fixtures inline (parse claude + soma cache, dedup cumulativo codex, lines sem usage ignoradas, nesting payload-level, sem token_count, pricing sem gemini). Frontend NAO alterado: budget.ts/useUsage.ts ja consomem provider opcional. Validado: cargo fmt+check+clippy -D warnings limpos; cargo test 38/38; npm run build OK; vitest 69/69.",
+      "tags": [
+        "usage",
+        "costs",
+        "rust",
+        "config.rs",
+        "claude",
+        "codex",
+        "gemini-removal",
+        "cache",
+        "mtime",
+        "T1",
+        "v16",
+        "redo"
+      ],
+      "related_bugs": [
+        "bug-059",
+        "bug-065"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:20:00.000Z"
+    },
+    {
+      "id": "bug-074",
+      "timestamp": "2026-06-10T14:22:37.220Z",
+      "error_message": "Type error",
+      "file": "../src/domain/profileStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:22:37.220Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-06-10T14:22:50.193Z",
+      "error_message": "Wrong reference: unknown should be never",
+      "file": "../src/domain/profileStore.ts",
+      "root_cause": "Used \"unknown\" instead of \"never\"",
+      "fix": "Changed unknown → never",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:22:50.193Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-06-10T14:23:05.728Z",
+      "error_message": "Type error",
+      "file": "../src/features/workspace/workspaceStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: // Registry stores this as a raw string with '' default; nor; // to preserve the prior \"absent => null\" contract.",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T14:23:20.406Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-06-10T14:26:07.500Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Had 'json'",
+      "fix": "Changed to `version`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:26:07.500Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-06-10T17:14:35.944Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Had \"../features/history/HistoryPage\"",
+      "fix": "Changed to \"../features/mcp/McpPage\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:14:40.530Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-06-10T17:14:46.192Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/app/layout/Sidebar.tsx",
+      "root_cause": "Had \"history\"",
+      "fix": "Changed to \"mcp\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:14:46.192Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-06-10T17:32:16.915Z",
+      "error_message": "Wrong reference: self_update should be runbook",
+      "file": "src/commands/mod.rs",
+      "root_cause": "Used \"self_update\" instead of \"runbook\"",
+      "fix": "Changed self_update → runbook",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "rs"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:32:16.915Z"
+    },
+    {
+      "id": "bug-078",
+      "timestamp": "2026-06-10T17:33:09.048Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:33:09.048Z"
+    },
+    {
+      "id": "bug-079",
+      "timestamp": "2026-06-10T17:33:30.415Z",
+      "error_message": "CSS fix: status",
+      "file": "../src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "status: 'skipped', output: 'Stopped by user.' → 'skipped', output: t('runbook.run.stopped')",
+      "fix": "Changed status: 'skipped', output: 'Stopped by user.' → 'skipped', output: t('runbook.run.stopped')",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:33:30.415Z"
+    },
+    {
+      "id": "bug-080",
+      "timestamp": "2026-06-10T17:34:22.191Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/workspace/WorkspacePage.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:34:22.191Z"
+    },
+    {
+      "id": "bug-081",
+      "timestamp": "2026-06-10T17:37:44.666Z",
+      "error_message": "RunbookRunner: executeStep era setTimeout mock (ok:true sempre); loop quebrava na 1a iteracao por if(!running)break com running stale; RunbookRunner/RunbookEditor orfaos (nao montados)",
+      "file": "src/features/workspace/RunbookRunner.tsx",
+      "root_cause": "executeStep simulado nunca chamava o backend; flag de cancelamento usava state running capturado stale pelo closure async (false logo apos setRunning(true)); UI nao tinha caminho de edicao/exclusao/execucao",
+      "fix": "Novo comando Rust run_runbook_step (powershell+timeout+sanitize_args+validate_directory). executeStep agora invoke real mapeando snake->camel. Flag de cancelamento migrada para useRef (cancelRef.current). RunbooksPanel.tsx cabeado na WorkspacePage (list/edit/run) via estado showRunbooks; RunbooksCard.onOpen abre o painel.",
+      "tags": [
+        "runbook",
+        "stale-closure",
+        "useRef",
+        "tauri-invoke",
+        "phantom-feature",
+        "b3"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:37:44.666Z"
+    },
+    {
+      "id": "bug-082",
+      "timestamp": "2026-06-10T17:46:55.789Z",
+      "error_message": "CSS fix: type",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "type: \"setShowPreview\" → \"clearProjectProfile\"",
+      "fix": "Changed type: \"setShowPreview\" → \"clearProjectProfile\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:48:36.654Z"
+    },
+    {
+      "id": "bug-083",
+      "timestamp": "2026-06-10T17:47:01.433Z",
+      "error_message": "Wrong return value",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "Was returning: { ...state, directory: action.value };",
+      "fix": "Now returns: { ...state, directory: action.value, projectProfil",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T17:47:01.433Z"
+    },
+    {
+      "id": "bug-084",
+      "timestamp": "2026-06-10T17:47:23.522Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // Default env: the selected Claude provider's env (when app; let defaultEnv: Record<string, string> | undefined;",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-10T17:47:44.720Z"
+    },
+    {
+      "id": "bug-085",
+      "timestamp": "2026-06-10T14:51:00.000Z",
+      "error_message": "Workspace decorativo: WorkspaceProfile.envVars (e directory) eram persistidos mas NUNCA aplicados a nenhum launch — a auditoria notou que o env do workspace ativo nao chegava ao launch_cli.",
+      "file": "src/features/launcher/LaunchDialog.tsx",
+      "root_cause": "doLaunch so montava envVars a partir do provider Claude selecionado (buildLaunchEnvAsync). O env do workspace ativo e o env de perfil de projeto nunca eram lidos nem mesclados, entao a config de workspace era puramente cosmetica.",
+      "fix": "B4: novo src/lib/projectProfile.ts com mergeLaunchEnv(default, workspace, project) — precedencia projeto>workspace>default. doLaunch agora le getActiveWorkspace(loadWorkspaces()).envVars + projectProfile.env (de .ailauncher.json via comando Rust read_project_profile) e mescla com o provider-env. Passa null ao backend quando merged vazio (preserva contrato Rust de so limpar ANTHROPIC_*/CLAUDE_* quando env_vars=Some). LaunchDialog le o .ailauncher.json em pickDirectory/recent-dir/boot e pre-preenche directory/provider. 15 testes vitest (parse + merge) + 4 testes Rust (read_project_profile). Validado: cargo fmt+check+clippy -D warnings; cargo test 63/63; tsc limpo; build OK; vitest 99/99.",
+      "tags": [
+        "workspace",
+        "decorative",
+        "env-merge",
+        "project-profile",
+        "ailauncher-json",
+        "b4",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T14:51:00.000Z"
+    },
+    {
+      "id": "bug-086",
+      "timestamp": "2026-06-10T19:03:55.130Z",
+      "error_message": "Missing import: ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "file": "../src/theme/index.css",
+      "root_cause": "Module(s) not imported: ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "fix": "Added import(s) for ./theme-phosphor.css, ./theme-midnight.css, ./theme-high-contrast.css",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "css"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:03:55.130Z"
+    },
+    {
+      "id": "bug-087",
+      "timestamp": "2026-06-10T19:04:01.454Z",
+      "error_message": "Wrong operator: || should be &&",
+      "file": "../src/hooks/useTheme.ts",
+      "root_cause": "Used \"||\" instead of \"&&\"",
+      "fix": "Changed operator || → &&",
+      "tags": [
+        "auto-detected",
+        "operator-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:01.454Z"
+    },
+    {
+      "id": "bug-088",
+      "timestamp": "2026-06-10T19:04:31.156Z",
+      "error_message": "CSS fix: THEMES",
+      "file": "../src/features/admin/sections/AppearanceSection.tsx",
+      "root_cause": "THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "fix": "Changed THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:31.156Z"
+    },
+    {
+      "id": "bug-089",
+      "timestamp": "2026-06-10T19:04:53.253Z",
+      "error_message": "CSS fix: THEMES",
+      "file": "../src/features/onboarding/OnboardingPage.tsx",
+      "root_cause": "THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "fix": "Changed THEMES: Theme[] = [\"dark\", \"light\", \"amber\", \"glacier\"] → Theme[] = [",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:04:53.253Z"
+    },
+    {
+      "id": "bug-090",
+      "timestamp": "2026-06-10T19:07:38.657Z",
+      "error_message": "Type error",
+      "file": "../src/app/layout/TopBar.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:07:38.657Z"
+    },
+    {
+      "id": "bug-091",
+      "timestamp": "2026-06-10T19:07:56.814Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Had \"Compact density\"",
+      "fix": "Changed to \"Switch to {{theme}} theme\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:07:56.814Z"
+    },
+    {
+      "id": "bug-092",
+      "timestamp": "2026-06-10T19:08:05.757Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/pt-BR.ts",
+      "root_cause": "Had \"Densidade compacta\"",
+      "fix": "Changed to \"Mudar para tema {{theme}}\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-10T19:08:05.757Z"
+    },
+    {
+      "id": "bug-093",
+      "timestamp": "2026-06-11T11:42:37.507Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/pt-BR.ts",
+      "root_cause": "Had \"Custos\"",
+      "fix": "Changed to \"Analytics\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:42:37.507Z"
+    },
+    {
+      "id": "bug-094",
+      "timestamp": "2026-06-11T11:42:49.292Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Had \"Costs\"",
+      "fix": "Changed to \"Analytics\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:42:49.292Z"
+    },
+    {
+      "id": "bug-095",
+      "timestamp": "2026-06-11T11:43:02.158Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/costs/CostsPage.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:43:02.158Z"
+    },
+    {
+      "id": "bug-096",
+      "timestamp": "2026-06-11T11:43:15.901Z",
+      "error_message": "Type error",
+      "file": "../src/features/costs/CostsPage.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: items={analytics.projects.map((r) => ({ label: r.label, valu | Also: items={analytics.models.map((r) => ({ label: r.label, value:",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-11T11:43:57.776Z"
+    },
+    {
+      "id": "bug-097",
+      "timestamp": "2026-06-11T08:44:00-03:00",
+      "error_message": "TS2322: Type RankRow[] is not assignable to type BarListItem[] — Property value is missing in RankRow",
+      "file": "src/features/costs/CostsPage.tsx",
+      "root_cause": "Plano v16.0 Task A3 passa analytics.projects/models (RankRow{costUsd}) direto ao BarList que espera BarListItem{value} — descompasso de shape entre A1 e A2 no proprio plano",
+      "fix": "Mapear no ponto de uso: items={rows.map(r => ({ label: r.label, value: r.costUsd, share: r.share }))}",
+      "tags": [
+        "typescript",
+        "plan-mismatch",
+        "analytics",
+        "barlist",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T08:44:00-03:00"
+    },
+    {
+      "id": "bug-098",
+      "timestamp": "2026-06-11T11:55:21.918Z",
+      "error_message": "Missing guard clause",
+      "file": "../src/features/costs/analytics.ts",
+      "root_cause": "No early return/throw for edge case: restUsd === 0",
+      "fix": "Added guard clause: if (restUsd === 0)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:55:21.918Z"
+    },
+    {
+      "id": "bug-099",
+      "timestamp": "2026-06-11",
+      "error_message": "rank() could emit two label:null rows (existing null bucket in top-N + rest bucket)",
+      "file": "src/features/costs/analytics.ts",
+      "root_cause": "rest bucket always appended as new null row without checking if a null-labeled row already ranked into the top slice",
+      "fix": "merge restUsd into existing null row (immutable map) before appending; regression test added",
+      "tags": [
+        "analytics",
+        "edge-case",
+        "review-found"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-06-11T11:57:54.533Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/theme/theme-contract.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:57:54.533Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-06-11T11:58:53.027Z",
+      "error_message": "Type error",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:58:53.027Z"
+    },
+    {
+      "id": "bug-102",
+      "timestamp": "2026-06-11T15:35:37.949Z",
+      "error_message": "Type error",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:35:37.949Z"
+    },
+    {
+      "id": "bug-103",
+      "timestamp": "2026-06-11T15:37:51.713Z",
+      "error_message": "Type error",
+      "file": "../src/features/inbox/inboxStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:37:51.713Z"
+    },
+    {
+      "id": "bug-104",
+      "timestamp": "2026-06-11T15:39:33.005Z",
+      "error_message": "Type error",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:39:33.005Z"
+    },
+    {
+      "id": "bug-105",
+      "timestamp": "2026-06-11T15:42:27.649Z",
+      "error_message": "Missing error handling in sessionCli",
+      "file": "../src/features/history/useSessionEvents.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:27.649Z"
+    },
+    {
+      "id": "bug-106",
+      "timestamp": "2026-06-11T15:42:43.243Z",
+      "error_message": "Type error",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:43.243Z"
+    },
+    {
+      "id": "bug-107",
+      "timestamp": "2026-06-11T15:42:54.450Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:54.450Z"
+    },
+    {
+      "id": "bug-108",
+      "timestamp": "2026-06-11T15:43:27.622Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/history/useSessionEvents.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:43:27.622Z"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-06-11",
+      "error_message": "reportDoctorResults re-fail test failed: doctor ok->fail re-transition did not re-unread",
+      "file": "src/features/inbox/inboxStore.ts",
+      "root_cause": "keep-read-on-identical-content rule (anti re-unread for updates) also suppressed doctor re-failure notifications, whose content is identical by design",
+      "fix": "added forceUnread flag to PushInput; reportDoctorResults pushes with forceUnread:true",
+      "tags": [
+        "inbox",
+        "dedup",
+        "test-caught"
+      ],
+      "related_bugs": [
+        "bug-099"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-110",
+      "timestamp": "2026-06-11T15:45:02.248Z",
+      "error_message": "Significant refactor of ",
+      "file": "../e2e/launcher.spec.ts",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 8→3 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:45:02.248Z"
+    },
+    {
+      "id": "bug-111",
+      "timestamp": "2026-06-11T15:47:43.435Z",
+      "error_message": "Type error",
+      "file": "../src/app/layout/StatusBar.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:47:43.435Z"
+    },
+    {
+      "id": "bug-112",
+      "timestamp": "2026-06-11T15:49:12.587Z",
+      "error_message": "Type error",
+      "file": "../e2e/launcher.spec.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:49:12.587Z"
+    },
+    {
+      "id": "bug-113",
+      "timestamp": "2026-06-11T15:50:06.965Z",
+      "error_message": "Type error",
+      "file": "../src/features/command-palette/CommandPalette.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:50:06.965Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-06-11",
+      "error_message": "tauri build: failed to remove target/release/ai-launcher.exe - Acesso negado (os error 5)",
+      "file": "src-tauri/target/release/ai-launcher.exe",
+      "root_cause": "exe release ainda rodando do smoke test anterior bloqueia o cargo de substituir o binario; alem disso, pipe para tail mascarou o exit code (notificacao disse exit 0 com build falho)",
+      "fix": "fechar instancia (Get-Process ai-launcher + CloseMainWindow) antes de qualquer tauri build; em pipes usar echo EXIT: PIPESTATUS[0] para capturar o exit real",
+      "tags": [
+        "tauri-build",
+        "windows",
+        "pipe-exit-code",
+        "process-lock"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
     }
   ]
 }

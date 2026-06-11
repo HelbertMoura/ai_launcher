@@ -59,7 +59,7 @@ export function CustomIdesSection() {
     <div>
       <div className="cd-admin-section__head">
         <div>
-          <h3 className="cd-admin-section__title">Custom IDEs</h3>
+          <h2 className="cd-admin-section__title">Custom IDEs</h2>
           <p className="cd-admin-section__sub">
             {ides.length} custom IDE{ides.length === 1 ? "" : "s"}
           </p>

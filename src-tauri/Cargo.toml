@@ -1,6 +1,6 @@
 [package]
 name = "ai-launcher"
-version = "15.2.6"
+version = "16.0.0"
 description = "Desktop launcher for AI coding CLIs (Windows)"
 authors = ["Helbert Moura"]
 license = "MIT"
@@ -30,6 +30,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock"] }
 thiserror = "1.0"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
+toml_edit = "0.22"
 
 [features]
 default = ["custom-protocol"]

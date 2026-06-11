@@ -4,8 +4,10 @@ import { ACCENTS, useAccent, type Accent } from "../hooks/useAccent";
 import { useDensity } from "../hooks/useDensity";
 import { useTheme } from "../hooks/useTheme";
 import { useHistory } from "../features/history/useHistory";
+import { useSessionEvents } from "../features/history/useSessionEvents";
 import { LauncherPage } from "../features/launcher/LauncherPage";
 import { ToolsPage } from "../features/tools/ToolsPage";
+import { McpPage } from "../features/mcp/McpPage";
 import { HistoryPage } from "../features/history/HistoryPage";
 import { CostsPage } from "../features/costs/CostsPage";
 import { WorkspacePage } from "../features/workspace/WorkspacePage";
@@ -27,6 +29,7 @@ import { CommandPalette } from "../features/command-palette/CommandPalette";
 import { useCommandPalette } from "../features/command-palette/useCommandPalette";
 import { markOnboarded, readOnboarded } from "./onboarding";
 import { clisStore } from "../features/launcher/clisStore";
+import { useClis } from "../features/launcher/useClis";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
 import { useSidebarIndicators } from "../hooks/useSidebarIndicators";
@@ -34,7 +37,12 @@ import { loadProviders } from "../providers/storage";
 import type { HistoryItem } from "../features/history/useHistory";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { ToastContainer } from "../ui/Toast";
+import { showToast } from "../ui/toastStore";
 import { migrateApiKeysToSecureStorage } from "../providers/storage";
+import { getBudgetAlerts } from "../providers/budget";
+import { pushEvent } from "../features/inbox/inboxStore";
+import type { UsageReport } from "../features/costs/useUsage";
+import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
@@ -42,12 +50,13 @@ const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navig
 const DIGIT_TABS: Record<string, TabId> = {
   "1": "launcher",
   "2": "tools",
-  "3": "history",
-  "4": "costs",
-  "5": "workspace",
-  "6": "doctor",
-  "7": "updates",
-  "8": "prereqs",
+  "3": "mcp",
+  "4": "history",
+  "5": "costs",
+  "6": "workspace",
+  "7": "doctor",
+  "8": "updates",
+  "9": "prereqs",
 };
 
 export function App() {
@@ -59,6 +68,10 @@ export function App() {
   const palette = useCommandPalette();
   const history = useHistory();
   const { refresh: refreshUpdates } = useUpdates();
+
+  // Register a single global listener for backend `session-ended` events.
+  // This activates the session-lifecycle history updates (formerly dead code).
+  useSessionEvents();
 
   // Theme toggle cycles through: dark → light → amber → glacier → dark
   const toggleTheme = () => cycleTheme();
@@ -81,6 +94,45 @@ export function App() {
     migrateApiKeysToSecureStorage().catch(() => {
       // Migration failure is non-critical; keys stay in localStorage.
     });
+  }, []);
+
+  // On boot, check configured budget limits and surface a toast if any
+  // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
+  // Badge in the TopBar is intentionally out of scope for this batch.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const report = await invoke<UsageReport>("read_usage_stats");
+        if (cancelled) return;
+        const alerts = getBudgetAlerts(report.entries ?? []);
+        if (alerts.length === 0) return;
+        const month = new Date().toISOString().slice(0, 7);
+        for (const a of alerts) {
+          pushEvent({
+            id: `budget:${a.providerKey}:${month}`,
+            type: "budget",
+            titleKey: "inbox.budgetTitle",
+            titleParams: { provider: a.providerKey },
+            bodyKey: a.status === "exceeded" ? "inbox.budgetExceeded" : "inbox.budgetWarning",
+            bodyParams: { percent: Math.round(a.percentUsed) },
+            targetTab: "costs",
+          });
+        }
+        const exceeded = alerts.filter((a) => a.status === "exceeded").length;
+        const variant = exceeded > 0 ? "error" : "warning";
+        const message =
+          exceeded > 0
+            ? `${exceeded} budget limit(s) exceeded`
+            : `${alerts.length} budget alert(s) near limit`;
+        showToast(message, variant);
+      } catch {
+        // Budget check is best-effort; failures must not block boot.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleKeyDown = useCallback(
@@ -143,6 +195,7 @@ export function App() {
         <main className="cd-app__main">
           {active === "launcher" && <LauncherPage />}
           {active === "tools" && <ToolsPage />}
+          {active === "mcp" && <McpPage />}
           {active === "history" && <HistoryPage />}
           {active === "costs" && <CostsPage />}
           {active === "workspace" && <WorkspacePage onNavigate={setActive} />}
@@ -272,10 +325,36 @@ function ChromeConnector({
   onToggleDensity,
   openPalette,
 }: ChromeConnectorProps) {
-  const snapshot = clisStore.getSnapshot();
+  // Subscribe to the CLI store so the StatusBar re-renders when checks load.
+  // useClis() subscribes via useSyncExternalStore AND triggers ensureLoaded,
+  // so the bar populates on boot instead of staying stuck at "0/0" until an
+  // unrelated re-render happened to pick up the updated store.
+  const snapshot = useClis();
   const { report } = useUsage();
   const { summary: updates, refresh: refreshUpdates } = useUpdates();
   const [refreshTick, setRefreshTick] = useState(0);
+
+  // Surface available CLI/tool updates in the inbox. The stable id
+  // (update:<cli>:<version>) dedups across boots; identical re-pushes keep
+  // their read state, so an ignored update doesn't re-unread every launch.
+  useEffect(() => {
+    if (!updates) return;
+    const all = [
+      ...(updates.cli_updates ?? []),
+      ...(updates.env_updates ?? []),
+      ...(updates.tool_updates ?? []),
+    ];
+    for (const u of all) {
+      if (!u.has_update || !u.latest) continue;
+      pushEvent({
+        id: `update:${u.cli}:${u.latest}`,
+        type: "update",
+        titleKey: "inbox.updateTitle",
+        titleParams: { cli: u.cli, version: u.latest },
+        targetTab: "updates",
+      });
+    }
+  }, [updates]);
 
   const indicatorCounts = useSidebarIndicators(report, refreshTick);
   const updatesCount = updates?.total_with_updates ?? 0;
@@ -348,6 +427,7 @@ function ChromeConnector({
       <div className="cd-app__top">
         <TopBar
           onCommand={openPalette}
+          onNavigate={onSelect}
           theme={theme}
           onToggleTheme={onToggleTheme}
           accent={accent}

@@ -75,16 +75,18 @@
 Baixe o instalador `.msi` ou `.exe` no [último release](https://github.com/HelbertMoura/ai_launcher/releases).
 
 ```bash
-# Opção 1: Winget (em breve)
-winget install DevManiacs.AILauncher
-
-# Opção 2: Chocolatey (em breve)
-choco install ai-launcher -y
-
-# Opção 3: Download manual
+# Opção 1: Download manual (disponível agora)
 # Pegue o .msi ou .exe do último release em:
 # https://github.com/HelbertMoura/ai_launcher/releases
+
+# Opção 2: Winget — 🚧 Em breve (ainda não publicado)
+winget install DevManiacs.AILauncher
+
+# Opção 3: Chocolatey — 🚧 Em breve (ainda não publicado)
+choco install ai-launcher -y
 ```
+
+> 🚧 **Winget e Chocolatey ainda não foram publicados.** Esses comandos vão falhar até o release assinado sair — use o download manual acima por enquanto.
 
 > O SmartScreen pode alertar em builds sem assinatura — clique em **Mais informações → Executar mesmo assim**.
 
@@ -201,7 +203,7 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | i18n | i18next 24 |
 | Testes | Vitest (61 testes), Playwright E2E, cargo test |
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) |
-| Distribuição | GitHub Releases · Winget (em breve) · Chocolatey (em breve) |
+| Distribuição | GitHub Releases · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
 
 ## Contribuindo
 

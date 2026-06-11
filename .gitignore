@@ -89,3 +89,6 @@ coverage/
 /playwright-report/
 /playwright/.cache/
 Capturar.PNG
+
+# OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
+src-tauri/.wolf

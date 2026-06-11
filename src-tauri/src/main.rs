@@ -71,6 +71,10 @@ fn main() {
             commands::cli::launch_cli,
             commands::cli::launch_multi_clis,
             commands::cli::launch_custom_cli,
+            commands::cli::read_project_profile,
+            // commands::session
+            commands::session::list_active_sessions,
+            commands::session::kill_session,
             // commands::tools
             commands::tools::get_all_tools,
             commands::tools::check_tools,
@@ -104,6 +108,14 @@ fn main() {
             commands::system::set_tray_hotkey,
             commands::system::get_minimize_to_tray,
             commands::system::set_minimize_to_tray,
+            // commands::mcp
+            commands::mcp::list_mcp_servers,
+            commands::mcp::add_mcp_server,
+            commands::mcp::update_mcp_server,
+            commands::mcp::remove_mcp_server,
+            commands::mcp::mcp_health_check,
+            // commands::runbook
+            commands::runbook::run_runbook_step,
             // secrets
             secrets::store_secret,
             secrets::get_secret,

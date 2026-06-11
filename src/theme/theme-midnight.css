@@ -1,0 +1,35 @@
+/* Midnight — synthwave blue-violet dark theme.
+   Deep indigo surfaces with an electric violet accent. */
+[data-theme="midnight"] {
+  color-scheme: dark;
+
+  /* surfaces */
+  --bg: #0d0b1a;
+  --surface-1: #121029;
+  --surface-1-alpha: rgba(18, 16, 41, 0.7);
+  --surface-2: #181533;
+  --surface-2-alpha: rgba(24, 21, 51, 0.6);
+  --surface-hover: #211c45;
+
+  --border: #241f47;
+  --border-strong: #3a3270;
+
+  /* text — cool lilac-tinted */
+  --text: #e6e2ff;
+  --text-muted: #a9a2d6;
+  --text-dim: #847daf;
+
+  /* accent — electric violet */
+  --accent: #a06cff;
+  --accent-glow: rgba(160, 108, 255, 0.45);
+  --accent-soft: rgba(160, 108, 255, 0.14);
+  --accent-ink: #0d0b1a;
+
+  /* semantic */
+  --ok: #4ee6b8;
+  --warn: #ffcb52;
+  --err: #ff6b8a;
+
+  /* grid dot — violet tint */
+  --grid-dot-color: rgba(160, 108, 255, 0.08);
+}

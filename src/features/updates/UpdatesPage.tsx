@@ -80,7 +80,7 @@ export function UpdatesPage() {
     <section className="cd-page cd-updates">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("updates.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("updates.title")}</h1>
           <p className="cd-page__sub">
             {updatesLoading
               ? t("updates.refreshing")
@@ -216,7 +216,7 @@ export function UpdatesPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="cd-updates__section">
-      <h3 className="cd-updates__section-title">{title}</h3>
+      <h2 className="cd-updates__section-title">{title}</h2>
       <div className="cd-updates__list">{children}</div>
     </div>
   );

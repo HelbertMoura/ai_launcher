@@ -4,9 +4,8 @@
 // ==============================================================================
 
 import type { WorkspaceProfile } from "../../domain/types";
+import { readKey, writeKey, removeKey } from "../../lib/storage";
 
-const STORE_KEY = "ai-launcher:v15:workspace";
-const ACTIVE_KEY = "ai-launcher:v15:active-workspace";
 const MAX_PROFILES = 64;
 
 /** Keys that look like secrets — redacted during export. */
@@ -16,23 +15,16 @@ function isSecretKey(key: string): boolean {
   return SECRET_PATTERNS.some((p) => p.test(key));
 }
 
+// T4: persistence goes through the unified registry-backed helpers. readKey
+// validates with zod and falls back to [] on corruption (never throws). The cast
+// bridges the tolerant registry schema (.passthrough) and the strict
+// WorkspaceProfile domain type.
 function readAll(): WorkspaceProfile[] {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return readKey("workspaces") as unknown as WorkspaceProfile[];
 }
 
 function writeAll(profiles: WorkspaceProfile[]): void {
-  try {
-    localStorage.setItem(STORE_KEY, JSON.stringify(profiles.slice(0, MAX_PROFILES)));
-  } catch {
-    // ignore storage failures
-  }
+  writeKey("workspaces", profiles.slice(0, MAX_PROFILES) as never);
 }
 
 export function loadWorkspaces(): WorkspaceProfile[] {
@@ -123,22 +115,17 @@ export function importWorkspaces(
 // --- Active workspace ---
 
 export function getActiveWorkspaceId(): string | null {
-  try {
-    return localStorage.getItem(ACTIVE_KEY);
-  } catch {
-    return null;
-  }
+  // Registry stores this as a raw string with '' default; normalize '' -> null
+  // to preserve the prior "absent => null" contract.
+  const id = readKey("activeWorkspace");
+  return id ? id : null;
 }
 
 export function setActiveWorkspaceId(id: string | null): void {
-  try {
-    if (id) {
-      localStorage.setItem(ACTIVE_KEY, id);
-    } else {
-      localStorage.removeItem(ACTIVE_KEY);
-    }
-  } catch {
-    // ignore
+  if (id) {
+    writeKey("activeWorkspace", id);
+  } else {
+    removeKey("activeWorkspace");
   }
 }
 
