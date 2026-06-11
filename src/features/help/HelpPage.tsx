@@ -68,7 +68,7 @@ export function HelpPage() {
     <section className="cd-page cd-help">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("help.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("help.title")}</h1>
           <p className="cd-page__sub">{t("help.subtitle")}</p>
         </div>
       </header>
@@ -77,12 +77,12 @@ export function HelpPage() {
         <AnimatedTerminal />
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">{t("help.gettingStarted")}</h3>
+          <h2 className="cd-help__heading">{t("help.gettingStarted")}</h2>
           <p className="cd-help__body">{t("help.gettingStartedBody")}</p>
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">{t("help.shortcuts")}</h3>
+          <h2 className="cd-help__heading">{t("help.shortcuts")}</h2>
           <table className="cd-help__table">
             <tbody>
               {shortcuts.map((s) => (
@@ -98,7 +98,7 @@ export function HelpPage() {
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">{t("help.troubleshooting")}</h3>
+          <h2 className="cd-help__heading">{t("help.troubleshooting")}</h2>
           <ul className="cd-help__faqs">
             {faqs.map((f) => (
               <li key={f.qKey} className="cd-help__faq">
@@ -110,7 +110,7 @@ export function HelpPage() {
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">{t("help.tour")}</h3>
+          <h2 className="cd-help__heading">{t("help.tour")}</h2>
           <p className="cd-help__body">{t("help.tourBody")}</p>
           <div className="cd-help__links">
             <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(true)}>
@@ -120,7 +120,7 @@ export function HelpPage() {
         </Card>
 
         <Card className="cd-help__section">
-          <h3 className="cd-help__heading">{t("help.links")}</h3>
+          <h2 className="cd-help__heading">{t("help.links")}</h2>
           <div className="cd-help__links">
             {LINKS.map((l) => (
               <Button
@@ -136,7 +136,7 @@ export function HelpPage() {
         </Card>
 
         <Card className="cd-help__section cd-help__about">
-          <h3 className="cd-help__heading">// about</h3>
+          <h2 className="cd-help__heading">// about</h2>
           <p className="cd-help__body">
             AI Launcher Pro — Desktop launcher for AI coding CLIs.
           </p>

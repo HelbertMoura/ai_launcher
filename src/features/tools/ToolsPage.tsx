@@ -67,7 +67,7 @@ export function ToolsPage() {
     <section className="cd-page cd-tools">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("tools.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("tools.title")}</h1>
           <p className="cd-page__sub">
             {loading
               ? t("common.scanning")

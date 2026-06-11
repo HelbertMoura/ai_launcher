@@ -31,7 +31,7 @@ export function AdminPage() {
     <section className="cd-page cd-admin">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("admin.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("admin.title")}</h1>
           <p className="cd-page__sub">{t("admin.subtitle")}</p>
         </div>
       </header>

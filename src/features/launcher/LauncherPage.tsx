@@ -150,7 +150,7 @@ export function LauncherPage() {
     <section className="cd-page cd-launcher">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("launcher.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("launcher.title")}</h1>
           <p className="cd-page__sub">
             {loading
               ? t("common.scanning")
@@ -175,9 +175,9 @@ export function LauncherPage() {
 
       {profiles.length > 0 && (
         <div className="cd-launcher__templates">
-          <h3 className="cd-launcher__section-title">
+          <h2 className="cd-launcher__section-title">
             {t("launcher.templates")}
-          </h3>
+          </h2>
           <div className="cd-launcher__templates-grid">
             {profiles.map((p) => (
               <div key={p.id} className="cd-launcher__template-card">

@@ -152,7 +152,7 @@ export function McpPage() {
     <section className="cd-page cd-mcp">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("mcp.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("mcp.title")}</h1>
           <p className="cd-page__sub">{t("mcp.subtitle")}</p>
         </div>
         <div className="cd-mcp__head-actions">
@@ -192,7 +192,7 @@ export function McpPage() {
           return (
             <div key={cli} className="cd-mcp__group">
               <div className="cd-mcp__group-head">
-                <h3 className="cd-mcp__group-title">{CLI_LABELS[cli]}</h3>
+                <h2 className="cd-mcp__group-title">{CLI_LABELS[cli]}</h2>
                 <Chip variant="neutral">{list.length}</Chip>
                 <Button
                   size="sm"
@@ -218,7 +218,7 @@ export function McpPage() {
         })}
 
       <div className="cd-mcp__catalog">
-        <h3 className="cd-mcp__group-title">{t("mcp.catalogTitle")}</h3>
+        <h2 className="cd-mcp__group-title">{t("mcp.catalogTitle")}</h2>
         <p className="cd-mcp__catalog-sub">{t("mcp.catalogHint")}</p>
         <div className="cd-page__grid">
           {MCP_CATALOG.map((entry) => (

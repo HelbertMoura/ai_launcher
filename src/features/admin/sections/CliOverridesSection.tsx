@@ -107,7 +107,7 @@ export function CliOverridesSection() {
     <div>
       <div className="cd-admin-section__head">
         <div>
-          <h3 className="cd-admin-section__title">CLI overrides</h3>
+          <h2 className="cd-admin-section__title">CLI overrides</h2>
           <p className="cd-admin-section__sub">
             Rename or re-skin built-in CLIs.
           </p>

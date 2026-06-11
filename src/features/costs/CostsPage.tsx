@@ -106,7 +106,7 @@ export function CostsPage() {
     <section className="cd-page cd-costs">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("costs.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("costs.title")}</h1>
           <p className="cd-page__sub">{t("costs.subtitle")}</p>
         </div>
       </header>
@@ -176,7 +176,7 @@ export function CostsPage() {
           </div>
 
           <Card className="cd-costs__chart-card">
-            <h3 className="cd-costs__section">{t("costs.seriesTitle")}</h3>
+            <h2 className="cd-costs__section">{t("costs.seriesTitle")}</h2>
             <AreaChart
               data={analytics.series.map((p) => ({ label: p.date.slice(5), value: p.costUsd }))}
               ariaLabel={t("costs.seriesTitle")}
@@ -186,7 +186,7 @@ export function CostsPage() {
 
           <div className="cd-page__grid cd-costs__rankings">
             <Card>
-              <h3 className="cd-costs__section">{t("costs.topProjects")}</h3>
+              <h2 className="cd-costs__section">{t("costs.topProjects")}</h2>
               <BarList
                 items={analytics.projects.map((r) => ({ label: r.label, value: r.costUsd, share: r.share }))}
                 ariaLabel={t("costs.topProjects")}
@@ -195,7 +195,7 @@ export function CostsPage() {
               />
             </Card>
             <Card>
-              <h3 className="cd-costs__section">{t("costs.byModelTitle")}</h3>
+              <h2 className="cd-costs__section">{t("costs.byModelTitle")}</h2>
               <BarList
                 items={analytics.models.map((r) => ({ label: r.label, value: r.costUsd, share: r.share }))}
                 ariaLabel={t("costs.byModelTitle")}
@@ -207,7 +207,7 @@ export function CostsPage() {
 
           {cliRollups.length > 0 && (
             <>
-              <h3 className="cd-costs__section">{t("costs.byCli")}</h3>
+              <h2 className="cd-costs__section">{t("costs.byCli")}</h2>
               <div className="cd-page__grid">
                 {cliRollups.map((r) => (
                   <Card key={r.cli} className="cd-costs__cli">
