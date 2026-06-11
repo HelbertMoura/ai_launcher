@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 import "./ConfirmDialog.css";
 
@@ -13,29 +14,38 @@ interface ConfirmDialogProps {
   readonly variant?: ConfirmVariant;
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
+  /** Optional extra content rendered between the message and the actions
+   *  (e.g. a command preview). Does not replace the dialog's own buttons. */
+  readonly children?: ReactNode;
 }
 
 export function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   variant = "normal",
   onConfirm,
   onCancel,
+  children,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const resolvedConfirmLabel = confirmLabel ?? t("common.confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("common.cancel");
 
   useEffect(() => {
     if (!open) return;
 
-    // Focus the confirm button when dialog opens
+    // Focus the safest default action when the dialog opens. For destructive
+    // actions we focus Cancel so an accidental Enter/Space does not confirm.
     const timer = setTimeout(() => {
-      const confirmBtn = panelRef.current?.querySelector<HTMLButtonElement>(
-        "[data-confirm]",
-      );
-      confirmBtn?.focus();
+      const selector =
+        variant === "danger" ? "[data-cancel]" : "[data-confirm]";
+      const target = panelRef.current?.querySelector<HTMLButtonElement>(selector);
+      target?.focus();
     }, 50);
 
     const onKey = (e: KeyboardEvent) => {
@@ -44,11 +54,8 @@ export function ConfirmDialog({
         onCancel();
         return;
       }
-      if (e.key === "Enter") {
-        e.preventDefault();
-        onConfirm();
-        return;
-      }
+      // No global Enter-to-confirm handler: the focused button already fires
+      // its native click on Enter/Space, which keeps danger dialogs safe.
       // Focus trap
       if (e.key !== "Tab" || !panelRef.current) return;
       const focusable = panelRef.current.querySelectorAll<HTMLElement>(
@@ -71,7 +78,7 @@ export function ConfirmDialog({
       clearTimeout(timer);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, onConfirm, onCancel]);
+  }, [open, onCancel, variant]);
 
   if (!open) return null;
 
@@ -94,9 +101,10 @@ export function ConfirmDialog({
         <p id="cd-confirm-desc" className="cd-confirm__message">
           {message}
         </p>
+        {children}
         <div className="cd-confirm__actions">
-          <Button size="sm" variant="ghost" onClick={onCancel}>
-            {cancelLabel}
+          <Button data-cancel size="sm" variant="ghost" onClick={onCancel}>
+            {resolvedCancelLabel}
           </Button>
           <Button
             data-confirm
@@ -104,7 +112,7 @@ export function ConfirmDialog({
             variant={variant === "danger" ? "danger" : "primary"}
             onClick={onConfirm}
           >
-            {confirmLabel}
+            {resolvedConfirmLabel}
           </Button>
         </div>
       </div>

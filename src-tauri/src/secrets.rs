@@ -46,15 +46,15 @@ fn load_store() -> Result<SecretStore, String> {
     if !path.exists() {
         return Ok(SecretStore::default());
     }
-    let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read secrets file: {e}"))?;
+    let content =
+        fs::read_to_string(&path).map_err(|e| format!("Failed to read secrets file: {e}"))?;
     serde_json::from_str(&content).map_err(|e| format!("Failed to parse secrets file: {e}"))
 }
 
 fn save_store(store: &SecretStore) -> Result<(), String> {
     let path = secrets_file()?;
-    let content =
-        serde_json::to_string_pretty(store).map_err(|e| format!("Failed to serialize secrets: {e}"))?;
+    let content = serde_json::to_string_pretty(store)
+        .map_err(|e| format!("Failed to serialize secrets: {e}"))?;
     fs::write(&path, content).map_err(|e| format!("Failed to write secrets file: {e}"))?;
     Ok(())
 }

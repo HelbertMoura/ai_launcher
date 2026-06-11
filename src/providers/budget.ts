@@ -3,6 +3,7 @@
 // Per-provider spending limits with period-based tracking. All data stays local.
 // ==============================================================================
 
+import { z } from 'zod';
 import type { UsageEntry } from '../features/costs/useUsage';
 
 // --- Types -------------------------------------------------------------------
@@ -12,6 +13,13 @@ export interface BudgetLimit {
   limitUsd: number;
   periodDays: number;
   alertAtPercent: number;
+  /**
+   * Optional explicit period anchor (YYYY-MM-DD). When set, the budget period
+   * starts at this date instead of `today - periodDays`. The Reset action sets
+   * this to today so spend is counted fresh from "now". Absent for limits that
+   * use the default rolling window.
+   */
+  periodAnchor?: string;
 }
 
 export interface BudgetUsage {
@@ -40,12 +48,32 @@ interface BudgetStore {
   limits: BudgetLimit[];
 }
 
+// Validate persisted data at the storage boundary — localStorage is external,
+// untrusted input that may be stale or hand-edited.
+const budgetLimitSchema = z.object({
+  providerKey: z.string().min(1),
+  limitUsd: z.number().nonnegative(),
+  periodDays: z.number().int().positive(),
+  alertAtPercent: z.number().min(1).max(100),
+  periodAnchor: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+
 function loadStore(): BudgetStore {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { limits: [] };
-    const parsed = JSON.parse(raw) as Partial<BudgetStore>;
-    return { limits: Array.isArray(parsed.limits) ? parsed.limits : [] };
+    const parsed = JSON.parse(raw) as unknown;
+    const limitsRaw = (parsed as { limits?: unknown })?.limits;
+    if (!Array.isArray(limitsRaw)) return { limits: [] };
+    // Drop any malformed entries rather than failing the whole store.
+    const limits = limitsRaw.flatMap((l) => {
+      const result = budgetLimitSchema.safeParse(l);
+      return result.success ? [result.data] : [];
+    });
+    return { limits };
   } catch {
     return { limits: [] };
   }
@@ -78,6 +106,42 @@ function computeStatus(percentUsed: number, alertAtPercent: number): 'ok' | 'war
   return 'ok';
 }
 
+/**
+ * The provider a usage entry should be billed against. The backend (T1) sends
+ * `provider`; the cli->provider mapping is not 1:1 (several providers run via
+ * `claude` with env vars), so we trust `provider` first and fall back to `cli`
+ * for legacy entries that predate the field.
+ */
+function entryProvider(entry: UsageEntry): string {
+  return entry.provider ?? entry.cli;
+}
+
+/** Start of the budget window: explicit anchor if set, else rolling window. */
+function periodStartFor(limit: BudgetLimit): string {
+  return limit.periodAnchor ?? dateDaysAgo(limit.periodDays);
+}
+
+/**
+ * Sum spend for a single provider within [periodStart, periodEnd]. Only entries
+ * whose resolved provider matches `providerKey` are counted, so one provider's
+ * limit never consumes another's budget.
+ */
+function sumProviderSpend(
+  entries: UsageEntry[],
+  providerKey: string,
+  periodStart: string,
+  periodEnd: string,
+): number {
+  return entries
+    .filter(
+      (e) =>
+        entryProvider(e) === providerKey &&
+        e.date >= periodStart &&
+        e.date <= periodEnd,
+    )
+    .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
+}
+
 // --- Public API --------------------------------------------------------------
 
 /**
@@ -91,11 +155,15 @@ export function setBudgetLimit(
   alertAtPercent: number = 80,
 ): BudgetLimit {
   const store = loadStore();
+  const existing = store.limits.find((l) => l.providerKey === providerKey);
   const limit: BudgetLimit = {
     providerKey,
     limitUsd: Math.max(0, limitUsd),
     periodDays: Math.max(1, periodDays),
     alertAtPercent: Math.min(100, Math.max(1, alertAtPercent)),
+    // Preserve any existing period anchor so editing a limit doesn't silently
+    // un-reset its tracking window.
+    ...(existing?.periodAnchor ? { periodAnchor: existing.periodAnchor } : {}),
   };
   const idx = store.limits.findIndex((l) => l.providerKey === providerKey);
   if (idx >= 0) {
@@ -105,6 +173,26 @@ export function setBudgetLimit(
   }
   saveStore(store);
   return limit;
+}
+
+/**
+ * Reset a provider's tracking period: anchor the window to today so spend is
+ * counted fresh from now. We do NOT delete historical usage entries (those come
+ * from the read-only backend), so "reset" means "start a new period", which is
+ * the only meaningful reset without mutating immutable usage data.
+ *
+ * Returns the updated limit, or null if no limit exists for the provider.
+ */
+export function resetBudgetPeriod(providerKey: string): BudgetLimit | null {
+  const store = loadStore();
+  const existing = store.limits.find((l) => l.providerKey === providerKey);
+  if (!existing) return null;
+  const updated: BudgetLimit = { ...existing, periodAnchor: todayISO() };
+  store.limits = store.limits.map((l) =>
+    l.providerKey === providerKey ? updated : l,
+  );
+  saveStore(store);
+  return updated;
 }
 
 /** Remove budget limit for a provider. */
@@ -131,12 +219,10 @@ export function checkBudget(
   const limit = store.limits.find((l) => l.providerKey === providerKey);
   if (!limit) return null;
 
-  const periodStart = dateDaysAgo(limit.periodDays);
+  const periodStart = periodStartFor(limit);
   const periodEnd = todayISO();
 
-  const usedUsd = entries
-    .filter((e) => e.date >= periodStart && e.date <= periodEnd)
-    .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
+  const usedUsd = sumProviderSpend(entries, providerKey, periodStart, periodEnd);
 
   const percentUsed = limit.limitUsd > 0 ? (usedUsd / limit.limitUsd) * 100 : 0;
   const status = computeStatus(percentUsed, limit.alertAtPercent);
@@ -159,11 +245,10 @@ export function getBudgetAlerts(entries: UsageEntry[]): BudgetAlert[] {
   const store = loadStore();
   const alerts: BudgetAlert[] = [];
 
+  const periodEnd = todayISO();
   for (const limit of store.limits) {
-    const periodStart = dateDaysAgo(limit.periodDays);
-    const usedUsd = entries
-      .filter((e) => e.date >= periodStart)
-      .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
+    const periodStart = periodStartFor(limit);
+    const usedUsd = sumProviderSpend(entries, limit.providerKey, periodStart, periodEnd);
 
     const percentUsed = limit.limitUsd > 0 ? (usedUsd / limit.limitUsd) * 100 : 0;
     const status = computeStatus(percentUsed, limit.alertAtPercent);
@@ -188,12 +273,10 @@ export function getBudgetAlerts(entries: UsageEntry[]): BudgetAlert[] {
 export function getAllBudgetUsage(entries: UsageEntry[]): BudgetUsage[] {
   const store = loadStore();
   return store.limits.map((limit) => {
-    const periodStart = dateDaysAgo(limit.periodDays);
+    const periodStart = periodStartFor(limit);
     const periodEnd = todayISO();
 
-    const usedUsd = entries
-      .filter((e) => e.date >= periodStart && e.date <= periodEnd)
-      .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
+    const usedUsd = sumProviderSpend(entries, limit.providerKey, periodStart, periodEnd);
 
     const percentUsed = limit.limitUsd > 0 ? (usedUsd / limit.limitUsd) * 100 : 0;
     const status = computeStatus(percentUsed, limit.alertAtPercent);

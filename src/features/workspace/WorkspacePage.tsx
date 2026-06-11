@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import type { Runbook, WorkspaceProfile } from "../../domain/types";
+import type { WorkspaceProfile } from "../../domain/types";
 import {
   addWorkspace,
   exportWorkspaces,
@@ -15,7 +15,8 @@ import {
   togglePin,
   updateWorkspace,
 } from "./workspaceStore";
-import { createRunbook, getRunbooks } from "./runbookStore";
+import { getRunbooks } from "./runbookStore";
+import { RunbooksPanel } from "./RunbooksPanel";
 import type { HistoryItem } from "../history/useHistory";
 import { useHistory } from "../history/useHistory";
 import { useUsage } from "../costs/useUsage";
@@ -55,6 +56,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const [activeId, setActiveId] = useState<string | null>(() => getActiveWorkspaceId());
   const [editing, setEditing] = useState<WorkspaceProfile | null>(null);
   const [creating, setCreating] = useState(false);
+  const [showRunbooks, setShowRunbooks] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleActivate = useCallback((id: string) => {
@@ -153,6 +155,17 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
 
   const activeProfile = getActiveWorkspace(profiles);
 
+  if (showRunbooks) {
+    return (
+      <section className="cd-page cd-ws">
+        <RunbooksPanel
+          cwd={activeProfile?.directory}
+          onClose={() => setShowRunbooks(false)}
+        />
+      </section>
+    );
+  }
+
   if (editing) {
     return (
       <WorkspaceForm
@@ -175,7 +188,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
     <section className="cd-page cd-ws">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("workspace.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("workspace.title")}</h1>
           <p className="cd-page__sub">{t("workspace.subtitle")}</p>
         </div>
         <div className="cd-ws__actions">
@@ -238,7 +251,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
 
         <div className="cd-ws-bento__row">
           <DoctorSummaryCard onNavigate={onNavigate} />
-          <RunbooksCard onNavigate={onNavigate} />
+          <RunbooksCard onOpen={() => setShowRunbooks(true)} />
           <RecentSessionsCard onNavigate={onNavigate} />
         </div>
       </div>
@@ -496,28 +509,23 @@ function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
 
 // --- Runbooks Card (medium) --------------------------------------------------
 
-function RunbooksCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
-  const [runbooks, setRunbooks] = useState<Runbook[]>(() => getRunbooks());
+function RunbooksCard({ onOpen }: { onOpen: () => void }) {
+  const { t } = useTranslation();
+  const runbooks = getRunbooks();
 
-  const refresh = useCallback(() => {
-    setRunbooks(getRunbooks());
-  }, []);
-
-  const handleCreate = useCallback(
+  const handleManage = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      createRunbook({ name: "Untitled Runbook" });
-      refresh();
+      onOpen();
     },
-    [refresh],
+    [onOpen],
   );
 
   const meta = `${runbooks.length} total`;
-  const handleActivate = onNavigate ? () => onNavigate("workspace") : undefined;
 
   const footer = (
-    <button type="button" className="cd-ws-bento__btn" onClick={handleCreate}>
-      + New runbook
+    <button type="button" className="cd-ws-bento__btn" onClick={handleManage}>
+      {t("runbook.manage")}
     </button>
   );
 
@@ -526,7 +534,7 @@ function RunbooksCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
       area="runbooks"
       title="AGENT RUNBOOKS"
       meta={meta}
-      onActivate={handleActivate}
+      onActivate={onOpen}
       footer={footer}
     >
       {runbooks.length === 0 ? (
@@ -725,9 +733,9 @@ function WorkspaceForm({ initial, isNew, onSave, onCancel }: WorkspaceFormProps)
   return (
     <section className="cd-ws-form">
       <header className="cd-ws-form__head">
-        <h1 className="cd-ws-form__title">
+        <h2 className="cd-ws-form__title">
           {isNew ? t("workspace.newTitle") : t("workspace.editTitle")}
-        </h1>
+        </h2>
       </header>
 
       <form className="cd-ws-form__body" onSubmit={handleSubmit}>

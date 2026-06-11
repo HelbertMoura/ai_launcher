@@ -16,9 +16,9 @@ export function AppUpdater() {
 
   return (
     <div className="cd-updates__section cd-updates__app">
-      <h3 className="cd-updates__section-title">
+      <h2 className="cd-updates__section-title">
         {t("updates.appTitle", "AI Launcher")}
-      </h3>
+      </h2>
       <div className="cd-updates__list">
         {/* Current version display */}
         <div className="cd-updates__row cd-updates__row--app">

@@ -43,7 +43,13 @@ pub fn check_tools() -> Vec<CheckResult> {
 
             let version = version_from_cmd
                 .or_else(|| path.as_deref().and_then(read_exe_product_version))
-                .or_else(|| if installed { Some("detectado".into()) } else { None });
+                .or_else(|| {
+                    if installed {
+                        Some("detectado".into())
+                    } else {
+                        None
+                    }
+                });
 
             CheckResult {
                 key: tool.key.clone(),

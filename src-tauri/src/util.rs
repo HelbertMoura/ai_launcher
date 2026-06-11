@@ -686,6 +686,19 @@ pub fn http_agent() -> ureq::Agent {
         .build()
 }
 
+/// HTTP agent tuned for large downloads (e.g. self-update installer).
+///
+/// Unlike [`http_agent`], this uses per-operation timeouts (connect + read)
+/// instead of a single total timeout, so a large but steady download is not
+/// aborted mid-transfer.
+pub fn download_agent() -> ureq::Agent {
+    ureq::AgentBuilder::new()
+        .timeout_connect(std::time::Duration::from_secs(30))
+        .timeout_read(std::time::Duration::from_secs(60))
+        .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
+        .build()
+}
+
 pub fn fetch_vscode_latest() -> Option<String> {
     let resp = http_agent()
         .get("https://update.code.visualstudio.com/api/releases/stable/win32-x64/version")
@@ -828,11 +841,44 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
 }
 
 pub fn sanitize_args(args: &str) -> Result<String, String> {
-    let banned = [';', '&', '|', '`', '$', '>', '<'];
+    let banned = [
+        ';', '&', '|', '`', '$', '>', '<', '\n', '\r', '(', ')', '{', '}',
+    ];
     if args.chars().any(|c| banned.contains(&c)) {
-        return Err("Argumentos contêm caracteres proibidos (; & | ` $ > <)".into());
+        return Err(
+            "Argumentos contêm caracteres proibidos (; & | ` $ > < newline ( ) { })".into(),
+        );
     }
     Ok(args.trim().to_string())
+}
+
+/// Validates an environment variable name against `^[A-Za-z_][A-Za-z0-9_]*$`.
+///
+/// Used before interpolating the raw key into a PowerShell `$env:KEY = '...'`
+/// assignment, preventing injection via crafted variable names.
+pub fn is_valid_env_key(key: &str) -> bool {
+    let mut chars = key.chars();
+    match chars.next() {
+        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
+        _ => return false,
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
+/// Appends `$env:KEY = 'VALUE'` lines to a PowerShell script for each valid env var.
+///
+/// Keys failing [`is_valid_env_key`] are skipped and logged. Values have single
+/// quotes escaped (`'` -> `''`) so they remain inside the single-quoted literal.
+/// Shared by `launch_cli` and `launch_custom_cli`.
+pub fn append_env_assignments(script: &mut String, vars: &HashMap<String, String>) {
+    for (k, v) in vars {
+        if !is_valid_env_key(k) {
+            log_event("launch", &format!("skipping invalid env var name: {:?}", k));
+            continue;
+        }
+        let esc = v.replace('\'', "''");
+        script.push_str(&format!("$env:{} = '{}'\n", k, esc));
+    }
 }
 
 pub fn user_home_dir_string() -> String {
@@ -899,12 +945,7 @@ pub fn log_event(phase: &str, msg: &str) {
 }
 
 pub fn chrono_format_local_now() -> String {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    now.to_string()
+    chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string()
 }
 
 // ============================================================
@@ -917,6 +958,17 @@ static NPM_LATEST_CACHE: std::sync::LazyLock<
 
 const NPM_CACHE_TTL: std::time::Duration = std::time::Duration::from_secs(15 * 60);
 
+/// Queries the npm registry for `<pkg>/latest` over HTTP, returning the
+/// `.version` field. Avoids spawning Node per package.
+fn npm_latest_http(pkg: &str) -> Option<String> {
+    // The package name may contain a scope slash (e.g. @scope/name) which is
+    // valid unencoded in the registry path.
+    let url = format!("https://registry.npmjs.org/{}/latest", pkg);
+    let resp = http_agent().get(&url).call().ok()?;
+    let json: serde_json::Value = resp.into_json().ok()?;
+    json["version"].as_str().and_then(extract_version)
+}
+
 pub fn npm_latest(pkg: &str) -> Option<String> {
     if let Ok(cache) = NPM_LATEST_CACHE.lock() {
         if let Some((ver, at)) = cache.get(pkg) {
@@ -925,8 +977,12 @@ pub fn npm_latest(pkg: &str) -> Option<String> {
             }
         }
     }
-    let (_, raw) = run_silent("npm", &["view", pkg, "version"]);
-    let ver = raw.as_ref().and_then(|v| extract_version(v))?;
+    // Prefer an HTTP GET to the registry; fall back to `npm view` when it fails
+    // (e.g. corporate proxies / custom .npmrc registries).
+    let ver = npm_latest_http(pkg).or_else(|| {
+        let (_, raw) = run_silent("npm", &["view", pkg, "version"]);
+        raw.as_ref().and_then(|v| extract_version(v))
+    })?;
     if let Ok(mut cache) = NPM_LATEST_CACHE.lock() {
         cache.insert(pkg.to_string(), (ver.clone(), std::time::Instant::now()));
     }
@@ -939,11 +995,16 @@ pub fn npm_latest(pkg: &str) -> Option<String> {
 
 pub const DEFAULT_INSTALL_TIMEOUT_SEC: u64 = 300;
 
+/// Runs an install/update command, streaming stdout/stderr as `install-progress`
+/// events. The child process is killed on drop and the whole operation is bounded
+/// by `timeout_sec` (use [`DEFAULT_INSTALL_TIMEOUT_SEC`] when callers have no
+/// explicit timeout). On timeout the child is killed and an error is returned.
 pub async fn stream_install(
     app: tauri::AppHandle,
     key: String,
     program: String,
     args: Vec<String>,
+    timeout_sec: u64,
 ) -> Result<String, String> {
     use tauri::Emitter;
     use tokio::io::{AsyncBufReadExt, BufReader};
@@ -955,6 +1016,8 @@ pub async fn stream_install(
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
     cmd.creation_flags(CREATE_NO_WINDOW);
+    // Ensure the child is reaped if the future is dropped (e.g. app shutdown).
+    cmd.kill_on_drop(true);
 
     let _ = app.emit(
         "install-progress",
@@ -1004,10 +1067,28 @@ pub async fn stream_install(
         });
     }
 
-    let status = child
-        .wait()
-        .await
-        .map_err(|e| format!("Erro aguardando processo: {}", e))?;
+    let status =
+        match tokio::time::timeout(std::time::Duration::from_secs(timeout_sec), child.wait()).await
+        {
+            Ok(res) => res.map_err(|e| format!("Erro aguardando processo: {}", e))?,
+            Err(_) => {
+                // Timed out: kill the child (kill_on_drop also covers the drop path).
+                let _ = child.kill().await;
+                let _ = app.emit(
+                    "install-progress",
+                    ProgressEvent {
+                        key: key.clone(),
+                        phase: "error".into(),
+                        line: format!("Comando excedeu o tempo limite de {}s", timeout_sec),
+                    },
+                );
+                append_install_log(&key, false, -1);
+                return Err(format!(
+                    "Comando excedeu o tempo limite de {}s",
+                    timeout_sec
+                ));
+            }
+        };
 
     let phase = if status.success() { "done" } else { "error" };
     let _ = app.emit(
@@ -1140,6 +1221,41 @@ mod tests {
             "a; rm", "a && b", "a | b", "a > file", "a < file", "a`c`", "a$x",
         ] {
             assert!(sanitize_args(bad).is_err(), "should reject: {}", bad);
+        }
+    }
+
+    #[test]
+    fn sanitize_args_neutralizes_newline_injection() {
+        // A newline could otherwise inject a second PowerShell statement.
+        let payload = "--flag\nInvoke-Expression evil";
+        let result = sanitize_args(payload);
+        assert!(result.is_err(), "arg with newline must be rejected");
+        // Carriage return and other newly-banned chars too.
+        for bad in &["a\rb", "a(b", "a)b", "a{b", "a}b", "a\nb"] {
+            assert!(sanitize_args(bad).is_err(), "should reject: {:?}", bad);
+        }
+    }
+
+    #[test]
+    fn is_valid_env_key_accepts_valid_names() {
+        for ok in &["FOO", "_bar", "ANTHROPIC_API_KEY", "a1_2", "_"] {
+            assert!(is_valid_env_key(ok), "should accept: {}", ok);
+        }
+    }
+
+    #[test]
+    fn is_valid_env_key_rejects_invalid_names() {
+        for bad in &[
+            "",
+            "1abc",
+            "FOO-BAR",
+            "FOO BAR",
+            "FOO=BAR",
+            "FOO'; evil",
+            "FOO\nBAR",
+            "$env",
+        ] {
+            assert!(!is_valid_env_key(bad), "should reject: {:?}", bad);
         }
     }
 

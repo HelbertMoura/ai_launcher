@@ -124,7 +124,7 @@ export function ProvidersSection() {
     <div>
       <div className="cd-admin-section__head">
         <div>
-          <h3 className="cd-admin-section__title">Providers</h3>
+          <h2 className="cd-admin-section__title">Providers</h2>
           <p className="cd-admin-section__sub">
             {state.profiles.length} profile
             {state.profiles.length === 1 ? "" : "s"} · active:{" "}

@@ -13,7 +13,7 @@
   /* text */
   --text: #e6e6e8;
   --text-muted: #9a9aa3;
-  --text-dim: #6b6b74;
+  --text-dim: #7d7d87;
 
   /* accent (default: red) */
   --accent: #ff3131;
@@ -96,4 +96,17 @@
 /* Remove default outline for mouse users */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Respect prefers-reduced-motion globally — neutraliza as 14+ animações/
+   transições do app de uma vez (pulses, blink, typing loop, etc.). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

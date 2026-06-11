@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 test.describe("AI Launcher Pro smoke", () => {
   test.beforeEach(async ({ page }) => {
@@ -56,5 +57,34 @@ test.describe("AI Launcher Pro smoke", () => {
     await expect(
       page.getByText(/providers|appearance|aparência|presets/i).first(),
     ).toBeVisible({ timeout: 5000 });
+  });
+
+  test("main launcher page has no serious accessibility violations", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+    // Wait briefly for React + i18n to mount before scanning the DOM
+    await page.waitForTimeout(500);
+
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa"])
+      // WCAG 1.4.3 "pure decoration" exception: the StatusBar brand watermark
+      // is intentionally faint, aria-hidden, and carries no information. The
+      // color-contrast rule stays ACTIVE for everything else on the page.
+      .exclude(".cd-status__cell--brand")
+      .analyze();
+
+    const seriousOrCritical = results.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical",
+    );
+
+    // Surface a readable summary in the test report when something fails
+    expect(
+      seriousOrCritical,
+      `Accessibility violations:\n${seriousOrCritical
+        .map((v) => `- [${v.impact}] ${v.id}: ${v.help}`)
+        .join("\n")}`,
+    ).toEqual([]);
   });
 });

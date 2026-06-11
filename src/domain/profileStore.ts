@@ -5,27 +5,21 @@
 
 import type { LaunchProfile } from './types';
 import { migrateIfNeeded } from './profileMigration';
+import { readKey, writeKey } from '../lib/storage';
 
-const PROFILES_KEY = 'ai-launcher:v15:profiles';
 const MAX_PROFILES = 64;
 
+// T4: persistence goes through the unified registry-backed helpers. readKey
+// validates with zod and falls back to [] on corruption (never throws), so the
+// previous manual try/catch + Array.isArray guard is no longer needed. The cast
+// bridges the tolerant registry schema (.passthrough) and the strict
+// LaunchProfile domain type — the registry intentionally validates loosely.
 function readAll(): LaunchProfile[] {
-  try {
-    const raw = localStorage.getItem(PROFILES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return readKey('profiles') as unknown as LaunchProfile[];
 }
 
 function writeAll(profiles: LaunchProfile[]): void {
-  try {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles.slice(0, MAX_PROFILES)));
-  } catch {
-    // ignore storage failures
-  }
+  writeKey('profiles', profiles.slice(0, MAX_PROFILES) as never);
 }
 
 /** Ensure migration has run, then load all profiles. */

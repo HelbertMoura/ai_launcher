@@ -69,7 +69,7 @@ export function PresetsSection() {
     <div>
       <div className="cd-admin-section__head">
         <div>
-          <h3 className="cd-admin-section__title">Launch presets</h3>
+          <h2 className="cd-admin-section__title">Launch presets</h2>
           <p className="cd-admin-section__sub">
             {profiles.length} profile{profiles.length === 1 ? "" : "s"} saved
           </p>

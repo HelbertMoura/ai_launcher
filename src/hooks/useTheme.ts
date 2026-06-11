@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Theme = "dark" | "light" | "amber" | "glacier";
+export type Theme =
+  | "dark"
+  | "light"
+  | "amber"
+  | "glacier"
+  | "phosphor"
+  | "midnight"
+  | "high-contrast";
 
-export const THEMES: readonly Theme[] = ["dark", "light", "amber", "glacier"] as const;
+export const THEMES: readonly Theme[] = [
+  "dark",
+  "light",
+  "amber",
+  "glacier",
+  "phosphor",
+  "midnight",
+  "high-contrast",
+] as const;
 
 const STORAGE_KEY = "ai-launcher:theme";
 
 function isTheme(value: unknown): value is Theme {
-  return (
-    value === "dark" || value === "light" || value === "amber" || value === "glacier"
-  );
+  return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
 function readSaved(): Theme {

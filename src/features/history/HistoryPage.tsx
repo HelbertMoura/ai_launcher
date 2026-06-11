@@ -345,7 +345,7 @@ export function HistoryPage() {
     <section className="cd-page cd-history">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("history.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("history.title")}</h1>
           <p className="cd-page__sub">
             {items.length === 0
               ? t("history.none")
