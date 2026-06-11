@@ -18,7 +18,7 @@
   /* text */
   --text: #1a1a1a;
   --text-muted: #4a4a4a;
-  --text-dim: #7a7a7a;
+  --text-dim: #6f6f6f;
 
   /* accent — vermelho mais escuro pra contrastar com fundo branco sem gritar */
   --accent: #d62929;
@@ -29,6 +29,6 @@
   /* semantic — tons escuros: os defaults dark (#35d07f/#ff9f1c/#ff3131)
      reprovam WCAG AA (~2:1) sobre fundo claro. Estes passam AA (>=4.5:1). */
   --ok: #1a7f37;
-  --warn: #9a6700;
+  --warn: #946300;
   --err: #d62929;
 }

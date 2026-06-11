@@ -17,7 +17,7 @@
   /* text */
   --text: #1a2332;
   --text-muted: #4a5a70;
-  --text-dim: #6e7e94;
+  --text-dim: #596980;
 
   /* accent */
   --accent: #2c8de6;
@@ -27,7 +27,7 @@
 
   /* semantic — tons escuros para WCAG AA (>=4.5:1) sobre o fundo claro azulado;
      os defaults dark de tokens.css reprovam (~2:1). */
-  --ok: #1a7f37;
+  --ok: #177232;
   --warn: #8a5d00;
   --err: #c62828;
 }
