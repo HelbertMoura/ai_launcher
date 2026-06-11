@@ -1,33 +1,47 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-11T10:36:34.180Z
-> Files: 63 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-11T16:07:07.657Z
+> Files: 94 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ../
 
+- `CHANGELOG.md` — Changelog (~17460 tok)
 - `tsconfig.json` — TypeScript configuration (~183 tok)
 
 ## ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/
 
-- `MEMORY.md` — Memory Index (~85 tok)
-- `v16-roadmap-progress.md` (~446 tok)
+- `MEMORY.md` — Memory Index (~87 tok)
+- `v16-roadmap-progress.md` (~532 tok)
 - `workflow-commit-imediato.md` (~392 tok)
 
 ## ../.wolf/
 
 - `anatomy.md` — anatomy.md (~1776 tok)
 - `buglog.json` — /*.jsonl (linhas type=assistant com message.usage), Codex em ~/.codex/sessions/YYYY/MM/DD/rollout-*. (~14740 tok)
-- `cerebrum.md` — Cerebrum (~3360 tok)
+- `cerebrum.md` — Cerebrum (~3877 tok)
+
+## ../docs/superpowers/plans/
+
+- `2026-06-11-v16.0-polimento-plan.md` — v16.0 "Polimento" Implementation Plan (~15738 tok)
+
+## ../docs/superpowers/specs/
+
+- `2026-06-11-v16.0-polimento-design.md` — v16.0 "Polimento" — Design (~1955 tok)
+
+## ../e2e/
+
+- `launcher.spec.ts` — Declares body (~963 tok)
 
 ## ../src/app/
 
-- `App.tsx` — IS_MAC (~4138 tok)
+- `App.tsx` — IS_MAC (~4526 tok)
 
 ## ../src/app/layout/
 
 - `Sidebar.tsx` — Sidebar (~989 tok)
+- `StatusBar.tsx` — Short relative label (e.g. "2m ago", "just now"). (~966 tok)
 - `TabId.ts` — i18n keys for each tab (used by Sidebar + CommandPalette). (~410 tok)
-- `TopBar.tsx` — CMD_KEY_LABEL (~952 tok)
+- `TopBar.tsx` — CMD_KEY_LABEL (~1009 tok)
 
 ## ../src/domain/
 
@@ -39,18 +53,28 @@
 
 ## ../src/features/command-palette/
 
-- `CommandPalette.tsx` — Simple subsequence fuzzy match (case-insensitive). (~4909 tok)
+- `CommandPalette.tsx` — Simple subsequence fuzzy match (case-insensitive). (~5205 tok)
 
 ## ../src/features/costs/
 
+- `analytics.test.ts` — Declares entry (~1069 tok)
+- `analytics.ts` — null = aggregated bucket ("other" / unknown). (~1214 tok)
 - `BudgetDashboard.tsx` — ============================================================================== (~2244 tok)
+- `CostsPage.tsx` — todayISO (~2494 tok)
 - `useUsage.ts` — Logical provider behind the CLI (e.g. "anthropic" for Claude, "openai" for (~415 tok)
 
 ## ../src/features/history/
 
 - `useHistory.ts` — Migrate legacy items that lack the new session-lifecycle fields. (~2410 tok)
-- `useSessionEvents.test.ts` — CONFIG_KEY: seedHistory, readHistory, baseItem (~800 tok)
-- `useSessionEvents.ts` — Payload emitted by the Rust backend when a tracked session ends. (~651 tok)
+- `useSessionEvents.test.ts` — CONFIG_KEY: seedHistory, readHistory, baseItem (~1202 tok)
+- `useSessionEvents.ts` — Payload emitted by the Rust backend when a tracked session ends. (~952 tok)
+
+## ../src/features/inbox/
+
+- `InboxBell.css` — Styles: 23 rules (~834 tok)
+- `InboxBell.tsx` — TYPE_GLYPH (~1602 tok)
+- `inboxStore.test.ts` — Declares evt (~1248 tok)
+- `inboxStore.ts` — Doctor check keys currently failing — drives ok->fail transition detection. (~1493 tok)
 
 ## ../src/features/launcher/
 
@@ -73,6 +97,7 @@
 
 ## ../src/features/workspace/
 
+- `DoctorPage.tsx` — If true, shows what would be done without executing fixes. (~2851 tok)
 - `RunbookRunner.tsx` — Structured result returned by the Rust `run_runbook_step` command. (~2610 tok)
 - `RunbooksPanel.tsx` — Working directory forwarded to runbook step execution. (~1310 tok)
 - `WorkspacePage.tsx` — CRITICAL_NAMES (~7856 tok)
@@ -84,8 +109,8 @@
 
 ## ../src/i18n/locales/
 
-- `en.ts` — Exports en (~4432 tok)
-- `pt-BR.ts` — Exports ptBR (~4657 tok)
+- `en.ts` — Exports en (~4716 tok)
+- `pt-BR.ts` — Exports ptBR (~4952 tok)
 
 ## ../src/lib/
 
@@ -97,8 +122,8 @@
 ## ../src/lib/storage/
 
 - `index.ts` — Low-level: read the raw deserialized value for an entry, or undefined. (~1326 tok)
-- `keys.ts` — ============================================================================== (~674 tok)
-- `registry.ts` — Schema used to validate the deserialized value on load. (~3291 tok)
+- `keys.ts` — ============================================================================== (~691 tok)
+- `registry.ts` — Schema used to validate the deserialized value on load. (~3527 tok)
 
 ## ../src/providers/
 
@@ -108,12 +133,21 @@
 ## ../src/theme/
 
 - `contract.ts` — CSS variables a complete theme block must declare. (~555 tok)
+- `contrast.ts` — WCAG 2.x relative luminance + contrast ratio for #rrggbb values. (~187 tok)
 - `index.css` — Styles: 13 rules (~325 tok)
 - `theme-amber.css` — Styles: 18 vars (~232 tok)
-- `theme-contract.test.ts` — API routes: GET (2 endpoints) (~785 tok)
+- `theme-contract.test.ts` — API routes: GET (2 endpoints) (~1357 tok)
 - `theme-high-contrast.css` — Styles: 1 rules, 21 vars (~370 tok)
 - `theme-midnight.css` — Styles: 19 vars (~236 tok)
 - `theme-phosphor.css` — Styles: 19 vars (~256 tok)
+
+## ../src/ui/charts/
+
+- `AreaChart.tsx` — Accessible description of the whole chart (required). (~458 tok)
+- `BarList.tsx` — null = aggregated/unknown bucket; caller provides the display fallback. (~343 tok)
+- `charts.css` — Styles: 12 rules (~371 tok)
+- `geometry.test.ts` — src/ui/charts/geometry.test.ts (~370 tok)
+- `geometry.ts` — Scale values into an SVG coordinate space. y is inverted (0 = top). (~384 tok)
 
 ## ./
 
@@ -305,3 +339,18 @@
 
 ## test-results/
 
+
+## v16.0 — arquivos novos (2026-06-11)
+
+- `docs/superpowers/specs/2026-06-11-v16.0-polimento-design.md` — Spec da fase (distribuicao cortada). (~1600 tok)
+- `src/features/costs/analytics.test.ts` — 9 testes vitest das agregacoes. (~800 tok)
+- `src/features/costs/analytics.ts` — Agregacao pura p/ Analytics: dailySeries (30d zero-filled), byProject/byModel (RankRow label null = "outros", merge sem duplicar), trend (deltaPct null se previous=0). today injetavel. (~700 tok)
+- `src/features/inbox/InboxBell.css` — Painel 320px, item unread em surface-2. (~600 tok)
+- `src/features/inbox/InboxBell.tsx` — Sino+badge+painel dropdown na TopBar (Esc+focus return, setas, click-outside); tDynamic faz cast localizado p/ chaves dinamicas. (~1000 tok)
+- `src/features/inbox/inboxStore.test.ts` — 10 testes (dedup, cap, transicao, persistencia). (~900 tok)
+- `src/features/inbox/inboxStore.ts` — Store persistido (key ai-launcher:v16:inbox): pushEvent dedup por id (conteudo identico preserva read; forceUnread p/ doctor re-fail), cap 50 (evict lidos primeiro), reportDoctorResults (transicao ok->fail via doctorFailing), useInbox via useSyncExternalStore. Eventos carregam i18n KEYS. (~1100 tok)
+- `src/theme/contrast.ts` — relativeLuminance + contrastRatio WCAG p/ teste de contrato. (~200 tok)
+- `src/ui/charts/AreaChart.tsx` — Grafico de area SVG role=img, <title> por ponto, eixo via figcaption. Tematizado por CSS vars. (~450 tok)
+- `src/ui/charts/BarList.tsx` — Barras horizontais (share 0-1 = width%), fallbackLabel p/ label null. (~300 tok)
+- `src/ui/charts/charts.css` — Estilos cd-chart/cd-barlist so com vars de tema. (~400 tok)
+- `src/ui/charts/geometry.ts` — Math SVG puro: scalePoints (y invertido, all-zero = flat bottom), buildLinePath/buildAreaPath. (~350 tok)

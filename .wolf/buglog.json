@@ -1522,6 +1522,363 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-10T19:08:05.757Z"
+    },
+    {
+      "id": "bug-093",
+      "timestamp": "2026-06-11T11:42:37.507Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/pt-BR.ts",
+      "root_cause": "Had \"Custos\"",
+      "fix": "Changed to \"Analytics\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:42:37.507Z"
+    },
+    {
+      "id": "bug-094",
+      "timestamp": "2026-06-11T11:42:49.292Z",
+      "error_message": "Incorrect value in code",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Had \"Costs\"",
+      "fix": "Changed to \"Analytics\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:42:49.292Z"
+    },
+    {
+      "id": "bug-095",
+      "timestamp": "2026-06-11T11:43:02.158Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/costs/CostsPage.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:43:02.158Z"
+    },
+    {
+      "id": "bug-096",
+      "timestamp": "2026-06-11T11:43:15.901Z",
+      "error_message": "Type error",
+      "file": "../src/features/costs/CostsPage.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation | Also: items={analytics.projects.map((r) => ({ label: r.label, valu | Also: items={analytics.models.map((r) => ({ label: r.label, value:",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-11T11:43:57.776Z"
+    },
+    {
+      "id": "bug-097",
+      "timestamp": "2026-06-11T08:44:00-03:00",
+      "error_message": "TS2322: Type RankRow[] is not assignable to type BarListItem[] — Property value is missing in RankRow",
+      "file": "src/features/costs/CostsPage.tsx",
+      "root_cause": "Plano v16.0 Task A3 passa analytics.projects/models (RankRow{costUsd}) direto ao BarList que espera BarListItem{value} — descompasso de shape entre A1 e A2 no proprio plano",
+      "fix": "Mapear no ponto de uso: items={rows.map(r => ({ label: r.label, value: r.costUsd, share: r.share }))}",
+      "tags": [
+        "typescript",
+        "plan-mismatch",
+        "analytics",
+        "barlist",
+        "v16"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T08:44:00-03:00"
+    },
+    {
+      "id": "bug-098",
+      "timestamp": "2026-06-11T11:55:21.918Z",
+      "error_message": "Missing guard clause",
+      "file": "../src/features/costs/analytics.ts",
+      "root_cause": "No early return/throw for edge case: restUsd === 0",
+      "fix": "Added guard clause: if (restUsd === 0)",
+      "tags": [
+        "auto-detected",
+        "guard-clause",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:55:21.918Z"
+    },
+    {
+      "id": "bug-099",
+      "timestamp": "2026-06-11",
+      "error_message": "rank() could emit two label:null rows (existing null bucket in top-N + rest bucket)",
+      "file": "src/features/costs/analytics.ts",
+      "root_cause": "rest bucket always appended as new null row without checking if a null-labeled row already ranked into the top slice",
+      "fix": "merge restUsd into existing null row (immutable map) before appending; regression test added",
+      "tags": [
+        "analytics",
+        "edge-case",
+        "review-found"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-06-11T11:57:54.533Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/theme/theme-contract.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:57:54.533Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-06-11T11:58:53.027Z",
+      "error_message": "Type error",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T11:58:53.027Z"
+    },
+    {
+      "id": "bug-102",
+      "timestamp": "2026-06-11T15:35:37.949Z",
+      "error_message": "Type error",
+      "file": "../src/lib/storage/registry.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:35:37.949Z"
+    },
+    {
+      "id": "bug-103",
+      "timestamp": "2026-06-11T15:37:51.713Z",
+      "error_message": "Type error",
+      "file": "../src/features/inbox/inboxStore.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:37:51.713Z"
+    },
+    {
+      "id": "bug-104",
+      "timestamp": "2026-06-11T15:39:33.005Z",
+      "error_message": "Type error",
+      "file": "../src/i18n/locales/en.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:39:33.005Z"
+    },
+    {
+      "id": "bug-105",
+      "timestamp": "2026-06-11T15:42:27.649Z",
+      "error_message": "Missing error handling in sessionCli",
+      "file": "../src/features/history/useSessionEvents.ts",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:27.649Z"
+    },
+    {
+      "id": "bug-106",
+      "timestamp": "2026-06-11T15:42:43.243Z",
+      "error_message": "Type error",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:43.243Z"
+    },
+    {
+      "id": "bug-107",
+      "timestamp": "2026-06-11T15:42:54.450Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/app/App.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:42:54.450Z"
+    },
+    {
+      "id": "bug-108",
+      "timestamp": "2026-06-11T15:43:27.622Z",
+      "error_message": "Null/undefined access in ",
+      "file": "../src/features/history/useSessionEvents.test.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:43:27.622Z"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-06-11",
+      "error_message": "reportDoctorResults re-fail test failed: doctor ok->fail re-transition did not re-unread",
+      "file": "src/features/inbox/inboxStore.ts",
+      "root_cause": "keep-read-on-identical-content rule (anti re-unread for updates) also suppressed doctor re-failure notifications, whose content is identical by design",
+      "fix": "added forceUnread flag to PushInput; reportDoctorResults pushes with forceUnread:true",
+      "tags": [
+        "inbox",
+        "dedup",
+        "test-caught"
+      ],
+      "related_bugs": [
+        "bug-099"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-110",
+      "timestamp": "2026-06-11T15:45:02.248Z",
+      "error_message": "Significant refactor of ",
+      "file": "../e2e/launcher.spec.ts",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 8→3 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:45:02.248Z"
+    },
+    {
+      "id": "bug-111",
+      "timestamp": "2026-06-11T15:47:43.435Z",
+      "error_message": "Type error",
+      "file": "../src/app/layout/StatusBar.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:47:43.435Z"
+    },
+    {
+      "id": "bug-112",
+      "timestamp": "2026-06-11T15:49:12.587Z",
+      "error_message": "Type error",
+      "file": "../e2e/launcher.spec.ts",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:49:12.587Z"
+    },
+    {
+      "id": "bug-113",
+      "timestamp": "2026-06-11T15:50:06.965Z",
+      "error_message": "Type error",
+      "file": "../src/features/command-palette/CommandPalette.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T15:50:06.965Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-06-11",
+      "error_message": "tauri build: failed to remove target/release/ai-launcher.exe - Acesso negado (os error 5)",
+      "file": "src-tauri/target/release/ai-launcher.exe",
+      "root_cause": "exe release ainda rodando do smoke test anterior bloqueia o cargo de substituir o binario; alem disso, pipe para tail mascarou o exit code (notificacao disse exit 0 com build falho)",
+      "fix": "fechar instancia (Get-Process ai-launcher + CloseMainWindow) antes de qualquer tauri build; em pipes usar echo EXIT: PIPESTATUS[0] para capturar o exit real",
+      "tags": [
+        "tauri-build",
+        "windows",
+        "pipe-exit-code",
+        "process-lock"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
     }
   ]
 }
