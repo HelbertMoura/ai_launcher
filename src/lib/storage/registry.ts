@@ -103,6 +103,27 @@ const cliOverrideSchema = z
 
 const overridesSchema = z.record(z.string(), cliOverrideSchema);
 
+const inboxEventSchema = z
+  .object({
+    id: z.string().min(1),
+    type: z.enum(['session', 'budget', 'update', 'doctor']),
+    titleKey: z.string().min(1),
+    titleParams: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    bodyKey: z.string().optional(),
+    bodyParams: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    ts: z.number(),
+    read: z.boolean(),
+    targetTab: z.string(),
+  })
+  .passthrough();
+
+const inboxStateSchema = z
+  .object({
+    events: z.array(inboxEventSchema).default([]),
+    doctorFailing: z.array(z.string()).default([]),
+  })
+  .passthrough();
+
 // --- Registry entry type -----------------------------------------------------
 
 export interface RegistryEntry<T = unknown> {
@@ -204,6 +225,14 @@ export const REGISTRY = {
     key: STORAGE_KEYS.budget,
     schema: z.object({ limits: z.array(budgetLimitSchema).default([]) }).passthrough(),
     default: { limits: [] as z.infer<typeof budgetLimitSchema>[] },
+    version: 1,
+  }),
+
+  inbox: entry({
+    id: 'inbox',
+    key: STORAGE_KEYS.inbox,
+    schema: inboxStateSchema,
+    default: { events: [], doctorFailing: [] } as z.infer<typeof inboxStateSchema>,
     version: 1,
   }),
 

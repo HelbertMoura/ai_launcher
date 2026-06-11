@@ -52,6 +52,9 @@ export const STORAGE_KEYS = {
   // --- Directory memory ---
   lastDir: 'ai-launcher:last-dir',
   recentDirs: 'ai-launcher:recent-dirs',
+
+  // --- Inbox (v16) ---
+  inbox: 'ai-launcher:v16:inbox',
 } as const;
 
 export type StorageKeyId = keyof typeof STORAGE_KEYS;
