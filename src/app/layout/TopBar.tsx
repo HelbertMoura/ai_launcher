@@ -1,8 +1,10 @@
 import { useTranslation } from "react-i18next";
+import { InboxBell } from "../../features/inbox/InboxBell";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Density } from "../../hooks/useDensity";
 import { nextTheme, type Theme } from "../../hooks/useTheme";
 import { getLocale, setLocale, type Locale } from "../../i18n";
+import type { TabId } from "./TabId";
 import "./TopBar.css";
 
 const CMD_KEY_LABEL =
@@ -12,6 +14,7 @@ const CMD_KEY_LABEL =
 
 interface TopBarProps {
   onCommand: () => void;
+  onNavigate: (tab: TabId) => void;
   theme: Theme;
   onToggleTheme: () => void;
   accent: Accent;
@@ -42,6 +45,7 @@ const THEME_LABEL: Record<Theme, string> = {
 
 export function TopBar({
   onCommand,
+  onNavigate,
   theme,
   onToggleTheme,
   accent,
@@ -65,6 +69,7 @@ export function TopBar({
       </button>
 
       <div className="cd-top__right">
+        <InboxBell onNavigate={onNavigate} />
         <div className="cd-top__accents" role="radiogroup" aria-label={t("topBar.accentLabel")}>
           {ACCENTS.map((a) => (
             <button

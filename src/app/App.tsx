@@ -392,6 +392,7 @@ function ChromeConnector({
       <div className="cd-app__top">
         <TopBar
           onCommand={openPalette}
+          onNavigate={onSelect}
           theme={theme}
           onToggleTheme={onToggleTheme}
           accent={accent}
