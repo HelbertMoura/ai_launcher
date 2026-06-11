@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { z } from "zod";
+import { pushEvent } from "../inbox/inboxStore";
 import { markSessionEnded, updateSessionStatus } from "./useHistory";
 
 /**
@@ -24,18 +25,51 @@ const sessionEndedSchema = z.object({
 
 export type SessionEndedPayload = z.infer<typeof sessionEndedSchema>;
 
+/** Best-effort CLI name lookup for a session id (history lives in the config blob). */
+function sessionCli(sessionId: string): string {
+  try {
+    const raw = localStorage.getItem("ai-launcher-config");
+    if (!raw) return "CLI";
+    const cfg = JSON.parse(raw) as {
+      history?: Array<{ sessionId?: string; cli?: string; cliKey?: string }>;
+    };
+    const item = cfg.history?.find((h) => h.sessionId === sessionId);
+    return item?.cli || item?.cliKey || "CLI";
+  } catch {
+    return "CLI";
+  }
+}
+
 /** Apply a validated session-ended payload to the persisted history. */
 export function applySessionEnded(payload: SessionEndedPayload): void {
   const { session_id, status, exit_code, duration_secs } = payload;
   if (status === "detached") {
     // Detached sessions are not measurable; just stop showing "starting".
     updateSessionStatus(session_id, { status: "detached" });
-    return;
+  } else {
+    markSessionEnded(session_id, {
+      status,
+      exitCode: exit_code ?? null,
+      durationMs: duration_secs != null ? duration_secs * 1000 : undefined,
+    });
   }
-  markSessionEnded(session_id, {
-    status,
-    exitCode: exit_code ?? null,
-    durationMs: duration_secs != null ? duration_secs * 1000 : undefined,
+
+  const cli = sessionCli(session_id);
+  const titleKey =
+    status === "detached"
+      ? "inbox.sessionDetached"
+      : status === "failed"
+        ? "inbox.sessionFailed"
+        : "inbox.sessionCompleted";
+  pushEvent({
+    id: `session:${session_id}`,
+    type: "session",
+    titleKey,
+    titleParams: { cli },
+    ...(duration_secs != null
+      ? { bodyKey: "inbox.sessionDuration", bodyParams: { duration: `${duration_secs}s` } }
+      : {}),
+    targetTab: "history",
   });
 }
 

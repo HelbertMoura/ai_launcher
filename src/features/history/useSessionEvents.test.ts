@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { applySessionEnded } from "./useSessionEvents";
+import { getInboxSnapshot, __resetForTests } from "../inbox/inboxStore";
 import type { HistoryItem } from "./useHistory";
 
 const CONFIG_KEY = "ai-launcher-config";
@@ -31,6 +32,7 @@ function baseItem(overrides: Partial<HistoryItem>): HistoryItem {
 describe("applySessionEnded", () => {
   beforeEach(() => {
     localStorage.clear();
+    __resetForTests();
   });
 
   it("marks a session completed with backend duration", () => {
@@ -88,5 +90,32 @@ describe("applySessionEnded", () => {
     applySessionEnded({ session_id: "unknown", status: "completed" });
     const item = readHistory()[0];
     expect(item.status).toBe("starting");
+  });
+
+  it("pushes an inbox event with the CLI name when a session completes", () => {
+    seedHistory([baseItem({ sessionId: "s1" })]);
+    applySessionEnded({ session_id: "s1", status: "completed", exit_code: 0, duration_secs: 12 });
+    const evt = getInboxSnapshot().events.find((e) => e.id === "session:s1");
+    expect(evt).toBeDefined();
+    expect(evt?.titleKey).toBe("inbox.sessionCompleted");
+    expect(evt?.titleParams).toEqual({ cli: "Claude Code" });
+    expect(evt?.bodyParams).toEqual({ duration: "12s" });
+    expect(evt?.targetTab).toBe("history");
+  });
+
+  it("pushes an inbox event for detached sessions too (no early-return skip)", () => {
+    seedHistory([baseItem({ sessionId: "s3" })]);
+    applySessionEnded({ session_id: "s3", status: "detached", exit_code: null, duration_secs: null });
+    const evt = getInboxSnapshot().events.find((e) => e.id === "session:s3");
+    expect(evt).toBeDefined();
+    expect(evt?.titleKey).toBe("inbox.sessionDetached");
+  });
+
+  it("pushes a failed-session inbox event", () => {
+    seedHistory([baseItem({ sessionId: "s2" })]);
+    applySessionEnded({ session_id: "s2", status: "failed", exit_code: 1, duration_secs: 3 });
+    expect(getInboxSnapshot().events.find((e) => e.id === "session:s2")?.titleKey).toBe(
+      "inbox.sessionFailed",
+    );
   });
 });

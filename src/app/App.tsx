@@ -40,6 +40,7 @@ import { ToastContainer } from "../ui/Toast";
 import { showToast } from "../ui/toastStore";
 import { migrateApiKeysToSecureStorage } from "../providers/storage";
 import { getBudgetAlerts } from "../providers/budget";
+import { pushEvent } from "../features/inbox/inboxStore";
 import type { UsageReport } from "../features/costs/useUsage";
 import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
@@ -106,6 +107,18 @@ export function App() {
         if (cancelled) return;
         const alerts = getBudgetAlerts(report.entries ?? []);
         if (alerts.length === 0) return;
+        const month = new Date().toISOString().slice(0, 7);
+        for (const a of alerts) {
+          pushEvent({
+            id: `budget:${a.providerKey}:${month}`,
+            type: "budget",
+            titleKey: "inbox.budgetTitle",
+            titleParams: { provider: a.providerKey },
+            bodyKey: a.status === "exceeded" ? "inbox.budgetExceeded" : "inbox.budgetWarning",
+            bodyParams: { percent: Math.round(a.percentUsed) },
+            targetTab: "costs",
+          });
+        }
         const exceeded = alerts.filter((a) => a.status === "exceeded").length;
         const variant = exceeded > 0 ? "error" : "warning";
         const message =
@@ -320,6 +333,28 @@ function ChromeConnector({
   const { report } = useUsage();
   const { summary: updates, refresh: refreshUpdates } = useUpdates();
   const [refreshTick, setRefreshTick] = useState(0);
+
+  // Surface available CLI/tool updates in the inbox. The stable id
+  // (update:<cli>:<version>) dedups across boots; identical re-pushes keep
+  // their read state, so an ignored update doesn't re-unread every launch.
+  useEffect(() => {
+    if (!updates) return;
+    const all = [
+      ...(updates.cli_updates ?? []),
+      ...(updates.env_updates ?? []),
+      ...(updates.tool_updates ?? []),
+    ];
+    for (const u of all) {
+      if (!u.has_update || !u.latest) continue;
+      pushEvent({
+        id: `update:${u.cli}:${u.latest}`,
+        type: "update",
+        titleKey: "inbox.updateTitle",
+        titleParams: { cli: u.cli, version: u.latest },
+        targetTab: "updates",
+      });
+    }
+  }, [updates]);
 
   const indicatorCounts = useSidebarIndicators(report, refreshTick);
   const updatesCount = updates?.total_with_updates ?? 0;
