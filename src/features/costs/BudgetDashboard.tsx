@@ -193,7 +193,7 @@ export function BudgetDashboard() {
 
   return (
     <div className="cd-budget">
-      <h3 className="cd-costs__section">Budget Guard</h3>
+      <h2 className="cd-costs__section">Budget Guard</h2>
 
       {budgetUsages.length > 0 && (
         <div className="cd-budget__list">

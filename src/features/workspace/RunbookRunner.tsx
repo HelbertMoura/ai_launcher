@@ -234,7 +234,7 @@ export function RunbookRunner({ runbook, onClose, cwd }: RunbookRunnerProps) {
     <div className="cd-rb-run">
       <header className="cd-rb-run__header">
         <div className="cd-rb-run__title-row">
-          <h3 className="cd-costs__section">{t('runbook.run.running', { name: runbook.name })}</h3>
+          <h2 className="cd-costs__section">{t('runbook.run.running', { name: runbook.name })}</h2>
           <Button size="sm" variant="ghost" onClick={onClose}>{t('common.close')}</Button>
         </div>
         <div className="cd-rb-run__controls">

@@ -15,7 +15,7 @@ export function PrereqsPage() {
     <section className="cd-page cd-prereqs">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("prereqs.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("prereqs.title")}</h1>
           <p className="cd-page__sub">
             {installed}/{items.length} {t("prereqs.installed")}
           </p>

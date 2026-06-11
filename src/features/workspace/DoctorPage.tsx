@@ -118,7 +118,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     <section className="cd-page cd-doc">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("doctor.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("doctor.title")}</h1>
           <p className="cd-page__sub">{t("doctor.subtitle")}</p>
         </div>
         <div className="cd-doc__actions">

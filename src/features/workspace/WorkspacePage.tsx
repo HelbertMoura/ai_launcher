@@ -188,7 +188,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
     <section className="cd-page cd-ws">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h2 className="cd-page__title">▎ {t("workspace.title")}</h2>
+          <h1 className="cd-page__title">▎ {t("workspace.title")}</h1>
           <p className="cd-page__sub">{t("workspace.subtitle")}</p>
         </div>
         <div className="cd-ws__actions">
@@ -733,9 +733,9 @@ function WorkspaceForm({ initial, isNew, onSave, onCancel }: WorkspaceFormProps)
   return (
     <section className="cd-ws-form">
       <header className="cd-ws-form__head">
-        <h1 className="cd-ws-form__title">
+        <h2 className="cd-ws-form__title">
           {isNew ? t("workspace.newTitle") : t("workspace.editTitle")}
-        </h1>
+        </h2>
       </header>
 
       <form className="cd-ws-form__body" onSubmit={handleSubmit}>
