@@ -1879,6 +1879,116 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-102",
+      "timestamp": "2026-06-11",
+      "error_message": "release v16.0.0 criado pelo CI com ~64 assets de versoes antigas (4.1.0-15.2.6) anexados",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "cache do cargo no CI preserva src-tauri/target/release/bundle/ entre releases; o glob recursivo Get-ChildItem -Recurse -Include *.msi,*-setup.exe anexa TODOS os builds antigos do cache",
+      "fix": "assets antigos deletados manualmente do release via gh release delete-asset; FIX PENDENTE no release.yml: limpar bundle/ antes do build (Remove-Item src-tauri/target/release/bundle -Recurse -Force) ou excluir bundle do cache",
+      "tags": [
+        "ci",
+        "release-workflow",
+        "cache",
+        "pendente-fix"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11"
+    },
+    {
+      "id": "bug-116",
+      "timestamp": "2026-06-11T20:40:40.473Z",
+      "error_message": "Incorrect value in code",
+      "file": "../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/v16-roadmap-progress.md",
+      "root_cause": "Had `main`",
+      "fix": "Changed to `v16.0.0`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "md"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-11T20:40:40.473Z"
+    },
+    {
+      "id": "bug-117",
+      "timestamp": "2026-07-07T08:26:00-03:00",
+      "error_message": "Templates salvos e quick launch bypassavam o fluxo completo de LaunchDialog (env de workspace/projeto, provider, historico e feedback de erro).",
+      "file": "src/features/launcher/launchSession.ts",
+      "root_cause": "LauncherPage.launchProfile chamava launch_cli diretamente com envVars=null e sem appendHistory; CliCard.quickLaunch tinha uma implementacao paralela que nao lia .ailauncher.json nem workspace env.",
+      "fix": "Criado launchCliSession compartilhado: resolve provider, le .ailauncher.json sem bloquear em erro, mescla env project > workspace > provider, chama launch_cli, salva last/recent dir e registra historico. LaunchDialog, LauncherPage templates e CliCard quick launch agora usam o mesmo helper; falhas registram historico failed e mostram toast.",
+      "tags": [
+        "launcher",
+        "templates",
+        "quick-launch",
+        "workspace-env",
+        "project-profile",
+        "history"
+      ],
+      "related_bugs": [
+        "bug-085"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T08:26:00-03:00"
+    },
+    {
+      "id": "bug-118",
+      "timestamp": "2026-07-07T08:26:00-03:00",
+      "error_message": "Modo navegador/Vite mostrava banner 'Cannot read properties of undefined (reading invoke)' ao abrir a Launcher fora do WebView Tauri.",
+      "file": "src/lib/tauri.ts",
+      "root_cause": "Leituras de boot chamavam @tauri-apps/api/core.invoke mesmo quando window.__TAURI_INTERNALS__ nao existia.",
+      "fix": "Adicionado invokeOrFallback/isTauriRuntime e aplicado em leituras nao criticas de boot: clisStore, useUsage, useUpdates, usePrerequisites, App budget check, Workspace doctor summary e readProjectProfile. QA visual confirmou hasInvokeError=false.",
+      "tags": [
+        "tauri",
+        "vite",
+        "dev-mode",
+        "browser-fallback",
+        "ui-error"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T08:26:00-03:00"
+    },
+    {
+      "id": "bug-119",
+      "timestamp": "2026-07-07T08:26:00-03:00",
+      "error_message": "Workspace deletion happened immediately without confirmation and import failures were silent.",
+      "file": "src/features/workspace/WorkspacePage.tsx",
+      "root_cause": "WorkspaceCard delete action called removeWorkspace directly; importWorkspaces returned null without user-visible feedback.",
+      "fix": "Added ConfirmDialog for workspace deletion, success/error toasts for save/create/delete/export/import, and moved bento hardcoded English labels into i18n.",
+      "tags": [
+        "workspace",
+        "confirmation",
+        "import",
+        "toast",
+        "i18n"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T08:26:00-03:00"
+    },
+    {
+      "id": "bug-120",
+      "timestamp": "2026-07-07T08:41:00-03:00",
+      "error_message": "release.yml ainda podia anexar bundles antigos ao GitHub Release porque o cache do Cargo preservava src-tauri/target/release/bundle.",
+      "file": ".github/workflows/release.yml",
+      "root_cause": "O workflow buildava em cima de target/ cacheado sem limpar release/bundle antes do npm run tauri build.",
+      "fix": "Adicionado step Clean stale bundle artifacts antes do build para remover src-tauri/target/release/bundle, latest.json e .sha256 antigos. Release agora tambem usa docs/releases/<tag>.md como body_path quando existir.",
+      "tags": [
+        "release",
+        "github-actions",
+        "stale-assets",
+        "cache",
+        "v16.0.1"
+      ],
+      "related_bugs": [
+        "bug-102"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T08:41:00-03:00"
     }
   ]
 }

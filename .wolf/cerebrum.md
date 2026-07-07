@@ -16,6 +16,12 @@
 
 - **Project:** ai-launcher
 - **Description:** Desktop launcher for AI coding CLIs — by Helbert Moura | DevManiac's
+- **Validação local v16.0.0 (2026-07-07):** `npm run build`, `npx tsc --noEmit`, `npm test`, `cargo check`, `npm run tauri build`, `npm run e2e` e `cargo test` passaram. Build Tauri gerou MSI em `src-tauri/target/release/bundle/msi/AI Launcher_16.0.0_x64_pt-BR.msi` e NSIS em `src-tauri/target/release/bundle/nsis/AI Launcher_16.0.0_x64-setup.exe`. Vite/Rolldown avisou chunk JS grande (~634 kB min / 181 kB gzip), candidato a code splitting.
+- **Code splitting v16.0.0 (2026-07-07):** App.tsx usa `React.lazy` por pagina. `npm run build` reduziu chunk principal de ~634 kB min / 181 kB gzip para ~325 kB min / 102 kB gzip e removeu o warning de chunk >500 kB.
+- **Launch flow compartilhado (2026-07-07):** `src/features/launcher/launchSession.ts` e a fonte unica para launches de CLI builtin: LaunchDialog, templates salvos e quick launch. Preserva precedencia env `project > workspace > provider`, registra historico e salva recent/last dir. Nao recriar chamadas diretas a `launch_cli` em UI sem passar por esse helper.
+- **Fallback Tauri para QA visual (2026-07-07):** `src/lib/tauri.ts` expoe `isTauriRuntime`/`invokeOrFallback`. Use em leituras nao criticas de boot para evitar erro de `invoke` no Vite/browser; acoes destrutivas/launch ainda podem usar invoke direto e falhar visivelmente se clicadas fora do Tauri.
+- **Release v16.0.1 (2026-07-07):** Bump deve tocar package.json/package-lock, src-tauri/Cargo.toml, src-tauri/Cargo.lock e src-tauri/tauri.conf.json. Workflow `release.yml` agora limpa `src-tauri/target/release/bundle` antes do build e usa `docs/releases/<tag>.md` como corpo da release.
+- **Design QC (2026-07-07):** `openwolf designqc` auto-detectou um servidor errado em `localhost:3000` quando havia outro projeto rodando. Para este repo, usar `openwolf designqc --url http://127.0.0.1:5173` depois de subir `npm run dev`. App Tauri tem `minWidth: 1024`, entao screenshots mobile do navegador servem para stress-test, nao como alvo principal de layout.
 - **Antigravity CLI real**: o binário se chama `agy`, NÃO `antigravity`. Instalado por script PowerShell em `%LOCALAPPDATA%\agy\bin\agy.exe`. Não existe pacote npm — `@google/antigravity` retorna 404.
 - **Manifesto de update do agy**: `https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/windows_amd64.json` — campo `.version` é SemVer puro.
 - **Flag de skip-permissions do agy**: `--dangerously-skip-permissions` (igual ao Claude). Confirmado via `agy help`.
@@ -52,6 +58,8 @@
 
 <!-- Mistakes made and corrected. Each entry prevents the same mistake recurring. -->
 <!-- Format: [YYYY-MM-DD] Description of what went wrong and what to do instead. -->
+
+- **[2026-07-07]** Nao confiar no auto-detect do `openwolf designqc` quando ha outros dev servers abertos; ele pode capturar outro projeto (ex: Nuxt em `localhost:3000`). Para o AI Launcher, subir/confirmar `http://127.0.0.1:5173` e passar `--url` explicitamente.
 
 - **[2026-06-11]** ANTES de `npm run tauri build`: fechar qualquer `ai-launcher.exe` rodando (inclusive o de `target/release/` deixado por smoke test) — o cargo falha com "Acesso negado (os error 5)" ao substituir o binario em uso. E ao rodar build via pipe (`| tail`), SEMPRE checar `${PIPESTATUS[0]}` — o exit do tail (0) mascara a falha do build. bug-101.
 

@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 15.1.0](https://img.shields.io/badge/vers%C3%A3o-15.1.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 16.0.1](https://img.shields.io/badge/vers%C3%A3o-16.0.1-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -138,8 +138,14 @@ O app tem 10 superfícies principais acessíveis pela sidebar:
 | **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## 🚀 Novidades da v15 — AI Ops Command Center
+## 🚀 Novidades da v16 — Analytics, Inbox, Acessibilidade e Agent Ops
 
+- **Agent Analytics** — série de custos 30d, top projetos, breakdown por modelo e export CSV/JSON
+- **Inbox Center** — notificações locais de update, budget, doctor e sessões com estado de leitura
+- **Acessibilidade AA** — correções de contraste, cobertura axe e foco mais seguro
+- **MCP Manager** — gerencie configs MCP de Claude, Codex e Gemini com backup e health checks
+- **Theme Foundry** — temas Phosphor, Midnight e High Contrast com testes de contrato de tokens
+- **Project Profiles** — `.ailauncher.json` preenche CLI, provider, diretório e env por repo
 - **Workspace Profiles** — agrupe configs por repo, time ou contexto com troca em um clique
 - **Agent Runbooks** — sequências automatizadas de setup para workflows de agentes
 - **Provider Budget Guard** — limites locais de custo com alertas configuráveis
@@ -201,7 +207,7 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | Typography | JetBrains Mono · Inter · Space Grotesk (display) |
 | Ícones | Logos oficiais (LobeHub Icons, devicons) + Phosphor Icons |
 | i18n | i18next 24 |
-| Testes | Vitest (61 testes), Playwright E2E, cargo test |
+| Testes | Vitest (157 testes), Playwright E2E, cargo test (63 testes Rust) |
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) |
 | Distribuição | GitHub Releases · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
 
@@ -223,6 +229,6 @@ MIT — veja [LICENSE](./LICENSE).
 
 <div align="center">
 
-**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v15.1.0)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
+**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v16.0.1)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
 </div>

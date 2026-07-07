@@ -17,7 +17,7 @@
 // ==============================================================================
 
 import { z } from "zod";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "./tauri";
 
 /** Schema for a `.ailauncher.json` file. Every field except `version` is optional. */
 export const projectProfileSchema = z
@@ -80,7 +80,11 @@ export function parseProjectProfile(
  */
 export async function readProjectProfile(directory: string): Promise<ProjectProfile | null> {
   if (!directory.trim()) return null;
-  const raw = await invoke<string | null>("read_project_profile", { directory });
+  const raw = await invokeOrFallback<string | null>(
+    "read_project_profile",
+    { directory },
+    null,
+  );
   if (raw == null) return null;
   const parsed = parseProjectProfile(raw);
   if (!parsed.ok) {

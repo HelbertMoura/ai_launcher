@@ -53,6 +53,13 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Clean stale bundle artifacts
+        shell: pwsh
+        run: |
+          Remove-Item -Path src-tauri/target/release/bundle -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path latest.json -Force -ErrorAction SilentlyContinue
+          Get-ChildItem -Path src-tauri/target/release -Filter "*.sha256" -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force
+
       - name: Build Tauri bundle (MSI + NSIS)
         run: npm run tauri build
 
@@ -73,10 +80,22 @@ jobs:
             & $signtool.FullName sign /f $certPath /p $env:SIGNING_CERT_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 $_.FullName
           }
 
+      - name: Prepare release notes
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag || github.ref_name }}"
+          $notes = "docs/releases/$tag.md"
+          if (Test-Path $notes) {
+            Copy-Item $notes release-body.md
+          } else {
+            @("AI Launcher $tag", "", "See CHANGELOG.md for details.") | Set-Content -Path release-body.md -Encoding utf8
+          }
+
       - name: Attach binaries to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          body_path: release-body.md
           files: |
             src-tauri/target/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/nsis/*-setup.exe

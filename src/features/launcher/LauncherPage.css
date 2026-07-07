@@ -473,6 +473,10 @@
   transition: opacity var(--dur-fast) var(--ease);
 }
 .cd-launcher__template-launch:hover { opacity: 0.85; }
+.cd-launcher__template-launch:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
 
 .cd-launcher__template-delete {
   padding: 4px 8px;

@@ -466,3 +466,19 @@
 | 13:06 | Created ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/v16-roadmap-progress.md | — | ~568 |
 | 13:07 | Edited ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/MEMORY.md | inline fix | ~46 |
 | 13:07 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 37 reads | ~38900 tok |
+| 2026-06-11 | Branch renomeada feat/v16-alpha-quick-wins -> feat/v16, pushada (36 commits) e PR #34 aberto para main (https://github.com/HelbertMoura/ai_launcher/pull/34); CI monitorado em background | git, GitHub | sucesso | ~8k |
+| 14:23 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 37 reads | ~38900 tok |
+| 14:28 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 38 reads | ~38900 tok |
+| 14:39 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 38 reads | ~38900 tok |
+| 2026-06-11 | CI do PR #34: 7/7 checks PASS (tsc 1m20, vitest 53s, e2e+axe 5m07, clippy+test+fmt 7m52, audit 7m36, windows build 17m12); PR MERGEABLE, sem conflitos | GitHub Actions | v16 pronto para merge — decisao do usuario | ~2k |
+| 14:41 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 38 reads | ~38900 tok |
+| 14:45 | Session end: 66 writes across 32 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 38 reads | ~38900 tok |
+| 17:39 | Created ../../../../AppData/Local/Temp/release-notes-v16.md | — | ~688 |
+| 2026-06-11 | RELEASE v16.0.0 PUBLICADO: PR #34 mergeado @50810d6, tag v16.0.0, release.yml buildou+anexou MSI/NSIS/sha256/latest.json; ~64 assets antigos removidos (bug-102: cache do CI preserva bundle/); notes curadas do CHANGELOG; marcado latest; instalador local enviado ao usuario | GitHub release, CHANGELOG | https://github.com/HelbertMoura/ai_launcher/releases/tag/v16.0.0 | ~12k |
+| 17:40 | Edited ../../../../.claude/projects/C--Users-Helbert-Desktop-DevManiacs-ai-launcher-tutra/memory/v16-roadmap-progress.md | "main" → "v16.0.0" | ~130 |
+| 17:40 | Session end: 68 writes across 33 files (cerebrum.md, 2026-06-11-v16.0-polimento-design.md, 2026-06-11-v16.0-polimento-plan.md, analytics.test.ts, analytics.ts) | 38 reads | ~39776 tok |
+| 07:40 | designqc: captured 6 screenshots (341KB, ~15000 tok) | /, /App, /main, /onboarding, /layout/Sidebar, /layout/StatusBar, /layout/TabId, /layout/TopBar | ready for eval | ~0 |
+| 07:41 | designqc: captured 6 screenshots (182KB, ~15000 tok) | /, /App, /main, /onboarding, /layout/Sidebar, /layout/StatusBar, /layout/TabId, /layout/TopBar | ready for eval | ~0 |
+| 07:47 | analyzed project structure, UI, and local validation pipeline | package.json, src/*, src-tauri/*, .wolf/designqc-captures | vite build, tsc, vitest, tauri build, e2e, cargo test all passed; improvement backlog identified | ~45000 |
+| 08:29 | implemented launcher/workspace/frontend polish batch | launchSession.ts, tauri.ts, App.tsx, LauncherPage.tsx, WorkspacePage.tsx, README* | shared launch flow, browser fallback, code splitting, workspace confirmations/toasts, README v16; build/test/e2e/tauri build passed | ~52000 |
+| 08:41 | prepared v16.0.1 release | package/Cargo/Tauri versions, CHANGELOG, docs/releases/v16.0.1.md, release.yml | validation passed; local MSI/NSIS v16.0.1 generated; ready for commit/tag/push | ~12000 |

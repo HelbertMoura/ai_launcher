@@ -1,22 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import pkg from "../../package.json";
 import { ACCENTS, useAccent, type Accent } from "../hooks/useAccent";
 import { useDensity } from "../hooks/useDensity";
 import { useTheme } from "../hooks/useTheme";
 import { useHistory } from "../features/history/useHistory";
 import { useSessionEvents } from "../features/history/useSessionEvents";
-import { LauncherPage } from "../features/launcher/LauncherPage";
-import { ToolsPage } from "../features/tools/ToolsPage";
-import { McpPage } from "../features/mcp/McpPage";
-import { HistoryPage } from "../features/history/HistoryPage";
-import { CostsPage } from "../features/costs/CostsPage";
-import { WorkspacePage } from "../features/workspace/WorkspacePage";
-import { DoctorPage } from "../features/workspace/DoctorPage";
-import { PrereqsPage } from "../features/prereqs/PrereqsPage";
-import { HelpPage } from "../features/help/HelpPage";
-import { UpdatesPage } from "../features/updates/UpdatesPage";
-import { AdminPage } from "../features/admin/AdminPage";
-import { OnboardingPage } from "../features/onboarding/OnboardingPage";
 import { Sidebar, type SidebarIndicatorMap } from "./layout/Sidebar";
 import {
   StatusBar,
@@ -42,8 +30,45 @@ import { migrateApiKeysToSecureStorage } from "../providers/storage";
 import { getBudgetAlerts } from "../providers/budget";
 import { pushEvent } from "../features/inbox/inboxStore";
 import type { UsageReport } from "../features/costs/useUsage";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "../lib/tauri";
 import "./App.css";
+
+const LauncherPage = lazy(() =>
+  import("../features/launcher/LauncherPage").then((m) => ({ default: m.LauncherPage })),
+);
+const ToolsPage = lazy(() =>
+  import("../features/tools/ToolsPage").then((m) => ({ default: m.ToolsPage })),
+);
+const McpPage = lazy(() =>
+  import("../features/mcp/McpPage").then((m) => ({ default: m.McpPage })),
+);
+const HistoryPage = lazy(() =>
+  import("../features/history/HistoryPage").then((m) => ({ default: m.HistoryPage })),
+);
+const CostsPage = lazy(() =>
+  import("../features/costs/CostsPage").then((m) => ({ default: m.CostsPage })),
+);
+const WorkspacePage = lazy(() =>
+  import("../features/workspace/WorkspacePage").then((m) => ({ default: m.WorkspacePage })),
+);
+const DoctorPage = lazy(() =>
+  import("../features/workspace/DoctorPage").then((m) => ({ default: m.DoctorPage })),
+);
+const PrereqsPage = lazy(() =>
+  import("../features/prereqs/PrereqsPage").then((m) => ({ default: m.PrereqsPage })),
+);
+const HelpPage = lazy(() =>
+  import("../features/help/HelpPage").then((m) => ({ default: m.HelpPage })),
+);
+const UpdatesPage = lazy(() =>
+  import("../features/updates/UpdatesPage").then((m) => ({ default: m.UpdatesPage })),
+);
+const AdminPage = lazy(() =>
+  import("../features/admin/AdminPage").then((m) => ({ default: m.AdminPage })),
+);
+const OnboardingPage = lazy(() =>
+  import("../features/onboarding/OnboardingPage").then((m) => ({ default: m.OnboardingPage })),
+);
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
 
@@ -103,7 +128,11 @@ export function App() {
     let cancelled = false;
     (async () => {
       try {
-        const report = await invoke<UsageReport>("read_usage_stats");
+        const report = await invokeOrFallback<UsageReport>(
+          "read_usage_stats",
+          undefined,
+          { entries: [] },
+        );
         if (cancelled) return;
         const alerts = getBudgetAlerts(report.entries ?? []);
         if (alerts.length === 0) return;
@@ -168,12 +197,14 @@ export function App() {
   if (!onboarded) {
     return (
       <ErrorBoundary>
-        <OnboardingPage
-          onFinish={() => {
-            markOnboarded();
-            setOnboarded(true);
-          }}
-        />
+        <Suspense fallback={<FullScreenFallback />}>
+          <OnboardingPage
+            onFinish={() => {
+              markOnboarded();
+              setOnboarded(true);
+            }}
+          />
+        </Suspense>
       </ErrorBoundary>
     );
   }
@@ -193,17 +224,19 @@ export function App() {
           openPalette={palette.openPalette}
         />
         <main className="cd-app__main">
-          {active === "launcher" && <LauncherPage />}
-          {active === "tools" && <ToolsPage />}
-          {active === "mcp" && <McpPage />}
-          {active === "history" && <HistoryPage />}
-          {active === "costs" && <CostsPage />}
-          {active === "workspace" && <WorkspacePage onNavigate={setActive} />}
-          {active === "doctor" && <DoctorPage />}
-          {active === "updates" && <UpdatesPage />}
-          {active === "prereqs" && <PrereqsPage />}
-          {active === "help" && <HelpPage />}
-          {active === "admin" && <AdminPage />}
+          <Suspense fallback={<PageFallback />}>
+            {active === "launcher" && <LauncherPage onNavigate={setActive} />}
+            {active === "tools" && <ToolsPage />}
+            {active === "mcp" && <McpPage />}
+            {active === "history" && <HistoryPage />}
+            {active === "costs" && <CostsPage />}
+            {active === "workspace" && <WorkspacePage onNavigate={setActive} />}
+            {active === "doctor" && <DoctorPage />}
+            {active === "updates" && <UpdatesPage />}
+            {active === "prereqs" && <PrereqsPage />}
+            {active === "help" && <HelpPage />}
+            {active === "admin" && <AdminPage />}
+          </Suspense>
         </main>
         <CommandPalette
           open={palette.open}
@@ -223,6 +256,23 @@ export function App() {
       </div>
     </ErrorBoundary>
   );
+}
+
+function PageFallback() {
+  return (
+    <section className="cd-page cd-page--loading">
+      <div className="cd-page__head">
+        <div className="cd-page__heading">
+          <h1 className="cd-page__title">▎ Loading</h1>
+          <p className="cd-page__sub">preparing module…</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FullScreenFallback() {
+  return <div className="cd-app__fallback">Loading…</div>;
 }
 
 const CONFIG_KEY = "ai-launcher-config";
