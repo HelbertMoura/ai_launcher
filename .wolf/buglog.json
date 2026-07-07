@@ -2009,6 +2009,24 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-07-07T08:55:00-03:00"
+    },
+    {
+      "id": "bug-122",
+      "timestamp": "2026-07-07T09:24:00-03:00",
+      "error_message": "Quality Gates falhou no job Rust cargo audit apos a release v16.0.1 por vulnerabilidades RUSTSEC-2026-0194 e RUSTSEC-2026-0195 em quick-xml transitivo.",
+      "file": "src-tauri/Cargo.lock",
+      "root_cause": "O lockfile ainda resolvia quick-xml 0.37.5 via tauri-winrt-notification 0.7.2 e quick-xml 0.38.4 via plist 1.8.0; cargo audit passou a reprovar as duas versoes em 2026-06-29.",
+      "fix": "Atualizado o lockfile para plist 1.10.0, quick-xml 0.41.0 e tauri-winrt-notification 0.7.3. cargo audit, cargo test e npm run tauri build passaram localmente.",
+      "tags": [
+        "security",
+        "cargo-audit",
+        "quick-xml",
+        "rustsec",
+        "v16.0.1"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T09:24:00-03:00"
     }
   ]
 }
