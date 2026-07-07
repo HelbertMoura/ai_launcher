@@ -34,10 +34,17 @@ import {
 } from "../../domain/profileStore";
 import type { LaunchProfile } from "../../domain/types";
 import type { CustomCli } from "../../lib/customClis";
+import { launchCliSession, recordFailedLaunch, type LaunchableCli } from "./launchSession";
+import { showToast } from "../../ui/toastStore";
+import type { TabId } from "../../app/layout/TabId";
 import "../page.css";
 import "./LauncherPage.css";
 
-export function LauncherPage() {
+interface LauncherPageProps {
+  onNavigate?: (tab: TabId) => void;
+}
+
+export function LauncherPage({ onNavigate }: LauncherPageProps) {
   const { t } = useTranslation();
   const { clis, checks, customClis, loading, error, refresh } = useClis();
   const [launching, setLaunching] = useState<CliInfo | null>(null);
@@ -48,6 +55,7 @@ export function LauncherPage() {
     loadProfiles(),
   );
   const [confirmDeleteProfile, setConfirmDeleteProfile] = useState<LaunchProfile | null>(null);
+  const [launchingProfileId, setLaunchingProfileId] = useState<string | null>(null);
   const refreshProfiles = () => setProfiles(loadProfiles());
 
   const allCount = clis.length + customClis.length;
@@ -71,18 +79,55 @@ export function LauncherPage() {
     }
   };
 
+  const resolveProfileCli = (profile: LaunchProfile): LaunchableCli | null => {
+    const key = profile.cliKeys[0];
+    if (!key) return null;
+    const builtin = clis.find((c) => c.key === key);
+    if (builtin) return { key: builtin.key, name: builtin.name };
+    const custom = customClis.find((c) => c.key === key);
+    if (custom) return { key: custom.key, name: custom.name };
+    return { key, name: key };
+  };
+
   const launchProfile = async (profile: LaunchProfile) => {
+    const cli = resolveProfileCli(profile);
+    if (!cli) {
+      showToast(t("launcher.templateMissingCli"), "error");
+      return;
+    }
+    if (!profile.directory?.trim()) {
+      showToast(t("launchDialog.directoryRequired"), "error");
+      return;
+    }
+    setLaunchingProfileId(profile.id);
     try {
-      await invoke<{ session_id: string; message: string }>("launch_cli", {
-        cliKey: profile.cliKeys[0] ?? "",
-        directory: profile.directory ?? "",
+      const result = await launchCliSession({
+        cli,
+        directory: profile.directory,
         args: profile.args ?? "",
         noPerms: profile.noPerms ?? true,
-        envVars: null,
+        providerId: profile.providerKey,
       });
+      if (result.projectProfileError) {
+        showToast(result.projectProfileError, "warning");
+      }
+      void ensurePermissionThenNotify(
+        t("notifications.sessionStarted.title", { cli: cli.name }),
+        t("notifications.sessionStarted.body", { dir: result.directory }),
+      );
+      showToast(t("launcher.templateLaunched", { name: profile.name }), "success");
     } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("profile launch failed", e);
+      const message = e instanceof Error ? e.message : String(e);
+      recordFailedLaunch(
+        cli,
+        profile.directory ?? "",
+        profile.args ?? "",
+        message,
+        profile.providerKey,
+      );
+      showToast(message || t("launcher.templateLaunchFailed"), "error");
+    } finally {
+      setLaunchingProfileId(null);
     }
   };
 
@@ -192,9 +237,10 @@ export function LauncherPage() {
                   <button
                     type="button"
                     className="cd-launcher__template-launch"
+                    disabled={launchingProfileId === p.id}
                     onClick={() => void launchProfile(p)}
                   >
-                    {t("launcher.launch")}
+                    {launchingProfileId === p.id ? t("common.loading") : t("launcher.launch")}
                   </button>
                   <button
                     type="button"
@@ -224,10 +270,16 @@ export function LauncherPage() {
         <EmptyState
           art={ART_TERMINAL}
           title={t("launcher.empty")}
-          description={t(
-            "launcher.emptyHint",
-            "Install Claude, Codex, or add a custom CLI to get started.",
-          )}
+          description={t("launcher.emptyHint")}
+          actions={
+            onNavigate
+              ? [
+                  { label: t("launcher.emptyActionAdmin"), onClick: () => onNavigate("admin") },
+                  { label: t("launcher.emptyActionDoctor"), onClick: () => onNavigate("doctor") },
+                  { label: t("launcher.emptyActionPrereqs"), onClick: () => onNavigate("prereqs") },
+                ]
+              : undefined
+          }
         />
       )}
 

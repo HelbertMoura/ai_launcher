@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useReducer, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
@@ -8,23 +7,19 @@ import { Input } from "../../ui/Input";
 import { Banner } from "../../ui/Banner";
 import { Toggle } from "../../ui/Toggle";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
-import { appendHistory } from "./history";
-import { getLastDir, saveLastDir, getRecentDirs, addRecentDir } from "../history/useHistory";
+import { getLastDir, getRecentDirs } from "../history/useHistory";
 import { pinDir, unpinDir, isPinned } from "./pinnedDirs";
 import { addProfile, loadProfiles } from "../../domain/profileStore";
 import type { LaunchProfile } from "../../domain/types";
-import { buildLaunchEnvAsync, buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
+import { buildLaunchEnv, loadProviders, setActive } from "../../providers/storage";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
 import { buildPreview } from "../../lib/commandPreview";
 import type { CommandPreview } from "../../lib/commandPreview";
 import type { ProvidersState } from "../../providers/types";
 import type { CliInfo } from "./useClis";
-import {
-  readProjectProfile,
-  mergeLaunchEnv,
-  type ProjectProfile,
-} from "../../lib/projectProfile";
-import { loadWorkspaces, getActiveWorkspace } from "../workspace/workspaceStore";
+import { readProjectProfile, type ProjectProfile } from "../../lib/projectProfile";
+import { recordFailedLaunch, launchCliSession } from "./launchSession";
+import { showToast } from "../../ui/toastStore";
 
 interface LaunchDialogProps {
   cli: CliInfo | null;
@@ -277,24 +272,6 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
     }
     dispatch({ type: "startLaunch" });
     try {
-      // Default env: the selected Claude provider's env (when applicable).
-      let defaultEnv: Record<string, string> | undefined;
-      if (isClaude && providersState) {
-        const stateWithSelected = setActive(providersState, providerId);
-        defaultEnv = await buildLaunchEnvAsync(stateWithSelected);
-      }
-      // Active workspace env — previously persisted but never applied (the
-      // "decorative workspace" bug). Now merged into the launch env.
-      const activeWorkspace = getActiveWorkspace(loadWorkspaces());
-      const workspaceEnv = activeWorkspace?.envVars;
-      // Project env from `.ailauncher.json` — highest precedence.
-      const projectEnv = state.projectProfile?.env;
-      // Precedence: project > workspace > default.
-      const merged = mergeLaunchEnv(defaultEnv, workspaceEnv, projectEnv);
-      // Pass null when there is nothing to inject (keeps prior backend behavior:
-      // the Rust side only clears ANTHROPIC_*/CLAUDE_* when env_vars is Some).
-      const envVars: Record<string, string> | undefined =
-        Object.keys(merged).length > 0 ? merged : undefined;
       let finalArgs = args;
       if (clipboardPrompt && supportsPrompt) {
         try {
@@ -311,47 +288,27 @@ export function LaunchDialog({ cli, onClose }: LaunchDialogProps) {
           // Continue launch without the prompt
         }
       }
-      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
-        cliKey: cli.key,
+      const result = await launchCliSession({
+        cli,
         directory,
         args: finalArgs,
+        historyArgs: args,
         noPerms,
-        envVars: envVars ?? null,
+        providerId,
+        providersState,
+        projectProfile: state.projectProfile,
       });
+      if (result.projectProfileError) {
+        showToast(result.projectProfileError, "warning");
+      }
       void ensurePermissionThenNotify(
         t("notifications.sessionStarted.title", { cli: cli.name }),
-        t("notifications.sessionStarted.body", { dir: directory }),
+        t("notifications.sessionStarted.body", { dir: result.directory }),
       );
-      const now = new Date().toISOString();
-      saveLastDir(cli.key, directory);
-      addRecentDir(cli.key, directory);
-      appendHistory({
-        cli: cli.name,
-        cliKey: cli.key,
-        directory,
-        args,
-        timestamp: now,
-        providerId: isClaude ? providerId : undefined,
-        status: "starting",
-        sessionId: result.session_id,
-        startedAt: now,
-      });
       onClose();
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
-      // Record failed launch in history
-      const now = new Date().toISOString();
-      appendHistory({
-        cli: cli.name,
-        cliKey: cli.key,
-        directory,
-        args,
-        timestamp: now,
-        providerId: isClaude ? providerId : undefined,
-        status: "failed",
-        startedAt: now,
-        errorMessage: errMsg,
-      });
+      recordFailedLaunch(cli, directory, args, errMsg, isClaude ? providerId : undefined);
       dispatch({
         type: "launchFailed",
         error: errMsg,

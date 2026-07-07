@@ -1,10 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { CheckResult, CliInfo } from "./useClis";
 import {
   loadCustomClis,
   CUSTOM_CLIS_CHANGED_EVENT,
   type CustomCli,
 } from "../../lib/customClis";
+import { invokeOrFallback } from "../../lib/tauri";
 
 const CACHE_KEY = "ai-launcher:clis-cache";
 const TTL_MS = 10 * 60 * 1000; // 10 min
@@ -107,8 +107,8 @@ async function load(force = false): Promise<void> {
   setState({ loading: true, error: null });
   inflight = (async () => {
     try {
-      const clis = await invoke<CliInfo[]>("get_all_clis");
-      const results = await invoke<CheckResult[]>("check_clis");
+      const clis = await invokeOrFallback<CliInfo[]>("get_all_clis", undefined, []);
+      const results = await invokeOrFallback<CheckResult[]>("check_clis", undefined, []);
       const checks: Record<string, CheckResult> = {};
       for (const r of results) checks[r.name] = r;
       const customClis = loadCustomClis();

@@ -83,6 +83,8 @@ coverage/
 
 # Tooling caches
 .playwright-mcp/
+.codex/
+.wolf/designqc-captures/
 
 # Playwright
 /test-results/

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "../../lib/tauri";
 
 export interface PrereqCheck {
   /** Canonical key used by install_prerequisite (e.g. "node", "git", "vscode"). */
@@ -19,7 +19,11 @@ export function usePrerequisites() {
     setLoading(true);
     setError(null);
     try {
-      const results = await invoke<PrereqCheck[]>("check_environment");
+      const results = await invokeOrFallback<PrereqCheck[]>(
+        "check_environment",
+        undefined,
+        [],
+      );
       setItems(results);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

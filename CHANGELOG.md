@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [16.0.1] — 2026-07-07 — Launch Flow, Workspace UX e release hygiene
+
+Patch release focada em polimento operacional pós-v16: lança templates/quick launch com o mesmo contrato do diálogo principal, melhora a experiência de Workspaces e reduz o bundle inicial.
+
+### Fixed
+- **Templates salvos e quick launch** agora usam o mesmo fluxo do `LaunchDialog`: provider ativo, env do workspace, `.ailauncher.json`, histórico, recent dirs e toast de erro/sucesso.
+- **Modo Vite/browser** não mostra mais erro visual `Cannot read properties of undefined (reading 'invoke')` ao abrir fora do WebView Tauri; leituras não críticas usam fallback local.
+- **Workspace delete** agora exige confirmação antes de remover o perfil.
+- **Import de Workspaces** mostra toast de erro quando o JSON é inválido, em vez de falhar silenciosamente.
+
+### Changed
+- **Code splitting por página** com `React.lazy`: chunk principal caiu de ~634 kB minificado para ~325 kB.
+- Empty state da Launcher ganhou ações diretas para adicionar CLI, rodar Doctor e abrir Pré-requisitos.
+- README/README.pt-BR atualizados para v16 e notas atuais.
+- Workflow de release limpa bundles antigos antes do build, evitando anexar assets de versões anteriores quando o cache do Cargo é reaproveitado.
+
 ## [16.0.0] — 2026-06-11 — Analytics, Inbox, Acessibilidade AA e fundações v16
 
 Release maior consolidando quatro fases (alpha → beta1 → beta2 → 16.0). Distribuição assinada (Authenticode + winget/choco) ficou para uma fase própria pós-release — a infraestrutura já existe (`release.yml` com signing opt-in, manifests em `dist/`), pendente apenas do certificado.

@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 15.1.0](https://img.shields.io/badge/version-15.1.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 16.0.1](https://img.shields.io/badge/version-16.0.1-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -137,8 +137,14 @@ The app has 10 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## 🚀 What's new in v15 — AI Ops Command Center
+## 🚀 What's new in v16 — Analytics, Inbox, Accessibility and Agent Ops
 
+- **Agent Analytics** — 30-day cost series, top projects, model breakdowns and CSV/JSON export
+- **Inbox Center** — local update, budget, doctor and session notifications with read state
+- **Accessibility AA pass** — contrast fixes, structured axe coverage and safer focus behavior
+- **MCP Manager** — manage Claude, Codex and Gemini MCP configs with backups and health checks
+- **Theme Foundry** — Phosphor, Midnight and High Contrast themes plus token contract tests
+- **Project Profiles** — `.ailauncher.json` can prefill CLI, provider, directory and env per repo
 - **Workspace Profiles** — group configs by repo, team or context with one-click switching
 - **Agent Runbooks** — automated setup sequences for AI agent environments
 - **Provider Budget Guard** — local cost limits per provider with configurable alerts

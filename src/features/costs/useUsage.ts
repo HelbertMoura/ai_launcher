@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "../../lib/tauri";
 
 export interface UsageEntry {
   date: string;
@@ -35,7 +35,11 @@ export function useUsage(): { report: UsageReport | null; loading: boolean; erro
   useEffect(() => {
     (async () => {
       try {
-        const r = await invoke<UsageReport>("read_usage_stats");
+        const r = await invokeOrFallback<UsageReport>(
+          "read_usage_stats",
+          undefined,
+          { entries: [] },
+        );
         setReport(r);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));

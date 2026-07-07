@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "../../lib/tauri";
 import type { WorkspaceProfile } from "../../domain/types";
 import {
   addWorkspace,
@@ -17,6 +17,8 @@ import {
 } from "./workspaceStore";
 import { getRunbooks } from "./runbookStore";
 import { RunbooksPanel } from "./RunbooksPanel";
+import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { showToast } from "../../ui/toastStore";
 import type { HistoryItem } from "../history/useHistory";
 import { useHistory } from "../history/useHistory";
 import { useUsage } from "../costs/useUsage";
@@ -57,6 +59,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const [editing, setEditing] = useState<WorkspaceProfile | null>(null);
   const [creating, setCreating] = useState(false);
   const [showRunbooks, setShowRunbooks] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<WorkspaceProfile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleActivate = useCallback((id: string) => {
@@ -69,12 +72,13 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
     setActiveId(null);
   }, []);
 
-  const handleDelete = useCallback(
+  const executeDelete = useCallback(
     (id: string) => {
       setProfiles((prev) => removeWorkspace(prev, id));
       if (activeId === id) setActiveId(null);
+      showToast(t("workspace.toastDeleted"), "success");
     },
-    [activeId],
+    [activeId, t],
   );
 
   const handleTogglePin = useCallback((id: string) => {
@@ -82,13 +86,15 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   }, []);
 
   const handleSave = useCallback((profile: WorkspaceProfile) => {
+    const isNew = !profiles.some((p) => p.id === profile.id);
     setProfiles((prev) => {
       const exists = prev.some((p) => p.id === profile.id);
       return exists ? updateWorkspace(prev, profile.id, profile) : addWorkspace(prev, profile);
     });
     setEditing(null);
     setCreating(false);
-  }, []);
+    showToast(t(isNew ? "workspace.toastCreated" : "workspace.toastSaved"), "success");
+  }, [profiles, t]);
 
   const handleCreateFromHistory = useCallback((item: HistoryItem) => {
     const now = new Date().toISOString();
@@ -106,7 +112,8 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
       updatedAt: now,
     };
     setProfiles((prev) => addWorkspace(prev, profile));
-  }, []);
+    showToast(t("workspace.toastCreated"), "success");
+  }, [t]);
 
   const handleNew = useCallback(() => {
     const now = new Date().toISOString();
@@ -133,7 +140,8 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
     a.download = "ai-launcher-workspaces.json";
     a.click();
     URL.revokeObjectURL(url);
-  }, [profiles]);
+    showToast(t("workspace.toastExported"), "success");
+  }, [profiles, t]);
 
   const handleImport = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,12 +153,16 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
         const merged = importWorkspaces(profiles, text);
         if (merged) {
           setProfiles(merged);
+          showToast(t("workspace.toastImported"), "success");
+        } else {
+          showToast(t("workspace.toastImportFailed"), "error");
         }
       };
+      reader.onerror = () => showToast(t("workspace.toastImportFailed"), "error");
       void reader.readAsText(file);
       e.target.value = "";
     },
-    [profiles],
+    [profiles, t],
   );
 
   const activeProfile = getActiveWorkspace(profiles);
@@ -241,7 +253,7 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
             setEditing(p);
             setCreating(false);
           }}
-          onDelete={handleDelete}
+          onDelete={(id) => setDeleteTarget(profiles.find((p) => p.id === id) ?? null)}
           onTogglePin={handleTogglePin}
           onNew={handleNew}
           onCreateFromHistory={handleCreateFromHistory}
@@ -255,6 +267,19 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
           <RecentSessionsCard onNavigate={onNavigate} />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        variant="danger"
+        title={t("workspace.deleteTitle")}
+        message={t("workspace.deleteMessage", { name: deleteTarget?.name ?? "" })}
+        confirmLabel={t("common.delete")}
+        onConfirm={() => {
+          if (deleteTarget) executeDelete(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </section>
   );
 }
@@ -325,7 +350,10 @@ function ProfilesCard({
   onCreateFromHistory,
 }: ProfilesCardProps) {
   const { t } = useTranslation();
-  const meta = `${profiles.length} total · ${pinnedCount} pinned`;
+  const meta = t("workspace.profilesMeta", {
+    total: profiles.length,
+    pinned: pinnedCount,
+  });
 
   const footer = (
     <button type="button" className="cd-ws-bento__btn" onClick={onNew}>
@@ -334,7 +362,7 @@ function ProfilesCard({
   );
 
   return (
-    <BentoCard area="profiles" title="WORKSPACE PROFILES" meta={meta} footer={footer}>
+    <BentoCard area="profiles" title={t("workspace.profilesTitle")} meta={meta} footer={footer}>
       {profiles.length === 0 ? (
         <div className="cd-ws-bento__empty">
           <p>{t("workspace.empty")}</p>
@@ -379,6 +407,7 @@ function ProfilesCard({
 // --- Budget Card (small) -----------------------------------------------------
 
 function BudgetSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
+  const { t } = useTranslation();
   const { report } = useUsage();
   const entries = report?.entries ?? [];
   const usages = useMemo<BudgetUsage[]>(() => getAllBudgetUsage(entries), [entries]);
@@ -389,14 +418,14 @@ function BudgetSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
 
   const meta = usages.length > 0
     ? `$${totalUsed.toFixed(2)} / $${totalLimit.toFixed(2)}`
-    : "no limits";
+    : t("workspace.noBudgetLimits");
 
   const handleActivate = onNavigate ? () => onNavigate("costs") : undefined;
 
   return (
-    <BentoCard area="budget" title="BUDGET GUARD" meta={meta} onActivate={handleActivate}>
+    <BentoCard area="budget" title={t("workspace.budgetTitle")} meta={meta} onActivate={handleActivate}>
       {usages.length === 0 ? (
-        <p className="cd-ws-bento__dim">Nothing here yet</p>
+        <p className="cd-ws-bento__dim">{t("workspace.nothingYet")}</p>
       ) : (
         <ul className="cd-ws-bento__budget-list">
           {usages.slice(0, 4).map((u) => {
@@ -421,7 +450,7 @@ function BudgetSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
           })}
           {exceeded > 0 && (
             <li className="cd-ws-bento__budget-alert">
-              {exceeded} over limit
+              {t("workspace.overLimit", { count: exceeded })}
             </li>
           )}
         </ul>
@@ -433,6 +462,7 @@ function BudgetSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
 // --- Doctor Card (medium) ----------------------------------------------------
 
 function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<PrereqCheck[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -440,7 +470,11 @@ function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
     let cancelled = false;
     (async () => {
       try {
-        const results = await invoke<PrereqCheck[]>("check_environment");
+        const results = await invokeOrFallback<PrereqCheck[]>(
+          "check_environment",
+          undefined,
+          [],
+        );
         if (!cancelled) setItems(results);
       } catch {
         /* ignore */
@@ -467,38 +501,41 @@ function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }
     return { critical, warning, info, missing: missing.length, total: items.length };
   }, [items]);
 
-  const meta = loading ? "..." : `${counts.total - counts.missing}/${counts.total} OK`;
+  const meta = loading ? "..." : t("workspace.doctorMeta", {
+    ok: counts.total - counts.missing,
+    total: counts.total,
+  });
   const handleActivate = onNavigate ? () => onNavigate("doctor") : undefined;
 
   return (
     <BentoCard
       area="doctor"
-      title="ENVIRONMENT HEALTH"
+      title={t("workspace.doctorTitle")}
       meta={meta}
       onActivate={handleActivate}
     >
       {loading ? (
-        <p className="cd-ws-bento__dim">Scanning…</p>
+        <p className="cd-ws-bento__dim">{t("common.scanning")}</p>
       ) : counts.missing === 0 ? (
         <div className="cd-ws-bento__doctor-ok">
-          <span className="cd-ws-bento__doctor-ok-mark">OK</span>
-          <span className="cd-ws-bento__doctor-ok-text">all checks pass</span>
+          <span className="cd-ws-bento__doctor-ok-mark">{t("workspace.okMark")}</span>
+          <span className="cd-ws-bento__doctor-ok-text">{t("workspace.allChecksPass")}</span>
         </div>
       ) : (
         <ul className="cd-ws-bento__doctor-list">
           <li className="cd-ws-bento__doctor-row cd-ws-bento__doctor-row--critical">
             <span className="cd-ws-bento__doctor-badge">!!</span>
-            <span className="cd-ws-bento__doctor-label">critical</span>
+            <span className="cd-ws-bento__doctor-label">{t("workspace.severityCritical")}</span>
             <span className="cd-ws-bento__doctor-count">{counts.critical}</span>
           </li>
           <li className="cd-ws-bento__doctor-row cd-ws-bento__doctor-row--warning">
             <span className="cd-ws-bento__doctor-badge">!</span>
-            <span className="cd-ws-bento__doctor-label">warning</span>
+            <span className="cd-ws-bento__doctor-label">{t("workspace.severityWarning")}</span>
             <span className="cd-ws-bento__doctor-count">{counts.warning}</span>
           </li>
           <li className="cd-ws-bento__doctor-row cd-ws-bento__doctor-row--info">
             <span className="cd-ws-bento__doctor-badge">i</span>
-            <span className="cd-ws-bento__doctor-label">info</span>
+            <span className="cd-ws-bento__doctor-label">{t("workspace.severityInfo")}</span>
             <span className="cd-ws-bento__doctor-count">{counts.info}</span>
           </li>
         </ul>
@@ -521,7 +558,7 @@ function RunbooksCard({ onOpen }: { onOpen: () => void }) {
     [onOpen],
   );
 
-  const meta = `${runbooks.length} total`;
+  const meta = t("workspace.totalMeta", { count: runbooks.length });
 
   const footer = (
     <button type="button" className="cd-ws-bento__btn" onClick={handleManage}>
@@ -532,19 +569,21 @@ function RunbooksCard({ onOpen }: { onOpen: () => void }) {
   return (
     <BentoCard
       area="runbooks"
-      title="AGENT RUNBOOKS"
+      title={t("workspace.runbooksTitle")}
       meta={meta}
       onActivate={onOpen}
       footer={footer}
     >
       {runbooks.length === 0 ? (
-        <p className="cd-ws-bento__dim">Nothing here yet</p>
+        <p className="cd-ws-bento__dim">{t("workspace.nothingYet")}</p>
       ) : (
         <ul className="cd-ws-bento__runbook-list">
           {runbooks.slice(0, 5).map((rb) => (
             <li key={rb.id} className="cd-ws-bento__runbook-item">
               <span className="cd-ws-bento__runbook-name">{rb.name}</span>
-              <span className="cd-ws-bento__runbook-steps">{rb.steps.length} steps</span>
+              <span className="cd-ws-bento__runbook-steps">
+                {t("runbook.stepsCount", { count: rb.steps.length })}
+              </span>
             </li>
           ))}
         </ul>
@@ -556,20 +595,21 @@ function RunbooksCard({ onOpen }: { onOpen: () => void }) {
 // --- Recent Sessions Card (medium) -------------------------------------------
 
 function RecentSessionsCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
+  const { t } = useTranslation();
   const { items } = useHistory();
   const recent = items.slice(0, 5);
-  const meta = `${items.length} total`;
+  const meta = t("workspace.totalMeta", { count: items.length });
   const handleActivate = onNavigate ? () => onNavigate("history") : undefined;
 
   return (
     <BentoCard
       area="sessions"
-      title="RECENT SESSIONS"
+      title={t("workspace.sessionsTitle")}
       meta={meta}
       onActivate={handleActivate}
     >
       {recent.length === 0 ? (
-        <p className="cd-ws-bento__dim">Nothing here yet</p>
+        <p className="cd-ws-bento__dim">{t("workspace.nothingYet")}</p>
       ) : (
         <ul className="cd-ws-bento__session-list">
           {recent.map((item, i) => (

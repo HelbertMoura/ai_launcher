@@ -1,17 +1,15 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
 import { getCliIcon, hasCliIcon } from "../../icons/registry";
-import { getRecentDirs, saveLastDir, addRecentDir } from "../history/useHistory";
+import { getRecentDirs } from "../history/useHistory";
 import { getPinnedDirs } from "./pinnedDirs";
-import { appendHistory } from "./history";
-import { buildLaunchEnvAsync, loadProviders } from "../../providers/storage";
 import { showToast } from "../../ui/toastStore";
+import { launchCliSession, recordFailedLaunch } from "./launchSession";
 import type { CheckResult, CliInfo } from "./useClis";
 
 interface CliCardProps {
@@ -57,50 +55,20 @@ export function CliCard({
 
   const quickLaunch = async (dir: string) => {
     setQuickLaunching(true);
-    let envVars: Record<string, string> | undefined;
-    let providerId: string | undefined;
     try {
-      if (cli.key === "claude") {
-        const state = loadProviders();
-        envVars = await buildLaunchEnvAsync(state);
-        providerId = state.activeId;
-      }
-      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
-        cliKey: cli.key,
+      const result = await launchCliSession({
+        cli,
         directory: dir,
         args: "",
         noPerms: true,
-        envVars: envVars ?? null,
       });
-      const now = new Date().toISOString();
-      saveLastDir(cli.key, dir);
-      addRecentDir(cli.key, dir);
-      appendHistory({
-        cli: cli.name,
-        cliKey: cli.key,
-        directory: dir,
-        args: "",
-        timestamp: now,
-        providerId,
-        status: "starting",
-        sessionId: result.session_id,
-        startedAt: now,
-      });
+      if (result.projectProfileError) {
+        showToast(result.projectProfileError, "warning");
+      }
     } catch (e) {
-      const now = new Date().toISOString();
-      // Launch failed immediately — record as failed
-      appendHistory({
-        cli: cli.name,
-        cliKey: cli.key,
-        directory: dir,
-        args: "",
-        timestamp: now,
-        providerId: providerId,
-        status: "failed",
-        startedAt: now,
-        errorMessage: e instanceof Error ? e.message : String(e),
-      });
-      showToast(e instanceof Error ? e.message : String(e), "error");
+      const message = e instanceof Error ? e.message : String(e);
+      recordFailedLaunch(cli, dir, "", message);
+      showToast(message, "error");
     } finally {
       setQuickLaunching(false);
     }

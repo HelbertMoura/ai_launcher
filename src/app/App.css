@@ -21,3 +21,17 @@
   background-position: 0 0;
 }
 .cd-app__status { grid-area: status; }
+
+.cd-app__fallback {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.cd-page--loading {
+  min-height: 240px;
+}

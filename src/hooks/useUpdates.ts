@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeOrFallback } from "../lib/tauri";
 
 export interface UpdateInfo {
   cli: string;
@@ -52,7 +52,17 @@ export function useUpdates() {
   const check = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await invoke<UpdatesSummary>("check_all_updates");
+      const data = await invokeOrFallback<UpdatesSummary>(
+        "check_all_updates",
+        undefined,
+        {
+          cli_updates: [],
+          env_updates: [],
+          tool_updates: [],
+          checked_at: new Date().toISOString(),
+          total_with_updates: 0,
+        },
+      );
       setSummary(data);
       saveCache(data);
     } catch {
