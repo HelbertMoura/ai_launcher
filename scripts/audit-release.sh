@@ -53,11 +53,13 @@ echo ""
 INSTALLERS=()
 PORTABLE=()
 CHECKSUMS=()
+MANIFESTS=()
 SOURCE=()
 OTHER=()
 ERRORS=()
 
 while IFS= read -r name; do
+  name="${name%$'\r'}"
   echo "  - ${name}"
 
   # Categorize.
@@ -67,6 +69,8 @@ while IFS= read -r name; do
     PORTABLE+=("$name")
   elif [[ "$name" == *".sha256" ]] || [[ "$name" == *".checksum" ]]; then
     CHECKSUMS+=("$name")
+  elif [[ "$name" == "latest.json" ]]; then
+    MANIFESTS+=("$name")
   elif [[ "$name" == *".tar.gz" ]] || [[ "$name" == *".zip" ]] || [[ "$name" == "Source"* ]]; then
     SOURCE+=("$name")
   else
@@ -74,7 +78,7 @@ while IFS= read -r name; do
   fi
 
   # Validate version in filename.
-  if [[ "$name" != *"${VERSION}"* ]]; then
+  if [[ "$name" != "latest.json" && "$name" != *"${VERSION}"* ]]; then
     ERRORS+=("$name")
   fi
 done <<< "$ASSETS"
@@ -88,6 +92,8 @@ echo "Portable:        ${#PORTABLE[@]}"
 for f in "${PORTABLE[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Checksums:       ${#CHECKSUMS[@]}"
 for f in "${CHECKSUMS[@]}"; do echo "  $f"; done 2>/dev/null || true
+echo "Manifests:       ${#MANIFESTS[@]}"
+for f in "${MANIFESTS[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Source:          ${#SOURCE[@]}"
 for f in "${SOURCE[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Other:           ${#OTHER[@]}"

@@ -1989,6 +1989,26 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-07-07T08:41:00-03:00"
+    },
+    {
+      "id": "bug-121",
+      "timestamp": "2026-07-07T08:55:00-03:00",
+      "error_message": "Release workflow v16.0.1 falhou na etapa Audit release assets apos publicar os binarios porque latest.json nao contem o numero da versao no nome.",
+      "file": "scripts/audit-release.sh",
+      "root_cause": "A auditoria exigia que todo asset do release contivesse a versao sem o prefixo v. Isso e correto para instaladores e checksums, mas incorreto para latest.json, que precisa manter nome estavel para o updater.",
+      "fix": "latest.json foi categorizado como manifest e excluido da checagem de versao no filename; instaladores e checksums continuam auditados contra a versao do tag.",
+      "tags": [
+        "release",
+        "github-actions",
+        "audit",
+        "latest-json",
+        "v16.0.1"
+      ],
+      "related_bugs": [
+        "bug-120"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T08:55:00-03:00"
     }
   ]
 }
