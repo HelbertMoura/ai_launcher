@@ -1,6 +1,6 @@
 # ==============================================================================
 # AI Launcher Pro - .gitignore
-# Tauri v2 + React 18 + Rust
+# Tauri v2 + React 19 + Rust
 # ==============================================================================
 
 # --- Node / Frontend ---
@@ -76,6 +76,9 @@ coverage/
 *.nsis
 *.dmg
 *.app
+*.sha256
+*.checksum
+latest.json
 
 # --- Claude Code local settings (per-dev, never commit) ---
 .claude/
@@ -108,7 +111,7 @@ docs/releases/v16*.md
 docs/screenshots/archive/
 docs/screenshots/v15/
 public/images/banner.*
-scripts/*.ps1
+*.ps1
 
 # OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
 src-tauri/.wolf
