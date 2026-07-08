@@ -108,6 +108,7 @@ docs/releases/v16*.md
 docs/screenshots/archive/
 docs/screenshots/v15/
 public/images/banner.*
+scripts/*.ps1
 
 # OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
 src-tauri/.wolf
