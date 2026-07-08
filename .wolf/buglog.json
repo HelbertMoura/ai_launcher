@@ -2213,6 +2213,26 @@
       ],
       "occurrences": 1,
       "last_seen": "2026-07-08T10:32:00-03:00"
+    },
+    {
+      "id": "bug-133",
+      "timestamp": "2026-07-08T10:50:00-03:00",
+      "error_message": "Monitoramento dos workflows via API publica do GitHub falhou com `API rate limit exceeded`; uma checagem PowerShell inicial dos assets tambem teve ParserError por pipe apos bloco foreach.",
+      "file": ".wolf/cerebrum.md",
+      "root_cause": "`gh` nao estava autenticado e o loop consultava dois run endpoints a cada 30s por muito tempo; a primeira checagem de assets usou sintaxe PowerShell ambigua com `} | Format-List` depois de blocos.",
+      "fix": "Confirmado o status pelos HTMLs publicos dos workflows e por URLs diretas dos assets; registrado aprendizado para usar gh autenticado ou backoff/web UI. Refatorada a checagem de assets para armazenar resultados em variavel antes de formatar.",
+      "tags": [
+        "github-actions",
+        "rate-limit",
+        "powershell",
+        "monitoring",
+        "v20"
+      ],
+      "related_bugs": [
+        "bug-132"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-08T10:50:00-03:00"
     }
   ]
 }
