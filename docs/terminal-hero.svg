@@ -1,147 +1,157 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" width="840" height="520" role="img" aria-label="AI Launcher Pro Command Deck terminal preview showing v15 features">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" width="840" height="520" role="img" aria-label="AI Launcher Pro v20 Command OS terminal preview with workspace intelligence, runbooks, MCP health and release trust">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0d0d0f"/>
-      <stop offset="100%" stop-color="#0a0a0b"/>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#101013"/>
+      <stop offset="58%" stop-color="#09090b"/>
+      <stop offset="100%" stop-color="#070708"/>
     </linearGradient>
-    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#15151a"/>
-      <stop offset="100%" stop-color="#111114"/>
+    <linearGradient id="titlebar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#18181d"/>
+      <stop offset="100%" stop-color="#101014"/>
     </linearGradient>
-    <linearGradient id="accentGlow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#ff3131" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#ff3131" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#ff3131" stop-opacity="0"/>
+    <linearGradient id="redline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff3b3b" stop-opacity="0"/>
+      <stop offset="35%" stop-color="#ff3b3b" stop-opacity="0.65"/>
+      <stop offset="65%" stop-color="#ff3b3b" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#ff3b3b" stop-opacity="0"/>
     </linearGradient>
-    <filter id="glow">
+    <linearGradient id="greenline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#35d07f" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#35d07f" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="panelSheen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#151519" stop-opacity="0.88"/>
+      <stop offset="100%" stop-color="#0b0b0d" stop-opacity="0.96"/>
+    </linearGradient>
+    <filter id="softGlow">
       <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
-    <filter id="strongGlow">
-      <feGaussianBlur stdDeviation="4" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="cursorGlow">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
     <pattern id="dotgrid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <circle cx="12" cy="12" r="0.8" fill="#1a1a1d"/>
+      <circle cx="12" cy="12" r="0.7" fill="#202027"/>
     </pattern>
+    <style>
+      .mono { font-family: "JetBrains Mono", "SF Mono", Consolas, monospace; }
+      .dim { fill: #777782; }
+      .muted { fill: #9a9aa5; }
+      .text { fill: #ececf0; }
+      .green { fill: #35d07f; }
+      .red { fill: #ff3b3b; }
+      .amber { fill: #ffae35; }
+      .blue { fill: #8fb6ff; }
+      .label { font-size: 9.5px; letter-spacing: 2px; fill: #777782; }
+      .small { font-size: 10.5px; }
+      .body { font-size: 12px; }
+      .title { font-size: 13px; font-weight: 700; }
+      .tiny { font-size: 9px; }
+      .panel { fill: url(#panelSheen); stroke: #202027; stroke-width: 1; }
+    </style>
   </defs>
 
-  <!-- Terminal frame -->
-  <rect x="20" y="10" width="800" height="500" rx="10" fill="url(#bg)" stroke="#1a1a1d" stroke-width="1"/>
-  <rect x="20" y="10" width="800" height="500" rx="10" fill="url(#dotgrid)"/>
+  <rect x="20" y="10" width="800" height="500" rx="10" fill="url(#shell)" stroke="#24242b"/>
+  <rect x="20" y="10" width="800" height="500" rx="10" fill="url(#dotgrid)" opacity="0.58"/>
 
-  <!-- Title bar -->
-  <rect x="20" y="10" width="800" height="34" rx="10" fill="url(#bar)"/>
-  <rect x="20" y="32" width="800" height="12" fill="url(#bar)"/>
-  <line x1="20" y1="44" x2="820" y2="44" stroke="#1a1a1d" stroke-width="1"/>
+  <rect x="20" y="10" width="800" height="34" rx="10" fill="url(#titlebar)"/>
+  <rect x="20" y="32" width="800" height="12" fill="url(#titlebar)"/>
+  <line x1="20" y1="44" x2="820" y2="44" stroke="#24242b"/>
+  <rect x="20" y="43" width="800" height="2" fill="url(#redline)"/>
 
-  <!-- Traffic lights -->
   <circle cx="40" cy="27" r="5.5" fill="#ff5f57"/>
   <circle cx="60" cy="27" r="5.5" fill="#febc2e"/>
   <circle cx="80" cy="27" r="5.5" fill="#28c840"/>
+  <text x="420" y="32" class="mono muted" font-size="11" text-anchor="middle" letter-spacing="2">AI LAUNCHER PRO - v20.0.0 - COMMAND OS</text>
 
-  <!-- Title text -->
-  <text x="420" y="32" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3" text-anchor="middle" letter-spacing="2">AI LAUNCHER PRO · v15.0.0 · AI OPS COMMAND CENTER</text>
+  <text x="44" y="76" class="mono label">/ COMMAND CENTER</text>
+  <text x="204" y="76" class="mono small muted">workspace</text>
+  <text x="288" y="76" class="mono small dim">/</text>
+  <text x="306" y="76" class="mono small muted">runbooks</text>
+  <text x="384" y="76" class="mono small dim">/</text>
+  <text x="402" y="76" class="mono small muted">mcp</text>
+  <text x="444" y="76" class="mono small dim">/</text>
+  <text x="462" y="76" class="mono small muted">sessions</text>
+  <text x="548" y="76" class="mono small dim">/</text>
+  <text x="566" y="76" class="mono small muted">trust</text>
+  <text x="780" y="76" class="mono small green" text-anchor="end">READY</text>
 
-  <!-- Top accent glow -->
-  <rect x="20" y="43" width="800" height="2" fill="url(#accentGlow)"/>
+  <rect x="44" y="94" width="478" height="148" rx="6" class="panel"/>
+  <text x="62" y="116" class="mono label">ACTIVE WORKSPACE</text>
+  <text x="62" y="140" class="mono title text">ai-launcher-tutra</text>
+  <text x="62" y="160" class="mono small muted">Claude profile + Codex fallback + local env merge</text>
+  <rect x="62" y="176" width="138" height="26" rx="3" fill="#151519" stroke="#2b2b33"/>
+  <text x="78" y="193" class="mono small green">RUN  workspace</text>
+  <rect x="212" y="176" width="124" height="26" rx="3" fill="#151519" stroke="#2b2b33"/>
+  <text x="228" y="193" class="mono small blue">OPEN IDE</text>
+  <rect x="348" y="176" width="136" height="26" rx="3" fill="#151519" stroke="#2b2b33"/>
+  <text x="364" y="193" class="mono small amber">SETUP runbook</text>
+  <line x1="62" y1="214" x2="500" y2="214" stroke="#202027"/>
+  <text x="62" y="231" class="mono tiny dim">last launch</text>
+  <text x="136" y="231" class="mono tiny text">claude --dangerously-skip-permissions</text>
+  <text x="500" y="231" class="mono tiny green" text-anchor="end">2m ago</text>
 
-  <!-- Section header -->
-  <text x="44" y="78" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3" letter-spacing="2">▎ WORKSPACE  ·  Launcher / Tools / History / Costs / Workspaces / Doctor / Updates</text>
+  <rect x="536" y="94" width="260" height="70" rx="6" class="panel"/>
+  <text x="554" y="116" class="mono label">PROJECT INTELLIGENCE</text>
+  <text x="554" y="139" class="mono small green">OK React/Vite</text>
+  <text x="650" y="139" class="mono small green">OK Tauri</text>
+  <text x="724" y="139" class="mono small blue">MCP: 3/3</text>
+  <rect x="554" y="149" width="224" height="4" rx="2" fill="#1c1c21"/>
+  <rect x="554" y="149" width="196" height="4" rx="2" fill="url(#greenline)"/>
 
-  <!-- Bento grid: 2 columns -->
-  <!-- Left column (wider): Profiles + Recent Sessions -->
-  <rect x="44" y="96" width="460" height="140" rx="5" fill="#0d0d0f" stroke="#1a1a1d" stroke-width="1"/>
-  <text x="60" y="116" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74" letter-spacing="2">WORKSPACE PROFILES · 2 pinned</text>
+  <rect x="536" y="176" width="260" height="66" rx="6" class="panel"/>
+  <text x="554" y="198" class="mono label">RELEASE TRUST</text>
+  <text x="554" y="220" class="mono small green">OK latest.json</text>
+  <text x="658" y="220" class="mono small green">OK sha256</text>
+  <text x="744" y="220" class="mono small green">OK tag</text>
+  <text x="554" y="235" class="mono tiny dim">v20.0.0 assets verified on GitHub Releases</text>
 
-  <!-- Profile 1 (pinned, starred) -->
-  <text x="60" y="140" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#ff3131">★</text>
-  <text x="78" y="140" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#e6e6e8">ai-launcher</text>
-  <text x="200" y="140" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#6b6b74">claude · anthropic</text>
-  <text x="480" y="140" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f" text-anchor="end">●</text>
+  <text x="44" y="274" class="mono label">/ SESSIONS - LAST 24H</text>
+  <text x="44" y="300" class="mono small text">claude</text>
+  <rect x="122" y="292" width="392" height="11" rx="2" fill="#ff3b3b" opacity="0.9" filter="url(#softGlow)"/>
+  <text x="552" y="301" class="mono small green">running</text>
+  <text x="642" y="301" class="mono small dim">2h 14m</text>
+  <text x="760" y="301" class="mono small green" text-anchor="end">live</text>
 
-  <!-- Profile 2 (pinned) -->
-  <text x="60" y="160" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#ff3131">★</text>
-  <text x="78" y="160" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#e6e6e8">agent-playground</text>
-  <text x="200" y="160" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#6b6b74">codex · openai</text>
-  <text x="480" y="160" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f" text-anchor="end">●</text>
+  <text x="44" y="324" class="mono small text">codex</text>
+  <rect x="122" y="316" width="96" height="11" rx="2" fill="#72727d" opacity="0.75"/>
+  <text x="552" y="325" class="mono small muted">success</text>
+  <text x="642" y="325" class="mono small dim">8m</text>
 
-  <!-- Profile 3 -->
-  <text x="78" y="180" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#9a9aa3">devmaniacs-site</text>
-  <text x="200" y="180" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#6b6b74">gemini · google</text>
-  <text x="480" y="180" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3" text-anchor="end">○</text>
+  <text x="44" y="348" class="mono small text">runbook</text>
+  <rect x="240" y="340" width="188" height="11" rx="2" fill="#35d07f" opacity="0.85"/>
+  <text x="552" y="349" class="mono small green">passed</text>
+  <text x="642" y="349" class="mono small dim">4 steps</text>
 
-  <!-- Divider -->
-  <line x1="60" y1="196" x2="484" y2="196" stroke="#1a1a1d"/>
+  <text x="44" y="372" class="mono small text">mcp</text>
+  <rect x="438" y="364" width="74" height="11" rx="2" fill="#8fb6ff" opacity="0.85"/>
+  <text x="552" y="373" class="mono small blue">health</text>
+  <text x="642" y="373" class="mono small dim">3 servers</text>
 
-  <text x="60" y="215" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74" letter-spacing="2">RECENT SESSIONS</text>
-  <text x="60" y="229" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">●</text>
-  <text x="78" y="229" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#e6e6e8">claude · 2m ago</text>
-  <text x="280" y="229" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#6b6b74">running · 2h 14m</text>
+  <line x1="122" y1="388" x2="760" y2="388" stroke="#24242b"/>
+  <text x="122" y="403" class="mono tiny dim">00:00</text>
+  <text x="284" y="403" class="mono tiny dim">08:00</text>
+  <text x="446" y="403" class="mono tiny dim">16:00</text>
+  <text x="760" y="403" class="mono tiny red" text-anchor="end">now</text>
 
-  <!-- Right column: Budget + Doctor -->
-  <!-- Budget -->
-  <rect x="516" y="96" width="280" height="64" rx="5" fill="#0d0d0f" stroke="#1a1a1d" stroke-width="1"/>
-  <text x="532" y="116" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74" letter-spacing="2">BUDGET GUARD</text>
-  <text x="532" y="136" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="14" fill="#e6e6e8" font-weight="bold">$4.20</text>
-  <text x="582" y="136" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#6b6b74">/ $50.00 · 8%</text>
-  <!-- Progress bar -->
-  <rect x="532" y="145" width="248" height="4" rx="2" fill="#1a1a1d"/>
-  <rect x="532" y="145" width="20" height="4" rx="2" fill="#35d07f"/>
+  <rect x="20" y="418" width="800" height="38" fill="url(#titlebar)" stroke="#24242b"/>
+  <text x="44" y="442" class="mono small green">7/8 online</text>
+  <text x="154" y="442" class="mono small amber">2 updates</text>
+  <text x="260" y="442" class="mono small blue">3 MCP healthy</text>
+  <text x="398" y="442" class="mono small text">$4.20 today</text>
+  <text x="540" y="442" class="mono small green">release trusted</text>
+  <text x="780" y="442" class="mono tiny dim" text-anchor="end">v20.0.0</text>
 
-  <!-- Doctor -->
-  <rect x="516" y="172" width="280" height="64" rx="5" fill="#0d0d0f" stroke="#1a1a1d" stroke-width="1"/>
-  <text x="532" y="192" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74" letter-spacing="2">ENVIRONMENT DOCTOR</text>
-  <text x="532" y="213" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">✓ Node v22</text>
-  <text x="620" y="213" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">✓ Git</text>
-  <text x="680" y="213" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#ff9f1c">! pnpm</text>
-  <text x="532" y="228" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74">12/13 healthy · 1 warning</text>
+  <text x="44" y="484" class="mono body red" font-weight="700">$</text>
+  <text x="60" y="484" class="mono body text">ai-launcher launch --workspace ai-launcher-tutra --profile command-os</text>
+  <rect x="630" y="472" width="8" height="15" fill="#ff3b3b" opacity="0.92" filter="url(#cursorGlow)"/>
 
-  <!-- History waterfall -->
-  <text x="44" y="266" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3" letter-spacing="2">▎ HISTORY · last 24h</text>
-
-  <!-- Timeline rows -->
-  <text x="44" y="288" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#e6e6e8">claude</text>
-  <rect x="120" y="280" width="380" height="10" rx="1" fill="#ff3131" opacity="0.9" filter="url(#glow)"/>
-  <text x="700" y="288" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">●</text>
-  <text x="720" y="288" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">running</text>
-
-  <text x="44" y="310" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#e6e6e8">codex</text>
-  <rect x="120" y="302" width="60" height="10" rx="1" fill="#6b6b74" opacity="0.7"/>
-  <text x="700" y="310" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">✓</text>
-  <text x="720" y="310" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">8m</text>
-
-  <text x="44" y="332" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#e6e6e8">gemini</text>
-  <rect x="200" y="324" width="40" height="10" rx="1" fill="#ff3131" opacity="0.8"/>
-  <text x="700" y="332" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#ff3131">✗</text>
-  <text x="720" y="332" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">failed</text>
-
-  <!-- Axis -->
-  <line x1="120" y1="345" x2="760" y2="345" stroke="#1a1a1d"/>
-  <text x="120" y="358" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="9" fill="#6b6b74">00:00</text>
-  <text x="280" y="358" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="9" fill="#6b6b74">08:00</text>
-  <text x="440" y="358" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="9" fill="#6b6b74">16:00</text>
-  <text x="760" y="358" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="9" fill="#ff3131" text-anchor="end">now</text>
-
-  <!-- Status bar -->
-  <rect x="20" y="408" width="800" height="38" fill="url(#bar)" stroke="#1a1a1d" stroke-width="1"/>
-  <text x="44" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">▎ 7/8 online</text>
-  <text x="160" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#ff9f1c">⬆ 2 updates</text>
-  <text x="290" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">●</text>
-  <text x="308" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#9a9aa3">Anthropic</text>
-  <text x="400" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#e6e6e8" filter="url(#glow)">$4.20 today</text>
-  <text x="540" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="11" fill="#35d07f">● claude · 2m ago</text>
-  <text x="780" y="432" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="10" fill="#6b6b74" text-anchor="end">v15.0.0</text>
-
-  <!-- Prompt below -->
-  <text x="44" y="478" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#ff3131" font-weight="bold">$</text>
-  <text x="58" y="478" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="12" fill="#e6e6e8"> ai-launcher launch --profile ai-launcher</text>
-
-  <!-- Blinking cursor -->
-  <rect x="390" y="467" width="8" height="14" fill="#ff3131" opacity="0.9" filter="url(#strongGlow)">
-    <animate attributeName="opacity" values="0.9;0;0.9" dur="1s" repeatCount="indefinite"/>
-  </rect>
-
-  <!-- Subtle signature -->
-  <text x="420" y="502" font-family="JetBrains Mono, SF Mono, Consolas, monospace" font-size="9" fill="#6b6b74" text-anchor="middle" letter-spacing="3">DEVMANIAC'S · COMMAND DECK</text>
+  <text x="420" y="506" class="mono tiny dim" text-anchor="middle" letter-spacing="3">DEVMANIAC'S - COMMAND OS</text>
 </svg>
