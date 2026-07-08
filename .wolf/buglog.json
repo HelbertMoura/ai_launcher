@@ -2193,6 +2193,26 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-07T16:00:00-03:00"
+    },
+    {
+      "id": "bug-132",
+      "timestamp": "2026-07-08T10:32:00-03:00",
+      "error_message": "GitHub Actions release v20.0.0 falhou no step `Audit release assets`: latest.json platforms object missing.",
+      "file": "scripts/audit-release.sh",
+      "root_cause": "A auditoria nova validava apenas um schema `platforms`, mas o workflow real gera latest.json com `downloadUrls.windowsNsis/windowsMsi`.",
+      "fix": "Atualizado audit-release.sh para aceitar `downloadUrls` como schema primario e `platforms` como fallback compatível, mantendo validacao de version, URLs Windows, tag e releaseNotesUrl.",
+      "tags": [
+        "release",
+        "github-actions",
+        "latest-json",
+        "audit",
+        "v20"
+      ],
+      "related_bugs": [
+        "bug-121"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-08T10:32:00-03:00"
     }
   ]
 }

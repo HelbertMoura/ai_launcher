@@ -131,14 +131,16 @@ errors = []
 if data.get("version") != expected_version:
     errors.append(f"version {data.get('version')!r} != {expected_version!r}")
 
+download_urls = data.get("downloadUrls")
 platforms = data.get("platforms")
-if not isinstance(platforms, dict):
-    errors.append("platforms object missing")
+url_container = download_urls if isinstance(download_urls, dict) else platforms
+if not isinstance(url_container, dict):
+    errors.append("downloadUrls/platforms object missing")
 else:
     windows_urls = [
-        platforms.get("windowsNsis"),
-        platforms.get("windowsMsi"),
-        platforms.get("windows"),
+        url_container.get("windowsNsis"),
+        url_container.get("windowsMsi"),
+        url_container.get("windows"),
     ]
     windows_urls = [url for url in windows_urls if isinstance(url, str) and url.strip()]
     if not windows_urls:
