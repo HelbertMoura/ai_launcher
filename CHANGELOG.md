@@ -38,7 +38,7 @@ Release maior que transforma o AI Launcher em um centro operacional para agentes
 ### Changed
 - Workspaces agora centralizam Agent Profiles e continuam como base para runbooks, budgets, doctor e sessões.
 - UI e i18n atualizados para Command Center, Project Intelligence, Runbooks 2.0, MCP por projeto, Agent Profiles e Backup.
-- Release checklist v20 documentado em `docs/releases/v20-checklist.md`.
+- Release checklist v20 consolidado no processo de release e nos notes de `docs/releases/v20.0.0.md`.
 
 ### Validation
 - `npx tsc --noEmit`
@@ -555,7 +555,7 @@ Release major dedicada a substituir a estética terminal/futurista herdada da v8
 - **Overrides de ícones com imagem local** para itens embutidos.
 - **Suporte a imagem de ícone em CLIs/IDEs customizadas**.
 - **Documentação operacional de troca manual** em `docs/ICON_OVERRIDES.md`.
-- **Spec e plano da v9** em `docs/superpowers/specs/2026-04-22-v9-soft-workbench-design.md` e `docs/superpowers/plans/2026-04-22-v9-soft-workbench-plan.md`.
+- **Spec e plano da v9** foram preservados no histórico Git, mas removidos da árvore pública atual na limpeza de docs.
 
 ### Changed
 
@@ -708,7 +708,7 @@ Linux planned.
   - `commandTimeout` (seconds, default: 30) — persisted for v7.1 Rust wiring
   - Reset-to-defaults button
   - `src/lib/appSettings.ts` + localStorage key `ai-launcher:app-settings`
-- **New banner SVG** (`public/images/banner.svg`) — terminal-themed 1200×300
+- **New banner SVG** — terminal-themed 1200×300
   vector with prompt mock, mono wordmark, dual-language tagline hint
 - **Platform notice in READMEs** — Windows ✅ · macOS 🔜 · Linux 🔜
 - **~100 new i18n keys** — 520 total per locale (en + pt-BR), parity 0
@@ -953,7 +953,7 @@ command palette atualizada e navegação keyboard-first. **Zero migrações de s
 
 - **Não quebra nada da v5.1.** Perfis, presets, históricos e budgets salvos em
   `localStorage` continuam funcionando identicamente.
-- Plano executável desta release: `docs/superpowers/plans/2026-04-20-v5.5-terminal-dramatico-plan.md`.
+- Plano executável desta release foi preservado no histórico Git, mas removido da árvore pública atual na limpeza de docs.
 
 ---
 
@@ -1036,7 +1036,7 @@ esmeralda perceptivamente uniforme, e adiciona a primeira camada responsiva do a
   funcionando identicamente (schema inalterado). Presets com emoji legado
   renderizam via fallback SVG.
 - Cargo.lock bump automático 5.0.1 → 5.1.0.
-- Plano executável desta release: `docs/PLAN_v5.1.md` (no repo).
+- Plano executável desta release foi removido do repositório público na limpeza de documentação histórica.
 
 ---
 
