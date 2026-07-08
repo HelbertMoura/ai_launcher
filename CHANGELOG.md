@@ -934,7 +934,7 @@ command palette atualizada e navegação keyboard-first. **Zero migrações de s
 
 ### Docs
 
-- `docs/VISUAL_SYSTEM.md` — design tokens, paleta, tipografia, referência de motion.
+- Visual system docs — design tokens, paleta, tipografia, referência de motion; arquivo histórico removido da árvore pública atual.
 - `docs/ARCHITECTURE.md` — stack, mapa de diretórios, data flow, comandos Rust,
   chaves de localStorage.
 - `CONTRIBUTING.md` — setup, build modes, convenções, processo de PR.

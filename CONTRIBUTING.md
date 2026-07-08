@@ -26,11 +26,8 @@ installer. Cross-platform support is tracked but not guaranteed on every release
 # From repo root
 npm install
 
-# Dev loop — public build (no admin UI)
+# Dev loop
 npm run tauri dev
-
-# Dev loop — admin build (provider CRUD + diagnostics)
-VITE_ADMIN_MODE=1 npm run tauri dev
 ```
 
 The first `tauri dev` will invoke `cargo` and download Rust crates. Budget 5-10
@@ -44,15 +41,11 @@ minutes on a cold cache.
 # Frontend-only (Vite) bundle
 npm run build
 
-# Admin frontend bundle
-VITE_ADMIN_MODE=1 npm run build
-
 # Full app installer (Windows .msi/.exe)
 npm run tauri build
 ```
 
-The admin bundle and the public bundle are **separate artifacts**. Never ship an
-admin bundle to a public release channel.
+Release builds are produced by the GitHub release workflow from version tags.
 
 ---
 
@@ -70,9 +63,8 @@ admin bundle to a public release channel.
 ### File organization
 
 - Files under **800 lines**. Extract modules when you see a file pushing that cap.
-- Co-locate `.css` next to its `.tsx` (see `src/layout/HeaderBar.{tsx,css}`).
-- Feature folders (`providers/`, `presets/`, `tabs/`) own their types, storage,
-  and view.
+- Co-locate `.css` next to its `.tsx` (see `src/features/*/*.tsx` + matching CSS).
+- Feature folders under `src/features/` own their view-models, stores and tests.
 
 ### Immutability
 
@@ -83,8 +75,7 @@ admin bundle to a public release channel.
 
 ### Styling
 
-- Design tokens only. No literal colors outside provider brand dots in
-  `src/providers/*.tsx`.
+- Design tokens only. Avoid literal colors outside provider brand/icon definitions.
 - The mono stack is the default. Only reach for `--ff-ui` when copy is clearly
   marketing/long-form.
 - UI copy is lowercase (except brand names). No emoji in product chrome.
@@ -92,8 +83,8 @@ admin bundle to a public release channel.
 ### Accessibility
 
 - Every `<button>` has `type="button"` unless it is a real form submit.
-- Icon-only buttons carry an `aria-label`. Reach for the icons in
-  `src/icons/index.ts`; never import `lucide-react` directly.
+- Icon-only buttons carry an `aria-label`. Use the shared icon wrappers/assets
+  already present in `src/ui/` and `public/icons/`.
 - `:focus-visible` styles use the `--ring` token; don't override with a
   bespoke outline.
 - Headings (`<h1>..<h4>`) are real headings, not styled spans.
@@ -121,8 +112,8 @@ Examples:
 
 ```
 feat(launcher): redesign CLI cards as terminal panes
-refactor(split): extract HeaderBar from App.tsx
-docs: add VISUAL_SYSTEM + ARCHITECTURE + CONTRIBUTING for v5.5
+refactor(workspace): extract runbook summary model
+docs: update architecture and contributor docs
 ```
 
 Do not squash unrelated changes into a single commit. Each commit should stand
@@ -134,12 +125,10 @@ on its own.
 
 1. Branch from `main` with a descriptive name (`feat/costs-sparkline`,
    `fix/tray-hotkey-empty`).
-2. If the PR maps to a task in `docs/superpowers/plans/...`, reference the task
-   number in the PR body.
-3. Run the full gate locally before pushing (see [§7](#7-pre-commit-checks)).
-4. UI-visible changes must attach screenshots (both dark and light themes where
+2. Run the full gate locally before pushing (see [§7](#7-pre-commit-checks)).
+3. UI-visible changes must attach screenshots (both dark and light themes where
    the change affects both).
-5. Describe what the user will notice, not just what the diff does.
+4. Describe what the user will notice, not just what the diff does.
 
 Merge strategy: rebase-merge preferred, to keep `main` linear.
 
@@ -153,21 +142,22 @@ Every PR must pass these four gates locally before requesting review:
 # 1. TypeScript — strict, no errors
 npx tsc --noEmit
 
-# 2. Frontend build — Vite must produce both public and admin bundles
+# 2. Frontend build
 npm run build
-VITE_ADMIN_MODE=1 npm run build
 
-# 3. Rust lint — no warnings
+# 3. Frontend tests
+npm test
+
+# 4. Rust lint — no warnings
 cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
-# 4. Rust compile
-cargo check --manifest-path src-tauri/Cargo.toml
+# 5. Rust tests
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Additional guardrails enforced by the v5.5 plan:
+Additional guardrails:
 
 - No literal colors outside provider brand dots.
-- No direct `lucide-react` imports (always via `src/icons/index.ts`).
 - No `console.log` in merged code.
 - No new emoji in product chrome.
 - Files stay under 800 lines.
@@ -181,20 +171,18 @@ Secrets check: if you touched anything under `src/providers/`, grep the diff for
 
 Open lanes for the next milestones:
 
-- **More providers.** New `ProviderKind` entries with seeds and docs links.
-  See `src/providers/seeds.ts` + `docsLinks.ts`.
+- **More providers.** New `ProviderKind` entries with seeds and storage support.
+  See `src/providers/types.ts`, `src/providers/seeds.ts` and `src/providers/storage.ts`.
 - **More CLIs / tools.** Registered in `get_cli_definitions()` /
-  `get_tool_definitions()` in `src-tauri/src/main.rs`.
-- **Theme work.** Alternative light variants or a true high-contrast theme —
-  all new tokens land in `src/styles/tokens-*.css`.
-- **Tests.** There are no unit tests today. A Vitest scaffold around
-  `providers/costEstimator.ts`, `providers/budget.ts`, `providers/storage.ts`,
-  and `lib/configIO.ts` would pay off immediately.
+  `get_tool_definitions()` in `src-tauri/src/util.rs`.
+- **Theme work.** Alternative variants or focused accessibility improvements —
+  current tokens live under `src/theme/`.
+- **Tests.** Add focused Vitest tests next to new pure helpers/stores and keep
+  Playwright coverage for boot, navigation and accessibility smoke checks.
 - **Accessibility audit.** Keyboard traps, focus order on modals, screen-reader
   landmarks. Automation via Playwright + `@axe-core/playwright` is welcome.
-- **Rust module split.** `src-tauri/src/main.rs` is a single file by historical
-  accident. Extracting `commands/`, `cli_defs/`, and `tray.rs` is tracked in
-  the v5.5 retrospective.
+- **Rust module split.** Keep command handlers small and move reusable logic to
+  `src-tauri/src/util.rs` or a dedicated module when it grows.
 
 Before starting a non-trivial contribution, open an issue or a draft PR so we
 can align on direction.
