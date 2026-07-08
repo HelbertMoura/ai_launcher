@@ -50,4 +50,3 @@ scripts:
   - changed-files:
       - any-glob-to-any-file:
           - 'scripts/**'
-          - '*.ps1'
