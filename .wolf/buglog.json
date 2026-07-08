@@ -2027,6 +2027,172 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-07T09:24:00-03:00"
+    },
+    {
+      "id": "bug-123",
+      "timestamp": "2026-07-07T10:12:00-03:00",
+      "error_message": "Get-Content src\\domain\\tabs.ts falhou porque o arquivo de tabs nao existe nesse caminho.",
+      "file": "src/app/layout/TabId.ts",
+      "root_cause": "Assumi um caminho antigo/inexistente para a definicao de tabs durante o encaixe do Command Center.",
+      "fix": "Usei o caminho correto `src/app/layout/TabId.ts` e atualizei anatomy/cerebrum para reforcar que TabId, ordem, i18n keys e shortcuts ficam nesse arquivo.",
+      "tags": [
+        "navigation",
+        "tabs",
+        "openwolf",
+        "command-center",
+        "v20-alpha"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T10:12:00-03:00"
+    },
+    {
+      "id": "bug-124",
+      "timestamp": "2026-07-07T10:35:00-03:00",
+      "error_message": "Command Center passaria a consumir MCP no boot e poderia reintroduzir erro de invoke fora do Tauri/Vite browser.",
+      "file": "src/features/mcp/mcpStore.ts",
+      "root_cause": "mcpStore usava @tauri-apps/api/core.invoke direto para list_mcp_servers, diferente dos stores de boot que ja usam invokeOrFallback.",
+      "fix": "Troquei a leitura nao destrutiva list_mcp_servers para invokeOrFallback com fallback [] antes de usar useMcp no Command Center. Mutacoes MCP continuam usando invoke direto.",
+      "tags": [
+        "mcp",
+        "tauri",
+        "browser-fallback",
+        "command-center",
+        "v20-alpha"
+      ],
+      "related_bugs": [
+        "bug-118"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T10:35:00-03:00"
+    },
+    {
+      "id": "bug-125",
+      "timestamp": "2026-07-07T10:40:00-03:00",
+      "error_message": "E2E falhou com ErrorBoundary: Cannot read properties of null (reading 'map') apos Command Center consumir list_active_sessions no boot.",
+      "file": "src/features/command-center/CommandCenterPage.tsx",
+      "root_cause": "O stub Tauri do Playwright retornava null para comandos novos e a leitura de sessoes ativas assumia array. O retorno null foi passado ao model, que chamava map em activeSessions.",
+      "fix": "Coagi retornos de list_active_sessions e check_environment com Array.isArray antes de gravar estado, e atualizei o stub E2E para cobrir check_clis, check_environment, list_active_sessions, list_mcp_servers e read_project_profile.",
+      "tags": [
+        "e2e",
+        "command-center",
+        "active-sessions",
+        "tauri-stub",
+        "null-guard"
+      ],
+      "related_bugs": [
+        "bug-118"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T10:40:00-03:00"
+    },
+    {
+      "id": "bug-126",
+      "timestamp": "2026-07-07T10:47:00-03:00",
+      "error_message": "cargo test scan_project_stack --lib falhou com: no library targets found in package `ai-launcher`.",
+      "file": "src-tauri/src/main.rs",
+      "root_cause": "O crate Tauri deste projeto nao declara alvo de biblioteca; os testes unitarios vivem sob o binario src/main.rs.",
+      "fix": "Reexecutado como `cargo test scan_project_stack` no diretorio src-tauri; os 2 testes do scanner passaram. Registrar que filtros de teste Rust devem ser usados sem `--lib` neste repo.",
+      "tags": [
+        "rust",
+        "tauri",
+        "tests",
+        "project-intelligence",
+        "v20-alpha"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T10:47:00-03:00"
+    },
+    {
+      "id": "bug-127",
+      "timestamp": "2026-07-07T10:52:00-03:00",
+      "error_message": "cargo fmt --check falhou apos adicionar write_project_profile por quebra de linha fora do formato rustfmt.",
+      "file": "src-tauri/src/commands/cli.rs",
+      "root_cause": "Edicao manual deixou a atribuicao `let parsed: serde_json::Value = serde_json::from_str...` em formato diferente do rustfmt.",
+      "fix": "Executado `cargo fmt` em src-tauri e revalidado com `cargo fmt --check; cargo test`.",
+      "tags": [
+        "rust",
+        "formatting",
+        "project-profile",
+        "v20-alpha"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T10:52:00-03:00"
+    },
+    {
+      "id": "bug-128",
+      "timestamp": "2026-07-07T11:00:00-03:00",
+      "error_message": "npx tsc --noEmit falhou com TS6133: 'invoke' is declared but its value is never read em toolsStore.ts.",
+      "file": "src/features/tools/toolsStore.ts",
+      "root_cause": "Ao trocar leituras de boot de toolsStore para invokeOrFallback, o import antigo de @tauri-apps/api/core.invoke ficou sobrando.",
+      "fix": "Removido o import morto e reexecutados tsc, vitest, build, cargo fmt/test e e2e com sucesso.",
+      "tags": [
+        "typescript",
+        "noUnusedLocals",
+        "tools",
+        "command-center",
+        "v20-alpha"
+      ],
+      "related_bugs": [
+        "bug-118"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T11:00:00-03:00"
+    },
+    {
+      "id": "bug-129",
+      "timestamp": "2026-07-07T15:13:00-03:00",
+      "error_message": "npx tsc --noEmit falhou com TS2322: condition montada no RunbookEditor podia ter type undefined.",
+      "file": "src/features/workspace/RunbookEditor.tsx",
+      "root_cause": "Dentro do handler JSX, o narrowing de `step.condition` feito pelo render condicional nao era preservado pelo TypeScript ao espalhar o objeto.",
+      "fix": "Capturado `const condition = step.condition` dentro do handler, retornando cedo quando ausente, e espalhado esse valor ja estreitado. Revalidado com tsc, vitest, build, cargo fmt/test e e2e.",
+      "tags": [
+        "typescript",
+        "runbooks",
+        "conditions",
+        "v20-alpha"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T15:13:00-03:00"
+    },
+    {
+      "id": "bug-130",
+      "timestamp": "2026-07-07T15:31:00-03:00",
+      "error_message": "npx tsc --noEmit falhou com TS18047: 'activeWorkspace' is possibly 'null' em CommandCenterPage ao aplicar Agent Profile no launch.",
+      "file": "src/features/command-center/CommandCenterPage.tsx",
+      "root_cause": "O guard validava cliKey/directory, mas o TypeScript nao conseguia inferir que activeWorkspace continuava nao-nulo ao acessar providerKey dentro do try/catch.",
+      "fix": "Criado providerId local com optional chaining antes do launch e reutilizado em launchCliSession/recordFailedLaunch. Revalidado com tsc, vitest focado, npm test e npm run build.",
+      "tags": [
+        "typescript",
+        "null-safety",
+        "command-center",
+        "agent-profiles",
+        "v20-beta"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T15:31:00-03:00"
+    },
+    {
+      "id": "bug-131",
+      "timestamp": "2026-07-07T16:00:00-03:00",
+      "error_message": "configIO generic secret redaction redigia campos estruturais como `cliKeys`, quebrando expectativas de backup/import e testes.",
+      "file": "src/lib/configIO.ts",
+      "root_cause": "A primeira regra recursiva procurava `key` em qualquer nome de propriedade. Isso e amplo demais para schemas do app porque `cliKeys` e `providerKey` sao configuracao estrutural, nao segredo.",
+      "fix": "Substituido por `isSecretField` mais restrito para nomes secret-bearing reais (`apiKey`, access/refresh/auth token, secret, bearer, password, credential, authorization). Mantida redaction de provider secrets e adicionados testes para nao redigir `cliKeys` indevidamente.",
+      "tags": [
+        "backup",
+        "redaction",
+        "config-io",
+        "tests",
+        "v20-beta"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-07T16:00:00-03:00"
     }
   ]
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { exportConfig, importConfig } from './configIO';
+import { exportConfig, importConfig, previewImportConfig } from './configIO';
 import { readKey, writeKey, STORAGE_KEYS } from './storage';
 
 describe('importConfig — validation', () => {
@@ -128,7 +128,17 @@ describe('exportConfig / importConfig — registry round-trip', () => {
     const json = exportConfig('16.0.0');
 
     // The dump must carry a registry-driven `keys` map containing what we wrote.
-    const dump = JSON.parse(json) as { keys: Record<string, unknown> };
+    const dump = JSON.parse(json) as {
+      manifest: Record<string, unknown>;
+      keys: Record<string, unknown>;
+    };
+    expect(dump).toMatchObject({
+      manifest: {
+        format: 'ai-launcher-config',
+        schemaVersion: 2,
+        appVersion: '16.0.0',
+      },
+    });
     for (const id of [
       'profiles',
       'workspaces',
@@ -184,6 +194,47 @@ describe('exportConfig / importConfig — registry round-trip', () => {
 
     const providers = readKey('providers') as { profiles: Array<{ apiKey: string }> };
     expect(providers.profiles[0].apiKey).toBe('sk-super-secret');
+  });
+
+  it('redacts secret-looking keys outside providers', () => {
+    writeKey('workspaces', [
+      {
+        id: 'ws1',
+        name: 'Work',
+        directory: '/tmp',
+        cliKeys: [],
+        envVars: { OPENAI_API_KEY: 'sk-nope', NORMAL_VALUE: 'safe' },
+        tags: [],
+        pinned: false,
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ] as never);
+
+    const json = exportConfig('16.0.0');
+    expect(json).not.toContain('sk-nope');
+    expect(json).toContain('{{REDACTED}}');
+    expect(json).toContain('safe');
+  });
+
+  it('previews an import without writing to localStorage', () => {
+    const raw = JSON.stringify({
+      version: '20.0.0',
+      exportedAt: '2026-07-07T00:00:00Z',
+      keys: {
+        theme: 'glacier',
+        unknownFutureKey: { enabled: true },
+      },
+    });
+
+    const preview = previewImportConfig(raw);
+    expect(preview.ok).toBe(true);
+    if (preview.ok) {
+      expect(preview.knownKeys).toEqual(['theme']);
+      expect(preview.unknownKeys).toEqual(['unknownFutureKey']);
+      expect(preview.keyCount).toBe(2);
+    }
+    expect(readKey('theme')).toBe('');
   });
 
   it('does NOT export machine-local flags (onboarding / migrated)', () => {

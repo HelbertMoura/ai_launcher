@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invokeOrFallback } from "../../lib/tauri";
-import type { WorkspaceProfile } from "../../domain/types";
+import type { AgentProfile, WorkspaceProfile } from "../../domain/types";
 import {
   addWorkspace,
   exportWorkspaces,
@@ -17,6 +17,17 @@ import {
 } from "./workspaceStore";
 import { getRunbooks } from "./runbookStore";
 import { RunbooksPanel } from "./RunbooksPanel";
+import {
+  addAgentProfile,
+  generateAgentProfileId,
+  getActiveAgentProfileId,
+  loadAgentProfiles,
+  normalizeAgentProfile,
+  removeAgentProfile,
+  setActiveAgentProfileId,
+  toggleAgentProfilePin,
+  updateAgentProfile,
+} from "../agents/agentProfileStore";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { showToast } from "../../ui/toastStore";
 import type { HistoryItem } from "../history/useHistory";
@@ -56,10 +67,17 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const { t } = useTranslation();
   const [profiles, setProfiles] = useState<WorkspaceProfile[]>(() => loadWorkspaces());
   const [activeId, setActiveId] = useState<string | null>(() => getActiveWorkspaceId());
+  const [agentProfiles, setAgentProfiles] = useState<AgentProfile[]>(() => loadAgentProfiles());
+  const [activeAgentId, setActiveAgentId] = useState<string | null>(() =>
+    getActiveAgentProfileId(),
+  );
   const [editing, setEditing] = useState<WorkspaceProfile | null>(null);
+  const [editingAgent, setEditingAgent] = useState<AgentProfile | null>(null);
   const [creating, setCreating] = useState(false);
+  const [creatingAgent, setCreatingAgent] = useState(false);
   const [showRunbooks, setShowRunbooks] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<WorkspaceProfile | null>(null);
+  const [deleteAgentTarget, setDeleteAgentTarget] = useState<AgentProfile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleActivate = useCallback((id: string) => {
@@ -70,6 +88,16 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const handleDeactivate = useCallback(() => {
     setActiveWorkspaceId(null);
     setActiveId(null);
+  }, []);
+
+  const handleActivateAgent = useCallback((id: string) => {
+    setActiveAgentProfileId(id);
+    setActiveAgentId(id);
+  }, []);
+
+  const handleDeactivateAgent = useCallback(() => {
+    setActiveAgentProfileId(null);
+    setActiveAgentId(null);
   }, []);
 
   const executeDelete = useCallback(
@@ -131,6 +159,51 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
     setCreating(true);
   }, []);
 
+  const handleNewAgent = useCallback(() => {
+    const now = new Date().toISOString();
+    setEditingAgent({
+      id: generateAgentProfileId(),
+      name: "",
+      tags: [],
+      pinned: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    setCreatingAgent(true);
+  }, []);
+
+  const handleSaveAgent = useCallback(
+    (profile: AgentProfile) => {
+      const normalized = normalizeAgentProfile(profile);
+      const isNew = !agentProfiles.some((item) => item.id === normalized.id);
+      setAgentProfiles((prev) =>
+        isNew
+          ? addAgentProfile(prev, normalized)
+          : updateAgentProfile(prev, normalized.id, normalized),
+      );
+      setEditingAgent(null);
+      setCreatingAgent(false);
+      showToast(
+        t(isNew ? "workspace.agentToastCreated" : "workspace.agentToastSaved"),
+        "success",
+      );
+    },
+    [agentProfiles, t],
+  );
+
+  const executeDeleteAgent = useCallback(
+    (id: string) => {
+      setAgentProfiles((prev) => removeAgentProfile(prev, id));
+      if (activeAgentId === id) setActiveAgentId(null);
+      showToast(t("workspace.agentToastDeleted"), "success");
+    },
+    [activeAgentId, t],
+  );
+
+  const handleToggleAgentPin = useCallback((id: string) => {
+    setAgentProfiles((prev) => toggleAgentProfilePin(prev, id));
+  }, []);
+
   const handleExport = useCallback(() => {
     const json = exportWorkspaces(profiles);
     const blob = new Blob([json], { type: "application/json" });
@@ -166,6 +239,9 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   );
 
   const activeProfile = getActiveWorkspace(profiles);
+  const activeAgent = activeAgentId
+    ? agentProfiles.find((profile) => profile.id === activeAgentId) ?? null
+    : null;
 
   if (showRunbooks) {
     return (
@@ -187,6 +263,20 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
         onCancel={() => {
           setEditing(null);
           setCreating(false);
+        }}
+      />
+    );
+  }
+
+  if (editingAgent) {
+    return (
+      <AgentProfileForm
+        initial={editingAgent}
+        isNew={creatingAgent}
+        onSave={handleSaveAgent}
+        onCancel={() => {
+          setEditingAgent(null);
+          setCreatingAgent(false);
         }}
       />
     );
@@ -242,6 +332,23 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
         </div>
       )}
 
+      {activeAgent && (
+        <div className="cd-ws__active cd-ws__active--agent">
+          <span className="cd-ws__active-label">{t("workspace.activeAgent")}</span>
+          <span className="cd-ws__active-name">{activeAgent.name}</span>
+          <span className="cd-ws__active-dir">
+            {[activeAgent.cliKey, activeAgent.runbookId, activeAgent.args].filter(Boolean).join(" · ")}
+          </span>
+          <button
+            type="button"
+            className="cd-ws__btn cd-ws__btn--ghost cd-ws__btn--sm"
+            onClick={handleDeactivateAgent}
+          >
+            {t("workspace.deactivate")}
+          </button>
+        </div>
+      )}
+
       <div className="cd-ws-bento">
         <ProfilesCard
           profiles={sorted}
@@ -261,6 +368,21 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
 
         <BudgetSummaryCard onNavigate={onNavigate} />
 
+        <AgentProfilesCard
+          profiles={[...agentProfiles.filter((p) => p.pinned), ...agentProfiles.filter((p) => !p.pinned)]}
+          activeId={activeAgentId}
+          onActivate={handleActivateAgent}
+          onEdit={(profile) => {
+            setEditingAgent(profile);
+            setCreatingAgent(false);
+          }}
+          onDelete={(id) =>
+            setDeleteAgentTarget(agentProfiles.find((profile) => profile.id === id) ?? null)
+          }
+          onTogglePin={handleToggleAgentPin}
+          onNew={handleNewAgent}
+        />
+
         <div className="cd-ws-bento__row">
           <DoctorSummaryCard onNavigate={onNavigate} />
           <RunbooksCard onOpen={() => setShowRunbooks(true)} />
@@ -279,6 +401,19 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
           setDeleteTarget(null);
         }}
         onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={deleteAgentTarget !== null}
+        variant="danger"
+        title={t("workspace.agentDeleteTitle")}
+        message={t("workspace.agentDeleteMessage", { name: deleteAgentTarget?.name ?? "" })}
+        confirmLabel={t("common.delete")}
+        onConfirm={() => {
+          if (deleteAgentTarget) executeDeleteAgent(deleteAgentTarget.id);
+          setDeleteAgentTarget(null);
+        }}
+        onCancel={() => setDeleteAgentTarget(null)}
       />
     </section>
   );
@@ -401,6 +536,139 @@ function ProfilesCard({
         </div>
       )}
     </BentoCard>
+  );
+}
+
+// --- Agent Profiles Card -----------------------------------------------------
+
+interface AgentProfilesCardProps {
+  profiles: AgentProfile[];
+  activeId: string | null;
+  onActivate: (id: string) => void;
+  onEdit: (profile: AgentProfile) => void;
+  onDelete: (id: string) => void;
+  onTogglePin: (id: string) => void;
+  onNew: () => void;
+}
+
+function AgentProfilesCard({
+  profiles,
+  activeId,
+  onActivate,
+  onEdit,
+  onDelete,
+  onTogglePin,
+  onNew,
+}: AgentProfilesCardProps) {
+  const { t } = useTranslation();
+  const footer = (
+    <button type="button" className="cd-ws-bento__btn" onClick={onNew}>
+      + {t("workspace.agentNew")}
+    </button>
+  );
+
+  return (
+    <BentoCard
+      area="agents"
+      title={t("workspace.agentProfilesTitle")}
+      meta={t("workspace.totalMeta", { count: profiles.length })}
+      footer={footer}
+    >
+      {profiles.length === 0 ? (
+        <p className="cd-ws-bento__dim">{t("workspace.agentProfilesEmpty")}</p>
+      ) : (
+        <div className="cd-ws-agent-list">
+          {profiles.map((profile) => (
+            <AgentProfileCard
+              key={profile.id}
+              profile={profile}
+              isActive={profile.id === activeId}
+              onActivate={onActivate}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onTogglePin={onTogglePin}
+            />
+          ))}
+        </div>
+      )}
+    </BentoCard>
+  );
+}
+
+interface AgentProfileCardProps {
+  profile: AgentProfile;
+  isActive: boolean;
+  onActivate: (id: string) => void;
+  onEdit: (profile: AgentProfile) => void;
+  onDelete: (id: string) => void;
+  onTogglePin: (id: string) => void;
+}
+
+function AgentProfileCard({
+  profile,
+  isActive,
+  onActivate,
+  onEdit,
+  onDelete,
+  onTogglePin,
+}: AgentProfileCardProps) {
+  const { t } = useTranslation();
+  const summary = [
+    profile.cliKey || t("workspace.agentDefaultCli"),
+    profile.providerKey,
+    profile.runbookId,
+  ].filter(Boolean);
+
+  return (
+    <div className={`cd-ws-agent${isActive ? " cd-ws-agent--active" : ""}`}>
+      <div className="cd-ws-agent__head">
+        <span className="cd-ws-agent__name">
+          {profile.pinned && <span className="cd-ws-card__pin-mark">★ </span>}
+          {profile.name}
+        </span>
+        <button
+          type="button"
+          className="cd-ws-card__pin"
+          onClick={() => onTogglePin(profile.id)}
+          title={profile.pinned ? t("workspace.unpin") : t("workspace.pin")}
+        >
+          {profile.pinned ? "★" : "☆"}
+        </button>
+      </div>
+      {profile.description && <p className="cd-ws-agent__desc">{profile.description}</p>}
+      <p className="cd-ws-agent__meta">{summary.join(" · ")}</p>
+      {profile.args && <code className="cd-ws-agent__args">{profile.args}</code>}
+      {profile.tags.length > 0 && (
+        <div className="cd-ws-agent__tags">
+          {profile.tags.slice(0, 4).map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+      )}
+      <div className="cd-ws-card__foot">
+        {isActive ? (
+          <span className="cd-ws-card__active-badge">{t("workspace.active")}</span>
+        ) : (
+          <button
+            type="button"
+            className="cd-ws-card__activate"
+            onClick={() => onActivate(profile.id)}
+          >
+            {t("workspace.activate")}
+          </button>
+        )}
+        <button type="button" className="cd-ws-card__edit" onClick={() => onEdit(profile)}>
+          {t("common.edit")}
+        </button>
+        <button
+          type="button"
+          className="cd-ws-card__delete"
+          onClick={() => onDelete(profile.id)}
+        >
+          {t("common.delete")}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -869,6 +1137,138 @@ function WorkspaceForm({ initial, isNew, onSave, onCancel }: WorkspaceFormProps)
             </div>
           ))}
         </fieldset>
+
+        <div className="cd-ws-form__foot">
+          <button type="submit" className="cd-ws-form__save">
+            {t("common.save")}
+          </button>
+          <button type="button" className="cd-ws-form__cancel" onClick={onCancel}>
+            {t("common.cancel")}
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+// --- Agent Profile Form ------------------------------------------------------
+
+interface AgentProfileFormProps {
+  initial: AgentProfile;
+  isNew: boolean;
+  onSave: (profile: AgentProfile) => void;
+  onCancel: () => void;
+}
+
+function AgentProfileForm({ initial, isNew, onSave, onCancel }: AgentProfileFormProps) {
+  const { t } = useTranslation();
+  const [form, setForm] = useState<AgentProfile>({ ...initial });
+  const runbooks = useMemo(() => getRunbooks(), []);
+
+  const setField = <K extends keyof AgentProfile>(key: K, value: AgentProfile[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    onSave({
+      ...form,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  return (
+    <section className="cd-ws-form">
+      <header className="cd-ws-form__head">
+        <h2 className="cd-ws-form__title">
+          {isNew ? t("workspace.agentNewTitle") : t("workspace.agentEditTitle")}
+        </h2>
+      </header>
+
+      <form className="cd-ws-form__body" onSubmit={handleSubmit}>
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.nameLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.name}
+            onChange={(e) => setField("name", e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.descriptionLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.description ?? ""}
+            onChange={(e) => setField("description", e.target.value || undefined)}
+          />
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.agentCliLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.cliKey ?? ""}
+            onChange={(e) => setField("cliKey", e.target.value || undefined)}
+            placeholder="claude"
+          />
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.providerLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.providerKey ?? ""}
+            onChange={(e) => setField("providerKey", e.target.value || undefined)}
+            placeholder={t("workspace.providerPlaceholder")}
+          />
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.agentArgsLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.args ?? ""}
+            onChange={(e) => setField("args", e.target.value || undefined)}
+            placeholder="--model gpt-5"
+          />
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.agentRunbookLabel")}</span>
+          <select
+            className="cd-ws-form__input"
+            value={form.runbookId ?? ""}
+            onChange={(e) => setField("runbookId", e.target.value || undefined)}
+          >
+            <option value="">{t("workspace.agentNoRunbook")}</option>
+            {runbooks.map((runbook) => (
+              <option key={runbook.id} value={runbook.id}>
+                {runbook.name}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="cd-ws-form__field">
+          <span className="cd-ws-form__label">{t("workspace.tagsLabel")}</span>
+          <input
+            className="cd-ws-form__input"
+            value={form.tags.join(", ")}
+            onChange={(e) =>
+              setField(
+                "tags",
+                e.target.value
+                  .split(",")
+                  .map((s) => s.trim())
+                  .filter(Boolean),
+              )
+            }
+            placeholder={t("workspace.tagsPlaceholder")}
+          />
+        </label>
 
         <div className="cd-ws-form__foot">
           <button type="submit" className="cd-ws-form__save">

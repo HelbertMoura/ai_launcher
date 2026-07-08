@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 16.0.1](https://img.shields.io/badge/vers%C3%A3o-16.0.1-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 20.0.0](https://img.shields.io/badge/vers%C3%A3o-20.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -31,7 +31,11 @@
 | 🔌 | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + endpoints customizados com botão de teste de API |
 | 🎨 | **4 Temas + Densidade** | Dark / Light / Amber (CRT retro) / Glacier (frio azul) + toggle compacto/confortável |
 | 🌐 | **i18n** | Inglês e Português (Brasil) com alternância instantânea |
-| ⌨️ | **Keyboard-First** | Paleta rica `Ctrl+K`, navegação `Ctrl+1-8`, admin `Ctrl+,`, ajuda `?` |
+| ⌨️ | **Keyboard-First** | Paleta rica `Ctrl+K`, navegação `Ctrl+1-9/0`, admin `Ctrl+,`, ajuda `?` |
+| 🧭 | **Command Center** | Home com readiness do workspace, launch rápido, sessões, inteligência de projeto e setup |
+| 🧠 | **Project Intelligence** | Detecta stack, sugere CLIs/runbooks e cria `.ailauncher.json` com segurança |
+| 👥 | **Agent Profiles** | Salve presets de agente com CLI, args e provider para launches repetíveis |
+| 🔗 | **MCP por Projeto** | Relaciona MCPs exigidos pelo projeto, mostra faltantes/saudáveis e aplica presets validados |
 | 🔒 | **Privacidade Primeiro** | Tudo fica local — sem telemetria, sem sync na nuvem |
 | 🏢 | **Workspace Profiles** | Agrupe configurações por repositório, time ou contexto com troca em um clique |
 | 🧩 | **Agent Runbooks** | Sequências automatizadas de setup de ambiente para workflows de agentes IA |
@@ -44,27 +48,17 @@
 
 <div align="center">
 
-### Command Deck 2.0 · Dark, Light, Amber, Glacier
+### Command OS v20 · Command Center, Runbooks, MCP
 
-| Launcher de CLIs | Ferramentas | Paleta de Comandos Rica |
+| Command Center | Workspaces + Runbooks | Hub MCP |
 |:---:|:---:|:---:|
-| ![Launcher](./docs/screenshots/v15/01-launcher.png) | ![Tools](./docs/screenshots/v15/02-tools.png) | ![Command Palette](./docs/screenshots/v15/08-palette.png) |
+| ![Command Center](./docs/screenshots/v20/01-command-center.png) | ![Workspaces e Runbooks](./docs/screenshots/v20/02-runbooks-workspace.png) | ![Hub MCP](./docs/screenshots/v20/03-mcp-project.png) |
 
-### Workspace bento · History waterfall · Environment Doctor
+### Sessions 2.0 · Updater Trust
 
-| Workspace Profiles | Timeline de Histórico | Environment Doctor |
-|:---:|:---:|:---:|
-| ![Workspace](./docs/screenshots/v15/05-workspace.png) | ![History](./docs/screenshots/v15/03-history.png) | ![Doctor](./docs/screenshots/v15/06-doctor.png) |
-
-### Atualizações · Custos · Variantes de Tema
-
-| Updates Hub | Rastreamento de Custos | 4 Variantes de Tema |
-|:---:|:---:|:---:|
-| ![Updates](./docs/screenshots/v15/07-updates.png) | ![Costs](./docs/screenshots/v15/04-costs.png) | ![Glacier Palette](./docs/screenshots/v15/v15-glacier-palette.png) |
-
-| Tema Light | Amber (CRT Retro) | Glacier + Densidade Compacta |
-|:---:|:---:|:---:|
-| ![Light](./docs/screenshots/v15/v15-light-doctor.png) | ![Amber](./docs/screenshots/v15/v15-amber-doctor.png) | ![Glacier Compacto](./docs/screenshots/v15/v15-glacier-compact.png) |
+| Dashboard de Sessões | Updater Trust |
+|:---:|:---:|
+| ![Dashboard de Sessões](./docs/screenshots/v20/04-sessions-history.png) | ![Updater Trust](./docs/screenshots/v20/05-updater-trust.png) |
 
 </div>
 
@@ -109,36 +103,54 @@ O `.exe` NSIS é gerado em `src-tauri/target/release/bundle/nsis/`.
 | Atalho | Ação |
 |--------|------|
 | `Ctrl+K` | Abrir paleta rica de comandos |
-| `Ctrl+1` | Aba Lançar |
-| `Ctrl+2` | Aba Ferramentas |
-| `Ctrl+3` | Aba Histórico (timeline waterfall) |
-| `Ctrl+4` | Aba Custos |
-| `Ctrl+5` | Aba Workspaces (grid bento) |
-| `Ctrl+6` | Aba Doctor (diagnóstico do ambiente) |
-| `Ctrl+7` | Aba Atualizações |
-| `Ctrl+8` | Aba Pré-requisitos |
+| `Ctrl+1` | Command Center |
+| `Ctrl+2` | Aba Lançar |
+| `Ctrl+3` | Aba Ferramentas |
+| `Ctrl+4` | Aba MCP |
+| `Ctrl+5` | Aba Histórico (dashboard de sessões) |
+| `Ctrl+6` | Aba Analytics |
+| `Ctrl+7` | Aba Workspaces |
+| `Ctrl+8` | Aba Doctor (diagnóstico do ambiente) |
+| `Ctrl+9` | Aba Atualizações |
+| `Ctrl+0` | Aba Pré-requisitos |
 | `Ctrl+,` | Aba Admin |
 | `?` | Aba Ajuda |
 | `Esc` | Fechar diálogo |
 
 ## Superfícies
 
-O app tem 10 superfícies principais acessíveis pela sidebar:
+O app tem 11 superfícies principais acessíveis pela sidebar:
 
 | Aba | O que faz |
 |-----|-----------|
+| **Command Center** | Comece pelo workspace ativo, lance agentes, veja readiness, sessões e inteligência do projeto |
 | **Lançar** | Escaneie CLIs de IA, instale as faltantes, lance com diretório e args customizados |
 | **Ferramentas** | Detecte e gerencie IDEs — instale ferramentas faltantes com um clique |
-| **Histórico** | Timeline waterfall estilo terminal + log de sessões com reabertura e dots de status |
-| **Custos** | Breakdown de custo por CLI — totais diários e mensais com tracking de tokens |
-| **Workspaces** | Grid bento: Profiles, Budget, resumo do Doctor, Runbooks, Sessões Recentes |
+| **MCP** | Gerencie configs MCP de Claude/Codex/Gemini com backups, catálogo e health checks |
+| **Histórico** | Dashboard de sessões com filtros, replay, kill e badges de workspace/agente |
+| **Analytics** | Breakdown de custo por provider — totais diários e mensais com tracking de tokens |
+| **Workspaces** | Profiles, Agent Profiles, Budget, resumo do Doctor, Runbooks e Sessões Recentes |
 | **Doctor** | Health check do ambiente com severidade (crítico/aviso/info) + fixes guiados |
 | **Atualizações** | Hub centralizado para updates de CLIs, ferramentas e pré-requisitos |
 | **Pré-reqs** | Health check do sistema — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
 | **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## 🚀 Novidades da v16 — Analytics, Inbox, Acessibilidade e Agent Ops
+## 🚀 Novidades da v20 — Command OS mega release
+
+- **Command Center** — home default com workspace ativo, launch, readiness cards, sessões e inteligência do projeto
+- **Project Intelligence** — detector de stack para Node/React/Vite/Tauri/Rust/Python/Go/Docker/MCP e criação de `.ailauncher.json`
+- **Runbooks 2.0** — presets locais, steps condicionais e timelines persistidas de execução
+- **MCP por Projeto** — resolve MCPs exigidos no profile do projeto e mostra saudáveis/faltantes
+- **Agent Profiles** — presets reutilizáveis de launch com CLI, args e provider
+- **Sessions 2.0** — métricas, filtros persistidos, replay pelo fluxo compartilhado e kill com confirmação
+- **Backup Trust** — manifest de export, redaction recursiva de secrets e preview antes de restaurar
+- **Updater Trust** — cadeia `latest.json`/SHA-256/GitHub Release visível e auditoria do manifesto
+- **Docs Command OS** — PRD v20, plano de implementação e checklist de release em `docs/`
+
+Leia o [guia Command OS v20](./docs/command-os-v20.md) para o fluxo de Command Center, Runbooks 2.0 e MCP por projeto.
+
+<details><summary>Destaques da v16</summary>
 
 - **Agent Analytics** — série de custos 30d, top projetos, breakdown por modelo e export CSV/JSON
 - **Inbox Center** — notificações locais de update, budget, doctor e sessões com estado de leitura
@@ -147,20 +159,8 @@ O app tem 10 superfícies principais acessíveis pela sidebar:
 - **Theme Foundry** — temas Phosphor, Midnight e High Contrast com testes de contrato de tokens
 - **Project Profiles** — `.ailauncher.json` preenche CLI, provider, diretório e env por repo
 - **Workspace Profiles** — agrupe configs por repo, time ou contexto com troca em um clique
-- **Agent Runbooks** — sequências automatizadas de setup para workflows de agentes
-- **Provider Budget Guard** — limites locais de custo com alertas configuráveis
-- **Environment Doctor** — diagnostique e repare ambientes de dev quebrados
-- **Safe Command Preview** — revise nível de risco antes de rodar comandos customizados
-- **Auto-Atualização** — verificação de updates in-app com validação por checksum
-- **Launch Profiles unificados** — presets e templates de sessão fundidos em um só modelo
-- **Session Lifecycle** — tracking real de status de processo (iniciando/rodando/completo/falhou)
-- **4 Temas** — dark, light, amber (CRT retro), glacier (frio azul) com ciclagem por `☾`
-- **Paleta de Comandos Rica** — categorias, ícones, chips de atalho, sessões recentes
-- **Bento Workspace** — layout editorial com 5 cards de navegação direta
-- **History Waterfall** — timeline horizontal terminal-native das últimas 24h/7d
-- **Density Toggle** — alternância compacto/confortável via `▦` no topo
-- **Secure Secrets** — API keys via DPAPI (Windows) com fallback transparente
-- **Command Deck 2.0** — hierarquia limpa, zero `alert()` nativo, focus trap em dialogs
+
+</details>
 
 ### 🐛 Fix crítico (afetava v13/v14)
 
@@ -229,6 +229,6 @@ MIT — veja [LICENSE](./LICENSE).
 
 <div align="center">
 
-**[Download](https://github.com/HelbertMoura/ai_launcher/releases/tag/v16.0.1)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
+**[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
 </div>

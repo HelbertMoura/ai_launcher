@@ -79,14 +79,17 @@ pub fn install_tool(tool_key: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn launch_tool(tool_key: String) -> Result<String, String> {
+pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String, String> {
     let tools = get_tool_definitions();
     let tool = tools
         .iter()
         .find(|t| t.key == tool_key)
         .ok_or_else(|| format!("Ferramenta não encontrada: {}", tool_key))?;
 
-    let work_dir = user_home_dir_string();
+    let work_dir = match directory.as_deref() {
+        Some(dir) if !dir.trim().is_empty() => validate_directory(dir)?,
+        _ => user_home_dir_string(),
+    };
 
     if let Some(path) = find_tool_path(&tool.key) {
         if std::process::Command::new(&path)

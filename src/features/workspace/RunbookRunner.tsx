@@ -6,10 +6,18 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
+import { invokeOrFallback } from '../../lib/tauri';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Toggle } from '../../ui/Toggle';
-import type { Runbook, RunbookStep } from '../../domain/types';
+import type { Runbook, RunbookCondition, RunbookStep } from '../../domain/types';
+import {
+  finishRunbookExecution,
+  getRunbookExecutions,
+  startRunbookExecution,
+  updateRunbookExecutionStep,
+  type RunbookExecution,
+} from './runbookExecutionStore';
 import './Runbook.css';
 
 // --- Types -------------------------------------------------------------------
@@ -22,6 +30,7 @@ export interface StepLog {
   output: string;
   startedAt?: string;
   finishedAt?: string;
+  durationMs?: number;
 }
 
 // --- Helpers -----------------------------------------------------------------
@@ -32,6 +41,30 @@ function isoNow(): string {
 
 function timestamp(): string {
   return new Date().toLocaleTimeString();
+}
+
+function durationMs(startedAt?: string, finishedAt?: string): number | undefined {
+  if (!startedAt || !finishedAt) return undefined;
+  const start = Date.parse(startedAt);
+  const finish = Date.parse(finishedAt);
+  if (Number.isNaN(start) || Number.isNaN(finish)) return undefined;
+  return Math.max(0, finish - start);
+}
+
+function formatDuration(ms?: number): string {
+  if (ms == null) return '';
+  if (ms < 1000) return `${ms}ms`;
+  const sec = Math.round(ms / 100) / 10;
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  const rest = Math.round(sec % 60);
+  return `${min}m ${rest}s`;
+}
+
+function formatExecutionTime(iso: string): string {
+  const parsed = Date.parse(iso);
+  if (Number.isNaN(parsed)) return '';
+  return new Date(parsed).toLocaleString();
 }
 
 /** Structured result returned by the Rust `run_runbook_step` command. */
@@ -50,6 +83,11 @@ interface RawStepResult {
   stdout: string;
   stderr: string;
   timed_out: boolean;
+}
+
+interface ConditionResult {
+  ok: boolean;
+  message: string;
 }
 
 /**
@@ -96,6 +134,38 @@ function formatStepOutput(label: string, result: BackendStepResult): string {
   return parts.join('\n');
 }
 
+function formatCondition(condition: RunbookCondition | undefined): string {
+  if (!condition || condition.type === 'always') return 'always';
+  const value = condition.value ? ` ${condition.value}` : '';
+  return `${condition.negate ? 'not ' : ''}${condition.type}${value}`;
+}
+
+async function evaluateStepCondition(
+  step: RunbookStep,
+  previousSucceeded: boolean,
+  cwd: string | undefined,
+): Promise<ConditionResult> {
+  const condition = step.condition;
+  if (!condition || condition.type === 'always') {
+    return { ok: true, message: 'always' };
+  }
+  if (condition.type === 'previousSucceeded') {
+    const ok = condition.negate ? !previousSucceeded : previousSucceeded;
+    return {
+      ok,
+      message: formatCondition(condition),
+    };
+  }
+  return invokeOrFallback<ConditionResult>(
+    'evaluate_runbook_condition',
+    {
+      condition,
+      cwd: cwd && cwd.trim() ? cwd : null,
+    },
+    { ok: true, message: 'condition skipped outside Tauri' },
+  );
+}
+
 // --- Step Row ----------------------------------------------------------------
 
 interface StepRowProps {
@@ -129,6 +199,12 @@ function StepRow({ step, log }: StepRowProps) {
         </span>
         <span className="cd-rb-run__step-label">{step.label}</span>
         <span className="cd-rb-run__step-type">{step.type}</span>
+        {step.condition && (
+          <span className="cd-rb-run__step-condition">{formatCondition(step.condition)}</span>
+        )}
+        {log?.durationMs != null && (
+          <span className="cd-rb-run__step-duration">{formatDuration(log.durationMs)}</span>
+        )}
         <span className="cd-rb-run__step-auto">{step.auto ? 'auto' : 'manual'}</span>
       </div>
       {log?.output && (
@@ -150,6 +226,9 @@ interface RunbookRunnerProps {
 export function RunbookRunner({ runbook, onClose, cwd }: RunbookRunnerProps) {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<Map<string, StepLog>>(new Map());
+  const [executions, setExecutions] = useState<RunbookExecution[]>(() =>
+    getRunbookExecutions(runbook.id),
+  );
   const [running, setRunning] = useState(false);
   const [currentStepId, setCurrentStepId] = useState<string | null>(null);
   const [stopOnFailure, setStopOnFailure] = useState(true);
@@ -159,11 +238,24 @@ export function RunbookRunner({ runbook, onClose, cwd }: RunbookRunnerProps) {
   // the first iteration because `running` was still false from before setState).
   const cancelRef = useRef(false);
 
+  const refreshExecutions = useCallback(() => {
+    setExecutions(getRunbookExecutions(runbook.id));
+  }, [runbook.id]);
+
   const updateLog = useCallback((stepId: string, patch: Partial<StepLog>) => {
     setLogs((prev) => {
       const next = new Map(prev);
       const existing = next.get(stepId);
-      next.set(stepId, { stepId, status: 'pending', output: '', ...existing, ...patch });
+      const startedAt = patch.startedAt ?? existing?.startedAt;
+      const finishedAt = patch.finishedAt ?? existing?.finishedAt;
+      next.set(stepId, {
+        stepId,
+        status: 'pending',
+        output: '',
+        ...existing,
+        ...patch,
+        durationMs: patch.durationMs ?? durationMs(startedAt, finishedAt) ?? existing?.durationMs,
+      });
       return next;
     });
   }, []);
@@ -173,57 +265,121 @@ export function RunbookRunner({ runbook, onClose, cwd }: RunbookRunnerProps) {
     setRunning(true);
     setCompleted(false);
     setLogs(new Map());
+    const execution = startRunbookExecution(runbook, cwd);
+    refreshExecutions();
 
     const skipReason = t('runbook.run.skippedFailure');
+    let previousSucceeded = true;
+    let runFailed = false;
+    let runStopped = false;
 
     for (let i = 0; i < runbook.steps.length; i += 1) {
-      if (cancelRef.current) break; // user requested stop
+      if (cancelRef.current) {
+        runStopped = true;
+        break;
+      }
       const step = runbook.steps[i];
 
       setCurrentStepId(step.id);
-      updateLog(step.id, { status: 'running', startedAt: isoNow() });
+      const startedAt = isoNow();
+      updateLog(step.id, { status: 'running', startedAt });
+      updateRunbookExecutionStep(execution.id, step.id, { status: 'running', startedAt });
+      refreshExecutions();
 
       try {
+        const condition = await evaluateStepCondition(step, previousSucceeded, cwd);
+        if (!condition.ok) {
+          const finishedAt = isoNow();
+          const output = `[${timestamp()}] ${t('runbook.run.conditionSkipped')}: ${condition.message}`;
+          updateLog(step.id, {
+            status: 'skipped',
+            output,
+            finishedAt,
+          });
+          updateRunbookExecutionStep(execution.id, step.id, {
+            status: 'skipped',
+            output,
+            finishedAt,
+          });
+          refreshExecutions();
+          continue;
+        }
         const result = await executeStep(step, cwd);
+        previousSucceeded = result.ok;
+        runFailed = runFailed || !result.ok;
+        const finishedAt = isoNow();
+        const output = formatStepOutput(step.label, result);
         updateLog(step.id, {
           status: result.ok ? 'success' : 'failed',
-          output: formatStepOutput(step.label, result),
-          finishedAt: isoNow(),
+          output,
+          finishedAt,
         });
+        updateRunbookExecutionStep(execution.id, step.id, {
+          status: result.ok ? 'success' : 'failed',
+          output,
+          finishedAt,
+        });
+        refreshExecutions();
 
         if (!result.ok && stopOnFailure) {
           for (const r of runbook.steps.slice(i + 1)) {
             updateLog(r.id, { status: 'skipped', output: skipReason });
+            updateRunbookExecutionStep(execution.id, r.id, {
+              status: 'skipped',
+              output: skipReason,
+              finishedAt: isoNow(),
+            });
           }
           break;
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        previousSucceeded = false;
+        runFailed = true;
+        const finishedAt = isoNow();
+        const output = `[${timestamp()}] ${t('runbook.run.error')}: ${msg}`;
         updateLog(step.id, {
           status: 'failed',
-          output: `[${timestamp()}] ${t('runbook.run.error')}: ${msg}`,
-          finishedAt: isoNow(),
+          output,
+          finishedAt,
         });
+        updateRunbookExecutionStep(execution.id, step.id, {
+          status: 'failed',
+          output,
+          finishedAt,
+        });
+        refreshExecutions();
 
         if (stopOnFailure) {
           for (const r of runbook.steps.slice(i + 1)) {
             updateLog(r.id, { status: 'skipped', output: skipReason });
+            updateRunbookExecutionStep(execution.id, r.id, {
+              status: 'skipped',
+              output: skipReason,
+              finishedAt: isoNow(),
+            });
           }
           break;
         }
       }
     }
 
+    finishRunbookExecution(
+      execution.id,
+      runStopped ? 'stopped' : runFailed ? 'failed' : 'success',
+    );
+    refreshExecutions();
     setCurrentStepId(null);
     setRunning(false);
     setCompleted(true);
-  }, [runbook.steps, stopOnFailure, updateLog, cwd, t]);
+  }, [cwd, refreshExecutions, runbook, stopOnFailure, updateLog, t]);
 
   const handleStop = useCallback(() => {
     cancelRef.current = true;
     setRunning(false);
     if (currentStepId) {
-      updateLog(currentStepId, { status: 'skipped', output: t('runbook.run.stopped') });
+      const finishedAt = isoNow();
+      updateLog(currentStepId, { status: 'skipped', output: t('runbook.run.stopped'), finishedAt });
     }
   }, [currentStepId, updateLog, t]);
 
@@ -270,6 +426,31 @@ export function RunbookRunner({ runbook, onClose, cwd }: RunbookRunnerProps) {
           />
         ))}
       </div>
+
+      <section className="cd-rb-run__history">
+        <div className="cd-rb-run__history-head">
+          <h3>{t('runbook.history.title')}</h3>
+          <span>{t('runbook.history.count', { count: executions.length })}</span>
+        </div>
+        {executions.length === 0 ? (
+          <p className="cd-rb-run__history-empty">{t('runbook.history.empty')}</p>
+        ) : (
+          <ol className="cd-rb-run__timeline">
+            {executions.slice(0, 5).map((execution) => (
+              <li key={execution.id} className={`cd-rb-run__timeline-item cd-rb-run__timeline-item--${execution.status}`}>
+                <span className="cd-rb-run__timeline-dot" />
+                <div className="cd-rb-run__timeline-main">
+                  <strong>{t(`runbook.history.status.${execution.status}`)}</strong>
+                  <small>{formatExecutionTime(execution.startedAt)}</small>
+                </div>
+                <span className="cd-rb-run__timeline-meta">
+                  {formatDuration(execution.durationMs)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
     </div>
   );
 }

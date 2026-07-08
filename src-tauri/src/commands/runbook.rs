@@ -13,14 +13,18 @@
 // argument to `-Command`, and shell metacharacters are already rejected.
 
 use std::os::windows::process::CommandExt;
+use std::path::{Component, Path};
 use std::process::Command;
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use crate::util::{sanitize_args, strip_ansi, validate_directory, CREATE_NO_WINDOW};
+use crate::util::{
+    command_exists, is_valid_env_key, sanitize_args, strip_ansi, validate_directory,
+    CREATE_NO_WINDOW,
+};
 
 /// Default timeout for a single runbook step, in seconds.
 pub const DEFAULT_STEP_TIMEOUT_SECS: u64 = 120;
@@ -40,6 +44,21 @@ pub struct StepResult {
     pub stderr: String,
     /// True when the step was killed because it exceeded the timeout.
     pub timed_out: bool,
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+pub struct RunbookConditionInput {
+    #[serde(rename = "type")]
+    pub condition_type: String,
+    pub value: Option<String>,
+    #[serde(default)]
+    pub negate: bool,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct ConditionResult {
+    pub ok: bool,
+    pub message: String,
 }
 
 /// Maximum bytes of stdout/stderr surfaced to the UI (per stream).
@@ -76,6 +95,78 @@ fn resolve_timeout(timeout_secs: Option<u64>) -> u64 {
         Some(0) | None => DEFAULT_STEP_TIMEOUT_SECS,
         Some(t) => t.min(MAX_STEP_TIMEOUT_SECS),
     }
+}
+
+fn safe_relative_path(value: &str) -> Result<&Path, String> {
+    let path = Path::new(value.trim());
+    if value.trim().is_empty() {
+        return Err("Condição precisa de um caminho".into());
+    }
+    if path.is_absolute() {
+        return Err("Condição aceita apenas caminho relativo".into());
+    }
+    for component in path.components() {
+        match component {
+            Component::Normal(_) | Component::CurDir => {}
+            Component::ParentDir | Component::Prefix(_) | Component::RootDir => {
+                return Err("Caminho da condição não pode sair do workspace".into());
+            }
+        }
+    }
+    Ok(path)
+}
+
+fn apply_negation(ok: bool, negate: bool) -> bool {
+    if negate {
+        !ok
+    } else {
+        ok
+    }
+}
+
+#[tauri::command]
+pub fn evaluate_runbook_condition(
+    condition: RunbookConditionInput,
+    cwd: Option<String>,
+) -> Result<ConditionResult, String> {
+    let kind = condition.condition_type.as_str();
+    let raw_value = condition.value.as_deref().unwrap_or("").trim();
+    let ok = match kind {
+        "always" => true,
+        "fileExists" => {
+            let root = validate_directory(cwd.as_deref().unwrap_or(""))?;
+            let relative = safe_relative_path(raw_value)?;
+            Path::new(&root).join(relative).exists()
+        }
+        "commandExists" => {
+            if raw_value.is_empty() {
+                return Err("Condição precisa de um comando".into());
+            }
+            if raw_value.chars().any(char::is_whitespace) {
+                return Err("Condição commandExists aceita apenas o nome do comando".into());
+            }
+            command_exists(raw_value)
+        }
+        "envExists" => {
+            if !is_valid_env_key(raw_value) {
+                return Err("Nome de variável de ambiente inválido".into());
+            }
+            std::env::var_os(raw_value).is_some()
+        }
+        "previousSucceeded" => {
+            return Err("previousSucceeded é avaliado pelo runner".into());
+        }
+        other => return Err(format!("Tipo de condição desconhecido: {}", other)),
+    };
+    let final_ok = apply_negation(ok, condition.negate);
+    Ok(ConditionResult {
+        ok: final_ok,
+        message: if final_ok {
+            "condition passed".into()
+        } else {
+            "condition skipped step".into()
+        },
+    })
 }
 
 /// Execute a single runbook step command in PowerShell with a timeout.
@@ -192,5 +283,52 @@ mod tests {
         );
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("não existe"));
+    }
+
+    #[test]
+    fn file_condition_rejects_parent_traversal() {
+        let condition = RunbookConditionInput {
+            condition_type: "fileExists".into(),
+            value: Some("../secret.txt".into()),
+            negate: false,
+        };
+        let res = evaluate_runbook_condition(condition, None);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("workspace"));
+    }
+
+    #[test]
+    fn env_condition_validates_key() {
+        let condition = RunbookConditionInput {
+            condition_type: "envExists".into(),
+            value: Some("BAD-NAME".into()),
+            negate: false,
+        };
+        let res = evaluate_runbook_condition(condition, None);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("inválido"));
+    }
+
+    #[test]
+    fn command_condition_rejects_args() {
+        let condition = RunbookConditionInput {
+            condition_type: "commandExists".into(),
+            value: Some("node --version".into()),
+            negate: false,
+        };
+        let res = evaluate_runbook_condition(condition, None);
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("nome do comando"));
+    }
+
+    #[test]
+    fn always_condition_can_be_negated() {
+        let condition = RunbookConditionInput {
+            condition_type: "always".into(),
+            value: None,
+            negate: true,
+        };
+        let res = evaluate_runbook_condition(condition, None).expect("condition");
+        assert!(!res.ok);
     }
 }

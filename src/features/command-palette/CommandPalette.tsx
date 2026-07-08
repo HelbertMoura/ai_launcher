@@ -43,6 +43,7 @@ interface CommandRow {
 }
 
 const TAB_ICONS: Record<TabId, string> = {
+  "command-center": "⌂",
   launcher: "▶",
   tools: "⚙",
   mcp: "◇",
@@ -57,6 +58,7 @@ const TAB_ICONS: Record<TabId, string> = {
 };
 
 const NAV_TABS: TabId[] = [
+  "command-center",
   "launcher",
   "tools",
   "mcp",

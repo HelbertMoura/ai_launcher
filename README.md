@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 16.0.1](https://img.shields.io/badge/version-16.0.1-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 20.0.0](https://img.shields.io/badge/version-20.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -31,7 +31,11 @@
 | :electric_plug: | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + custom endpoints with API test button |
 | :art: | **Full Customization** | Dark/Light theme, 5 accent colors, 5 mono fonts, CLI overrides |
 | :globe_with_meridians: | **i18n** | English and Portuguese (Brazil) with instant toggle |
-| :keyboard: | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-6` tab nav, `Ctrl+,` admin, `?` help |
+| :keyboard: | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-9/0` tab nav, `Ctrl+,` admin, `?` help |
+| :compass: | **Command Center** | Home base with workspace readiness, quick launch, sessions, project intelligence and setup actions |
+| :brain: | **Project Intelligence** | Detect stack, suggest CLIs/runbooks and create safe `.ailauncher.json` project profiles |
+| :busts_in_silhouette: | **Agent Profiles** | Save agent-specific CLI, args and provider presets for repeatable workspace launches |
+| :link: | **Project MCP** | Match project-required MCP servers, show missing/healthy state and apply validated presets |
 | :lock: | **Privacy-First** | Everything stays local -- no telemetry, no cloud sync |
 | :office: | **Workspace Profiles** | Group configs by repo, team or context for one-click switching |
 | :jigsaw: | **Agent Runbooks** | Automated environment setup sequences for AI agent workflows |
@@ -44,27 +48,17 @@
 
 <div align="center">
 
-### Command Deck 2.0 · Dark, Light, Amber, Glacier
+### Command OS v20 · Command Center, Runbooks, MCP
 
-| CLI Launcher | Tools | Rich Command Palette |
+| Command Center | Workspaces + Runbooks | MCP Hub |
 |:---:|:---:|:---:|
-| ![Launcher](./docs/screenshots/v15/01-launcher.png) | ![Tools](./docs/screenshots/v15/02-tools.png) | ![Command Palette](./docs/screenshots/v15/08-palette.png) |
+| ![Command Center](./docs/screenshots/v20/01-command-center.png) | ![Workspaces and Runbooks](./docs/screenshots/v20/02-runbooks-workspace.png) | ![MCP Hub](./docs/screenshots/v20/03-mcp-project.png) |
 
-### Workspace bento · History waterfall · Environment Doctor
+### Sessions 2.0 · Updater Trust
 
-| Workspace Profiles | History Timeline | Environment Doctor |
-|:---:|:---:|:---:|
-| ![Workspace](./docs/screenshots/v15/05-workspace.png) | ![History](./docs/screenshots/v15/03-history.png) | ![Doctor](./docs/screenshots/v15/06-doctor.png) |
-
-### Updates · Costs · Theme variants
-
-| Updates Hub | Costs Tracking | 4 Theme Variants |
-|:---:|:---:|:---:|
-| ![Updates](./docs/screenshots/v15/07-updates.png) | ![Costs](./docs/screenshots/v15/04-costs.png) | ![Glacier](./docs/screenshots/v15/v15-glacier-palette.png) |
-
-| Light Theme | Amber (CRT Retro) | Glacier + Compact Density |
-|:---:|:---:|:---:|
-| ![Light](./docs/screenshots/v15/v15-light-doctor.png) | ![Amber](./docs/screenshots/v15/v15-amber-doctor.png) | ![Glacier Compact](./docs/screenshots/v15/v15-glacier-compact.png) |
+| Sessions Dashboard | Updater Trust |
+|:---:|:---:|
+| ![Sessions Dashboard](./docs/screenshots/v20/04-sessions-history.png) | ![Updater Trust](./docs/screenshots/v20/05-updater-trust.png) |
 
 </div>
 
@@ -108,36 +102,54 @@ The `.msi` lands in `src-tauri/target/release/bundle/msi/`.
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+K` | Open rich command palette |
-| `Ctrl+1` | Launch tab |
-| `Ctrl+2` | Tools tab |
-| `Ctrl+3` | History tab (timeline waterfall) |
-| `Ctrl+4` | Costs tab |
-| `Ctrl+5` | Workspaces tab (bento grid) |
-| `Ctrl+6` | Doctor tab (environment diagnosis) |
-| `Ctrl+7` | Updates tab |
-| `Ctrl+8` | Prerequisites tab |
+| `Ctrl+1` | Command Center |
+| `Ctrl+2` | Launch tab |
+| `Ctrl+3` | Tools tab |
+| `Ctrl+4` | MCP tab |
+| `Ctrl+5` | History tab (sessions dashboard) |
+| `Ctrl+6` | Analytics tab |
+| `Ctrl+7` | Workspaces tab |
+| `Ctrl+8` | Doctor tab (environment diagnosis) |
+| `Ctrl+9` | Updates tab |
+| `Ctrl+0` | Prerequisites tab |
 | `Ctrl+,` | Admin tab |
 | `?` | Help tab |
 | `Esc` | Close dialog |
 
 ## Surfaces
 
-The app has 10 main surfaces accessible from the sidebar:
+The app has 11 main surfaces accessible from the sidebar:
 
 | Tab | What it does |
 |-----|-------------|
+| **Command Center** | Start from the active workspace, launch agents, inspect readiness, sessions and project intelligence |
 | **Launch** | Scan for AI CLIs, install missing ones, launch with custom directory and args |
 | **Tools** | Detect and manage IDEs — install missing tools with one click |
-| **History** | Terminal-style waterfall timeline + session log with reopen and status dots |
-| **Costs** | Per-CLI cost breakdown — today and monthly totals with token tracking |
-| **Workspaces** | Bento grid: Profiles, Budget, Doctor summary, Runbooks, Recent Sessions |
+| **MCP** | Manage Claude/Codex/Gemini MCP configs with backups, catalog presets and health checks |
+| **History** | Sessions dashboard with filters, replay, kill and workspace/agent badges |
+| **Analytics** | Per-provider cost breakdown — today and monthly totals with token tracking |
+| **Workspaces** | Profiles, Agent Profiles, Budget, Doctor summary, Runbooks and Recent Sessions |
 | **Doctor** | Environment health check with severity (critical/warning/info) + guided fixes |
 | **Updates** | Central hub for CLI, tool and prerequisite updates — update all or individually |
 | **Prereqs** | System health check — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
 | **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## 🚀 What's new in v16 — Analytics, Inbox, Accessibility and Agent Ops
+## 🚀 What's new in v20 — Command OS mega release
+
+- **Command Center** — default home with active workspace, launch, readiness cards, sessions and project intelligence
+- **Project Intelligence** — stack detector for Node/React/Vite/Tauri/Rust/Python/Go/Docker/MCP plus `.ailauncher.json` creation
+- **Runbooks 2.0** — local presets, conditional steps and persisted execution timelines
+- **Project MCP** — match required MCP servers from project profile and show healthy/missing state
+- **Agent Profiles** — reusable agent launch presets with CLI, args and provider
+- **Sessions 2.0** — dashboard metrics, persisted filters, replay through the shared launch flow and confirmed kill
+- **Backup Trust** — export manifest, recursive secret redaction and import preview before local restore
+- **Updater Trust** — visible release trust chain plus `latest.json` validation in release audit
+- **Command OS Docs** — v20 PRD, implementation plan and release checklist under `docs/`
+
+Read the [Command OS v20 guide](./docs/command-os-v20.md) for the Command Center, Runbooks 2.0 and project MCP workflow.
+
+<details><summary>v16 highlights</summary>
 
 - **Agent Analytics** — 30-day cost series, top projects, model breakdowns and CSV/JSON export
 - **Inbox Center** — local update, budget, doctor and session notifications with read state
@@ -146,21 +158,8 @@ The app has 10 main surfaces accessible from the sidebar:
 - **Theme Foundry** — Phosphor, Midnight and High Contrast themes plus token contract tests
 - **Project Profiles** — `.ailauncher.json` can prefill CLI, provider, directory and env per repo
 - **Workspace Profiles** — group configs by repo, team or context with one-click switching
-- **Agent Runbooks** — automated setup sequences for AI agent environments
-- **Provider Budget Guard** — local cost limits per provider with configurable alerts
-- **Environment Doctor** — diagnose and repair broken dev environments with guided fixes
-- **Safe Command Preview** — review risk level before running custom commands
-- **Self-Updater** — in-app update checks, download progress, checksum validation
-- **Unified Launch Profiles** — presets and session templates merged into one model
-- **Session Lifecycle** — real process status tracking (starting/running/completed/failed)
-- **4 Theme variants** — dark, light, amber (CRT retro), glacier (cool blue) with `☾` cycle
-- **Rich Command Palette** — categories, icons, shortcut chips, recent sessions with relaunch
-- **Bento Workspace** — editorial layout with 5 click-through cards
-- **History Waterfall** — horizontal terminal-native timeline (24h / 7d toggle)
-- **Density Toggle** — compact/comfortable via `▦` button in the top bar
-- **Secure Secrets** — API keys via DPAPI (Windows) with transparent fallback
-- **Command Deck 2.0** — clean hierarchy, zero native `alert()`, focus trap in dialogs
-- **Phosphor Icons** foundation — consistent icon set across the app
+
+</details>
 
 ### 🐛 Critical fix (affected v13/v14)
 

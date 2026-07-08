@@ -40,11 +40,42 @@ export interface WorkspaceProfile {
 }
 
 // ==============================================================================
+// AI Launcher Pro - Agent Profile
+// Named working mode for an AI agent: preferred CLI, provider, args and runbook.
+// ==============================================================================
+
+export interface AgentProfile {
+  id: string;
+  name: string;
+  description?: string;
+  cliKey?: string;
+  providerKey?: string;
+  args?: string;
+  runbookId?: string;
+  tags: string[];
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ==============================================================================
 // AI Launcher Pro - Agent Runbook
 // Sequence of steps that can be executed manually or automatically.
 // ==============================================================================
 
 export type RunbookStepType = 'install' | 'configure' | 'launch' | 'check';
+export type RunbookConditionType =
+  | 'always'
+  | 'fileExists'
+  | 'commandExists'
+  | 'envExists'
+  | 'previousSucceeded';
+
+export interface RunbookCondition {
+  type: RunbookConditionType;
+  value?: string;
+  negate?: boolean;
+}
 
 export interface RunbookStep {
   id: string;
@@ -53,6 +84,7 @@ export interface RunbookStep {
   command?: string;
   toolKey?: string;
   cliKey?: string;
+  condition?: RunbookCondition;
   auto: boolean;
 }
 

@@ -113,6 +113,7 @@ export function addStep(runbookId: string, partial?: Partial<RunbookStep>): Runb
     command: partial?.command,
     toolKey: partial?.toolKey,
     cliKey: partial?.cliKey,
+    condition: partial?.condition,
     auto: partial?.auto ?? false,
   };
   const updated: Runbook = {
@@ -196,6 +197,7 @@ export function exportRunbook(runbook: Runbook): string {
           command: s.command,
           toolKey: s.toolKey,
           cliKey: s.cliKey,
+          condition: s.condition,
           auto: s.auto,
         })),
         tags: runbook.tags,
@@ -228,6 +230,7 @@ export function importRunbook(raw: string): Runbook {
     command: s.command,
     toolKey: s.toolKey,
     cliKey: s.cliKey,
+    condition: s.condition,
     auto: s.auto ?? false,
   }));
   return createRunbook({

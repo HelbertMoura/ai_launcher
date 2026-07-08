@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
 import { McpServerListSchema, type McpServer } from "./types";
+import { invokeOrFallback } from "../../lib/tauri";
 
 /**
  * Shared MCP store. Mirrors the `clisStore` pattern: a single in-memory
@@ -43,7 +43,7 @@ async function load(): Promise<void> {
   setState({ loading: true, error: null });
   inflight = (async () => {
     try {
-      const raw = await invoke<unknown>("list_mcp_servers");
+      const raw = await invokeOrFallback<unknown>("list_mcp_servers", undefined, []);
       const servers = McpServerListSchema.parse(raw);
       state = { servers, loading: false, error: null };
       hydrated = true;

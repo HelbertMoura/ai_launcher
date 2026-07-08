@@ -1,5 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { CheckResult, ToolInfo } from "./useTools";
+import { invokeOrFallback } from "../../lib/tauri";
 import {
   loadCustomIdes,
   CUSTOM_IDES_CHANGED_EVENT,
@@ -107,8 +107,8 @@ async function load(force = false): Promise<void> {
   setState({ loading: true, error: null });
   inflight = (async () => {
     try {
-      const tools = await invoke<ToolInfo[]>("get_all_tools");
-      const results = await invoke<CheckResult[]>("check_tools");
+      const tools = await invokeOrFallback<ToolInfo[]>("get_all_tools", undefined, []);
+      const results = await invokeOrFallback<CheckResult[]>("check_tools", undefined, []);
       const checks: Record<string, CheckResult> = {};
       for (const r of results) checks[r.name] = r;
       const customIdes = loadCustomIdes();

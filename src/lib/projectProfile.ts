@@ -17,6 +17,7 @@
 // ==============================================================================
 
 import { z } from "zod";
+import { invoke } from "@tauri-apps/api/core";
 import { invokeOrFallback } from "./tauri";
 
 /** Schema for a `.ailauncher.json` file. Every field except `version` is optional. */
@@ -91,6 +92,20 @@ export async function readProjectProfile(directory: string): Promise<ProjectProf
     throw new Error(`${PROJECT_PROFILE_FILENAME}: ${parsed.error}`);
   }
   return parsed.profile;
+}
+
+export function formatProjectProfile(profile: ProjectProfile): string {
+  const parsed = projectProfileSchema.parse(profile);
+  return `${JSON.stringify(parsed, null, 2)}\n`;
+}
+
+export async function writeProjectProfile(
+  directory: string,
+  profile: ProjectProfile,
+): Promise<void> {
+  if (!directory.trim()) throw new Error("Directory is required");
+  const contents = formatProjectProfile(profile);
+  await invoke("write_project_profile", { directory, contents });
 }
 
 /**

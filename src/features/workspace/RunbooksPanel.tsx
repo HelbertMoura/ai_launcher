@@ -9,8 +9,14 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
+import { showToast } from '../../ui/toastStore';
 import type { Runbook } from '../../domain/types';
 import { createRunbook, getRunbook, getRunbooks } from './runbookStore';
+import {
+  getSuggestedRunbookPresets,
+  installRunbookPresets,
+  RUNBOOK_PRESETS,
+} from './runbookPresets';
 import { RunbookEditor } from './RunbookEditor';
 import { RunbookRunner } from './RunbookRunner';
 import './Runbook.css';
@@ -19,11 +25,18 @@ interface RunbooksPanelProps {
   onClose: () => void;
   /** Working directory forwarded to runbook step execution. */
   cwd?: string;
+  suggestedPresetIds?: string[];
+  onRunbooksChanged?: () => void;
 }
 
 type Mode = 'list' | 'edit' | 'run';
 
-export function RunbooksPanel({ onClose, cwd }: RunbooksPanelProps) {
+export function RunbooksPanel({
+  onClose,
+  cwd,
+  suggestedPresetIds = [],
+  onRunbooksChanged,
+}: RunbooksPanelProps) {
   const { t } = useTranslation();
   const [runbooks, setRunbooks] = useState<Runbook[]>(() => getRunbooks());
   const [mode, setMode] = useState<Mode>('list');
@@ -31,7 +44,8 @@ export function RunbooksPanel({ onClose, cwd }: RunbooksPanelProps) {
 
   const refresh = useCallback(() => {
     setRunbooks(getRunbooks());
-  }, []);
+    onRunbooksChanged?.();
+  }, [onRunbooksChanged]);
 
   const selected = selectedId ? runbooks.find((r) => r.id === selectedId) ?? getRunbook(selectedId) : undefined;
 
@@ -41,6 +55,20 @@ export function RunbooksPanel({ onClose, cwd }: RunbooksPanelProps) {
     setSelectedId(rb.id);
     setMode('edit');
   }, [refresh, t]);
+
+  const presetSuggestions = getSuggestedRunbookPresets(
+    suggestedPresetIds.length > 0 ? suggestedPresetIds : RUNBOOK_PRESETS.map((preset) => preset.id),
+  );
+
+  const handleInstallPresets = useCallback(() => {
+    const result = installRunbookPresets(presetSuggestions.map((preset) => preset.id));
+    refresh();
+    if (result.created.length > 0) {
+      showToast(t('runbook.presets.created', { count: result.created.length }), 'success');
+      return;
+    }
+    showToast(t('runbook.presets.alreadyInstalled'), 'info');
+  }, [presetSuggestions, refresh, t]);
 
   const handleEdit = useCallback((id: string) => {
     setSelectedId(id);
@@ -99,8 +127,30 @@ export function RunbooksPanel({ onClose, cwd }: RunbooksPanelProps) {
       <header className="cd-rb-panel__head">
         <Button size="sm" variant="ghost" onClick={onClose}>{t('runbook.backToWorkspace')}</Button>
         <h2 className="cd-rb-panel__title">{t('runbook.title')}</h2>
-        <Button size="sm" onClick={handleCreate}>{t('runbook.new')}</Button>
+        <div className="cd-rb-panel__head-actions">
+          <Button size="sm" variant="ghost" onClick={handleInstallPresets} disabled={presetSuggestions.length === 0}>
+            {t('runbook.presets.add')}
+          </Button>
+          <Button size="sm" onClick={handleCreate}>{t('runbook.new')}</Button>
+        </div>
       </header>
+
+      {presetSuggestions.length > 0 && (
+        <div className="cd-rb-panel__presets" aria-label={t('runbook.presets.title')}>
+          <div className="cd-rb-panel__presets-head">
+            <span>{t('runbook.presets.title')}</span>
+            <small>{t('runbook.presets.hint')}</small>
+          </div>
+          <div className="cd-rb-panel__preset-list">
+            {presetSuggestions.slice(0, 4).map((preset) => (
+              <article key={preset.id} className="cd-rb-panel__preset">
+                <strong>{preset.name}</strong>
+                <small>{preset.description}</small>
+              </article>
+            ))}
+          </div>
+        </div>
+      )}
 
       {runbooks.length === 0 ? (
         <Card className="cd-rb-panel__empty">

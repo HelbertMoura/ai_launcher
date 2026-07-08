@@ -18,9 +18,87 @@ pub struct LaunchResult {
     pub message: String,
 }
 
+#[derive(Debug, Serialize)]
+pub struct ProjectStackSnapshot {
+    pub files: Vec<String>,
+    pub manifests: HashMap<String, String>,
+}
+
 #[tauri::command]
 pub fn get_all_clis() -> Vec<CliInfo> {
     get_cli_definitions()
+}
+
+/// Collect safe project shape signals for frontend stack detection.
+///
+/// This intentionally reads only a tiny allowlist of filenames that describe a
+/// project stack. It does not recurse, does not read environment/secret files,
+/// and caps manifest reads so a bad checkout cannot freeze the UI.
+#[tauri::command]
+pub fn scan_project_stack(directory: String) -> Result<ProjectStackSnapshot, String> {
+    const MAX_MANIFEST_BYTES: u64 = 256 * 1024;
+    const SIGNAL_FILES: &[&str] = &[
+        "package.json",
+        "pnpm-lock.yaml",
+        "package-lock.json",
+        "yarn.lock",
+        "bun.lockb",
+        "vite.config.ts",
+        "vite.config.js",
+        "vite.config.mts",
+        "vite.config.mjs",
+        "vite.config.cts",
+        "vite.config.cjs",
+        "src/App.tsx",
+        "src/App.jsx",
+        "src/main.tsx",
+        "src/main.jsx",
+        "Cargo.toml",
+        "Cargo.lock",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/Cargo.toml",
+        "pyproject.toml",
+        "requirements.txt",
+        "poetry.lock",
+        "uv.lock",
+        "go.mod",
+        "go.sum",
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        "compose.yaml",
+        "compose.yml",
+        ".mcp.json",
+        ".claude/.mcp.json",
+        ".ailauncher.json",
+    ];
+    const MANIFEST_FILES: &[&str] = &["package.json", ".ailauncher.json"];
+
+    let work_dir = validate_directory(&directory)?;
+    let root = std::path::Path::new(&work_dir);
+    let mut files = Vec::new();
+    let mut manifests = HashMap::new();
+
+    for relative in SIGNAL_FILES {
+        let path = root.join(relative);
+        if !path.is_file() {
+            continue;
+        }
+        files.push((*relative).to_string());
+        if !MANIFEST_FILES.contains(relative) {
+            continue;
+        }
+        let meta =
+            std::fs::metadata(&path).map_err(|e| format!("Falha ao ler {}: {}", relative, e))?;
+        if meta.len() > MAX_MANIFEST_BYTES {
+            continue;
+        }
+        if let Ok(contents) = std::fs::read_to_string(&path) {
+            manifests.insert((*relative).to_string(), contents);
+        }
+    }
+
+    Ok(ProjectStackSnapshot { files, manifests })
 }
 
 /// Read a project's `.ailauncher.json` from a chosen directory (B4).
@@ -53,6 +131,34 @@ pub fn read_project_profile(directory: String) -> Result<Option<String>, String>
     let contents = std::fs::read_to_string(&path)
         .map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
     Ok(Some(contents))
+}
+
+/// Write a project's `.ailauncher.json` into a validated directory.
+///
+/// The caller provides the full JSON contents, but never the target filename.
+/// We validate the root directory, keep the same size cap as reads, require a
+/// JSON object, and then write the fixed `.ailauncher.json` path.
+#[tauri::command]
+pub fn write_project_profile(directory: String, contents: String) -> Result<(), String> {
+    const MAX_PROFILE_BYTES: usize = 256 * 1024;
+
+    let work_dir = validate_directory(&directory)?;
+    if contents.len() > MAX_PROFILE_BYTES {
+        return Err(format!(
+            ".ailauncher.json é grande demais ({} bytes, limite {})",
+            contents.len(),
+            MAX_PROFILE_BYTES
+        ));
+    }
+    let parsed: serde_json::Value =
+        serde_json::from_str(&contents).map_err(|e| format!(".ailauncher.json invalido: {}", e))?;
+    if !parsed.is_object() {
+        return Err(".ailauncher.json precisa ser um objeto JSON".into());
+    }
+    let path = std::path::Path::new(&work_dir).join(".ailauncher.json");
+    std::fs::write(&path, contents)
+        .map_err(|e| format!("Falha ao salvar .ailauncher.json: {}", e))?;
+    Ok(())
 }
 
 #[tauri::command]
@@ -572,5 +678,72 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("grande demais"));
+    }
+
+    #[test]
+    fn write_project_profile_writes_valid_json_object() {
+        let dir = temp_dir("write-profile");
+        let body = r#"{"version":1,"cli":"codex"}"#.to_string();
+
+        write_project_profile(dir.to_string_lossy().into_owned(), body.clone())
+            .expect("write profile");
+        let saved = std::fs::read_to_string(dir.join(".ailauncher.json")).expect("read profile");
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_eq!(saved, body);
+    }
+
+    #[test]
+    fn write_project_profile_rejects_invalid_json() {
+        let dir = temp_dir("write-invalid-profile");
+        let res = write_project_profile(dir.to_string_lossy().into_owned(), "{".into());
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("invalido"));
+    }
+
+    #[test]
+    fn write_project_profile_rejects_non_object_json() {
+        let dir = temp_dir("write-array-profile");
+        let res = write_project_profile(dir.to_string_lossy().into_owned(), "[]".into());
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert!(res.is_err());
+        assert!(res.unwrap_err().contains("objeto JSON"));
+    }
+
+    #[test]
+    fn scan_project_stack_collects_safe_signals() {
+        let dir = temp_dir("stack");
+        std::fs::create_dir_all(dir.join("src-tauri")).expect("create src-tauri");
+        std::fs::write(
+            dir.join("package.json"),
+            r#"{"dependencies":{"react":"latest","@tauri-apps/api":"latest"}}"#,
+        )
+        .expect("write package");
+        std::fs::write(dir.join("src-tauri").join("Cargo.toml"), "[package]").expect("write cargo");
+        std::fs::write(dir.join(".env"), "SECRET=1").expect("write env");
+
+        let res = scan_project_stack(dir.to_string_lossy().into_owned()).expect("scan stack");
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert!(res.files.contains(&"package.json".to_string()));
+        assert!(res.files.contains(&"src-tauri/Cargo.toml".to_string()));
+        assert!(!res.files.contains(&".env".to_string()));
+        assert!(res.manifests.contains_key("package.json"));
+    }
+
+    #[test]
+    fn scan_project_stack_ignores_oversized_manifests() {
+        let dir = temp_dir("stack-oversized");
+        let big = "x".repeat(256 * 1024 + 1);
+        std::fs::write(dir.join("package.json"), big).expect("write big package");
+
+        let res = scan_project_stack(dir.to_string_lossy().into_owned()).expect("scan stack");
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert!(res.files.contains(&"package.json".to_string()));
+        assert!(!res.manifests.contains_key("package.json"));
     }
 }

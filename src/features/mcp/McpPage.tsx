@@ -16,7 +16,8 @@ import {
   type McpServer,
   type McpServerInput,
 } from "./types";
-import { MCP_CATALOG, type McpCatalogEntry } from "./catalog";
+import { MCP_CATALOG, isCatalogEntryValid, type McpCatalogEntry } from "./catalog";
+import { serverToHealthInput } from "./projectMcp";
 import { McpServerDialog, type McpDialogInitial } from "./McpServerDialog";
 import "../page.css";
 import "./McpPage.css";
@@ -26,18 +27,6 @@ const CLI_LABELS: Record<McpCli, string> = {
   codex: "Codex",
   gemini: "Gemini",
 };
-
-/** Build the secret-free input the health check needs from a listed server. */
-function serverToHealthInput(s: McpServer): McpServerInput {
-  return {
-    name: s.name,
-    transport: s.transport,
-    command: s.command,
-    args: s.args,
-    url: s.url,
-    enabled: s.enabled,
-  };
-}
 
 export function McpPage() {
   const { t } = useTranslation();
@@ -109,6 +98,10 @@ export function McpPage() {
   }, []);
 
   const openCatalog = useCallback((entry: McpCatalogEntry) => {
+    if (!isCatalogEntryValid(entry)) {
+      showToast(t("mcp.catalogInvalid"), "error");
+      return;
+    }
     setDialogMode("add");
     setDialogInitial({
       name: entry.name,
@@ -119,7 +112,7 @@ export function McpPage() {
       envKeys: entry.envKeys,
     });
     setDialogOpen(true);
-  }, []);
+  }, [t]);
 
   const handleSubmit = useCallback(
     async (cli: McpCli, name: string, server: McpServerInput) => {
@@ -220,6 +213,7 @@ export function McpPage() {
       <div className="cd-mcp__catalog">
         <h2 className="cd-mcp__group-title">{t("mcp.catalogTitle")}</h2>
         <p className="cd-mcp__catalog-sub">{t("mcp.catalogHint")}</p>
+        <p className="cd-mcp__catalog-sub">{t("mcp.catalogBackupHint")}</p>
         <div className="cd-page__grid">
           {MCP_CATALOG.map((entry) => (
             <Card key={entry.id} className="cd-mcp__catalog-card">

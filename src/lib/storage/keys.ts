@@ -25,6 +25,8 @@ export const STORAGE_KEYS = {
   profilesMigrated: 'ai-launcher:v15:migrated',
   workspaces: 'ai-launcher:v15:workspace',
   activeWorkspace: 'ai-launcher:v15:active-workspace',
+  agentProfiles: 'ai-launcher:v20:agent-profiles',
+  activeAgentProfile: 'ai-launcher:v20:active-agent-profile',
   runbooks: 'ai-launcher:v15:runbooks',
   budget: 'ai-launcher:v15:budget',
   density: 'ai-launcher:v15:density',

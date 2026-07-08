@@ -32,6 +32,7 @@ export function Sidebar({ active, onSelect, version, indicators }: SidebarProps)
       <nav className="cd-side__nav">
         <div className="cd-side__group">
           <div className="cd-side__label">{t("nav.groupWorkspace")}</div>
+          <Item id="command-center" active={active} onSelect={onSelect} indicator={ind["command-center"]} />
           <Item id="launcher" active={active} onSelect={onSelect} indicator={ind.launcher} />
           <Item id="tools" active={active} onSelect={onSelect} indicator={ind.tools} />
           <Item id="mcp" active={active} onSelect={onSelect} indicator={ind.mcp} />
