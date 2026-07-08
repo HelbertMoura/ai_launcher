@@ -80,17 +80,34 @@ coverage/
 # --- Claude Code local settings (per-dev, never commit) ---
 .claude/
 .superpowers/
+AGENTS.md
+CLAUDE.md
 
 # Tooling caches
 .playwright-mcp/
 .codex/
+.wolf/
 .wolf/designqc-captures/
+ssh_log.txt
 
 # Playwright
 /test-results/
 /playwright-report/
 /playwright/.cache/
 Capturar.PNG
+
+# Historical/generated docs assets kept out of the public repo
+docs/superpowers/
+docs/archive/
+docs/PLAN_*.md
+docs/PRD_v*.md
+docs/PRD-v1*.md
+docs/RELEASE_v*.md
+docs/RETROSPECTIVE-*.md
+docs/releases/v16*.md
+docs/screenshots/archive/
+docs/screenshots/v15/
+public/images/banner.*
 
 # OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
 src-tauri/.wolf
