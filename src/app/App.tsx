@@ -33,6 +33,9 @@ import type { UsageReport } from "../features/costs/useUsage";
 import { invokeOrFallback } from "../lib/tauri";
 import "./App.css";
 
+const CommandCenterPage = lazy(() =>
+  import("../features/command-center/CommandCenterPage").then((m) => ({ default: m.CommandCenterPage })),
+);
 const LauncherPage = lazy(() =>
   import("../features/launcher/LauncherPage").then((m) => ({ default: m.LauncherPage })),
 );
@@ -73,19 +76,20 @@ const OnboardingPage = lazy(() =>
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
 
 const DIGIT_TABS: Record<string, TabId> = {
-  "1": "launcher",
-  "2": "tools",
-  "3": "mcp",
-  "4": "history",
-  "5": "costs",
-  "6": "workspace",
-  "7": "doctor",
-  "8": "updates",
-  "9": "prereqs",
+  "1": "command-center",
+  "2": "launcher",
+  "3": "tools",
+  "4": "mcp",
+  "5": "history",
+  "6": "costs",
+  "7": "workspace",
+  "8": "doctor",
+  "9": "updates",
+  "0": "prereqs",
 };
 
 export function App() {
-  const [active, setActive] = useState<TabId>("launcher");
+  const [active, setActive] = useState<TabId>("command-center");
   const { theme, setTheme, cycleTheme } = useTheme();
   const { accent, setAccent } = useAccent();
   const { density, toggleDensity } = useDensity();
@@ -225,6 +229,7 @@ export function App() {
         />
         <main className="cd-app__main">
           <Suspense fallback={<PageFallback />}>
+            {active === "command-center" && <CommandCenterPage onNavigate={setActive} />}
             {active === "launcher" && <LauncherPage onNavigate={setActive} />}
             {active === "tools" && <ToolsPage />}
             {active === "mcp" && <McpPage />}

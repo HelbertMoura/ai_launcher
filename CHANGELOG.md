@@ -5,6 +5,47 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [20.0.0] — 2026-07-07 — Command OS mega release
+
+Release maior que transforma o AI Launcher em um centro operacional para agentes: home nova, inteligência por projeto, runbooks mais fortes, MCP por workspace, perfis de agente, sessões 2.0 e melhorias de confiança para backup/update/release.
+
+### Added — Command Center
+- Nova aba **Command Center** como tela inicial pós-onboarding, com resumo do workspace ativo, ação principal de launch, readiness cards, sessões ativas/recentes e ações rápidas reais.
+- Atalhos reorganizados: Command Center `Ctrl+1`, Launcher `Ctrl+2`, Tools `Ctrl+3`, MCP `Ctrl+4`, History `Ctrl+5`, Analytics `Ctrl+6`, Workspace `Ctrl+7`, Doctor `Ctrl+8`, Updates `Ctrl+9`, Prereqs `Ctrl+0`.
+- Launch/replay passa pelo helper compartilhado `launchCliSession`, preservando provider, env de workspace, `.ailauncher.json`, histórico, recent dirs e toasts.
+
+### Added — Project Intelligence
+- Detector seguro de stack para Node/React/Vite/Tauri/Rust/Python/Go/Docker/MCP, com evidências e sugestões de CLI/runbook.
+- Backend `scan_project_stack(directory)` lê apenas manifests permitidos, com cap de tamanho e sem tocar `.env`.
+- Criação assistida de `.ailauncher.json` com preview validado e escrita fixa/segura na raiz do projeto.
+
+### Added — Runbooks 2.0
+- Presets locais para Node/Vite, Tauri/Rust, Rust, Python, Go, Docker e MCP, sugeridos pela stack detectada.
+- Condições por step (`fileExists`, `commandExists`, `envExists`, `previousSucceeded`) com avaliação segura no backend quando aplicável.
+- Histórico persistido de execuções com run id, status, duração, outputs capados e timeline recente por runbook.
+
+### Added — Agents + MCP Hub
+- MCP por projeto: `.ailauncher.json.mcp` resolve servidores esperados, resume faltantes e roda health checks apenas nos MCPs relevantes ao workspace.
+- Catálogo MCP ganhou validação antes de aplicar presets e reforço visual de backup.
+- **Agent Profiles**: CRUD local de perfis de agente, perfil ativo por workspace e launch preparado por CLI/args/provider do agente.
+
+### Added — Sessions 2.0 + Trust
+- History agora tem dashboard com sessões ativas, falhas, duração média, workspaces vinculados e filtros persistidos.
+- Replay de sessão usa o fluxo compartilhado de launch; kill de sessão ativa exige confirmação.
+- Backup/export/import ganhou manifest, redaction recursiva de secrets e preview de restore antes de escrever no localStorage.
+- Updater mostra cadeia de confiança (`latest.json`, SHA-256, GitHub Release) e o script `audit-release.sh` valida o conteúdo do `latest.json`, não só os nomes dos assets.
+
+### Changed
+- Workspaces agora centralizam Agent Profiles e continuam como base para runbooks, budgets, doctor e sessões.
+- UI e i18n atualizados para Command Center, Project Intelligence, Runbooks 2.0, MCP por projeto, Agent Profiles e Backup.
+- Release checklist v20 documentado em `docs/releases/v20-checklist.md`.
+
+### Validation
+- `npx tsc --noEmit`
+- `npm test` — 21 arquivos, 184 testes
+- `npm run build`
+- `C:\Program Files\Git\bin\bash.exe -n scripts/audit-release.sh`
+
 ## [16.0.1] — 2026-07-07 — Launch Flow, Workspace UX e release hygiene
 
 Patch release focada em polimento operacional pós-v16: lança templates/quick launch com o mesmo contrato do diálogo principal, melhora a experiência de Workspaces e reduz o bundle inicial.

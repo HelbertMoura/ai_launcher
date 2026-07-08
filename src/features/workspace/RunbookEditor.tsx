@@ -10,7 +10,12 @@ import { Input } from '../../ui/Input';
 import { Toggle } from '../../ui/Toggle';
 import { Banner } from '../../ui/Banner';
 import { downloadBlob } from '../../lib/exportData';
-import type { Runbook, RunbookStep, RunbookStepType } from '../../domain/types';
+import type {
+  Runbook,
+  RunbookConditionType,
+  RunbookStep,
+  RunbookStepType,
+} from '../../domain/types';
 import {
   addStep,
   updateStep,
@@ -24,6 +29,18 @@ import {
 import './Runbook.css';
 
 const STEP_TYPES: RunbookStepType[] = ['install', 'configure', 'launch', 'check'];
+const CONDITION_TYPES: RunbookConditionType[] = [
+  'always',
+  'fileExists',
+  'commandExists',
+  'envExists',
+  'previousSucceeded',
+];
+const CONDITIONS_WITH_VALUE = new Set<RunbookConditionType>([
+  'fileExists',
+  'commandExists',
+  'envExists',
+]);
 
 const TYPE_ICONS: Record<RunbookStepType, string> = {
   install: '⬇',
@@ -85,6 +102,58 @@ function StepEditor({ step, isFirst, isLast, onChange, onRemove, onMove }: StepE
             />
           </label>
         </div>
+        <div className="cd-rb-step__row">
+          <label className="cd-rb-step__field cd-rb-step__field--sm">
+            <span className="cd-rb-step__label">Condition</span>
+            <select
+              className="cd-rb-step__select"
+              value={step.condition?.type ?? 'always'}
+              onChange={(e) => {
+                const type = e.target.value as RunbookConditionType;
+                onChange(step.id, {
+                  condition: type === 'always' ? undefined : { type },
+                });
+              }}
+            >
+              {CONDITION_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </label>
+          <label className="cd-rb-step__field cd-rb-step__field--auto">
+            <span className="cd-rb-step__label">Negate</span>
+            <Toggle
+              checked={step.condition?.negate ?? false}
+              onChange={(negate) => {
+                const current = step.condition ?? { type: 'always' as const };
+                onChange(step.id, {
+                  condition: current.type === 'always' && !negate
+                    ? undefined
+                    : { ...current, negate },
+                });
+              }}
+            />
+          </label>
+        </div>
+        {step.condition && CONDITIONS_WITH_VALUE.has(step.condition.type) && (
+          <label className="cd-rb-step__field">
+            <span className="cd-rb-step__label">Condition Value</span>
+            <Input
+              value={step.condition.value ?? ''}
+              onChange={(e) => {
+                const condition = step.condition;
+                if (!condition) return;
+                onChange(step.id, {
+                  condition: {
+                    ...condition,
+                    value: e.target.value || undefined,
+                  },
+                });
+              }}
+              placeholder="file path, command, or ENV_KEY"
+            />
+          </label>
+        )}
         <label className="cd-rb-step__field">
           <span className="cd-rb-step__label">Command</span>
           <Input

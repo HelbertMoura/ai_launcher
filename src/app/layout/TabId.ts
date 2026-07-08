@@ -1,4 +1,5 @@
 export type TabId =
+  | "command-center"
   | "launcher"
   | "tools"
   | "mcp"
@@ -11,9 +12,10 @@ export type TabId =
   | "admin"
   | "help";
 
-export const TAB_ORDER: TabId[] = ["launcher", "tools", "mcp", "history", "costs", "workspace", "doctor", "updates", "prereqs", "admin", "help"];
+export const TAB_ORDER: TabId[] = ["command-center", "launcher", "tools", "mcp", "history", "costs", "workspace", "doctor", "updates", "prereqs", "admin", "help"];
 
 export const TAB_LABELS: Record<TabId, string> = {
+  "command-center": "Command Center",
   launcher: "Launch",
   tools: "Tools",
   mcp: "MCP",
@@ -29,6 +31,7 @@ export const TAB_LABELS: Record<TabId, string> = {
 
 /** i18n keys for each tab (used by Sidebar + CommandPalette). */
 export const TAB_I18N_KEYS: Record<TabId, string> = {
+  "command-center": "nav.commandCenter",
   launcher: "nav.launcher",
   tools: "nav.tools",
   mcp: "nav.mcp",
@@ -47,15 +50,16 @@ const MOD = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigato
   : "Ctrl";
 
 export const TAB_KEYS: Record<TabId, string> = {
-  launcher: `${MOD}+1`,
-  tools: `${MOD}+2`,
-  mcp: `${MOD}+3`,
-  history: `${MOD}+4`,
-  costs: `${MOD}+5`,
-  workspace: `${MOD}+6`,
-  doctor: `${MOD}+7`,
-  updates: `${MOD}+8`,
-  prereqs: `${MOD}+9`,
+  "command-center": `${MOD}+1`,
+  launcher: `${MOD}+2`,
+  tools: `${MOD}+3`,
+  mcp: `${MOD}+4`,
+  history: `${MOD}+5`,
+  costs: `${MOD}+6`,
+  workspace: `${MOD}+7`,
+  doctor: `${MOD}+8`,
+  updates: `${MOD}+9`,
+  prereqs: `${MOD}+0`,
   admin: `${MOD}+,`,
   help: "?",
 };

@@ -71,7 +71,9 @@ fn main() {
             commands::cli::launch_cli,
             commands::cli::launch_multi_clis,
             commands::cli::launch_custom_cli,
+            commands::cli::scan_project_stack,
             commands::cli::read_project_profile,
+            commands::cli::write_project_profile,
             // commands::session
             commands::session::list_active_sessions,
             commands::session::kill_session,
@@ -116,6 +118,7 @@ fn main() {
             commands::mcp::mcp_health_check,
             // commands::runbook
             commands::runbook::run_runbook_step,
+            commands::runbook::evaluate_runbook_condition,
             // secrets
             secrets::store_secret,
             secrets::get_secret,

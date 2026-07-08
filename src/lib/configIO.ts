@@ -29,7 +29,12 @@ import {
 } from './storage';
 
 const REDACTED = '{{REDACTED}}';
-const SECRET_RE = /token|key|secret|bearer|password/i;
+
+function isSecretField(key: string): boolean {
+  return /api[_-]?key|access[_-]?token|refresh[_-]?token|auth[_-]?token|secret|bearer|password|credential|authorization/i.test(
+    key,
+  );
+}
 
 // Tolerant schema: the `keys` map holds arbitrary per-key blobs (each validated
 // later by its own registry schema on read). Legacy top-level fields stay optional
@@ -37,6 +42,18 @@ const SECRET_RE = /token|key|secret|bearer|password/i;
 const ConfigDumpSchema = z.object({
   version: z.string().min(1),
   exportedAt: z.string().min(1),
+  manifest: z
+    .object({
+      format: z.string().optional(),
+      schemaVersion: z.number().optional(),
+      appVersion: z.string().optional(),
+      exportedAt: z.string().optional(),
+      keyCount: z.number().optional(),
+      keys: z.array(z.string()).optional(),
+      redactedCount: z.number().optional(),
+    })
+    .passthrough()
+    .optional(),
   // New registry-driven payload.
   keys: z.record(z.string(), z.unknown()).optional(),
   // Legacy fields (pre-T4 backups).
@@ -48,12 +65,23 @@ const ConfigDumpSchema = z.object({
 
 type ConfigDump = z.infer<typeof ConfigDumpSchema>;
 
+export interface ConfigImportPreview {
+  ok: true;
+  version: string;
+  exportedAt: string;
+  keyCount: number;
+  knownKeys: string[];
+  unknownKeys: string[];
+  redactedCount: number;
+  manifest?: ConfigDump['manifest'];
+}
+
 // --- Secret redaction (providers state) --------------------------------------
 
 function redactEnv(env: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(env)) {
-    out[k] = SECRET_RE.test(k) ? REDACTED : v;
+    out[k] = isSecretField(k) ? REDACTED : v;
   }
   return out;
 }
@@ -78,10 +106,31 @@ function redactProvidersState(state: unknown): unknown {
   return next;
 }
 
+function redactSecretsDeep(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSecretsDeep);
+  if (!value || typeof value !== 'object') return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+    out[key] = isSecretField(key) ? REDACTED : redactSecretsDeep(child);
+  }
+  return out;
+}
+
+function countRedactedDeep(value: unknown): number {
+  if (Array.isArray(value)) {
+    return value.reduce<number>((sum, child) => sum + countRedactedDeep(child), 0);
+  }
+  if (!value || typeof value !== 'object') return value === REDACTED ? 1 : 0;
+  return Object.values(value as Record<string, unknown>).reduce<number>(
+    (sum, child) => sum + countRedactedDeep(child),
+    0,
+  );
+}
+
 /** Redact a single backup value just before it leaves the machine. */
 function redactForBackup(id: RegistryId, value: unknown): unknown {
-  if (id === 'providers') return redactProvidersState(value);
-  return value;
+  const prepared = id === 'providers' ? redactProvidersState(value) : value;
+  return redactSecretsDeep(prepared);
 }
 
 // --- Export ------------------------------------------------------------------
@@ -93,10 +142,22 @@ export function exportConfig(appVersion: string): string {
     if (raw === undefined) continue; // skip absent keys — keep the backup lean
     keys[e.id] = redactForBackup(e.id as RegistryId, raw);
   }
+  const exportedAt = new Date().toISOString();
+  const keyIds = Object.keys(keys).sort();
+  const redactedCount = countRedactedDeep(keys);
 
   const dump: ConfigDump = {
     version: appVersion,
-    exportedAt: new Date().toISOString(),
+    exportedAt,
+    manifest: {
+      format: 'ai-launcher-config',
+      schemaVersion: 2,
+      appVersion,
+      exportedAt,
+      keyCount: keyIds.length,
+      keys: keyIds,
+      redactedCount,
+    },
     keys,
   };
   return JSON.stringify(dump, null, 2);
@@ -108,22 +169,24 @@ export type ImportResult =
   | { ok: true; redactedCount: number }
   | { ok: false; error: string };
 
-function countRedacted(providers: unknown): number {
-  if (!providers || typeof providers !== 'object') return 0;
-  const profiles = (providers as Record<string, unknown>).profiles;
-  if (!Array.isArray(profiles)) return 0;
-  let count = 0;
-  for (const raw of profiles) {
-    if (!raw || typeof raw !== 'object') continue;
-    const p = raw as Record<string, unknown>;
-    if (p.apiKey === REDACTED) count++;
-    if (p.extraEnv && typeof p.extraEnv === 'object') {
-      for (const v of Object.values(p.extraEnv as Record<string, unknown>)) {
-        if (v === REDACTED) count++;
-      }
-    }
+function parseDump(raw: string): { ok: true; dump: ConfigDump } | { ok: false; error: string } {
+  let parsedJson: unknown;
+  try {
+    parsedJson = JSON.parse(raw);
+  } catch {
+    return { ok: false, error: 'Arquivo nao e JSON valido.' };
   }
-  return count;
+
+  const result = ConfigDumpSchema.safeParse(parsedJson);
+  if (!result.success) {
+    const first = result.error.issues[0];
+    const path = first.path.join('.');
+    return {
+      ok: false,
+      error: `Formato de config invalido${path ? ` em "${path}"` : ''}: ${first.message}`,
+    };
+  }
+  return { ok: true, dump: result.data };
 }
 
 /**
@@ -217,26 +280,11 @@ function mergeValue(id: RegistryId, existing: unknown, incoming: unknown): unkno
 }
 
 export function importConfig(raw: string, mode: 'merge' | 'replace'): ImportResult {
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(raw);
-  } catch {
-    return { ok: false, error: 'Arquivo nao e JSON valido.' };
-  }
-
-  const result = ConfigDumpSchema.safeParse(parsedJson);
-  if (!result.success) {
-    const first = result.error.issues[0];
-    const path = first.path.join('.');
-    return {
-      ok: false,
-      error: `Formato de config invalido${path ? ` em "${path}"` : ''}: ${first.message}`,
-    };
-  }
-
-  const dump = result.data;
+  const parsed = parseDump(raw);
+  if (!parsed.ok) return parsed;
+  const dump = parsed.dump;
   const keyMap = dumpToKeyMap(dump);
-  const redactedCount = countRedacted(keyMap.providers);
+  const redactedCount = countRedactedDeep(keyMap);
 
   for (const [id, incoming] of Object.entries(keyMap)) {
     if (incoming === undefined) continue;
@@ -254,6 +302,28 @@ export function importConfig(raw: string, mode: 'merge' | 'replace'): ImportResu
   }
 
   return { ok: true, redactedCount };
+}
+
+export function previewImportConfig(
+  raw: string,
+): ConfigImportPreview | { ok: false; error: string } {
+  const parsed = parseDump(raw);
+  if (!parsed.ok) return parsed;
+  const dump = parsed.dump;
+  const keyMap = dumpToKeyMap(dump);
+  const keys = Object.keys(keyMap).sort();
+  const knownKeys = keys.filter((id) => Boolean((REGISTRY as Record<string, unknown>)[id]));
+  const unknownKeys = keys.filter((id) => !knownKeys.includes(id));
+  return {
+    ok: true,
+    version: dump.version,
+    exportedAt: dump.exportedAt,
+    keyCount: keys.length,
+    knownKeys,
+    unknownKeys,
+    redactedCount: countRedactedDeep(keyMap),
+    manifest: dump.manifest,
+  };
 }
 
 export function downloadConfigJson(appVersion: string): void {

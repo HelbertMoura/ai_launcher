@@ -1,12 +1,22 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
-import { buildLaunchEnvAsync, loadProviders, setActive } from "../../providers/storage";
+import { loadProviders } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
+import type { AgentProfile, WorkspaceProfile } from "../../domain/types";
+import { loadAgentProfiles } from "../agents/agentProfileStore";
+import { launchCliSession, recordFailedLaunch } from "../launcher/launchSession";
+import { loadWorkspaces } from "../workspace/workspaceStore";
+import { showToast } from "../../ui/toastStore";
+import {
+  loadHistoryFilters,
+  saveHistoryFilters,
+  type HistoryFilterRange,
+} from "./historyFilters";
 import "../page.css";
 import "./HistoryPage.css";
 
@@ -278,17 +288,58 @@ function ProviderBadge({ providerId, profiles }: { providerId?: string; profiles
   );
 }
 
+function findWorkspaceForSession(
+  item: HistoryItem,
+  workspaces: WorkspaceProfile[],
+): WorkspaceProfile | undefined {
+  const dir = item.directory.trim().toLowerCase();
+  return workspaces.find((workspace) => workspace.directory.trim().toLowerCase() === dir);
+}
+
+function findAgentForSession(
+  item: HistoryItem,
+  agents: AgentProfile[],
+): AgentProfile | undefined {
+  return agents.find((agent) => {
+    if (agent.cliKey && agent.cliKey !== item.cliKey) return false;
+    if ((agent.providerKey ?? "") !== (item.providerId ?? "")) return false;
+    if ((agent.args ?? "") !== (item.args ?? "")) return false;
+    return Boolean(agent.cliKey || agent.providerKey || agent.args);
+  });
+}
+
+function averageDuration(items: HistoryItem[]): number {
+  const durations = items
+    .map((item) => item.duration)
+    .filter((duration): duration is number => typeof duration === "number" && duration > 0);
+  if (durations.length === 0) return 0;
+  return Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length);
+}
+
 export function HistoryPage() {
   const { t } = useTranslation();
   const { items, clear, updateItem, removeItem } = useHistory();
   const providersState = useMemo(() => loadProviders(), []);
+  const workspaces = useMemo(() => loadWorkspaces(), []);
+  const agentProfiles = useMemo(() => loadAgentProfiles(), []);
+  const savedFilters = useMemo(() => loadHistoryFilters(), []);
 
-  const [filterCli, setFilterCli] = useState<string>("all");
-  const [filterProvider, setFilterProvider] = useState<string>("all");
-  const [filterRange, setFilterRange] = useState<"today" | "week" | "month" | "all">("all");
+  const [filterCli, setFilterCli] = useState<string>(savedFilters.cli);
+  const [filterProvider, setFilterProvider] = useState<string>(savedFilters.provider);
+  const [filterRange, setFilterRange] = useState<HistoryFilterRange>(savedFilters.range);
   const [confirmClear, setConfirmClear] = useState(false);
-  const [timelineOpen, setTimelineOpen] = useState(true);
-  const [timelineRange, setTimelineRange] = useState<TimelineRange>("24h");
+  const [timelineOpen, setTimelineOpen] = useState(savedFilters.timelineOpen);
+  const [timelineRange, setTimelineRange] = useState<TimelineRange>(savedFilters.timelineRange);
+
+  useEffect(() => {
+    saveHistoryFilters({
+      cli: filterCli,
+      provider: filterProvider,
+      range: filterRange,
+      timelineOpen,
+      timelineRange,
+    });
+  }, [filterCli, filterProvider, filterRange, timelineOpen, timelineRange]);
 
   const distinctClis = useMemo(() => {
     const set = new Set<string>();
@@ -341,6 +392,18 @@ export function HistoryPage() {
     setConfirmClear(false);
   };
 
+  const activeCount = items.filter(
+    (item) => item.status === "running" || item.status === "starting",
+  ).length;
+  const failedCount = items.filter((item) => item.status === "failed").length;
+  const linkedWorkspaces = new Set(
+    items
+      .map((item) => findWorkspaceForSession(item, workspaces)?.id)
+      .filter((id): id is string => Boolean(id)),
+  ).size;
+  const avgMs = averageDuration(items);
+  const lastSession = items[0];
+
   return (
     <section className="cd-page cd-history">
       <header className="cd-page__head">
@@ -363,6 +426,34 @@ export function HistoryPage() {
         <div className="cd-page__empty">{t("history.none")}.</div>
       ) : (
         <>
+          <section className="cd-history-dashboard" aria-label={t("history.dashboard.title")}>
+            <div className="cd-history-dashboard__card">
+              <span>{t("history.dashboard.active")}</span>
+              <strong>{activeCount}</strong>
+              <small>{t("history.dashboard.activeHint")}</small>
+            </div>
+            <div className="cd-history-dashboard__card">
+              <span>{t("history.dashboard.failed")}</span>
+              <strong>{failedCount}</strong>
+              <small>{t("history.dashboard.failedHint")}</small>
+            </div>
+            <div className="cd-history-dashboard__card">
+              <span>{t("history.dashboard.avgDuration")}</span>
+              <strong>{avgMs > 0 ? formatDurationShort(avgMs) : "—"}</strong>
+              <small>{t("history.dashboard.avgDurationHint")}</small>
+            </div>
+            <div className="cd-history-dashboard__card">
+              <span>{t("history.dashboard.workspaces")}</span>
+              <strong>{linkedWorkspaces}</strong>
+              <small>{t("history.dashboard.workspacesHint")}</small>
+            </div>
+            <div className="cd-history-dashboard__card cd-history-dashboard__card--wide">
+              <span>{t("history.dashboard.last")}</span>
+              <strong>{lastSession?.cli ?? "—"}</strong>
+              <small>{lastSession?.directory ?? t("history.noDirectory", "no directory")}</small>
+            </div>
+          </section>
+
           <div className="cd-history__filters">
             <select
               className="cd-history__filter-select"
@@ -466,6 +557,8 @@ export function HistoryPage() {
                 item={item}
                 index={items.indexOf(item)}
                 providersState={providersState}
+                workspaces={workspaces}
+                agentProfiles={agentProfiles}
                 onUpdate={updateItem}
                 onRemove={removeItem}
               />
@@ -491,12 +584,16 @@ function HistoryRow({
   item,
   index,
   providersState,
+  workspaces,
+  agentProfiles,
   onUpdate,
   onRemove,
 }: {
   item: HistoryItem;
   index: number;
   providersState: ProvidersState;
+  workspaces: WorkspaceProfile[];
+  agentProfiles: AgentProfile[];
   onUpdate: (index: number, patch: Partial<HistoryItem>) => void;
   onRemove: (index: number) => void;
 }) {
@@ -506,6 +603,12 @@ function HistoryRow({
   const [descValue, setDescValue] = useState(item.description ?? "");
   const [relaunching, setRelaunching] = useState(false);
   const [confirmProviderGone, setConfirmProviderGone] = useState(false);
+  const [confirmKill, setConfirmKill] = useState(false);
+  const [killing, setKilling] = useState(false);
+  const linkedWorkspace = findWorkspaceForSession(item, workspaces);
+  const linkedAgent = findAgentForSession(item, agentProfiles);
+  const canKill =
+    Boolean(item.sessionId) && (item.status === "running" || item.status === "starting");
 
   const saveDescription = () => {
     onUpdate(index, { description: descValue });
@@ -515,43 +618,24 @@ function HistoryRow({
   const doReopen = async () => {
     setRelaunching(true);
     try {
-      let envVars: Record<string, string> | null = null;
-      if (item.cliKey === "claude" && item.providerId) {
-        const profileExists = providersState.profiles.some(p => p.id === item.providerId);
-        if (!profileExists) {
-          const built = await buildLaunchEnvAsync(providersState);
-          envVars = built ?? null;
-        } else {
-          const stateWithProvider = setActive(providersState, item.providerId);
-          const built = await buildLaunchEnvAsync(stateWithProvider);
-          envVars = built ?? null;
-        }
-      }
-      const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
-        cliKey: item.cliKey,
+      await launchCliSession({
+        cli: { key: item.cliKey, name: item.cli || item.cliKey },
         directory: item.directory,
         args: item.args,
-        noPerms: true,
-        envVars,
+        historyArgs: item.args,
+        providerId: item.providerId,
       });
-      const now = new Date().toISOString();
-      onUpdate(index, {
-        status: "starting",
-        sessionId: result.session_id,
-        startedAt: now,
-        completedAt: undefined,
-        duration: undefined,
-        exitCode: undefined,
-        errorMessage: undefined,
-      });
-    } catch {
-      const now = new Date().toISOString();
-      onUpdate(index, {
-        status: "failed",
-        startedAt: now,
-        completedAt: now,
-        duration: 0,
-      });
+      showToast(t("history.replayStarted", { cli: item.cli }), "success");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      recordFailedLaunch(
+        { key: item.cliKey, name: item.cli || item.cliKey },
+        item.directory,
+        item.args,
+        message,
+        item.providerId,
+      );
+      showToast(message || t("history.replayFailed"), "error");
     } finally {
       setRelaunching(false);
     }
@@ -571,6 +655,26 @@ function HistoryRow({
   const confirmProviderGoneReopen = () => {
     setConfirmProviderGone(false);
     void doReopen();
+  };
+
+  const confirmKillSession = async () => {
+    if (!item.sessionId) return;
+    setKilling(true);
+    try {
+      await invoke("kill_session", { sessionId: item.sessionId });
+      const now = new Date().toISOString();
+      onUpdate(index, {
+        status: "failed",
+        completedAt: now,
+        errorMessage: t("history.killRecorded"),
+      });
+      showToast(t("history.killSuccess", { cli: item.cli }), "success");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : String(e), "error");
+    } finally {
+      setKilling(false);
+      setConfirmKill(false);
+    }
   };
 
   const statusLabel =
@@ -605,6 +709,16 @@ function HistoryRow({
               <span className="cd-history__status-text">{statusLabel}</span>
               <span className="cd-history__cli">{item.cli}</span>
               <ProviderBadge providerId={item.providerId} profiles={providersState.profiles} />
+              {linkedWorkspace && (
+                <span className="cd-history__link-badge" title={linkedWorkspace.directory}>
+                  {t("history.workspaceBadge", { name: linkedWorkspace.name })}
+                </span>
+              )}
+              {linkedAgent && (
+                <span className="cd-history__link-badge cd-history__link-badge--agent">
+                  {t("history.agentBadge", { name: linkedAgent.name })}
+                </span>
+              )}
               {item.duration != null && item.duration > 0 && (
                 <span className="cd-history__duration">
                   {formatDuration(item.duration)}
@@ -656,6 +770,16 @@ function HistoryRow({
               {relativeTime(item.timestamp)}
             </time>
             <div className="cd-history__actions">
+              {canKill && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={killing}
+                  onClick={() => setConfirmKill(true)}
+                >
+                  {t("history.kill")}
+                </Button>
+              )}
               <Button size="sm" loading={relaunching} onClick={handleReopen}>
                 {t("history.reopen")}
               </Button>
@@ -677,6 +801,18 @@ function HistoryRow({
         onCancel={() => {
           setConfirmProviderGone(false);
           setRelaunching(false);
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmKill}
+        variant="danger"
+        title={t("history.killTitle")}
+        message={t("history.killMessage", { cli: item.cli })}
+        confirmLabel={killing ? t("common.loading") : t("history.kill")}
+        onConfirm={() => void confirmKillSession()}
+        onCancel={() => {
+          if (!killing) setConfirmKill(false);
         }}
       />
     </li>

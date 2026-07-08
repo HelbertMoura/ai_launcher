@@ -15,7 +15,14 @@ test.describe("AI Launcher Pro smoke", () => {
       window.__TAURI_INTERNALS__ = {
         invoke: async (cmd: string) => {
           if (cmd === "get_all_clis") return [];
+          if (cmd === "check_clis") return [];
           if (cmd === "get_all_tools") return [];
+          if (cmd === "check_environment") return [];
+          if (cmd === "list_active_sessions") return [];
+          if (cmd === "list_mcp_servers") return [];
+          if (cmd === "read_project_profile") return null;
+          if (cmd === "scan_project_stack") return { files: [], manifests: {} };
+          if (cmd === "write_project_profile") return null;
           if (cmd === "check_all_updates")
             return { cli_updates: [], tool_updates: [], env_updates: [] };
           return null;
@@ -24,7 +31,7 @@ test.describe("AI Launcher Pro smoke", () => {
     });
   });
 
-  test("loads the app and shows launcher tab", async ({ page }) => {
+  test("loads the app and shows Command Center", async ({ page }) => {
     await page.goto("/");
 
     // Wait for React to mount and i18n to resolve
@@ -32,13 +39,11 @@ test.describe("AI Launcher Pro smoke", () => {
     // Wait briefly for React + i18n to mount
     await page.waitForTimeout(500);
 
-    // The Launcher tab should be the default active one
+    // The Command Center should be the default active page.
     const body = await page.locator("body");
     await expect(body).toBeVisible();
 
-    // At least one of these should appear (covering EN and pt-BR)
-    const hasLaunch = await page.getByText(/launch|lançar/i).count();
-    expect(hasLaunch).toBeGreaterThan(0);
+    await expect(page.getByRole("heading", { name: /command center/i })).toBeVisible();
   });
 
   test("navigates to Admin", async ({ page }) => {
@@ -59,7 +64,7 @@ test.describe("AI Launcher Pro smoke", () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test("main launcher page has no serious accessibility violations", async ({
+  test("main Command Center page has no serious accessibility violations", async ({
     page,
   }) => {
     await page.goto("/");

@@ -29,6 +29,9 @@ export function AppUpdater() {
             <span className="cd-updates__row-detail">
               v{info?.current_version ?? __APP_VERSION__}
             </span>
+            <span className="cd-updates__trust-line">
+              {t("updates.appTrustLine", "latest.json · SHA-256 · GitHub release")}
+            </span>
           </div>
 
           {status === "idle" && !info?.update_available && (
@@ -133,6 +136,12 @@ export function AppUpdater() {
             </Button>
           </div>
         )}
+
+        <div className="cd-updates__trust">
+          <span>{t("updates.appTrustManifest", "Manifest")}</span>
+          <span>{t("updates.appTrustChecksum", "Checksum")}</span>
+          <span>{t("updates.appTrustRelease", "Release")}</span>
+        </div>
 
         {/* Error */}
         {error && (

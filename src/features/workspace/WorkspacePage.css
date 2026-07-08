@@ -67,6 +67,11 @@
   margin-bottom: var(--s-4);
 }
 
+.cd-ws__active--agent {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+
 .cd-ws__active-label {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -159,6 +164,7 @@
   grid-template-columns: 2fr 1fr;
   grid-template-areas:
     "profiles budget"
+    "agents agents"
     "doctor-row doctor-row";
   gap: var(--s-4);
 }
@@ -190,6 +196,10 @@
 .cd-ws-bento__card--budget {
   grid-area: budget;
   min-height: 320px;
+}
+
+.cd-ws-bento__card--agents {
+  grid-area: agents;
 }
 
 .cd-ws-bento__card--interactive {
@@ -319,6 +329,79 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--s-3);
+}
+
+/* --- Agent profiles card --- */
+
+.cd-ws-agent-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--s-3);
+}
+
+.cd-ws-agent {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.cd-ws-agent--active {
+  border-color: var(--accent);
+}
+
+.cd-ws-agent__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+
+.cd-ws-agent__name {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-ws-agent__desc,
+.cd-ws-agent__meta {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+}
+
+.cd-ws-agent__args {
+  max-width: 100%;
+  padding: 4px var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-ws-agent__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+
+.cd-ws-agent__tags span {
+  padding: 1px var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-1);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
 }
 
 /* --- Budget card --- */
@@ -557,6 +640,7 @@
     grid-template-areas:
       "profiles"
       "budget"
+      "agents"
       "doctor-row";
   }
 

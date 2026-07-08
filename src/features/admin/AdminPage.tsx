@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { AppearanceSection } from "./sections/AppearanceSection";
 import { CliOverridesSection } from "./sections/CliOverridesSection";
 import { CustomIdesSection } from "./sections/CustomIdesSection";
+import { ConfigBackupSection } from "./sections/ConfigBackupSection";
 import { PresetsSection } from "./sections/PresetsSection";
 import { ProvidersSection } from "./sections/ProvidersSection";
 import "../page.css";
@@ -13,7 +14,8 @@ type AdminSection =
   | "presets"
   | "appearance"
   | "overrides"
-  | "custom-ides";
+  | "custom-ides"
+  | "backup";
 
 const SECTIONS: Array<{ id: AdminSection; i18n: string }> = [
   { id: "providers", i18n: "admin.sections.providers" },
@@ -21,6 +23,7 @@ const SECTIONS: Array<{ id: AdminSection; i18n: string }> = [
   { id: "appearance", i18n: "admin.sections.appearance" },
   { id: "overrides", i18n: "admin.sections.cliOverrides" },
   { id: "custom-ides", i18n: "admin.sections.customIdes" },
+  { id: "backup", i18n: "admin.sections.backup" },
 ];
 
 export function AdminPage() {
@@ -56,6 +59,7 @@ export function AdminPage() {
         {active === "appearance" && <AppearanceSection />}
         {active === "overrides" && <CliOverridesSection />}
         {active === "custom-ides" && <CustomIdesSection />}
+        {active === "backup" && <ConfigBackupSection />}
       </div>
     </section>
   );

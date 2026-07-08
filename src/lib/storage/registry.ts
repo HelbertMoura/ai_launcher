@@ -52,6 +52,21 @@ const workspaceProfileSchema = z
   })
   .passthrough();
 
+const agentProfileSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    cliKey: z.string().optional(),
+    providerKey: z.string().optional(),
+    args: z.string().optional(),
+    runbookId: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    pinned: z.boolean().default(false),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .passthrough();
+
 const runbookSchema = z
   .object({
     id: z.string(),
@@ -206,6 +221,23 @@ export const REGISTRY = {
   activeWorkspace: entry({
     id: 'activeWorkspace',
     key: STORAGE_KEYS.activeWorkspace,
+    schema: z.string(),
+    default: '',
+    serialize: 'raw',
+    version: 1,
+  }),
+
+  agentProfiles: entry({
+    id: 'agentProfiles',
+    key: STORAGE_KEYS.agentProfiles,
+    schema: z.array(agentProfileSchema),
+    default: [] as z.infer<typeof agentProfileSchema>[],
+    version: 1,
+  }),
+
+  activeAgentProfile: entry({
+    id: 'activeAgentProfile',
+    key: STORAGE_KEYS.activeAgentProfile,
     schema: z.string(),
     default: '',
     serialize: 'raw',

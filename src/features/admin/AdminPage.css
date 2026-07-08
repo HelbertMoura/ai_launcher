@@ -394,3 +394,21 @@
   background: rgba(255, 49, 49, 0.1);
   word-break: break-word;
 }
+
+.cd-admin-file-input {
+  display: none;
+}
+
+.cd-admin-backup__badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px var(--s-2);
+}
+
+.cd-admin-backup__badge--accent {
+  color: var(--accent);
+  border-color: color-mix(in oklch, var(--accent) 35%, transparent);
+}
