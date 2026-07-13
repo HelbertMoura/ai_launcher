@@ -114,13 +114,15 @@ for asset in data.get('assets', []):
     ERRORS+=("latest.json (download url missing)")
   else
     LATEST_JSON=$(curl -fsSL "$LATEST_URL")
-    if ! LATEST_JSON="$LATEST_JSON" python3 - "$VERSION" "$TAG" <<'PY'
+    if ! LATEST_JSON="$LATEST_JSON" ASSET_NAMES="$ASSETS" python3 - "$VERSION" "$TAG" <<'PY'
 import json
 import os
 import sys
+from urllib.parse import unquote, urlparse
 
 expected_version = sys.argv[1]
 expected_tag = sys.argv[2]
+asset_names = {line.strip() for line in os.environ.get("ASSET_NAMES", "").splitlines() if line.strip()}
 try:
     data = json.loads(os.environ["LATEST_JSON"])
 except Exception as exc:
@@ -148,6 +150,9 @@ else:
     for url in windows_urls:
         if f"/download/{expected_tag}/" not in url:
             errors.append(f"download URL does not point at {expected_tag}: {url}")
+        asset_name = unquote(os.path.basename(urlparse(url).path))
+        if asset_names and asset_name not in asset_names:
+            errors.append(f"download URL asset is not attached to release: {asset_name}")
 
 if not data.get("releaseNotesUrl"):
     errors.append("releaseNotesUrl missing")
