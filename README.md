@@ -66,36 +66,30 @@
 
 ### Install (Windows)
 
-> **Recommended (works today):** download the `.msi` or `.exe` installer from the [latest release](https://github.com/HelbertMoura/ai_launcher/releases).
+Download the installer from the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/releases/latest):
 
-```bash
-# Option 1: Manual download (available now)
-# Grab the .msi or .exe installer from the latest release:
-# https://github.com/HelbertMoura/ai_launcher/releases
+- `.exe` (NSIS) — recommended for most users.
+- `.msi` — useful for managed or administrative deployments.
 
-# Option 2: Winget — 🚧 Coming soon (not published yet)
-winget install DevManiacs.AILauncher
-
-# Option 3: Chocolatey — 🚧 Coming soon (not published yet)
-choco install ai-launcher -y
-```
-
-> 🚧 **Winget and Chocolatey are not published yet.** Those commands will fail until the signed release ships — use the manual download above for now.
+> **Winget and Chocolatey are not available yet.** The planned package IDs are `DevManiacs.AILauncher` and `ai-launcher`, but installation commands using them will fail until the packages are published.
 
 > SmartScreen may warn on unsigned builds -- click **More info, then Run anyway**.
 
 ### Build from Source
 
-**Prerequisites:** Node 20+, Rust stable, Visual Studio Build Tools with **Desktop development with C++**.
+**Prerequisites:** Node.js 20.19+ or 22.12+, Rust stable, and Visual Studio Build Tools with **Desktop development with C++**.
 
 ```bash
 git clone https://github.com/HelbertMoura/ai_launcher.git
 cd ai_launcher
-npm install
+npm ci
 npm run tauri build
 ```
 
-The `.msi` lands in `src-tauri/target/release/bundle/msi/`.
+The installers are generated in:
+
+- MSI: `src-tauri/target/release/bundle/msi/`
+- EXE (NSIS): `src-tauri/target/release/bundle/nsis/`
 
 ## Keyboard Shortcuts
 
