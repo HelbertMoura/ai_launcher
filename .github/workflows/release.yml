@@ -97,7 +97,7 @@ jobs:
           }
 
       - name: Attach binaries to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           body_path: release-body.md
@@ -152,7 +152,7 @@ jobs:
           $manifest | ConvertTo-Json -Depth 5 | Out-File -FilePath "latest.json" -Encoding utf8
 
       - name: Attach checksums and latest.json to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
