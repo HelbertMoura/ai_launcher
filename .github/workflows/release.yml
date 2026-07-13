@@ -126,6 +126,8 @@ jobs:
 
           $nsis = (Get-ChildItem -Path src-tauri/target/release/bundle/nsis -Filter *-setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1)
           $msi = (Get-ChildItem -Path src-tauri/target/release/bundle/msi -Filter *.msi -ErrorAction SilentlyContinue | Select-Object -First 1)
+          $nsisAssetName = if ($nsis) { $nsis.Name.Replace(' ', '.') } else { "" }
+          $msiAssetName = if ($msi) { $msi.Name.Replace(' ', '.') } else { "" }
 
           $checksum = ""
           if ($nsis) {
@@ -139,8 +141,8 @@ jobs:
             version = $version
             releaseDate = $date
             downloadUrls = @{
-              windowsNsis = if ($nsis) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$($nsis.Name)" } else { "" }
-              windowsMsi = if ($msi) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$($msi.Name)" } else { "" }
+              windowsNsis = if ($nsis) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$nsisAssetName" } else { "" }
+              windowsMsi = if ($msi) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$msiAssetName" } else { "" }
             }
             checksums = @{
               sha256 = $checksum
