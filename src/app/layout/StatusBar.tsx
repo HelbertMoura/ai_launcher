@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./StatusBar.css";
+import type { ExecutionMode } from "../../domain/executionMode";
 
 export type LatencyTone = "ok" | "warn" | "err";
 
@@ -24,6 +25,7 @@ interface StatusBarProps {
   lastSession?: LastSessionInfo;
   providerLatency?: ProviderLatency;
   onRefresh?: () => void;
+  executionMode: ExecutionMode;
 }
 
 function useClock(): string {
@@ -59,69 +61,44 @@ export function StatusBar({
   lastSession,
   providerLatency,
   onRefresh,
+  executionMode,
 }: StatusBarProps) {
   const { t } = useTranslation();
   const clock = useClock();
 
   return (
     <footer className="cd-status">
-      {/* Decorative watermark: intentionally faint, hidden from AT so the
-          axe color-contrast rule doesn't apply (it is not informative text). */}
-      <span className="cd-status__cell cd-status__cell--brand" aria-hidden="true">
-        {t("statusBar.branding")}
-      </span>
-
-      <span className="cd-status__cell">▎ {online}/{total} online</span>
-
-      <span className="cd-status__cell cd-status__cell--accent">● ADMIN</span>
-
-      {providerLatency && (
-        <span
-          className="cd-status__cell cd-status__cell--mini"
-          title={`Provider: ${providerLatency.name}`}
-        >
-          <span
-            className={`cd-status__dot cd-status__dot--${providerLatency.tone}`}
-            aria-hidden
-          />
-          {providerLatency.name}
+      <div className="cd-status__group cd-status__group--primary">
+        <span className="cd-status__cell cd-status__cell--online">
+          <span className="cd-status__dot cd-status__dot--ok" aria-hidden />
+          {online}/{total} {t("statusBar.onlineLabel")}
         </span>
-      )}
-
-      <span className="cd-status__cell">
-        {todaySpend} {t("statusBar.todaySpend")}
-      </span>
-
-      {lastSession && (
-        <span
-          className="cd-status__cell cd-status__cell--mini cd-status__cell--muted"
-          title={`Last session: ${lastSession.cli}`}
-        >
-          ● {lastSession.cli} · {lastSession.relative}
+        <span className={`cd-status__cell cd-status__cell--mode cd-status__cell--mode-${executionMode}`}>
+          {t(`statusBar.modes.${executionMode}`)}
         </span>
-      )}
+        {providerLatency && (
+          <span className="cd-status__cell cd-status__cell--mini" title={`Provider: ${providerLatency.name}`}>
+            <span className={`cd-status__dot cd-status__dot--${providerLatency.tone}`} aria-hidden />
+            {providerLatency.name}
+          </span>
+        )}
+      </div>
 
-      {updatesCount > 0 && (
-        <span className="cd-status__cell cd-status__cell--warn">
-          ▲ {t("statusBar.updates", { count: updatesCount })}
-        </span>
-      )}
-
-      {onRefresh && (
-        <button
-          type="button"
-          className="cd-status__cell cd-status__btn"
-          onClick={onRefresh}
-          title={t("statusBar.refresh")}
-          aria-label={t("statusBar.refresh")}
-        >
-          ⟳
-        </button>
-      )}
-
-      <span className="cd-status__cell cd-status__cell--muted">{clock}</span>
-
-      <span className="cd-status__cell cd-status__cell--muted">v{version}</span>
+      <div className="cd-status__group cd-status__group--secondary">
+        {lastSession && (
+          <span className="cd-status__cell cd-status__cell--mini cd-status__cell--session" title={`Last session: ${lastSession.cli}`}>
+            {lastSession.cli} · {lastSession.relative}
+          </span>
+        )}
+        <span className="cd-status__cell cd-status__cell--spend">{todaySpend} {t("statusBar.todaySpend")}</span>
+        {updatesCount > 0 && <span className="cd-status__cell cd-status__cell--warn">▲ {t("statusBar.updates", { count: updatesCount })}</span>}
+        {onRefresh && (
+          <button type="button" className="cd-status__btn" onClick={onRefresh}
+            title={t("statusBar.refresh")} aria-label={t("statusBar.refresh")}>⟳</button>
+        )}
+        <span className="cd-status__cell cd-status__cell--clock">{clock}</span>
+        <span className="cd-status__cell cd-status__cell--version">v{version}</span>
+      </div>
     </footer>
   );
 }

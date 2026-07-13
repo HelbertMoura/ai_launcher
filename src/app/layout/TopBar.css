@@ -5,10 +5,7 @@
   gap: var(--s-3);
   padding: 0 var(--s-4);
   border-bottom: 1px solid var(--border);
-  background: var(--surface-1-alpha);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
 }
 
 .cd-top__cmd {
@@ -18,25 +15,26 @@
   gap: var(--s-2);
   background: var(--surface-2);
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  padding: 5px var(--s-3);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
+  min-height: 38px;
+  border-radius: var(--r-md);
+  padding: 7px var(--s-3);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   cursor: pointer;
   text-align: left;
 }
-.cd-top__cmd:hover { border-color: var(--accent); }
+.cd-top__cmd:hover { border-color: var(--accent); background: var(--surface-hover); }
 .cd-top__cmd-icon { color: var(--accent); font-weight: 700; }
 .cd-top__cmd-key { margin-left: auto; color: var(--text-dim); font-size: 10px; letter-spacing: 1px; }
 
-.cd-top__right { display: flex; align-items: center; gap: var(--s-3); }
+.cd-top__right { display: flex; align-items: center; gap: var(--s-2); }
 
 .cd-top__accents { display: flex; gap: 4px; }
 .cd-top__acc {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--border-strong);
   cursor: pointer;
   padding: 0;
@@ -51,55 +49,52 @@
 .cd-top__acc--blue   { background: oklch(65% 0.19 240); }
 .cd-top__acc--violet { background: oklch(62% 0.22 290); }
 
-.cd-top__lang {
-  background: transparent;
+.cd-top__settings { position: relative; }
+.cd-top__settings > summary {
+  list-style: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
   border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  height: 24px;
-  min-width: 30px;
   cursor: pointer;
-  padding: 0 6px;
 }
-.cd-top__lang:hover { border-color: var(--accent); color: var(--accent); }
-.cd-top__lang:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cd-top__settings > summary::-webkit-details-marker { display: none; }
+.cd-top__settings[open] > summary,
+.cd-top__settings > summary:hover { border-color: var(--accent); color: var(--accent); }
+.cd-top__settings-panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  padding: var(--s-3);
+  display: grid;
+  gap: var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-lg);
+  background: var(--surface-panel);
+  box-shadow: var(--shadow-panel);
+}
+.cd-top__settings-head { display: flex; align-items: center; gap: var(--s-2); }
+.cd-top__settings-label { color: var(--text-muted); font-size: 12px; }
+.cd-top__settings-actions { display: grid; gap: var(--s-2); }
+.cd-top__setting-btn {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.cd-top__setting-btn:hover { border-color: var(--accent); }
 
-.cd-top__theme {
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-size: var(--text-md);
-  width: 28px;
-  height: 24px;
-  cursor: pointer;
-  padding: 0;
-}
-.cd-top__theme:hover { border-color: var(--accent); }
-.cd-top__theme:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.cd-top__density {
-  background: transparent;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  font-size: var(--text-md);
-  line-height: 1;
-  width: 28px;
-  height: 24px;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color var(--dur-fast), color var(--dur-fast);
-}
-.cd-top__density:hover { border-color: var(--accent); color: var(--accent); }
-.cd-top__density[aria-pressed="true"] {
-  border-color: var(--accent);
-  color: var(--accent);
+@media (max-width: 720px) {
+  .cd-top__cmd span:not(.cd-top__cmd-key) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cd-top__cmd-key { display: none; }
 }

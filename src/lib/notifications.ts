@@ -3,23 +3,14 @@ import {
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification";
-
-const TOGGLE_KEY = "ai-launcher:notifications-enabled";
+import { readKey, writeKey } from "./storage";
 
 export function isNotificationsEnabled(): boolean {
-  try {
-    return localStorage.getItem(TOGGLE_KEY) === "true";
-  } catch {
-    return false;
-  }
+  return readKey("notificationsEnabled") === "true";
 }
 
 export function setNotificationsEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(TOGGLE_KEY, enabled ? "true" : "false");
-  } catch {
-    /* ignore */
-  }
+  writeKey("notificationsEnabled", enabled ? "true" : "false");
 }
 
 export async function ensurePermissionThenNotify(

@@ -386,3 +386,133 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* v21 Command Deck hierarchy ------------------------------------------------ */
+.cd-command { display: grid; gap: var(--s-5); }
+.cd-command__head { margin-bottom: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.cd-command__head-actions { display: flex; align-items: center; gap: var(--s-2); }
+.cd-command__state { display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); font: 11px var(--font-mono); }
+.cd-command__state > span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); }
+.cd-command__state--ready > span,
+.cd-command__state--running > span { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.cd-command__state--degraded > span,
+.cd-command__state--loading > span { background: var(--warn); }
+.cd-command__state--error > span { background: var(--err); }
+.cd-command__state--empty > span { background: var(--text-muted); }
+.cd-command__eyebrow {
+  margin: 0 0 var(--s-1);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.6px;
+}
+.cd-command__hero {
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 0.95fr);
+  gap: var(--s-5);
+  padding: var(--s-5);
+  border-color: var(--border-strong);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--accent) 7%, var(--surface-panel)), var(--surface-panel) 48%),
+    var(--surface-panel);
+  box-shadow: var(--shadow-card);
+}
+.cd-command__workspace { align-self: center; }
+.cd-command__workspace h2 {
+  margin: var(--s-2) 0 var(--s-1);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.6px;
+}
+.cd-command__workspace p { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+.cd-command__hero-side { display: grid; gap: var(--s-3); }
+.cd-command__meta { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.cd-command__meta-item { padding: var(--s-3); border-radius: var(--r-md); background: var(--surface-card); }
+.cd-command__meta-item span,
+.cd-command__label,
+.cd-command__ready-label { font-family: var(--font-mono); letter-spacing: 0.6px; }
+
+.cd-command__onboarding {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.65fr);
+  gap: var(--s-4);
+  align-items: stretch;
+}
+.cd-command__onboarding .cd-empty { width: 100%; max-width: none; min-height: 300px; margin: 0; }
+.cd-command__steps {
+  margin: 0;
+  padding: var(--s-4);
+  display: grid;
+  gap: var(--s-2);
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-panel);
+}
+.cd-command__steps li { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3); border-bottom: 1px solid var(--border); }
+.cd-command__steps li:last-child { border-bottom: 0; }
+.cd-command__steps span { color: var(--accent); font-family: var(--font-mono); font-size: 11px; }
+.cd-command__steps strong { font-size: 14px; }
+
+.cd-command__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+  grid-template-areas: "actions health" "sessions context";
+  gap: var(--s-4);
+  align-items: start;
+}
+.cd-command__panel { padding: var(--s-4); border-radius: var(--r-lg); background: var(--surface-panel); box-shadow: var(--shadow-card); }
+.cd-command__panel--actions { grid-area: actions; }
+.cd-command__panel--sessions { grid-area: sessions; }
+.cd-command__panel--intelligence { grid-area: context; }
+.cd-command__panel:not(.cd-command__panel--actions):not(.cd-command__panel--sessions):not(.cd-command__panel--intelligence) { grid-area: health; }
+.cd-command__section-head h2 { font-family: var(--font-display); font-size: 17px; }
+.cd-command__section-head p { margin-bottom: var(--s-3); color: var(--text-muted); }
+.cd-command__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.cd-command__action { min-height: 76px; padding: var(--s-3); border-radius: var(--r-md); background: var(--surface-card); }
+.cd-command__action:first-child {
+  grid-column: 1 / -1;
+  min-height: 94px;
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+  background: linear-gradient(120deg, var(--accent-soft), var(--surface-card));
+}
+.cd-command__action span { font-family: var(--font-display); font-size: 15px; }
+.cd-command__action small { color: var(--text-muted); line-height: 1.45; }
+.cd-command__readiness { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2); }
+.cd-command__ready { min-height: 112px; background: var(--surface-card); }
+.cd-command__ready strong { font-family: var(--font-mono); font-size: 20px; }
+.cd-command__ready small,
+.cd-command__intel-main small,
+.cd-command__intel-hints dd,
+.cd-command__session-main small,
+.cd-command__session-time,
+.cd-command__muted { color: var(--text-muted); }
+.cd-command__sessions li { padding: var(--s-3); border-radius: var(--r-md); background: var(--surface-card); }
+.cd-command__affected-file { display: flex; justify-content: space-between; gap: var(--s-3); margin: var(--s-3) 0 var(--s-2); color: var(--text-muted); font-size: 12px; }
+.cd-command__affected-file code { color: var(--accent); font-family: var(--font-mono); }
+.cd-command__profile-editor {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  padding: var(--s-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface-card);
+  color: var(--text);
+  font: 12px/1.55 var(--font-mono);
+  tab-size: 2;
+}
+.cd-command__profile-error { margin: var(--s-2) 0 0; color: var(--err); font-size: 12px; }
+
+@media (max-width: 1180px) {
+  .cd-command__hero { grid-template-columns: 1fr; }
+  .cd-command__grid { grid-template-columns: 1fr; grid-template-areas: "actions" "health" "context" "sessions"; }
+}
+
+@media (max-width: 760px) {
+  .cd-command__head { grid-template-columns: 1fr; }
+  .cd-command__onboarding { grid-template-columns: 1fr; }
+  .cd-command__meta,
+  .cd-command__actions,
+  .cd-command__readiness { grid-template-columns: 1fr; }
+  .cd-command__action:first-child { grid-column: auto; }
+}

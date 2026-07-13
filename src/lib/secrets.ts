@@ -1,12 +1,20 @@
 // ==============================================================================
 // AI Launcher Pro - Secrets interface
 // Frontend abstraction for secure secret storage via Tauri backend commands.
-// Falls back to localStorage when Tauri backend is unavailable.
+// Browser development uses memory-only storage; packaged builds fail closed.
 // ==============================================================================
 
 import { invoke } from '@tauri-apps/api/core';
+import { isTauriRuntime } from './tauri';
 
 const FALLBACK_PREFIX = 'ai-launcher-secret:';
+const sessionSecrets = new Map<string, string>();
+
+interface SecretStoreResult {
+  stored: boolean;
+  backend: string;
+  migratedLegacy: boolean;
+}
 
 /**
  * Whether the Tauri backend with secure storage is available.
@@ -29,22 +37,22 @@ export async function hasSecureStorage(): Promise<boolean> {
 }
 
 /**
- * Store a secret securely.
- * Falls back to localStorage when secure storage is unavailable.
+ * Store a secret securely. Browser development is memory-only; packaged builds
+ * never downgrade to localStorage or another plaintext persistence mechanism.
  */
 export async function storeSecret(key: string, value: string): Promise<void> {
   if (!key) return;
-  try {
-    const secure = await hasSecureStorage();
-    if (secure) {
-      await invoke<boolean>('store_secret', { key, value });
-      return;
-    }
-  } catch {
-    // Tauri backend unavailable (e.g. browser dev mode)
+  if (!isTauriRuntime()) {
+    sessionSecrets.set(key, value);
+    return;
   }
-  // Fallback: localStorage (NOT secure, but better than nothing)
-  localStorage.setItem(`${FALLBACK_PREFIX}${key}`, value);
+  if (!(await hasSecureStorage())) {
+    throw new Error('Secure credential storage is unavailable');
+  }
+  const result = await invoke<SecretStoreResult>('store_secret', { key, value });
+  if (!result.stored || result.backend !== 'windows-credential-manager') {
+    throw new Error('The credential was not stored by an approved secure backend');
+  }
 }
 
 /**
@@ -53,16 +61,13 @@ export async function storeSecret(key: string, value: string): Promise<void> {
  */
 export async function getSecret(key: string): Promise<string | null> {
   if (!key) return null;
-  try {
-    const secure = await hasSecureStorage();
-    if (secure) {
-      return await invoke<string | null>('get_secret', { key });
-    }
-  } catch {
-    // Tauri backend unavailable
+  if (!isTauriRuntime()) {
+    return sessionSecrets.get(key) ?? null;
   }
-  // Fallback: localStorage
-  return localStorage.getItem(`${FALLBACK_PREFIX}${key}`);
+  if (!(await hasSecureStorage())) {
+    throw new Error('Secure credential storage is unavailable');
+  }
+  return invoke<string | null>('get_secret', { key });
 }
 
 /**
@@ -70,17 +75,14 @@ export async function getSecret(key: string): Promise<string | null> {
  */
 export async function deleteSecret(key: string): Promise<void> {
   if (!key) return;
-  try {
-    const secure = await hasSecureStorage();
-    if (secure) {
-      await invoke<boolean>('delete_secret', { key });
-      return;
-    }
-  } catch {
-    // Tauri backend unavailable
+  if (!isTauriRuntime()) {
+    sessionSecrets.delete(key);
+    return;
   }
-  // Fallback: localStorage
-  localStorage.removeItem(`${FALLBACK_PREFIX}${key}`);
+  if (!(await hasSecureStorage())) {
+    throw new Error('Secure credential storage is unavailable');
+  }
+  await invoke<boolean>('delete_secret', { key });
 }
 
 /**

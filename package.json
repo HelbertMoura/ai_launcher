@@ -1,6 +1,6 @@
 {
   "name": "ai-launcher",
-  "version": "20.0.0",
+  "version": "21.0.0",
   "description": "Desktop launcher for AI coding CLIs — by Helbert Moura | DevManiac's",
   "author": "Helbert Moura",
   "license": "MIT",
@@ -11,12 +11,24 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:metrics": "node scripts/report-build-metrics.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "smoke:packaged": "node scripts/smoke-packaged-app.mjs",
+    "release:readiness": "node scripts/verify-v21-release-readiness.mjs",
+    "rust:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml -- --check",
+    "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "rust:audit": "cargo audit --file src-tauri/Cargo.lock",
+    "audit:prod": "npm audit --omit=dev",
+    "audit:all": "npm audit",
+    "audit:capabilities": "node scripts/audit-tauri-capabilities.mjs",
+    "audit:storage": "node scripts/audit-storage-access.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -27,7 +39,6 @@
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-dialog": "^2.0.0",
     "@tauri-apps/plugin-notification": "^2.3.3",
-    "@tauri-apps/plugin-shell": "^2.0.0",
     "cmdk": "^1.0.0",
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.2.1",
@@ -37,8 +48,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.3",
-    "@playwright/test": "^1.59.1",
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.61.1",
     "@tauri-apps/cli": "^2.0.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -46,13 +57,15 @@
     "@types/node": "^25.9.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/ui": "^4.1.5",
-    "jsdom": "^29.0.2",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/ui": "^4.1.10",
+    "jsdom": "^29.1.1",
     "sharp": "^0.34.5",
-    "to-ico": "^1.1.5",
     "typescript": "^6.0.3",
-    "vite": "^8.0.9",
-    "vitest": "^4.1.5"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "undici": "^7.28.0"
   }
 }

@@ -28,6 +28,8 @@ export const STORAGE_KEYS = {
   agentProfiles: 'ai-launcher:v20:agent-profiles',
   activeAgentProfile: 'ai-launcher:v20:active-agent-profile',
   runbooks: 'ai-launcher:v15:runbooks',
+  runbookExecutions: 'ai-launcher:v20:runbook-executions',
+  historyFilters: 'ai-launcher:v20:history-filters',
   budget: 'ai-launcher:v15:budget',
   density: 'ai-launcher:v15:density',
 
@@ -57,6 +59,13 @@ export const STORAGE_KEYS = {
 
   // --- Inbox (v16) ---
   inbox: 'ai-launcher:v16:inbox',
+
+  // --- Storage infrastructure (machine-local) ---
+  schemaVersion: 'ai-launcher:v21:storage-schema',
+  migrationManifest: 'ai-launcher:v21:migration-manifest',
+  executionMode: 'ai-launcher:v21:execution-mode',
+  temporaryAdminUntil: 'ai-launcher:v21:temporary-admin-until',
+  auditLog: 'ai-launcher:v21:audit-log',
 } as const;
 
 export type StorageKeyId = keyof typeof STORAGE_KEYS;

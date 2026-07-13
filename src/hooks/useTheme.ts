@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { readKey, writeKey } from "../lib/storage";
 
 export type Theme =
   | "dark"
@@ -19,15 +20,13 @@ export const THEMES: readonly Theme[] = [
   "high-contrast",
 ] as const;
 
-const STORAGE_KEY = "ai-launcher:theme";
-
 function isTheme(value: unknown): value is Theme {
   return typeof value === "string" && (THEMES as readonly string[]).includes(value);
 }
 
 function readSaved(): Theme {
   if (typeof window === "undefined") return "dark";
-  const v = window.localStorage.getItem(STORAGE_KEY);
+  const v = readKey("theme");
   return isTheme(v) ? v : "dark";
 }
 
@@ -53,22 +52,14 @@ export function useTheme(): {
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
     document.documentElement.setAttribute("data-theme", next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore storage errors (private mode)
-    }
+    writeKey("theme", next);
   }, []);
 
   const cycleTheme = useCallback(() => {
     setThemeState((current) => {
       const next = nextTheme(current);
       document.documentElement.setAttribute("data-theme", next);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // ignore storage errors
-      }
+      writeKey("theme", next);
       return next;
     });
   }, []);

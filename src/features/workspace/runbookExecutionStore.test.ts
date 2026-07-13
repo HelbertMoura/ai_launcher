@@ -2,7 +2,10 @@ import { beforeEach, describe, expect, it } from "vitest";
 import type { Runbook } from "../../domain/types";
 import {
   finishRunbookExecution,
+  getResumableRunbookExecution,
   getRunbookExecutions,
+  resumeRunbookExecution,
+  setRunbookExecutionCursor,
   startRunbookExecution,
   updateRunbookExecutionStep,
 } from "./runbookExecutionStore";
@@ -36,12 +39,39 @@ describe("runbookExecutionStore", () => {
 
     expect(execution.status).toBe("running");
     expect(execution.cwd).toBe("C:\\dev\\app");
+    expect(execution).toMatchObject({ mode: "execute", nextStepIndex: 0, attempt: 1 });
     expect(execution.steps[0]).toMatchObject({
       stepId: "step-1",
       label: "Check Node",
       status: "pending",
     });
     expect(getRunbookExecutions("rb-1")).toHaveLength(1);
+  });
+
+  it("persists a secret-free resumable cursor and resumes from it", () => {
+    const source = runbook({
+      steps: [
+        { id: "step-1", label: "First", type: "check", auto: true, command: "echo first" },
+        { id: "step-2", label: "Second", type: "install", auto: false, command: "echo second" },
+      ],
+    });
+    const execution = startRunbookExecution(source, "C:\\dev\\app", { workspaceId: "ws-1" });
+    setRunbookExecutionCursor(execution.id, 1);
+    finishRunbookExecution(execution.id, "stopped");
+
+    const resumable = getResumableRunbookExecution(source);
+    expect(resumable).toMatchObject({ nextStepIndex: 1, workspaceId: "ws-1" });
+    expect(JSON.stringify(resumable)).not.toContain("echo first");
+
+    const resumed = resumeRunbookExecution(execution.id, 1);
+    expect(resumed).toMatchObject({ status: "running", nextStepIndex: 1, attempt: 2 });
+    expect(resumed?.steps[0].status).toBe("pending");
+  });
+
+  it("does not resume after the runbook definition changes", () => {
+    const source = runbook();
+    startRunbookExecution(source);
+    expect(getResumableRunbookExecution({ ...source, updatedAt: "2026-07-08T00:00:00.000Z" })).toBeNull();
   });
 
   it("updates step status and caps large output", () => {

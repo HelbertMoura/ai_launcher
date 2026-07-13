@@ -33,7 +33,6 @@ export function CustomCliCard({ cli, onLaunch, dndId }: CustomCliCardProps) {
       ref={dndId ? sortable.setNodeRef : undefined}
       style={dragStyle}
       className={`cd-draggable-item${sortable.isDragging ? " cd-draggable-item--dragging" : ""}`}
-      {...(dndId ? sortable.attributes : {})}
     >
       <Card interactive>
       <div className="cd-cli-card__head">
@@ -42,6 +41,7 @@ export function CustomCliCard({ cli, onLaunch, dndId }: CustomCliCardProps) {
             className="cd-drag-handle"
             aria-label={t("launcher.dragToReorder")}
             title={t("launcher.dragToReorder")}
+            {...sortable.attributes}
             {...sortable.listeners}
           >
             ⋮⋮
@@ -58,7 +58,7 @@ export function CustomCliCard({ cli, onLaunch, dndId }: CustomCliCardProps) {
           <div className="cd-cli-card__name">{cli.name}</div>
           <div className="cd-cli-card__cmd">{cli.installCmd.split(/\s+/).pop() ?? cli.key}</div>
         </div>
-        <Chip variant="admin">Custom</Chip>
+        <Chip variant="admin">{t("launcher.custom")}</Chip>
       </div>
       <div className="cd-cli-card__actions">
         <button

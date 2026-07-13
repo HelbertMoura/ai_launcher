@@ -2,7 +2,8 @@
   height: var(--statusbar-h);
   display: flex;
   align-items: center;
-  gap: var(--s-4);
+  justify-content: space-between;
+  gap: var(--s-3);
   padding: 0 var(--s-4);
   border-top: 1px solid var(--border);
   background: var(--surface-1-alpha, var(--surface-1));
@@ -10,17 +11,15 @@
   -webkit-backdrop-filter: blur(12px);
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 1px;
-  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
   user-select: none;
 }
 
-/* branding — very muted */
-.cd-status__cell--brand {
-  color: var(--border-strong);
-  margin-right: auto;
-  font-weight: 600;
-}
+.cd-status__group { min-width: 0; display: flex; align-items: center; gap: var(--s-3); }
+.cd-status__group--secondary { justify-content: flex-end; overflow: hidden; }
+.cd-status__cell { white-space: nowrap; }
+.cd-status__cell--online { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
 
 .cd-status__cell--accent {
   color: var(--accent);
@@ -38,7 +37,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--s-1);
+  width: 24px;
+  height: 24px;
+  padding: 0;
   border: none;
   background: transparent;
   color: var(--text-dim);
@@ -64,6 +65,13 @@
 .cd-status__cell--muted {
   color: var(--text-dim);
 }
+.cd-status__cell--mode { font-weight: 700; text-transform: uppercase; }
+.cd-status__cell--mode-safe { color: var(--ok); }
+.cd-status__cell--mode-standard { color: var(--warn); }
+.cd-status__cell--mode-admin { color: var(--err); }
+.cd-status__cell--clock,
+.cd-status__cell--version { color: var(--text-muted); }
+.cd-status__cell--version { padding-left: var(--s-2); border-left: 1px solid var(--border); }
 
 /* compact mini-chip (last session, provider latency) */
 .cd-status__cell--mini {
@@ -97,4 +105,14 @@
 .cd-status__dot--err {
   background: var(--err);
   box-shadow: 0 0 4px var(--err);
+}
+
+@media (max-width: 1180px) {
+  .cd-status__cell--session,
+  .cd-status__cell--spend { display: none; }
+}
+
+@media (max-width: 820px) {
+  .cd-status__group--primary .cd-status__cell--mini,
+  .cd-status__cell--clock { display: none; }
 }

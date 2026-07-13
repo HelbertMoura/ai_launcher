@@ -65,4 +65,4 @@ export const DARK_FAMILY: ReadonlySet<ThemeId> = new Set([
 
 /** The dark default --bg value (from tokens.css). Used by the contract test
  *  to detect light themes that forgot to override the background. */
-export const DARK_DEFAULT_BG = "#0a0a0b";
+export const DARK_DEFAULT_BG = "#090a0c";

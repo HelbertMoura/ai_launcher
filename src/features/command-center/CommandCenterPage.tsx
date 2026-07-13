@@ -11,6 +11,7 @@ import { loadProviders } from "../../providers/storage";
 import { invokeOrFallback } from "../../lib/tauri";
 import {
   formatProjectProfile,
+  parseProjectProfile,
   readProjectProfile,
   writeProjectProfile,
   type ProjectProfile,
@@ -47,6 +48,8 @@ import {
   type SessionSummary,
 } from "./commandCenterModel";
 import "./CommandCenterPage.css";
+import { approvalFor, getExecutionMode } from "../../domain/executionMode";
+import { appendAuditEvent } from "../../lib/auditLog";
 
 interface CommandCenterPageProps {
   onNavigate: (tab: TabId) => void;
@@ -62,10 +65,13 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
   const [showRunbooks, setShowRunbooks] = useState(false);
   const [runbooksVersion, setRunbooksVersion] = useState(0);
   const [profileDraftOpen, setProfileDraftOpen] = useState(false);
+  const [profileDraftText, setProfileDraftText] = useState("");
+  const [profileDraftError, setProfileDraftError] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
   const [launchingIde, setLaunchingIde] = useState(false);
   const [replayingId, setReplayingId] = useState<string | null>(null);
   const [killTarget, setKillTarget] = useState<SessionSummary | null>(null);
+  const [approvalTarget, setApprovalTarget] = useState<"launch" | "ide" | null>(null);
   const [activeSessions, setActiveSessions] = useState<ActiveSessionInput[]>([]);
   const [doctorSummary, setDoctorSummary] = useState({
     loading: true,
@@ -395,6 +401,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         showToast(result.projectProfileError, "warning");
       }
       history.refresh();
+      appendAuditEvent({ action: "workspace.launch", outcome: "allowed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: cli.key });
       void refreshActiveSessions();
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -406,6 +413,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         providerId,
       );
       showToast(t("commandCenter.launchFailed"), "error");
+      appendAuditEvent({ action: "workspace.launch", outcome: "failed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: cli.key });
       history.refresh();
     } finally {
       setLaunching(false);
@@ -475,24 +483,38 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
 
   const confirmSaveProjectProfile = useCallback(async () => {
     const directory = activeWorkspace?.directory?.trim();
-    if (!directory || !projectProfileDraft) return;
+    if (!directory) return;
+    const parsed = parseProjectProfile(profileDraftText);
+    if (!parsed.ok) {
+      setProfileDraftError(parsed.error);
+      return;
+    }
     setProfileSaving(true);
+    setProfileDraftError(null);
     try {
-      await writeProjectProfile(directory, projectProfileDraft);
+      await writeProjectProfile(directory, parsed.profile);
       setProfileSummary({
         loading: false,
         present: true,
         error: null,
-        profile: projectProfileDraft,
+        profile: parsed.profile,
       });
       showToast(t("commandCenter.profileSaved"), "success");
       setProfileDraftOpen(false);
+      appendAuditEvent({ action: "project.profile.write", outcome: "confirmed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: ".ailauncher.json" });
     } catch (e) {
       showToast(e instanceof Error ? e.message : String(e), "error");
+      appendAuditEvent({ action: "project.profile.write", outcome: "failed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: ".ailauncher.json" });
     } finally {
       setProfileSaving(false);
     }
-  }, [activeWorkspace?.directory, projectProfileDraft, t]);
+  }, [activeWorkspace?.directory, profileDraftText, t]);
+
+  const openProfileDraft = useCallback(() => {
+    setProfileDraftText(projectProfilePreview);
+    setProfileDraftError(null);
+    setProfileDraftOpen(true);
+  }, [projectProfilePreview]);
 
   const handleOpenIde = useCallback(async () => {
     const directory = activeWorkspace?.directory?.trim();
@@ -518,8 +540,10 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         });
         showToast(t("commandCenter.ideStarted", { ide: customIde.name }), "success");
       }
+      appendAuditEvent({ action: "workspace.ide.open", outcome: "allowed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: installedTool?.key ?? customIde?.key });
     } catch (e) {
       showToast(e instanceof Error ? e.message : String(e), "error");
+      appendAuditEvent({ action: "workspace.ide.open", outcome: "failed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id });
     } finally {
       setLaunchingIde(false);
     }
@@ -532,11 +556,36 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
     tools.tools,
   ]);
 
+  const requestExecution = useCallback((target: "launch" | "ide") => {
+    const mode = getExecutionMode();
+    const decision = approvalFor(mode, "execute");
+    if (decision === "block") {
+      appendAuditEvent({ action: target === "launch" ? "workspace.launch" : "workspace.ide.open", outcome: "blocked", mode, workspaceId: activeWorkspace?.id });
+      showToast(t("commandCenter.executionBlocked"), "warning");
+      return;
+    }
+    if (decision === "confirm") {
+      setApprovalTarget(target);
+      return;
+    }
+    if (target === "launch") void handleLaunchWorkspace();
+    else void handleOpenIde();
+  }, [activeWorkspace?.id, handleLaunchWorkspace, handleOpenIde, t]);
+
+  const confirmExecution = useCallback(() => {
+    const target = approvalTarget;
+    if (!target) return;
+    setApprovalTarget(null);
+    appendAuditEvent({ action: target === "launch" ? "workspace.launch.approval" : "workspace.ide.open.approval", outcome: "confirmed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id });
+    if (target === "launch") void handleLaunchWorkspace();
+    else void handleOpenIde();
+  }, [activeWorkspace?.id, approvalTarget, handleLaunchWorkspace, handleOpenIde]);
+
   const handleAction = useCallback(
     (action: CommandCenterAction) => {
       if (action.disabled) return;
       if (action.id === "launch") {
-        void handleLaunchWorkspace();
+        requestExecution("launch");
         return;
       }
       if (action.id === "setup") {
@@ -548,28 +597,31 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         return;
       }
       if (action.id === "ide") {
-        void handleOpenIde();
+        requestExecution("ide");
         return;
       }
       onNavigate(action.targetTab);
     },
-    [handleLaunchWorkspace, handleOpenIde, onNavigate, runbooks.length, suggestedRunbookIds.length],
+    [onNavigate, requestExecution, runbooks.length, suggestedRunbookIds.length],
   );
 
   return (
-    <section className="cd-page cd-command">
+    <section className={`cd-page cd-command cd-command--${model.state}`} data-state={model.state}>
       <div className="cd-page__head cd-command__head">
         <div className="cd-page__heading">
           <p className="cd-command__eyebrow">{t("commandCenter.eyebrow")}</p>
           <h1 className="cd-page__title">{t("commandCenter.title")}</h1>
           <p className="cd-page__sub">{t("commandCenter.subtitle")}</p>
         </div>
-        <Button variant="ghost" onClick={() => clis.refresh()}>
-          {t("common.rescan")}
-        </Button>
+        <div className="cd-command__head-actions">
+          <span className={`cd-command__state cd-command__state--${model.state}`}>
+            <span aria-hidden />{t(`commandCenter.states.${model.state}`)}
+          </span>
+          <Button variant="ghost" onClick={() => clis.refresh()}>{t("common.rescan")}</Button>
+        </div>
       </div>
 
-      <section className="cd-command__hero" aria-label={t("commandCenter.workspacePanel")}>
+      {model.hasWorkspace && <section className="cd-command__hero" aria-label={t("commandCenter.workspacePanel")}>
         <div className="cd-command__workspace">
           <span className="cd-command__label">{t("commandCenter.activeWorkspace")}</span>
           <h2>
@@ -579,7 +631,8 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             {model.hasWorkspace ? model.workspaceDirectory : t("commandCenter.pickWorkspace")}
           </p>
         </div>
-        <div className="cd-command__meta">
+        <div className="cd-command__hero-side">
+          <div className="cd-command__meta">
           <Meta
             label={t("commandCenter.defaultCli")}
             value={model.defaultCliName === "No CLI" ? t("commandCenter.noCli") : model.defaultCliName}
@@ -596,25 +649,35 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             label={t("commandCenter.workspaces")}
             value={t("commandCenter.workspaceCount", { count: model.workspaceCount })}
           />
+          </div>
+          <Button size="lg" loading={launching} onClick={() => requestExecution("launch")}>
+            {launching ? t("commandCenter.actionLaunching") : t("commandCenter.actionLaunch")}
+          </Button>
         </div>
-      </section>
+      </section>}
 
       {!model.hasWorkspace && (
-        <EmptyState
-          art={ART_TERMINAL}
-          title={t("commandCenter.emptyTitle")}
-          description={t("commandCenter.emptyDesc")}
-          actions={[
-            { label: t("commandCenter.actionWorkspace"), onClick: () => onNavigate("workspace") },
-            { label: t("commandCenter.actionDoctor"), onClick: () => onNavigate("doctor") },
-          ]}
-        />
+        <div className="cd-command__onboarding">
+          <EmptyState art={ART_TERMINAL} title={t("commandCenter.emptyTitle")}
+            description={t("commandCenter.emptyDesc")}
+            actions={[
+              { label: t("commandCenter.actionWorkspace"), onClick: () => onNavigate("workspace") },
+              { label: t("commandCenter.actionDoctor"), onClick: () => onNavigate("doctor") },
+            ]} />
+          <ol className="cd-command__steps" aria-label={t("commandCenter.onboardingSteps")}>
+            <li><span>01</span><strong>{t("commandCenter.stepChoose")}</strong></li>
+            <li><span>02</span><strong>{t("commandCenter.stepReview")}</strong></li>
+            <li><span>03</span><strong>{t("commandCenter.stepLaunch")}</strong></li>
+          </ol>
+        </div>
       )}
 
       {showRunbooks && (
         <div className="cd-command__runbooks">
           <RunbooksPanel
             cwd={activeWorkspace?.directory}
+            workspaceId={activeWorkspace?.id}
+            onNavigate={onNavigate}
             suggestedPresetIds={suggestedRunbookIds}
             onRunbooksChanged={() => setRunbooksVersion((value) => value + 1)}
             onClose={() => setShowRunbooks(false)}
@@ -622,14 +685,14 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         </div>
       )}
 
-      <div className="cd-command__grid">
+      {model.hasWorkspace && <div className="cd-command__grid">
         <section className="cd-command__panel cd-command__panel--actions">
           <div className="cd-command__section-head">
             <h2>{t("commandCenter.nextActions")}</h2>
             <p>{t("commandCenter.nextActionsHint")}</p>
           </div>
           <div className="cd-command__actions">
-            {model.actions.map((action) => (
+            {model.actions.filter((action) => action.id !== "launch").map((action) => (
               <button
                 key={action.id}
                 type="button"
@@ -660,7 +723,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             <p>{t("commandCenter.readinessHint")}</p>
           </div>
           <div className="cd-command__readiness">
-            {model.readiness.map((card) => (
+            {model.readiness.filter((card) => card.id !== "workspace").map((card) => (
               <Readiness key={card.id} card={card} onNavigate={onNavigate} />
             ))}
           </div>
@@ -681,7 +744,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             }}
             canCreateProfile={Boolean(projectProfileDraft)}
             profileExists={profileSummary.present}
-            onCreateProfile={() => setProfileDraftOpen(true)}
+            onCreateProfile={openProfileDraft}
           />
         </section>
 
@@ -730,7 +793,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             {t("commandCenter.openHistory")}
           </Button>
         </section>
-      </div>
+      </div>}
 
       {killTarget && (
         <ConfirmDialog
@@ -741,6 +804,17 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
           variant="danger"
           onConfirm={confirmKillSession}
           onCancel={() => setKillTarget(null)}
+        />
+      )}
+
+      {approvalTarget && (
+        <ConfirmDialog
+          open
+          title={t("commandCenter.executionApprovalTitle")}
+          message={t(approvalTarget === "launch" ? "commandCenter.executionApprovalLaunch" : "commandCenter.executionApprovalIde")}
+          confirmLabel={t("common.confirm")}
+          onConfirm={confirmExecution}
+          onCancel={() => setApprovalTarget(null)}
         />
       )}
 
@@ -763,7 +837,21 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             if (!profileSaving) setProfileDraftOpen(false);
           }}
         >
-          <pre className="cd-command__profile-preview">{projectProfilePreview}</pre>
+          <div className="cd-command__affected-file">
+            <span>{t("commandCenter.affectedFile")}</span>
+            <code>.ailauncher.json</code>
+          </div>
+          <textarea
+            className="cd-command__profile-editor"
+            value={profileDraftText}
+            onChange={(event) => {
+              setProfileDraftText(event.target.value);
+              setProfileDraftError(null);
+            }}
+            aria-label={t("commandCenter.profileEditorLabel")}
+            spellCheck={false}
+          />
+          {profileDraftError && <p className="cd-command__profile-error" role="alert">{profileDraftError}</p>}
         </ConfirmDialog>
       )}
     </section>

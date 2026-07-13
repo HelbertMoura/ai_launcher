@@ -11,7 +11,7 @@ ai-launcher-tutra/
 ├── src/                      # React frontend
 │   ├── app/                  # App shell, layout, onboarding and boot wiring
 │   ├── features/             # Product surfaces grouped by domain
-│   │   ├── command-center/   # v20 home, workspace intelligence and quick actions
+│   │   ├── command-center/   # v21 home, workspace intelligence and protected quick actions
 │   │   ├── launcher/         # CLI cards, launch dialogs and launch history
 │   │   ├── workspace/        # Workspaces, runbooks, doctor and agent profiles
 │   │   ├── mcp/              # MCP catalog, CRUD and project-scoped health
@@ -28,8 +28,8 @@ ai-launcher-tutra/
 ├── src-tauri/                # Rust backend, Tauri config and Windows icons
 ├── public/                   # Runtime fonts and public icon assets
 ├── docs/                     # Current public docs and release notes
-├── e2e/                      # Playwright smoke/a11y tests
-├── scripts/                  # Release audit and latest.json helpers
+├── e2e/                      # Playwright smoke/a11y/critical workflow and visual baseline tests
+├── scripts/                  # Release readiness, packaged smoke, audits and latest.json helpers
 └── .github/workflows/        # CI, quality and release automation
 ```
 
@@ -68,5 +68,6 @@ The GitHub quality workflow covers typecheck, Vitest, Rust fmt/clippy/tests, car
 1. Update versions in `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/Cargo.lock` and `src-tauri/tauri.conf.json`.
 2. Update `CHANGELOG.md` and `docs/releases/vX.Y.Z.md`.
 3. Run the local quality gates and Tauri build.
-4. Push the tag `vX.Y.Z`; `.github/workflows/release.yml` builds MSI/NSIS, uploads checksums and generates `latest.json`.
-5. Run `scripts/audit-release.sh vX.Y.Z` after the GitHub release finishes.
+4. Run `RELEASE_TAG=vX.Y.Z npm run release:readiness` and packaged smoke against the built exe.
+5. Push the tag `vX.Y.Z`; `.github/workflows/release.yml` builds MSI/NSIS, uploads checksums and generates `latest.json`.
+6. Run `scripts/audit-release.sh vX.Y.Z` after the GitHub release finishes.

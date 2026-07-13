@@ -29,6 +29,7 @@ import {
   updateAgentProfile,
 } from "../agents/agentProfileStore";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { Button } from "../../ui/Button";
 import { showToast } from "../../ui/toastStore";
 import type { HistoryItem } from "../history/useHistory";
 import { useHistory } from "../history/useHistory";
@@ -36,6 +37,7 @@ import { useUsage } from "../costs/useUsage";
 import { getAllBudgetUsage, type BudgetUsage } from "../../providers/budget";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
 import type { TabId } from "../../app/layout/TabId";
+import { buildWorkspaceOverview } from "./workspaceOverviewModel";
 import "../page.css";
 import "./WorkspacePage.css";
 
@@ -65,6 +67,8 @@ interface WorkspacePageProps {
 
 export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) {
   const { t } = useTranslation();
+  const { items: storedHistoryItems } = useHistory();
+  const resolvedHistoryItems = historyItems?.length ? historyItems : storedHistoryItems;
   const [profiles, setProfiles] = useState<WorkspaceProfile[]>(() => loadWorkspaces());
   const [activeId, setActiveId] = useState<string | null>(() => getActiveWorkspaceId());
   const [agentProfiles, setAgentProfiles] = useState<AgentProfile[]>(() => loadAgentProfiles());
@@ -242,12 +246,20 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
   const activeAgent = activeAgentId
     ? agentProfiles.find((profile) => profile.id === activeAgentId) ?? null
     : null;
+  const overview = buildWorkspaceOverview(
+    profiles,
+    agentProfiles,
+    activeProfile,
+    resolvedHistoryItems,
+  );
 
   if (showRunbooks) {
     return (
       <section className="cd-page cd-ws">
         <RunbooksPanel
           cwd={activeProfile?.directory}
+          workspaceId={activeProfile?.id}
+          onNavigate={onNavigate}
           onClose={() => setShowRunbooks(false)}
         />
       </section>
@@ -294,19 +306,19 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
           <p className="cd-page__sub">{t("workspace.subtitle")}</p>
         </div>
         <div className="cd-ws__actions">
-          <button type="button" className="cd-ws__btn" onClick={handleNew}>
+          <Button size="sm" onClick={handleNew}>
             {t("workspace.new")}
-          </button>
-          <button type="button" className="cd-ws__btn cd-ws__btn--ghost" onClick={handleExport}>
+          </Button>
+          <Button size="sm" variant="ghost" onClick={handleExport}>
             {t("workspace.export")}
-          </button>
-          <button
-            type="button"
-            className="cd-ws__btn cd-ws__btn--ghost"
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={() => fileInputRef.current?.click()}
           >
             {t("workspace.import")}
-          </button>
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -317,44 +329,38 @@ export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) 
         </div>
       </header>
 
-      {activeProfile && (
-        <div className="cd-ws__active">
-          <span className="cd-ws__active-label">{t("workspace.active")}</span>
-          <span className="cd-ws__active-name">{activeProfile.name}</span>
-          <span className="cd-ws__active-dir">{activeProfile.directory}</span>
-          <button
-            type="button"
-            className="cd-ws__btn cd-ws__btn--ghost cd-ws__btn--sm"
-            onClick={handleDeactivate}
-          >
-            {t("workspace.deactivate")}
-          </button>
-        </div>
-      )}
-
-      {activeAgent && (
-        <div className="cd-ws__active cd-ws__active--agent">
-          <span className="cd-ws__active-label">{t("workspace.activeAgent")}</span>
-          <span className="cd-ws__active-name">{activeAgent.name}</span>
-          <span className="cd-ws__active-dir">
-            {[activeAgent.cliKey, activeAgent.runbookId, activeAgent.args].filter(Boolean).join(" · ")}
+      <section className="cd-ws-context" aria-label={t("workspace.operatingContext")}>
+        <div className="cd-ws-context__main">
+          <span className="cd-ws-context__eyebrow">{t("workspace.operatingContext")}</span>
+          <strong>{activeProfile?.name ?? t("workspace.noActiveWorkspace")}</strong>
+          <span className="cd-ws-context__path">
+            {activeProfile?.directory ?? t("workspace.selectWorkspaceHint")}
           </span>
-          <button
-            type="button"
-            className="cd-ws__btn cd-ws__btn--ghost cd-ws__btn--sm"
-            onClick={handleDeactivateAgent}
-          >
-            {t("workspace.deactivate")}
-          </button>
+          <div className="cd-ws-context__agent">
+            <span>{t("workspace.activeAgent")}</span>
+            <strong>{activeAgent?.name ?? t("workspace.noActiveAgent")}</strong>
+            {activeAgent && <code>{[activeAgent.cliKey, activeAgent.args].filter(Boolean).join(" · ")}</code>}
+          </div>
         </div>
-      )}
+        <div className="cd-ws-context__metrics" aria-label={t("workspace.overviewLabel")}>
+          <div><strong>{overview.profiles}</strong><span>{t("workspace.metricProfiles")}</span></div>
+          <div><strong>{overview.agents}</strong><span>{t("workspace.metricAgents")}</span></div>
+          <div><strong>{overview.activeSessions}</strong><span>{t("workspace.metricActiveSessions")}</span></div>
+        </div>
+        {(activeProfile || activeAgent) && (
+          <div className="cd-ws-context__actions">
+            {activeProfile && <Button size="sm" variant="ghost" onClick={handleDeactivate}>{t("workspace.deactivateWorkspace")}</Button>}
+            {activeAgent && <Button size="sm" variant="ghost" onClick={handleDeactivateAgent}>{t("workspace.deactivateAgent")}</Button>}
+          </div>
+        )}
+      </section>
 
       <div className="cd-ws-bento">
         <ProfilesCard
           profiles={sorted}
           pinnedCount={pinned.length}
           activeId={activeId}
-          historyItems={historyItems}
+          historyItems={resolvedHistoryItems}
           onActivate={handleActivate}
           onEdit={(p) => {
             setEditing(p);
@@ -818,18 +824,10 @@ function RunbooksCard({ onOpen }: { onOpen: () => void }) {
   const { t } = useTranslation();
   const runbooks = getRunbooks();
 
-  const handleManage = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onOpen();
-    },
-    [onOpen],
-  );
-
   const meta = t("workspace.totalMeta", { count: runbooks.length });
 
   const footer = (
-    <button type="button" className="cd-ws-bento__btn" onClick={handleManage}>
+    <button type="button" className="cd-ws-bento__btn" onClick={onOpen}>
       {t("runbook.manage")}
     </button>
   );
@@ -839,7 +837,6 @@ function RunbooksCard({ onOpen }: { onOpen: () => void }) {
       area="runbooks"
       title={t("workspace.runbooksTitle")}
       meta={meta}
-      onActivate={onOpen}
       footer={footer}
     >
       {runbooks.length === 0 ? (

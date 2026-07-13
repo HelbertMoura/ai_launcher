@@ -7,6 +7,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::io::Read;
+use std::path::{Path, PathBuf};
 use tauri::Emitter;
 
 use crate::util::{compare_versions, download_agent, http_agent};
@@ -24,17 +25,24 @@ pub struct AppUpdateInfo {
     pub version: String,
     /// Current app version (from CARGO_PKG_VERSION).
     pub current_version: String,
-    /// Direct download URL for the Windows installer.
-    pub download_url: String,
-    /// File name of the Windows installer asset (used to match its .sha256).
-    #[serde(default)]
-    pub asset_name: String,
-    /// SHA-256 checksum hex string (from `{asset_name}.sha256` next to the asset).
-    pub checksum: String,
     /// Link to the full release notes on GitHub.
     pub release_notes_url: String,
     /// Short HTML body of the release notes.
     pub release_notes_body: String,
+}
+
+#[derive(Debug, Clone)]
+struct ReleaseCandidate {
+    version: String,
+    download_url: String,
+    asset_name: String,
+    checksum: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct VerifiedUpdateResult {
+    pub version: String,
+    pub asset_name: String,
 }
 
 /// Progress payload emitted during download.
@@ -52,6 +60,7 @@ pub struct DownloadProgress {
 
 const GITHUB_REPO: &str = "HelbertMoura/ai_launcher";
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const MAX_UPDATE_BYTES: u64 = 250 * 1024 * 1024;
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -60,6 +69,10 @@ const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Check GitHub Releases for the latest AI Launcher version.
 #[tauri::command]
 pub fn check_app_update() -> Result<AppUpdateInfo, String> {
+    fetch_release_candidate().map(|(info, _candidate)| info)
+}
+
+fn fetch_release_candidate() -> Result<(AppUpdateInfo, ReleaseCandidate), String> {
     let url = format!(
         "https://api.github.com/repos/{}/releases/latest",
         GITHUB_REPO
@@ -76,13 +89,16 @@ pub fn check_app_update() -> Result<AppUpdateInfo, String> {
 
     let tag = json["tag_name"].as_str().ok_or("Resposta sem tag_name")?;
     let version = tag.trim_start_matches('v').to_string();
+    if tag != format!("v{version}") {
+        return Err("Tag de release fora do formato v<semver>".to_string());
+    }
 
     let update_available = compare_versions(CURRENT_VERSION, &version);
 
     // Find the NSIS installer asset first, fallback to MSI.
     let assets = json["assets"].as_array().ok_or("Resposta sem assets")?;
 
-    let (download_url, asset_name, checksum) = find_windows_asset(assets, &version)?;
+    let (download_url, asset_name, checksum) = find_windows_asset(assets, tag, &version)?;
 
     let release_notes_url = json["html_url"].as_str().unwrap_or_default().to_string();
 
@@ -93,36 +109,39 @@ pub fn check_app_update() -> Result<AppUpdateInfo, String> {
         .take(2000)
         .collect();
 
-    Ok(AppUpdateInfo {
+    let info = AppUpdateInfo {
         update_available,
-        version,
+        version: version.clone(),
         current_version: CURRENT_VERSION.to_string(),
+        release_notes_url,
+        release_notes_body,
+    };
+    let candidate = ReleaseCandidate {
+        version,
         download_url,
         asset_name,
         checksum,
-        release_notes_url,
-        release_notes_body,
-    })
+    };
+    Ok((info, candidate))
 }
 
-/// Download the installer to a temp directory, emitting progress events.
-/// Returns the local file path on success.
+/// Re-resolve, download and verify the requested latest release entirely in
+/// the backend. The frontend never supplies a URL, checksum or destination.
 #[tauri::command]
-pub async fn download_app_update(
+pub async fn download_verified_app_update(
     app: tauri::AppHandle,
-    _version: String,
-    download_url: String,
-) -> Result<String, String> {
+    version: String,
+) -> Result<VerifiedUpdateResult, String> {
+    let (_info, candidate) = tokio::task::spawn_blocking(fetch_release_candidate)
+        .await
+        .map_err(|e| format!("Release lookup thread failed: {e}"))??;
+    if candidate.version != version {
+        return Err("A release mudou desde a última verificação; verifique novamente".to_string());
+    }
+
     let temp_dir = std::env::temp_dir().join("ai-launcher-update");
     std::fs::create_dir_all(&temp_dir).map_err(|e| format!("mkdir: {e}"))?;
-
-    // Derive filename from URL.
-    let file_name = download_url
-        .rsplit('/')
-        .next()
-        .unwrap_or("ai-launcher-update.exe")
-        .to_string();
-    let file_path = temp_dir.join(&file_name);
+    let file_path = temp_dir.join(&candidate.asset_name);
 
     // Emit start event.
     let _ = app.emit(
@@ -138,9 +157,11 @@ pub async fn download_app_update(
     // Download with progress tracking via a separate thread.
     let app_clone = app.clone();
     let file_path_clone = file_path.clone();
+    let download_url = candidate.download_url.clone();
+    let checksum = candidate.checksum.clone();
 
     let result = tokio::task::spawn_blocking(move || {
-        download_with_progress(&app_clone, &download_url, &file_path_clone)
+        download_and_verify(&app_clone, &download_url, &file_path_clone, &checksum)
     })
     .await
     .map_err(|e| format!("Thread error: {e}"))?;
@@ -156,7 +177,11 @@ pub async fn download_app_update(
                     percent: 100,
                 },
             );
-            Ok(path)
+            reveal_verified_update(&path)?;
+            Ok(VerifiedUpdateResult {
+                version: candidate.version,
+                asset_name: candidate.asset_name,
+            })
         }
         Err(e) => {
             let _ = app.emit(
@@ -171,64 +196,6 @@ pub async fn download_app_update(
             Err(e)
         }
     }
-}
-
-/// Verify the SHA-256 checksum of the downloaded file.
-///
-/// Hashes the EXACT `file_path` returned by `download_app_update` (not a
-/// best-guess scan of the temp dir). An empty `expected_checksum` is rejected
-/// so the frontend can never skip verification silently. After hashing, the
-/// download temp dir is cleaned up.
-#[tauri::command]
-pub fn verify_update_checksum(
-    _version: String,
-    file_path: String,
-    expected_checksum: String,
-) -> Result<bool, String> {
-    if expected_checksum.trim().is_empty() {
-        return Err("Checksum esperado ausente; atualizacao abortada".into());
-    }
-
-    let path = std::path::PathBuf::from(&file_path);
-    if !path.is_file() {
-        return Err(format!(
-            "Arquivo de atualizacao nao encontrado: {file_path}"
-        ));
-    }
-
-    // Guard against path traversal: `file_path` arrives over IPC from the
-    // frontend, so a malicious value (e.g. "../../sensitive.dat") could make us
-    // hash and read an arbitrary file. Canonicalize both the candidate and the
-    // expected download directory, then require the candidate to live inside it.
-    let expected_dir = std::env::temp_dir().join("ai-launcher-update");
-    let canonical_dir = expected_dir
-        .canonicalize()
-        .map_err(|e| format!("Diretorio de atualizacao indisponivel: {e}"))?;
-    let canonical_path = path
-        .canonicalize()
-        .map_err(|e| format!("Caminho de atualizacao invalido: {e}"))?;
-    if !canonical_path.starts_with(&canonical_dir) {
-        return Err("Caminho de atualizacao fora do diretorio permitido; abortado".into());
-    }
-
-    let data = std::fs::read(&canonical_path).map_err(|e| format!("Erro ao ler arquivo: {e}"))?;
-
-    let mut hasher = Sha256::new();
-    hasher.update(&data);
-    let result = hasher.finalize();
-    let actual = format!("{:x}", result);
-
-    let valid = actual.eq_ignore_ascii_case(expected_checksum.trim());
-
-    // On failure, the file is corrupted/tampered — remove the whole download
-    // temp dir so a bad installer can never be launched. On success keep it:
-    // the frontend opens the installer right after this call.
-    if !valid {
-        let temp_dir = std::env::temp_dir().join("ai-launcher-update");
-        let _ = std::fs::remove_dir_all(&temp_dir);
-    }
-
-    Ok(valid)
 }
 
 // ---------------------------------------------------------------------------
@@ -246,7 +213,8 @@ pub fn verify_update_checksum(
 /// that would let the frontend skip verification entirely.
 fn find_windows_asset(
     assets: &[serde_json::Value],
-    _version: &str,
+    tag: &str,
+    version: &str,
 ) -> Result<(String, String, String), String> {
     // Prefer NSIS installer (.exe ending in -setup.exe), then MSI.
     let mut download_url: Option<String> = None;
@@ -259,14 +227,17 @@ fn find_windows_asset(
             .unwrap_or("")
             .to_string();
 
+        if !is_safe_asset_name(name, version) {
+            continue;
+        }
         // NSIS installer: AI-Launcher_x64-setup.exe
-        if name.ends_with("-setup.exe") && name.contains("x64") {
+        if name.ends_with("-setup.exe") {
             download_url = Some(url);
             asset_name = Some(name.to_string());
             continue;
         }
         // MSI fallback
-        if download_url.is_none() && name.ends_with(".msi") && name.contains("x64") {
+        if download_url.is_none() && name.ends_with(".msi") {
             download_url = Some(url);
             asset_name = Some(name.to_string());
         }
@@ -274,21 +245,43 @@ fn find_windows_asset(
 
     let download_url = download_url.ok_or("Nenhum instalador Windows encontrado no release")?;
     let asset_name = asset_name.ok_or("Nenhum instalador Windows encontrado no release")?;
+    validate_release_asset_url(&download_url, tag, &asset_name)?;
 
     // Match the checksum asset by the installer's exact file name.
     let checksum_url = find_checksum_url(assets, &asset_name).ok_or_else(|| {
         format!("Checksum (.sha256) ausente para {asset_name}; atualizacao abortada")
     })?;
-
-    // Fetch and parse the checksum. An unreadable/empty checksum aborts the update.
-    let checksum = fetch_checksum(&checksum_url);
-    if checksum.is_empty() {
-        return Err(format!(
-            "Falha ao obter checksum de {asset_name}; atualizacao abortada"
-        ));
+    let valid_checksum_urls = [
+        format!("{download_url}.sha256"),
+        format!("{download_url}.checksum"),
+    ];
+    if !valid_checksum_urls.iter().any(|url| url == &checksum_url) {
+        return Err("URL do checksum não corresponde ao asset aprovado".to_string());
     }
 
+    // Fetch and parse the checksum. An unreadable/empty checksum aborts the update.
+    let checksum = fetch_checksum(&checksum_url)?;
+
     Ok((download_url, asset_name, checksum))
+}
+
+fn is_safe_asset_name(name: &str, version: &str) -> bool {
+    !name.is_empty()
+        && name.len() <= 180
+        && name.contains("x64")
+        && name.contains(version)
+        && (name.ends_with("-setup.exe") || name.ends_with(".msi"))
+        && name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-'))
+}
+
+fn validate_release_asset_url(url: &str, tag: &str, asset_name: &str) -> Result<(), String> {
+    let expected = format!("https://github.com/{GITHUB_REPO}/releases/download/{tag}/{asset_name}");
+    if url != expected {
+        return Err("URL do instalador não pertence à release oficial esperada".to_string());
+    }
+    Ok(())
 }
 
 /// Find the `browser_download_url` of the checksum asset that matches `asset_name`.
@@ -308,29 +301,39 @@ fn find_checksum_url(assets: &[serde_json::Value], asset_name: &str) -> Option<S
 }
 
 /// Fetch and parse a checksum file. Expected format: `<hash>  <filename>` or just `<hash>`.
-fn fetch_checksum(url: &str) -> String {
+fn fetch_checksum(url: &str) -> Result<String, String> {
     http_agent()
         .get(url)
         .call()
-        .ok()
+        .map_err(|e| format!("Falha ao obter checksum: {e}"))
         .and_then(|resp| {
             let mut body = String::new();
-            resp.into_reader().read_to_string(&mut body).ok()?;
-            // Take the first hex token.
-            body.split_whitespace()
-                .next()
-                .filter(|s| s.chars().all(|c| c.is_ascii_hexdigit()))
-                .map(|s| s.to_lowercase())
+            resp.into_reader()
+                .read_to_string(&mut body)
+                .map_err(|e| format!("Falha ao ler checksum: {e}"))?;
+            parse_checksum(&body)
         })
-        .unwrap_or_default()
 }
 
-/// Download a file with chunk-based progress events.
-fn download_with_progress(
+fn parse_checksum(body: &str) -> Result<String, String> {
+    body.split_whitespace()
+        .next()
+        .filter(|s| s.len() == 64 && s.chars().all(|c| c.is_ascii_hexdigit()))
+        .map(|s| s.to_lowercase())
+        .ok_or_else(|| "Checksum SHA-256 inválido".to_string())
+}
+
+fn download_and_verify(
     app: &tauri::AppHandle,
     url: &str,
-    dest: &std::path::Path,
-) -> Result<String, String> {
+    dest: &Path,
+    expected_checksum: &str,
+) -> Result<PathBuf, String> {
+    use std::fs::OpenOptions;
+    use std::io::Write;
+
+    let partial = dest.with_extension("part");
+    let _ = std::fs::remove_file(&partial);
     let resp = download_agent()
         .get(url)
         .call()
@@ -340,41 +343,95 @@ fn download_with_progress(
         .header("Content-Length")
         .and_then(|v| v.parse::<u64>().ok())
         .unwrap_or(0);
+    if total > MAX_UPDATE_BYTES {
+        return Err("Update excede o limite máximo de download".to_string());
+    }
     let mut reader = resp.into_reader();
-    let mut file = std::fs::File::create(dest).map_err(|e| format!("File create: {e}"))?;
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&partial)
+        .map_err(|e| format!("File create: {e}"))?;
 
     let mut downloaded: u64 = 0;
     let mut buf = [0u8; 64 * 1024]; // 64 KB chunks
     let mut last_percent: u8 = 0;
+    let mut hasher = Sha256::new();
 
-    loop {
-        let n = reader
-            .read(&mut buf)
-            .map_err(|e| format!("Read error: {e}"))?;
-        if n == 0 {
-            break;
-        }
-        std::io::Write::write_all(&mut file, &buf[..n]).map_err(|e| format!("Write error: {e}"))?;
-        downloaded += n as u64;
+    let result = (|| -> Result<(), String> {
+        loop {
+            let n = reader
+                .read(&mut buf)
+                .map_err(|e| format!("Read error: {e}"))?;
+            if n == 0 {
+                break;
+            }
+            downloaded += n as u64;
+            if downloaded > MAX_UPDATE_BYTES {
+                return Err("Update excede o limite máximo de download".to_string());
+            }
+            file.write_all(&buf[..n])
+                .map_err(|e| format!("Write error: {e}"))?;
+            hasher.update(&buf[..n]);
 
-        if total > 0 {
-            let percent = ((downloaded as f64 / total as f64) * 100.0) as u8;
-            if percent != last_percent && percent.is_multiple_of(5) {
-                last_percent = percent;
-                let _ = app.emit(
-                    "app-update-download",
-                    DownloadProgress {
-                        phase: "downloading".into(),
-                        downloaded,
-                        total,
-                        percent,
-                    },
-                );
+            if total > 0 {
+                let percent = ((downloaded as f64 / total as f64) * 100.0) as u8;
+                if percent != last_percent && percent.is_multiple_of(5) {
+                    last_percent = percent;
+                    let _ = app.emit(
+                        "app-update-download",
+                        DownloadProgress {
+                            phase: "downloading".into(),
+                            downloaded,
+                            total,
+                            percent,
+                        },
+                    );
+                }
             }
         }
+        file.flush().map_err(|e| format!("Flush error: {e}"))?;
+        file.sync_all().map_err(|e| format!("Sync error: {e}"))?;
+
+        let _ = app.emit(
+            "app-update-download",
+            DownloadProgress {
+                phase: "verifying".into(),
+                downloaded,
+                total,
+                percent: 100,
+            },
+        );
+        let actual = format!("{:x}", hasher.finalize());
+        if !actual.eq_ignore_ascii_case(expected_checksum) {
+            return Err("Checksum verification failed".to_string());
+        }
+        Ok(())
+    })();
+
+    if let Err(error) = result {
+        drop(file);
+        let _ = std::fs::remove_file(&partial);
+        return Err(error);
     }
 
-    Ok(dest.to_string_lossy().to_string())
+    drop(file);
+    if dest.exists() {
+        std::fs::remove_file(dest).map_err(|e| format!("Stale update cleanup failed: {e}"))?;
+    }
+    std::fs::rename(&partial, dest).map_err(|e| format!("Update finalize failed: {e}"))?;
+    Ok(dest.to_path_buf())
+}
+
+fn reveal_verified_update(path: &Path) -> Result<(), String> {
+    if !path.is_file() {
+        return Err("Verified update file is unavailable".to_string());
+    }
+    std::process::Command::new("explorer")
+        .arg(format!("/select,{}", path.display()))
+        .spawn()
+        .map_err(|e| format!("Failed to reveal verified update: {e}"))?;
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -428,49 +485,45 @@ mod tests {
 
     #[test]
     fn aborts_when_checksum_asset_missing() {
-        let assets = vec![
-            json!({ "name": "AI-Launcher_x64-setup.exe", "browser_download_url": "https://x/setup.exe" }),
-        ];
-        let result = find_windows_asset(&assets, "15.2.6");
+        let assets = vec![json!({
+            "name": "AI-Launcher_15.2.6_x64-setup.exe",
+            "browser_download_url": "https://github.com/HelbertMoura/ai_launcher/releases/download/v15.2.6/AI-Launcher_15.2.6_x64-setup.exe"
+        })];
+        let result = find_windows_asset(&assets, "v15.2.6", "15.2.6");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Checksum"));
     }
 
     #[test]
-    fn verify_rejects_empty_checksum() {
-        let result = verify_update_checksum("15.2.6".into(), "whatever".into(), "   ".into());
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Checksum"));
+    fn rejects_unsafe_asset_names() {
+        assert!(!is_safe_asset_name(
+            "..\\evil-15.2.6-x64-setup.exe",
+            "15.2.6"
+        ));
+        assert!(!is_safe_asset_name("AI-Launcher_x64-setup.exe", "15.2.6"));
+        assert!(is_safe_asset_name(
+            "AI-Launcher_15.2.6_x64-setup.exe",
+            "15.2.6"
+        ));
     }
 
     #[test]
-    fn verify_rejects_path_outside_update_dir() {
-        // A file that exists but lives outside the allowed update dir (e.g. a
-        // path-traversal attempt) must be rejected before it is read/hashed.
-        use std::io::Write;
-        let mut outside = std::env::temp_dir();
-        outside.push(format!("ai-launcher-traversal-{}.dat", std::process::id()));
-        {
-            let mut f = std::fs::File::create(&outside).expect("create temp file");
-            f.write_all(b"secret").expect("write temp file");
-        }
+    fn validates_exact_official_release_url() {
+        let name = "AI-Launcher_15.2.6_x64-setup.exe";
+        let valid = format!("https://github.com/{GITHUB_REPO}/releases/download/v15.2.6/{name}");
+        assert!(validate_release_asset_url(&valid, "v15.2.6", name).is_ok());
+        assert!(validate_release_asset_url(
+            "https://example.com/AI-Launcher_15.2.6_x64-setup.exe",
+            "v15.2.6",
+            name
+        )
+        .is_err());
+    }
 
-        let result = verify_update_checksum(
-            "15.2.6".into(),
-            outside.to_string_lossy().to_string(),
-            "abc123".into(),
-        );
-        let _ = std::fs::remove_file(&outside);
-
-        assert!(result.is_err());
-        let err = result.unwrap_err();
-        // Either the allowed dir does not exist yet, or the path is outside it —
-        // both are rejections, never a successful hash of an arbitrary file.
-        assert!(
-            err.contains("fora do diretorio")
-                || err.contains("Diretorio de atualizacao")
-                || err.contains("Caminho de atualizacao"),
-            "unexpected error: {err}"
-        );
+    #[test]
+    fn checksum_must_be_exact_sha256_hex() {
+        assert!(parse_checksum(&"a".repeat(64)).is_ok());
+        assert!(parse_checksum("abc123").is_err());
+        assert!(parse_checksum(&"z".repeat(64)).is_err());
     }
 }

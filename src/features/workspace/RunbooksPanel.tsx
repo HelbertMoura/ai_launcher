@@ -11,6 +11,7 @@ import { Button } from '../../ui/Button';
 import { Card } from '../../ui/Card';
 import { showToast } from '../../ui/toastStore';
 import type { Runbook } from '../../domain/types';
+import type { TabId } from '../../app/layout/TabId';
 import { createRunbook, getRunbook, getRunbooks } from './runbookStore';
 import {
   getSuggestedRunbookPresets,
@@ -19,12 +20,15 @@ import {
 } from './runbookPresets';
 import { RunbookEditor } from './RunbookEditor';
 import { RunbookRunner } from './RunbookRunner';
+import { WorkspaceTimeline } from './WorkspaceTimeline';
 import './Runbook.css';
 
 interface RunbooksPanelProps {
   onClose: () => void;
   /** Working directory forwarded to runbook step execution. */
   cwd?: string;
+  workspaceId?: string;
+  onNavigate?: (tab: TabId) => void;
   suggestedPresetIds?: string[];
   onRunbooksChanged?: () => void;
 }
@@ -34,6 +38,8 @@ type Mode = 'list' | 'edit' | 'run';
 export function RunbooksPanel({
   onClose,
   cwd,
+  workspaceId,
+  onNavigate,
   suggestedPresetIds = [],
   onRunbooksChanged,
 }: RunbooksPanelProps) {
@@ -117,7 +123,7 @@ export function RunbooksPanel({
   if (mode === 'run' && selected) {
     return (
       <section className="cd-rb-panel">
-        <RunbookRunner runbook={selected} cwd={cwd} onClose={() => handleEdit(selected.id)} />
+        <RunbookRunner runbook={selected} cwd={cwd} workspaceId={workspaceId} onClose={() => handleEdit(selected.id)} />
       </section>
     );
   }
@@ -177,6 +183,15 @@ export function RunbooksPanel({
             </li>
           ))}
         </ul>
+      )}
+
+      {workspaceId && cwd && (
+        <WorkspaceTimeline
+          workspaceId={workspaceId}
+          directory={cwd}
+          onNavigate={onNavigate}
+          onOpenRunbook={handleRun}
+        />
       )}
     </section>
   );

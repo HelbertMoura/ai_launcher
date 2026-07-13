@@ -5,8 +5,9 @@ import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Dialog } from "../../ui/Dialog";
 import { TAB_KEYS } from "../../app/layout/TabId";
-import { ONBOARDING_STORAGE_KEY } from "../../app/onboarding";
+import { removeKey } from "../../lib/storage";
 import { AnimatedTerminal } from "./AnimatedTerminal";
+import pkg from "../../../package.json";
 import "../page.css";
 import "./HelpPage.css";
 
@@ -55,11 +56,7 @@ export function HelpPage() {
   };
 
   const resetOnboarding = () => {
-    try {
-      localStorage.removeItem(ONBOARDING_STORAGE_KEY);
-    } catch {
-      /* ignore */
-    }
+    removeKey("onboardingDone");
     setConfirmOpen(false);
     window.location.reload();
   };
@@ -73,15 +70,21 @@ export function HelpPage() {
         </div>
       </header>
 
-      <div className="cd-help__stack">
-        <AnimatedTerminal />
+      <div className="cd-help__layout">
+        <section className="cd-help__hero" aria-label={t("help.overviewLabel")}>
+          <AnimatedTerminal />
+          <div className="cd-help__intro">
+            <h2 className="cd-help__heading">{t("help.gettingStarted")}</h2>
+            <p className="cd-help__body">{t("help.gettingStartedBody")}</p>
+            <div className="cd-help__chips">
+              <span>{t("help.localOnly")}</span>
+              <span>{t("help.secureStorage")}</span>
+              <span>{t("help.commandDeck")}</span>
+            </div>
+          </div>
+        </section>
 
-        <Card className="cd-help__section">
-          <h2 className="cd-help__heading">{t("help.gettingStarted")}</h2>
-          <p className="cd-help__body">{t("help.gettingStartedBody")}</p>
-        </Card>
-
-        <Card className="cd-help__section">
+        <Card className="cd-help__section cd-help__section--shortcuts">
           <h2 className="cd-help__heading">{t("help.shortcuts")}</h2>
           <table className="cd-help__table">
             <tbody>
@@ -97,7 +100,7 @@ export function HelpPage() {
           </table>
         </Card>
 
-        <Card className="cd-help__section">
+        <Card className="cd-help__section cd-help__section--wide">
           <h2 className="cd-help__heading">{t("help.troubleshooting")}</h2>
           <ul className="cd-help__faqs">
             {faqs.map((f) => (
@@ -143,7 +146,7 @@ export function HelpPage() {
           <p className="cd-help__body">
             Made with ♥ by <strong>Helbert Moura</strong> · <strong>DevManiac's</strong>
           </p>
-          <p className="cd-help__version">v11.0.0 · MIT License</p>
+          <p className="cd-help__version">v{pkg.version} · MIT License</p>
         </Card>
       </div>
 

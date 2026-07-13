@@ -22,6 +22,7 @@
 // ==============================================================================
 
 import { REGISTRY, type RegistryId, type RegistryEntry } from './registry';
+import type { z } from 'zod';
 
 export { STORAGE_KEYS } from './keys';
 export type { StorageKeyId } from './keys';
@@ -35,6 +36,10 @@ type ValueOf<I extends RegistryId> = (typeof REGISTRY)[I] extends RegistryEntry<
 function warn(scope: string, message: string, err?: unknown): void {
   // Centralized warning channel — keeps corruption visible without crashing.
   console.warn(`[storage:${scope}] ${message}`, err ?? '');
+}
+
+function cloneDefault<T>(value: T): T {
+  return value !== null && typeof value === 'object' ? structuredClone(value) : value;
 }
 
 /** Low-level: read the raw deserialized value for an entry, or undefined. */
@@ -63,11 +68,11 @@ function rawRead(entry: RegistryEntry): unknown {
 export function readKey<I extends RegistryId>(id: I): ValueOf<I> {
   const entry = REGISTRY[id] as RegistryEntry<ValueOf<I>>;
   const raw = rawRead(entry);
-  if (raw === undefined) return entry.default;
+  if (raw === undefined) return cloneDefault(entry.default);
   const result = entry.schema.safeParse(raw);
   if (!result.success) {
     warn(entry.id, `validation failed for "${entry.key}", falling back to default`, result.error.issues[0]);
-    return entry.default;
+    return cloneDefault(entry.default);
   }
   return result.data;
 }
@@ -77,7 +82,7 @@ export function readKey<I extends RegistryId>(id: I): ValueOf<I> {
  * error can't write garbage that later loads as default. Returns false on
  * validation/serialization/storage failure (logged, never thrown).
  */
-export function writeKey<I extends RegistryId>(id: I, value: ValueOf<I>): boolean {
+export function writeKey<I extends RegistryId>(id: I, value: unknown): boolean {
   const entry = REGISTRY[id] as RegistryEntry<ValueOf<I>>;
   const result = entry.schema.safeParse(value);
   if (!result.success) {
@@ -104,6 +109,58 @@ export function removeKey(id: RegistryId): void {
     localStorage.removeItem(entry.key);
   } catch (err) {
     warn(entry.id, `failed to remove "${entry.key}"`, err);
+  }
+}
+
+/** Validated access for namespaced keys such as pinned dirs and provider tests. */
+export function readScoped<T>(key: string, schema: z.ZodType<T>, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    const result = schema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : fallback;
+  } catch (err) {
+    warn(key, 'failed to read scoped value', err);
+    return fallback;
+  }
+}
+
+export function writeScoped<T>(key: string, schema: z.ZodType<T>, value: T): boolean {
+  const result = schema.safeParse(value);
+  if (!result.success) {
+    warn(key, 'refused to write invalid scoped value', result.error.issues[0]);
+    return false;
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(result.data));
+    return true;
+  } catch (err) {
+    warn(key, 'failed to persist scoped value', err);
+    return false;
+  }
+}
+
+export function removeScoped(key: string): void {
+  try { localStorage.removeItem(key); } catch (err) { warn(key, 'failed to remove scoped value', err); }
+}
+
+export function readTextScoped(key: string): string | null {
+  try { return localStorage.getItem(key); } catch (err) { warn(key, 'failed to read scoped text', err); return null; }
+}
+
+/** Restore/import helper for a registry entry selected at runtime. */
+export function writeEntryValue(entry: RegistryEntry, value: unknown): boolean {
+  const result = entry.schema.safeParse(value);
+  if (!result.success) {
+    warn(entry.id, `refused invalid imported value for "${entry.key}"`, result.error.issues[0]);
+    return false;
+  }
+  try {
+    localStorage.setItem(entry.key, entry.serialize === 'raw' ? String(result.data) : JSON.stringify(result.data));
+    return true;
+  } catch (err) {
+    warn(entry.id, `failed to restore "${entry.key}"`, err);
+    return false;
   }
 }
 

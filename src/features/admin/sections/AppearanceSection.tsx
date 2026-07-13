@@ -7,13 +7,13 @@ import { useTheme, type Theme } from "../../../hooks/useTheme";
 import {
   applyFontStack,
   FONT_OPTIONS,
-  FONT_STORAGE_KEY,
   type FontId,
 } from "../../../lib/appearance";
 import { setLocale, SUPPORTED_LOCALES, type Locale } from "../../../i18n";
 import { AutoStartToggle } from "./AutoStartToggle";
 import { HotkeyField } from "./HotkeyField";
 import { NotificationsToggle } from "./NotificationsToggle";
+import { readKey, writeKey } from "../../../lib/storage";
 
 const THEMES: Theme[] = [
   "dark",
@@ -36,8 +36,7 @@ const THEME_LABELS: Record<Theme, string> = {
 };
 
 function readStoredFont(): FontId {
-  try {
-    const raw = localStorage.getItem(FONT_STORAGE_KEY);
+    const raw = readKey("displayFont");
     if (
       raw === "jetbrains" ||
       raw === "plex" ||
@@ -47,9 +46,6 @@ function readStoredFont(): FontId {
     ) {
       return raw;
     }
-  } catch {
-    /* noop */
-  }
   return "jetbrains";
 }
 
@@ -74,11 +70,7 @@ export function AppearanceSection() {
 
   useEffect(() => {
     applyFontStack(fontId);
-    try {
-      localStorage.setItem(FONT_STORAGE_KEY, fontId);
-    } catch {
-      /* noop */
-    }
+    writeKey("displayFont", fontId);
   }, [fontId]);
 
   return (

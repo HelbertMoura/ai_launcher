@@ -47,6 +47,7 @@ export interface ActiveSessionInput {
 }
 
 export interface CommandCenterModel {
+  state: "empty" | "loading" | "error" | "ready" | "running" | "degraded";
   workspaceName: string;
   workspaceDirectory: string;
   workspaceCount: number;
@@ -185,6 +186,17 @@ export function buildCommandCenterModel(input: CommandCenterInput): CommandCente
   const tools = input.tools;
   const installedTools = tools?.installed ?? 0;
   const toolsLoading = tools?.loading ?? false;
+  const state: CommandCenterModel["state"] = !hasWorkspace
+    ? "empty"
+    : doctor?.loading || mcp?.loading || projectProfile?.loading || toolsLoading
+      ? "loading"
+      : doctor?.error && mcp?.error && tools?.error
+        ? "error"
+        : activeSessionCount > 0
+          ? "running"
+          : doctor?.critical || doctor?.error || mcp?.error || projectProfile?.error || tools?.error
+            ? "degraded"
+            : "ready";
 
   const actions: CommandCenterAction[] = [
     {
@@ -336,6 +348,7 @@ export function buildCommandCenterModel(input: CommandCenterInput): CommandCente
   ];
 
   return {
+    state,
     workspaceName: activeWorkspace?.name ?? "No active workspace",
     workspaceDirectory: activeWorkspace?.directory ?? "Pick or create a workspace to start",
     workspaceCount: workspaces.length,

@@ -12,10 +12,12 @@
 // command into a larger PowerShell statement — it is passed as a single
 // argument to `-Command`, and shell metacharacters are already rejected.
 
+use std::collections::HashMap;
 use std::os::windows::process::CommandExt;
 use std::path::{Component, Path};
 use std::process::Command;
 use std::sync::mpsc;
+use std::sync::{Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
 
@@ -63,6 +65,42 @@ pub struct ConditionResult {
 
 /// Maximum bytes of stdout/stderr surfaced to the UI (per stream).
 const MAX_OUTPUT_CHARS: usize = 20_000;
+
+static ACTIVE_RUNBOOK_PROCESSES: OnceLock<Mutex<HashMap<String, u32>>> = OnceLock::new();
+
+fn active_processes() -> &'static Mutex<HashMap<String, u32>> {
+    ACTIVE_RUNBOOK_PROCESSES.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn validate_execution_id(value: &str) -> Result<&str, String> {
+    let value = value.trim();
+    if value.is_empty()
+        || value.len() > 128
+        || !value
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_'))
+    {
+        return Err("Identificador de execução inválido".into());
+    }
+    Ok(value)
+}
+
+fn kill_process_tree(pid: u32) -> Result<(), String> {
+    let mut kill = Command::new("taskkill");
+    kill.args(["/F", "/T", "/PID", &pid.to_string()]);
+    kill.creation_flags(CREATE_NO_WINDOW);
+    let output = kill
+        .output()
+        .map_err(|error| format!("Falha ao interromper o processo: {}", error))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "Falha ao interromper o processo: {}",
+            cap_output(&output.stderr)
+        ))
+    }
+}
 
 fn cap_output(raw: &[u8]) -> String {
     let text = String::from_utf8_lossy(raw);
@@ -174,11 +212,11 @@ pub fn evaluate_runbook_condition(
 /// - `command`: the shell command to run (sanitized; metacharacters rejected).
 /// - `cwd`: optional working directory (validated; empty/None -> user home).
 /// - `timeout_secs`: optional per-step timeout (clamped to `MAX_STEP_TIMEOUT_SECS`).
-#[tauri::command]
-pub fn run_runbook_step(
+fn run_runbook_step_blocking(
     command: String,
     cwd: Option<String>,
     timeout_secs: Option<u64>,
+    execution_id: Option<String>,
 ) -> Result<StepResult, String> {
     let trimmed = command.trim();
     if trimmed.is_empty() {
@@ -189,6 +227,11 @@ pub fn run_runbook_step(
     // Validate cwd; empty/None resolves to the user's home directory.
     let dir = validate_directory(cwd.as_deref().unwrap_or(""))?;
     let timeout = resolve_timeout(timeout_secs);
+    let tracked_execution_id = execution_id
+        .as_deref()
+        .map(validate_execution_id)
+        .transpose()?
+        .map(str::to_owned);
 
     let mut cmd = Command::new("powershell");
     cmd.args(["-NoProfile", "-NonInteractive", "-Command", &safe_command]);
@@ -201,21 +244,24 @@ pub fn run_runbook_step(
         .spawn()
         .map_err(|e| format!("Falha ao iniciar o comando: {}", e))?;
     let pid = child.id();
+    if let Some(id) = tracked_execution_id.as_ref() {
+        active_processes()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .insert(id.clone(), pid);
+    }
 
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
         let _ = tx.send(child.wait_with_output());
     });
 
-    match rx.recv_timeout(Duration::from_secs(timeout)) {
+    let result = match rx.recv_timeout(Duration::from_secs(timeout)) {
         Ok(Ok(output)) => Ok(result_from_output(&output)),
         Ok(Err(e)) => Err(format!("Erro ao aguardar o processo: {}", e)),
         Err(_) => {
             // Timed out: terminate the process tree.
-            let mut kill = Command::new("taskkill");
-            kill.args(["/F", "/T", "/PID", &pid.to_string()]);
-            kill.creation_flags(CREATE_NO_WINDOW);
-            let _ = kill.output();
+            let _ = kill_process_tree(pid);
             Ok(StepResult {
                 ok: false,
                 exit_code: None,
@@ -224,7 +270,45 @@ pub fn run_runbook_step(
                 timed_out: true,
             })
         }
+    };
+    if let Some(id) = tracked_execution_id {
+        let mut active = active_processes()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if active.get(&id) == Some(&pid) {
+            active.remove(&id);
+        }
     }
+    result
+}
+
+#[tauri::command]
+pub async fn run_runbook_step(
+    command: String,
+    cwd: Option<String>,
+    timeout_secs: Option<u64>,
+    execution_id: Option<String>,
+) -> Result<StepResult, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        run_runbook_step_blocking(command, cwd, timeout_secs, execution_id)
+    })
+    .await
+    .map_err(|error| format!("Falha interna ao executar o passo: {}", error))?
+}
+
+#[tauri::command]
+pub fn stop_runbook_execution(execution_id: String) -> Result<bool, String> {
+    let id = validate_execution_id(&execution_id)?;
+    let pid = active_processes()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .get(id)
+        .copied();
+    let Some(pid) = pid else {
+        return Ok(false);
+    };
+    kill_process_tree(pid)?;
+    Ok(true)
 }
 
 #[cfg(test)]
@@ -262,7 +346,7 @@ mod tests {
 
     #[test]
     fn empty_command_is_rejected() {
-        let res = run_runbook_step("   ".to_string(), None, None);
+        let res = run_runbook_step_blocking("   ".to_string(), None, None, None);
         assert!(res.is_err());
         assert!(res.unwrap_err().contains("vazio"));
     }
@@ -270,15 +354,16 @@ mod tests {
     #[test]
     fn command_with_metacharacters_is_rejected() {
         // `sanitize_args` rejects shell metacharacters before any process spawns.
-        let res = run_runbook_step("echo hi; rm -rf /".to_string(), None, None);
+        let res = run_runbook_step_blocking("echo hi; rm -rf /".to_string(), None, None, None);
         assert!(res.is_err());
     }
 
     #[test]
     fn nonexistent_cwd_is_rejected() {
-        let res = run_runbook_step(
+        let res = run_runbook_step_blocking(
             "echo hi".to_string(),
             Some(r"C:\__definitely_missing_dir_xyz__".to_string()),
+            None,
             None,
         );
         assert!(res.is_err());
@@ -330,5 +415,47 @@ mod tests {
         };
         let res = evaluate_runbook_condition(condition, None).expect("condition");
         assert!(!res.ok);
+    }
+
+    #[test]
+    fn execution_id_is_bounded_and_shell_safe() {
+        assert!(validate_execution_id("run-safe_123").is_ok());
+        assert!(validate_execution_id("run;taskkill").is_err());
+        assert!(validate_execution_id(&"x".repeat(129)).is_err());
+        let result =
+            run_runbook_step_blocking("echo safe".into(), None, None, Some("run;invalid".into()));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn stopping_an_unknown_execution_is_idempotent() {
+        assert_eq!(stop_runbook_execution("run-missing".into()), Ok(false));
+    }
+
+    #[test]
+    fn active_runbook_process_can_be_stopped() {
+        let started = std::time::Instant::now();
+        let worker = thread::spawn(|| {
+            run_runbook_step_blocking(
+                "Start-Sleep -Seconds 10".into(),
+                None,
+                Some(20),
+                Some("run-stop-test".into()),
+            )
+        });
+        for _ in 0..100 {
+            if active_processes()
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner())
+                .contains_key("run-stop-test")
+            {
+                break;
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+        assert_eq!(stop_runbook_execution("run-stop-test".into()), Ok(true));
+        let result = worker.join().expect("runbook worker").expect("step result");
+        assert!(!result.ok);
+        assert!(started.elapsed() < Duration::from_secs(5));
     }
 }

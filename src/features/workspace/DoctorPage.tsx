@@ -2,28 +2,19 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
+import { Button } from "../../ui/Button";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
+import { invokeOrFallback } from "../../lib/tauri";
 import { reportDoctorResults } from "../inbox/inboxStore";
+import {
+  buildDoctorItems,
+  buildDoctorSummary,
+  type DoctorItem,
+} from "./doctorPageModel";
 import "../page.css";
 import "./DoctorPage.css";
-
-type Severity = "critical" | "warning" | "info";
-
-interface DoctorItem {
-  check: PrereqCheck;
-  severity: Severity;
-}
-
-const CRITICAL_KEYS = new Set(["node", "git"]);
-const WARNING_KEYS = new Set(["python", "rust", "pnpm", "yarn", "bun"]);
-
-function classify(key: string): Severity {
-  if (CRITICAL_KEYS.has(key)) return "critical";
-  if (WARNING_KEYS.has(key)) return "warning";
-  return "info";
-}
 
 interface DoctorPageProps {
   /** If true, shows what would be done without executing fixes. */
@@ -50,12 +41,8 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     setLoading(true);
     setError(null);
     try {
-      const results = await invoke<PrereqCheck[]>("check_environment");
-      const classified = results.map((check) => ({
-        check,
-        severity: classify(check.key),
-      }));
-      setItems(classified);
+      const results = await invokeOrFallback<PrereqCheck[]>("check_environment", undefined, []);
+      setItems(buildDoctorItems(results));
       reportDoctorResults(
         results.map((r) => ({ key: r.key, name: r.name, installed: r.installed })),
       );
@@ -109,10 +96,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const critical = items.filter((i) => i.severity === "critical");
   const warnings = items.filter((i) => i.severity === "warning");
   const infos = items.filter((i) => i.severity === "info");
-  const problems = items.filter((i) => !i.check.installed);
-
-  const problemCount = problems.length;
-  const criticalCount = critical.filter((i) => !i.check.installed).length;
+  const summary = buildDoctorSummary(items);
 
   return (
     <section className="cd-page cd-doc">
@@ -130,33 +114,37 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
             />
             <span>{t("doctor.dryRun")}</span>
           </label>
-          <button
-            type="button"
-            className="cd-doc__run"
+          <Button
+            size="sm"
+            variant="ghost"
             onClick={() => void runDiagnosis()}
             disabled={loading}
           >
             {loading ? t("common.loading") : t("doctor.runDiagnosis")}
-          </button>
+          </Button>
         </div>
       </header>
 
       {!loading && !error && (
-        <div className="cd-doc__summary">
-          {problemCount === 0 ? (
-            <span className="cd-doc__summary-ok">{t("doctor.allGood")}</span>
-          ) : (
-            <span className="cd-doc__summary-problems">
-              {t("doctor.problemsFound", { count: problemCount })}
-              {criticalCount > 0 && (
-                <span className="cd-doc__summary-critical">
-                  {" "}
-                  ({t("doctor.criticalCount", { count: criticalCount })})
-                </span>
-              )}
-            </span>
-          )}
-        </div>
+        <section className={`cd-doc__summary cd-doc__summary--${summary.status}`} aria-label={t("doctor.summaryLabel")}>
+          <div className="cd-doc__score">
+            <span className="cd-doc__score-value">{summary.readinessPct}%</span>
+            <span className="cd-doc__score-label">{t("doctor.ready")}</span>
+          </div>
+          <div className="cd-doc__summary-copy">
+            <strong>
+              {summary.missing === 0
+                ? t("doctor.allGood")
+                : t("doctor.problemsFound", { count: summary.missing })}
+            </strong>
+            <span>{t("doctor.summaryHint")}</span>
+          </div>
+          <div className="cd-doc__summary-metrics">
+            <span>{t("doctor.installedCount", { installed: summary.installed, total: summary.total })}</span>
+            <span>{t("doctor.criticalCount", { count: summary.criticalMissing })}</span>
+            <span>{t("doctor.warningCount", { count: summary.warningMissing })}</span>
+          </div>
+        </section>
       )}
 
       {loading && <div className="cd-doc__loading">{t("common.loading")}</div>}
@@ -165,6 +153,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
       {critical.length > 0 && (
         <DoctorGroup
           title={t("doctor.critical")}
+          count={critical.filter((item) => !item.check.installed).length}
           items={critical}
           fixing={fixing}
           dryRun={dryRun}
@@ -174,6 +163,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
       {warnings.length > 0 && (
         <DoctorGroup
           title={t("doctor.warnings")}
+          count={warnings.filter((item) => !item.check.installed).length}
           items={warnings}
           fixing={fixing}
           dryRun={dryRun}
@@ -183,6 +173,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
       {infos.length > 0 && (
         <DoctorGroup
           title={t("doctor.info")}
+          count={infos.filter((item) => !item.check.installed).length}
           items={infos}
           fixing={fixing}
           dryRun={dryRun}
@@ -227,16 +218,21 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
 
 interface DoctorGroupProps {
   title: string;
+  count: number;
   items: DoctorItem[];
   fixing: string | null;
   dryRun: boolean;
   onFix: (item: DoctorItem) => void;
 }
 
-function DoctorGroup({ title, items, fixing, dryRun, onFix }: DoctorGroupProps) {
+function DoctorGroup({ title, count, items, fixing, dryRun, onFix }: DoctorGroupProps) {
+  const { t } = useTranslation();
   return (
     <div className="cd-doc__group">
-      <h2 className="cd-doc__group-title">{title}</h2>
+      <div className="cd-doc__group-head">
+        <h2 className="cd-doc__group-title">{title}</h2>
+        <span>{t("doctor.groupMissing", { count })}</span>
+      </div>
       <div className="cd-doc__grid">
         {items.map((item) => (
           <DoctorCard
@@ -299,7 +295,13 @@ function DoctorCard({ item, isFixing, dryRun, onFix }: DoctorCardProps) {
             </button>
           )}
           {check.install_command && (
-            <code className="cd-doc-card__cmd">{check.install_command}</code>
+            <code
+              className="cd-doc-card__cmd"
+              tabIndex={0}
+              aria-label={t("doctor.commandLabel", { name: check.name })}
+            >
+              {check.install_command}
+            </code>
           )}
         </div>
       )}

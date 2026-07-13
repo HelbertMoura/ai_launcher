@@ -69,7 +69,7 @@
   line-height: 1;
 }
 .cd-history__status--starting {
-  color: #3b82f6;
+  color: var(--accent);
   animation: cd-pulse 1.5s infinite;
 }
 .cd-history__status--running {
@@ -557,4 +557,55 @@
   .cd-timeline__status-label {
     display: none;
   }
+}
+
+/* v21 Wave A — live session focus, named filters and responsive metrics. */
+.cd-history__desc {
+  width: 100%;
+  min-height: 24px;
+  background: transparent;
+  text-align: left;
+}
+.cd-history__filters {
+  margin-bottom: var(--s-3);
+  padding: var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+.cd-history__filter-field { display: flex; flex-direction: column; gap: 3px; }
+.cd-history__filter-field > span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.cd-history-dashboard { grid-template-columns: minmax(260px, 1.8fr) repeat(4, minmax(0, 1fr)); }
+.cd-history-dashboard__card--focus {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-color: color-mix(in oklch, var(--accent) 42%, var(--border));
+  background: linear-gradient(120deg, color-mix(in oklch, var(--accent) 10%, transparent), transparent 60%), var(--surface-1);
+}
+.cd-history-dashboard__card--focus.is-live { border-color: var(--ok); }
+.cd-history-dashboard__card--focus b {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  color: var(--ok);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+@media (max-width: 1100px) {
+  .cd-history-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cd-history-dashboard__card--focus { grid-column: 1 / -1; }
 }

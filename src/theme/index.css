@@ -26,15 +26,21 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-button {
-  font-family: inherit;
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-sans);
 }
+
+::selection { background: var(--accent-soft); color: var(--text); }
 
 /* Baseline alignment helper for Phosphor icons sitting next to text. */
 .cd-icon {

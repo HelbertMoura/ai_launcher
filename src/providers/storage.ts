@@ -11,6 +11,7 @@
 
 import type { ProviderProfile, ProvidersState } from './types';
 import { DEFAULT_ACTIVE_ID, DEFAULT_PROFILES, SECRET_KEY_MARKER } from './seeds';
+import { readKey, readTextScoped, removeKey, removeScoped, writeKey } from '../lib/storage';
 
 // Re-export for convenience
 export { SECRET_KEY_MARKER } from './seeds';
@@ -23,7 +24,6 @@ import {
   migrateFromLocalStorage,
 } from '../lib/secrets';
 
-const STORAGE_KEY = 'ai-launcher-providers';
 const LEGACY_SECRET_PREFIX = 'ai-launcher-secret:provider-apikey:';
 
 function secretKeyForProvider(providerId: string): string {
@@ -52,9 +52,7 @@ function ensureBuiltins(profiles: ProviderProfile[]): ProviderProfile[] {
 
 export function loadProviders(): ProvidersState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { profiles: cloneSeed(), activeId: DEFAULT_ACTIVE_ID };
-    const parsed = JSON.parse(raw) as Partial<ProvidersState>;
+    const parsed = readKey('providers') as Partial<ProvidersState>;
     const profiles = ensureBuiltins(Array.isArray(parsed.profiles) ? parsed.profiles : []);
     const activeId = profiles.find(p => p.id === parsed.activeId) ? parsed.activeId! : DEFAULT_ACTIVE_ID;
     return {
@@ -74,11 +72,7 @@ export function loadProviders(): ProvidersState {
  * Call `migrateApiKeysToSecureStorage()` to move them to secure storage.
  */
 export function saveProviders(state: ProvidersState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.error('[providers] falha ao salvar', e);
-  }
+  writeKey('providers', state);
 }
 
 /**
@@ -86,9 +80,16 @@ export function saveProviders(state: ProvidersState): void {
  * Call this from UI save handlers when possible.
  */
 export async function saveProvidersSecure(state: ProvidersState): Promise<boolean> {
+  const hasPlaintextSecrets = state.profiles.some(
+    (profile) => profile.apiKey && profile.apiKey !== SECRET_KEY_MARKER,
+  );
+  if (!hasPlaintextSecrets) {
+    saveProviders(state);
+    return true;
+  }
+
   const secure = await hasSecureStorage();
   if (!secure) {
-    saveProviders(state);
     return false;
   }
 
@@ -105,11 +106,10 @@ export async function saveProvidersSecure(state: ProvidersState): Promise<boolea
       }),
     );
     const sanitizedState = { ...state, profiles: sanitizedProfiles };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizedState));
+    if (!writeKey('providers', sanitizedState)) return false;
     return true;
-  } catch {
-    // Fallback to regular save
-    saveProviders(state);
+  } catch (error) {
+    console.error('[providers] secure save failed', error);
     return false;
   }
 }
@@ -124,10 +124,10 @@ export async function loadProviderApiKey(providerId: string, inlineKey?: string)
   const secret = await getSecret(key);
   if (secret) return secret;
 
-  // Check legacy localStorage fallback
-  const legacy = localStorage.getItem(`${LEGACY_SECRET_PREFIX}${providerId}`);
+  const legacy = readTextScoped(`${LEGACY_SECRET_PREFIX}${providerId}`);
   if (legacy) return legacy;
 
+  // Check legacy localStorage fallback
   // Return inline key if present (pre-migration or fallback mode)
   if (inlineKey && inlineKey !== SECRET_KEY_MARKER) return inlineKey;
   return '';
@@ -156,7 +156,7 @@ export async function resolveApiKeys(state: ProvidersState): Promise<ProvidersSt
 export async function deleteProviderApiKey(providerId: string): Promise<void> {
   const key = secretKeyForProvider(providerId);
   await deleteSecretEntry(key);
-  localStorage.removeItem(`${LEGACY_SECRET_PREFIX}${providerId}`);
+  removeScoped(`${LEGACY_SECRET_PREFIX}${providerId}`);
 }
 
 export function upsertProfile(state: ProvidersState, profile: ProviderProfile): ProvidersState {
@@ -180,7 +180,7 @@ export function setActive(state: ProvidersState, id: string): ProvidersState {
 }
 
 export function resetProviders(): ProvidersState {
-  localStorage.removeItem(STORAGE_KEY);
+  removeKey('providers');
   return loadProviders();
 }
 

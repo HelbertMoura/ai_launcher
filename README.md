@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 20.0.0](https://img.shields.io/badge/version-20.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 21.0.0](https://img.shields.io/badge/version-21.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -48,17 +48,17 @@
 
 <div align="center">
 
-### Command OS v20 · Command Center, Runbooks, MCP
+### Command Deck v21 · Trust, flow and visual clarity
 
-| Command Center | Workspaces + Runbooks | MCP Hub |
+| Command Center | Runbooks Command Deck | MCP Hub |
 |:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v20/01-command-center.png) | ![Workspaces and Runbooks](./docs/screenshots/v20/02-runbooks-workspace.png) | ![MCP Hub](./docs/screenshots/v20/03-mcp-project.png) |
+| ![Command Center](./docs/screenshots/v21/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v21/02-runbooks-command-deck.png) | ![MCP Hub](./docs/screenshots/v21/03-mcp-hub.png) |
 
-### Sessions 2.0 · Updater Trust
+### Sessions timeline · Doctor readiness · Help
 
-| Sessions Dashboard | Updater Trust |
-|:---:|:---:|
-| ![Sessions Dashboard](./docs/screenshots/v20/04-sessions-history.png) | ![Updater Trust](./docs/screenshots/v20/05-updater-trust.png) |
+| Sessions Timeline | Doctor Readiness | Help & Support |
+|:---:|:---:|:---:|
+| ![Sessions Timeline](./docs/screenshots/v21/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v21/05-doctor-readiness.png) | ![Help and Support](./docs/screenshots/v21/06-help-support.png) |
 
 </div>
 
@@ -135,7 +135,18 @@ The app has 11 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## 🚀 What's new in v20 — Command OS mega release
+## 🚀 What's new in v21 — Trust & Flow / Command Deck
+
+- **Trust Foundation** — provider secrets fail closed into Windows Credential Manager, with safer legacy migration and storage guardrails.
+- **Command Deck visual system** — clearer app shell, typography, density/accent controls, light/dark/high-contrast baselines and keyboard-first layouts.
+- **Command Center 2.0** — guided empty states, project readiness, `.ailauncher.json` review, active sessions and safer primary actions.
+- **Runbooks 3.0** — dry-run, approvals, retry/resume, real stop, bounded output and workspace activity timeline.
+- **Operational pages refreshed** — Launcher, Workspaces, History, MCP, Updates, Admin, Analytics, Doctor, Prereqs, Onboarding and Help.
+- **Release readiness** — critical workflow E2E, visual regression matrix, capability/storage audits and packaged Windows smoke harness.
+
+Read the [v21 release notes](./docs/releases/v21.0.0.md) and [v21 PRD](./docs/PRD-v21.md) for the Trust & Flow scope.
+
+<details><summary>v20 highlights</summary>
 
 - **Command Center** — default home with active workspace, launch, readiness cards, sessions and project intelligence
 - **Project Intelligence** — stack detector for Node/React/Vite/Tauri/Rust/Python/Go/Docker/MCP plus `.ailauncher.json` creation
@@ -145,9 +156,8 @@ The app has 11 main surfaces accessible from the sidebar:
 - **Sessions 2.0** — dashboard metrics, persisted filters, replay through the shared launch flow and confirmed kill
 - **Backup Trust** — export manifest, recursive secret redaction and import preview before local restore
 - **Updater Trust** — visible release trust chain plus `latest.json` validation in release audit
-- **Command OS Docs** — v20 PRD, implementation plan and release checklist under `docs/`
 
-Read the [Command OS v20 guide](./docs/command-os-v20.md) for the Command Center, Runbooks 2.0 and project MCP workflow.
+</details>
 
 <details><summary>v16 highlights</summary>
 

@@ -31,7 +31,12 @@ import { getBudgetAlerts } from "../providers/budget";
 import { pushEvent } from "../features/inbox/inboxStore";
 import type { UsageReport } from "../features/costs/useUsage";
 import { invokeOrFallback } from "../lib/tauri";
+import { useTranslation } from "react-i18next";
 import "./App.css";
+import { readKey, readScoped } from "../lib/storage";
+import { migrateStorage } from "../lib/storage/migrations";
+import { z } from "zod";
+import { EXECUTION_MODE_CHANGED_EVENT, getExecutionMode, type ExecutionMode } from "../domain/executionMode";
 
 const CommandCenterPage = lazy(() =>
   import("../features/command-center/CommandCenterPage").then((m) => ({ default: m.CommandCenterPage })),
@@ -89,7 +94,9 @@ const DIGIT_TABS: Record<string, TabId> = {
 };
 
 export function App() {
+  const { t } = useTranslation();
   const [active, setActive] = useState<TabId>("command-center");
+  const [navCollapsed, setNavCollapsed] = useState(false);
   const { theme, setTheme, cycleTheme } = useTheme();
   const { accent, setAccent } = useAccent();
   const { density, toggleDensity } = useDensity();
@@ -97,6 +104,11 @@ export function App() {
   const palette = useCommandPalette();
   const history = useHistory();
   const { refresh: refreshUpdates } = useUpdates();
+
+  useEffect(() => {
+    const result = migrateStorage();
+    if (!result.ok) showToast(`Storage migration failed: ${result.error ?? "unknown error"}`, "error");
+  }, []);
 
   // Register a single global listener for backend `session-ended` events.
   // This activates the session-lifecycle history updates (formerly dead code).
@@ -121,9 +133,10 @@ export function App() {
   // One-time migration of API keys to secure storage (runs in background).
   useEffect(() => {
     migrateApiKeysToSecureStorage().catch(() => {
-      // Migration failure is non-critical; keys stay in localStorage.
+      // Source values remain untouched until a secure write is verified.
+      showToast(t("security.credentialMigrationFailed"), "error");
     });
-  }, []);
+  }, [t]);
 
   // On boot, check configured budget limits and surface a toast if any
   // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
@@ -215,7 +228,7 @@ export function App() {
 
   return (
     <ErrorBoundary>
-      <div className="cd-app">
+      <div className={`cd-app${navCollapsed ? " cd-app--nav-collapsed" : ""}`}>
         <ChromeConnector
           active={active}
           onSelect={setActive}
@@ -226,6 +239,8 @@ export function App() {
           density={density}
           onToggleDensity={toggleDensity}
           openPalette={palette.openPalette}
+          navCollapsed={navCollapsed}
+          onToggleNav={() => setNavCollapsed((value) => !value)}
         />
         <main className="cd-app__main">
           <Suspense fallback={<PageFallback />}>
@@ -235,7 +250,9 @@ export function App() {
             {active === "mcp" && <McpPage />}
             {active === "history" && <HistoryPage />}
             {active === "costs" && <CostsPage />}
-            {active === "workspace" && <WorkspacePage onNavigate={setActive} />}
+            {active === "workspace" && (
+              <WorkspacePage historyItems={history.items} onNavigate={setActive} />
+            )}
             {active === "doctor" && <DoctorPage />}
             {active === "updates" && <UpdatesPage />}
             {active === "prereqs" && <PrereqsPage />}
@@ -280,14 +297,11 @@ function FullScreenFallback() {
   return <div className="cd-app__fallback">Loading…</div>;
 }
 
-const CONFIG_KEY = "ai-launcher-config";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function readHistoryItems(): HistoryItem[] {
   try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    if (!raw) return [];
-    const cfg = JSON.parse(raw) as Record<string, unknown>;
+    const cfg = readKey("config");
     if (!Array.isArray(cfg.history)) return [];
     return cfg.history as HistoryItem[];
   } catch {
@@ -329,13 +343,7 @@ interface StoredProviderTest {
 }
 
 function readProviderTest(providerId: string): StoredProviderTest | null {
-  try {
-    const raw = localStorage.getItem(`ai-launcher:provider-test:${providerId}`);
-    if (!raw) return null;
-    return JSON.parse(raw) as StoredProviderTest;
-  } catch {
-    return null;
-  }
+  return readScoped(`ai-launcher:provider-test:${providerId}`, z.object({ ok: z.boolean().optional(), testedAt: z.string().optional() }), null as StoredProviderTest | null);
 }
 
 function computeProviderLatency(): ProviderLatency | undefined {
@@ -367,6 +375,8 @@ interface ChromeConnectorProps {
   density: ReturnType<typeof useDensity>["density"];
   onToggleDensity: () => void;
   openPalette: () => void;
+  navCollapsed: boolean;
+  onToggleNav: () => void;
 }
 
 function ChromeConnector({
@@ -379,6 +389,8 @@ function ChromeConnector({
   density,
   onToggleDensity,
   openPalette,
+  navCollapsed,
+  onToggleNav,
 }: ChromeConnectorProps) {
   // Subscribe to the CLI store so the StatusBar re-renders when checks load.
   // useClis() subscribes via useSyncExternalStore AND triggers ensureLoaded,
@@ -388,6 +400,17 @@ function ChromeConnector({
   const { report } = useUsage();
   const { summary: updates, refresh: refreshUpdates } = useUpdates();
   const [refreshTick, setRefreshTick] = useState(0);
+  const [executionMode, setExecutionModeState] = useState<ExecutionMode>(getExecutionMode);
+
+  useEffect(() => {
+    const refreshMode = () => setExecutionModeState(getExecutionMode());
+    window.addEventListener(EXECUTION_MODE_CHANGED_EVENT, refreshMode);
+    const timer = window.setInterval(refreshMode, 30_000);
+    return () => {
+      window.removeEventListener(EXECUTION_MODE_CHANGED_EVENT, refreshMode);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   // Surface available CLI/tool updates in the inbox. The stable id
   // (update:<cli>:<version>) dedups across boots; identical re-pushes keep
@@ -477,6 +500,9 @@ function ChromeConnector({
           onSelect={onSelect}
           version={pkg.version}
           indicators={indicators}
+          collapsed={navCollapsed}
+          onToggleCollapsed={onToggleNav}
+          executionMode={executionMode}
         />
       </div>
       <div className="cd-app__top">
@@ -500,6 +526,7 @@ function ChromeConnector({
           updatesCount={updatesCount}
           lastSession={lastSession}
           providerLatency={providerLatency}
+          executionMode={executionMode}
           onRefresh={handleRefresh}
         />
       </div>

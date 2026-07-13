@@ -4,12 +4,12 @@ import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
 import { EmptyState, ART_CHART } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
-import { useUsage, type UsageEntry } from "./useUsage";
+import { useUsage } from "./useUsage";
 import { toCsv, downloadBlob } from "../../lib/exportData";
 import { BudgetDashboard } from "./BudgetDashboard";
 import { AreaChart } from "../../ui/charts/AreaChart";
 import { BarList } from "../../ui/charts/BarList";
-import { byModel, byProject, dailySeries, trend } from "./analytics";
+import { buildCostsOverview, byModel, byProject, dailySeries, trend } from "./analytics";
 import "../page.css";
 import "./CostsPage.css";
 
@@ -18,48 +18,18 @@ function todayISO(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function monthISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-
 function formatUsd(n: number): string {
   if (!Number.isFinite(n)) return "$0.00";
   return `$${n.toFixed(2)}`;
-}
-
-interface CliRollup {
-  cli: string;
-  today: number;
-  month: number;
-  entries: number;
-}
-
-function rollup(entries: UsageEntry[]): CliRollup[] {
-  const today = todayISO();
-  const month = monthISO();
-  const acc = new Map<string, CliRollup>();
-  for (const e of entries) {
-    const cur = acc.get(e.cli) ?? { cli: e.cli, today: 0, month: 0, entries: 0 };
-    if (e.date === today) cur.today += e.cost_estimate_usd;
-    if (e.date.startsWith(month)) cur.month += e.cost_estimate_usd;
-    cur.entries += 1;
-    acc.set(e.cli, cur);
-  }
-  return [...acc.values()].sort((a, b) => b.month - a.month);
 }
 
 export function CostsPage() {
   const { t } = useTranslation();
   const { report, loading, error } = useUsage();
 
-  const { todayTotal, cliRollups } = useMemo(() => {
+  const overview = useMemo(() => {
     const entries = report?.entries ?? [];
-    const today = todayISO();
-    const todayTotal = entries
-      .filter((e) => e.date === today)
-      .reduce((sum, e) => sum + e.cost_estimate_usd, 0);
-    return { todayTotal, cliRollups: rollup(entries) };
+    return buildCostsOverview(entries, 30, todayISO());
   }, [report]);
 
   const analytics = useMemo(() => {
@@ -78,11 +48,6 @@ export function CostsPage() {
     const signed = `${deltaPct >= 0 ? "+" : ""}${deltaPct.toFixed(0)}%`;
     return t("costs.trendVsPrev", { delta: signed });
   }, [analytics.trend30, t]);
-
-  const tokens30d = useMemo(
-    () => analytics.series.reduce((s, p) => s + p.tokensIn + p.tokensOut, 0),
-    [analytics.series],
-  );
 
   const hasData = (report?.entries.length ?? 0) > 0;
   const entries = report?.entries ?? [];
@@ -137,43 +102,40 @@ export function CostsPage() {
 
       {!loading && hasData && (
         <>
-          <Card className="cd-costs__hero">
-            <div className="cd-costs__hero-label">{t("costs.today")}</div>
-            <div className="cd-costs__hero-amount">{formatUsd(todayTotal)}</div>
-            <div className="cd-costs__hero-sub">
-              {t("costs.entriesTracked", { count: report?.entries.length ?? 0 })}
+          <section className="cd-costs__overview" aria-label={t("costs.overviewLabel")}>
+            <div className="cd-costs__hero">
+              <div className="cd-costs__hero-label">{t("costs.todaySpend")}</div>
+              <div className="cd-costs__hero-amount">{formatUsd(overview.todayUsd)}</div>
+              <div className="cd-costs__hero-sub">
+                {t("costs.monthSpend", { value: formatUsd(overview.monthUsd) })}
+              </div>
             </div>
-            <div className="cd-costs__export">
-              <button
-                type="button"
-                className="cd-costs__export-btn"
-                onClick={handleExportCsv}
-                disabled={entries.length === 0}
-              >
+            <div className="cd-costs__posture">
+              <div>
+                <span className="cd-costs__posture-label">{t("costs.cost30d")}</span>
+                <strong>{formatUsd(analytics.trend30.currentUsd)}</strong>
+                <span>{trendLabel}</span>
+              </div>
+              <div>
+                <span className="cd-costs__posture-label">{t("costs.tokens30d")}</span>
+                <strong>{overview.tokens30d.toLocaleString()}</strong>
+                <span>{t("costs.averageDaily", { value: formatUsd(overview.averageDailyUsd) })}</span>
+              </div>
+              <div>
+                <span className="cd-costs__posture-label">{t("costs.sources")}</span>
+                <strong>{overview.cliCount}</strong>
+                <span>{t("costs.entriesTracked", { count: overview.entries })}</span>
+              </div>
+            </div>
+            <div className="cd-costs__export" aria-label={t("costs.exportLabel")}>
+              <button type="button" className="cd-costs__export-btn" onClick={handleExportCsv}>
                 {t("costs.exportCsv")}
               </button>
-              <button
-                type="button"
-                className="cd-costs__export-btn"
-                onClick={handleExportJson}
-                disabled={entries.length === 0}
-              >
+              <button type="button" className="cd-costs__export-btn" onClick={handleExportJson}>
                 {t("costs.exportJson")}
               </button>
             </div>
-          </Card>
-
-          <div className="cd-page__grid cd-costs__analytics-cards">
-            <Card className="cd-costs__stat">
-              <div className="cd-costs__stat-label">{t("costs.cost30d")}</div>
-              <div className="cd-costs__stat-value">{formatUsd(analytics.trend30.currentUsd)}</div>
-              <div className="cd-costs__stat-sub">{trendLabel}</div>
-            </Card>
-            <Card className="cd-costs__stat">
-              <div className="cd-costs__stat-label">{t("costs.tokens30d")}</div>
-              <div className="cd-costs__stat-value">{tokens30d.toLocaleString()}</div>
-            </Card>
-          </div>
+          </section>
 
           <Card className="cd-costs__chart-card">
             <h2 className="cd-costs__section">{t("costs.seriesTitle")}</h2>
@@ -205,20 +167,20 @@ export function CostsPage() {
             </Card>
           </div>
 
-          {cliRollups.length > 0 && (
+          {overview.cliRollups.length > 0 && (
             <>
               <h2 className="cd-costs__section">{t("costs.byCli")}</h2>
-              <div className="cd-page__grid">
-                {cliRollups.map((r) => (
+              <div className="cd-costs__cli-grid">
+                {overview.cliRollups.map((r) => (
                   <Card key={r.cli} className="cd-costs__cli">
                     <div className="cd-costs__cli-name">{r.cli}</div>
                     <div className="cd-costs__cli-row">
                       <span className="cd-costs__cli-label">{t("costs.today")}</span>
-                      <span className="cd-costs__cli-val">{formatUsd(r.today)}</span>
+                      <span className="cd-costs__cli-val">{formatUsd(r.todayUsd)}</span>
                     </div>
                     <div className="cd-costs__cli-row">
                       <span className="cd-costs__cli-label">{t("costs.month")}</span>
-                      <span className="cd-costs__cli-val">{formatUsd(r.month)}</span>
+                      <span className="cd-costs__cli-val">{formatUsd(r.monthUsd)}</span>
                     </div>
                     <div className="cd-costs__cli-entries">
                       {t("costs.entriesTracked", { count: r.entries })}

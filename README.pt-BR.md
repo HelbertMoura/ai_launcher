@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 20.0.0](https://img.shields.io/badge/vers%C3%A3o-20.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 21.0.0](https://img.shields.io/badge/vers%C3%A3o-21.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -48,17 +48,17 @@
 
 <div align="center">
 
-### Command OS v20 · Command Center, Runbooks, MCP
+### Command Deck v21 · Confiança, fluxo e clareza visual
 
-| Command Center | Workspaces + Runbooks | Hub MCP |
+| Command Center | Runbooks Command Deck | Hub MCP |
 |:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v20/01-command-center.png) | ![Workspaces e Runbooks](./docs/screenshots/v20/02-runbooks-workspace.png) | ![Hub MCP](./docs/screenshots/v20/03-mcp-project.png) |
+| ![Command Center](./docs/screenshots/v21/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v21/02-runbooks-command-deck.png) | ![Hub MCP](./docs/screenshots/v21/03-mcp-hub.png) |
 
-### Sessions 2.0 · Updater Trust
+### Timeline de sessões · Doctor readiness · Ajuda
 
-| Dashboard de Sessões | Updater Trust |
-|:---:|:---:|
-| ![Dashboard de Sessões](./docs/screenshots/v20/04-sessions-history.png) | ![Updater Trust](./docs/screenshots/v20/05-updater-trust.png) |
+| Timeline de Sessões | Doctor Readiness | Ajuda e Suporte |
+|:---:|:---:|:---:|
+| ![Timeline de Sessões](./docs/screenshots/v21/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v21/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v21/06-help-support.png) |
 
 </div>
 
@@ -136,7 +136,18 @@ O app tem 11 superfícies principais acessíveis pela sidebar:
 | **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## 🚀 Novidades da v20 — Command OS mega release
+## 🚀 Novidades da v21 — Trust & Flow / Command Deck
+
+- **Trust Foundation** — secrets de providers falham fechado no Windows Credential Manager, com migração legada mais segura e guardrails de storage.
+- **Sistema visual Command Deck** — app shell mais claro, tipografia melhor, controles de densidade/acento, baselines light/dark/high-contrast e layouts keyboard-first.
+- **Command Center 2.0** — estados guiados, readiness do projeto, revisão de `.ailauncher.json`, sessões ativas e ações primárias mais seguras.
+- **Runbooks 3.0** — dry-run, aprovações, retry/resume, stop real, output limitado e timeline de atividade por workspace.
+- **Páginas operacionais renovadas** — Launcher, Workspaces, History, MCP, Updates, Admin, Analytics, Doctor, Prereqs, Onboarding e Help.
+- **Release readiness** — E2E de workflows críticos, matriz visual, audits de capabilities/storage e smoke do executável Windows empacotado.
+
+Leia as [notas da v21](./docs/releases/v21.0.0.md) e o [PRD v21](./docs/PRD-v21.md) para o escopo Trust & Flow.
+
+<details><summary>Destaques da v20</summary>
 
 - **Command Center** — home default com workspace ativo, launch, readiness cards, sessões e inteligência do projeto
 - **Project Intelligence** — detector de stack para Node/React/Vite/Tauri/Rust/Python/Go/Docker/MCP e criação de `.ailauncher.json`
@@ -146,9 +157,8 @@ O app tem 11 superfícies principais acessíveis pela sidebar:
 - **Sessions 2.0** — métricas, filtros persistidos, replay pelo fluxo compartilhado e kill com confirmação
 - **Backup Trust** — manifest de export, redaction recursiva de secrets e preview antes de restaurar
 - **Updater Trust** — cadeia `latest.json`/SHA-256/GitHub Release visível e auditoria do manifesto
-- **Docs Command OS** — PRD v20, plano de implementação e checklist de release em `docs/`
 
-Leia o [guia Command OS v20](./docs/command-os-v20.md) para o fluxo de Command Center, Runbooks 2.0 e MCP por projeto.
+</details>
 
 <details><summary>Destaques da v16</summary>
 
@@ -202,12 +212,12 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | Camada | Tecnologia |
 |--------|-----------|
 | Frontend | React 19 + TypeScript 6 + Vite |
-| Backend | Rust (Tauri v2) com DPAPI nativo para secrets |
-| Estilo | CSS Custom Properties (sistema de tokens · 4 temas) |
+| Backend | Rust (Tauri v2) com Windows Credential Manager para secrets |
+| Estilo | CSS Custom Properties (sistema de tokens · dark/light/high-contrast) |
 | Typography | JetBrains Mono · Inter · Space Grotesk (display) |
 | Ícones | Logos oficiais (LobeHub Icons, devicons) + Phosphor Icons |
 | i18n | i18next 24 |
-| Testes | Vitest (157 testes), Playwright E2E, cargo test (63 testes Rust) |
+| Testes | Vitest (217 testes), Playwright E2E/visual, cargo test (78 testes Rust) |
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) |
 | Distribuição | GitHub Releases · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
 

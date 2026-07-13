@@ -1,34 +1,13 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import {
+  expectNoUnknownTauriCommands,
+  installTauriStub,
+} from "./tauriStub";
 
 test.describe("AI Launcher Pro smoke", () => {
   test.beforeEach(async ({ page }) => {
-    // Stub Tauri invoke so frontend doesn't error out when calling backend,
-    // and mark onboarding as done so the main launcher renders directly.
-    await page.addInitScript(() => {
-      try {
-        localStorage.setItem("ai-launcher:onboarding-done", "true");
-      } catch {
-        /* ignore */
-      }
-      // @ts-expect-error — stubbed globals for Tauri
-      window.__TAURI_INTERNALS__ = {
-        invoke: async (cmd: string) => {
-          if (cmd === "get_all_clis") return [];
-          if (cmd === "check_clis") return [];
-          if (cmd === "get_all_tools") return [];
-          if (cmd === "check_environment") return [];
-          if (cmd === "list_active_sessions") return [];
-          if (cmd === "list_mcp_servers") return [];
-          if (cmd === "read_project_profile") return null;
-          if (cmd === "scan_project_stack") return { files: [], manifests: {} };
-          if (cmd === "write_project_profile") return null;
-          if (cmd === "check_all_updates")
-            return { cli_updates: [], tool_updates: [], env_updates: [] };
-          return null;
-        },
-      };
-    });
+    await installTauriStub(page);
   });
 
   test("loads the app and shows Command Center", async ({ page }) => {
@@ -44,6 +23,7 @@ test.describe("AI Launcher Pro smoke", () => {
     await expect(body).toBeVisible();
 
     await expect(page.getByRole("heading", { name: /command center/i })).toBeVisible();
+    await expectNoUnknownTauriCommands(page);
   });
 
   test("navigates to Admin", async ({ page }) => {
@@ -62,6 +42,7 @@ test.describe("AI Launcher Pro smoke", () => {
     await expect(
       page.getByText(/providers|appearance|aparência|presets/i).first(),
     ).toBeVisible({ timeout: 5000 });
+    await expectNoUnknownTauriCommands(page);
   });
 
   test("main Command Center page has no serious accessibility violations", async ({
@@ -91,5 +72,87 @@ test.describe("AI Launcher Pro smoke", () => {
         .map((v) => `- [${v.impact}] ${v.id}: ${v.help}`)
         .join("\n")}`,
     ).toEqual([]);
+    await expectNoUnknownTauriCommands(page);
+  });
+
+  test("shell navigation and quick settings are keyboard operable", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("domcontentloaded");
+    const collapse = page.getByRole("button", { name: /collapse navigation/i });
+    await collapse.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".cd-app")).toHaveClass(/cd-app--nav-collapsed/);
+    const sidebarMetrics = await page.evaluate(() => {
+      const sidebar = document.querySelector(".cd-side")?.getBoundingClientRect();
+      const indicators = Array.from(document.querySelectorAll(".cd-side__indicator")).map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          text: node.textContent ?? "",
+          right: rect.right,
+          width: rect.width,
+        };
+      });
+      return { sidebarRight: sidebar?.right ?? 0, indicators };
+    });
+    for (const indicator of sidebarMetrics.indicators) {
+      expect(indicator.right).toBeLessThanOrEqual(sidebarMetrics.sidebarRight);
+      expect(indicator.width).toBeLessThanOrEqual(24);
+      expect(indicator.text.length).toBeLessThanOrEqual(2);
+    }
+
+    const settings = page.locator('summary[aria-label="Quick settings"]');
+    await settings.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByText(/accent color/i)).toBeVisible();
+    await expectNoUnknownTauriCommands(page);
+  });
+
+  test("fits the supported 1024x700 window without document clipping", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 700 });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: /command center/i })).toBeVisible();
+    await expect(page.locator(".cd-status")).toBeVisible();
+    const metrics = await page.evaluate(() => ({
+      viewport: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      statusBottom: document.querySelector('.cd-status')?.getBoundingClientRect().bottom ?? 0,
+      viewportHeight: window.innerHeight,
+    }));
+    expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewport);
+    expect(metrics.statusBottom).toBeLessThanOrEqual(metrics.viewportHeight);
+  });
+
+  test("exposes execution modes in Admin security", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("body").click();
+    await page.keyboard.press("Control+Comma");
+    await page.getByRole("button", { name: "Security" }).click();
+    await expect(page.getByRole("heading", { name: /execution mode/i })).toBeVisible();
+    await expect(page.getByText("Safe", { exact: true }).first()).toBeVisible();
+  });
+
+  test("dry-runs a workspace runbook and exposes resumable activity", async ({ page }) => {
+    await page.addInitScript(() => {
+      const now = "2026-07-13T10:00:00.000Z";
+      localStorage.setItem("ai-launcher:v15:workspace", JSON.stringify([{
+        id: "ws-e2e", name: "E2E Workspace", directory: "C:\\dev\\e2e", cliKeys: [],
+        envVars: {}, tags: [], pinned: false, createdAt: now, updatedAt: now,
+      }]));
+      localStorage.setItem("ai-launcher:v15:active-workspace", "ws-e2e");
+      localStorage.setItem("ai-launcher:v15:runbooks", JSON.stringify({ runbooks: [{
+        id: "rb-e2e", name: "Validate project", tags: [], createdAt: now, updatedAt: now,
+        steps: [{ id: "step-e2e", label: "Check project", type: "check", command: "node --version", auto: true }],
+      }] }));
+    });
+    await page.goto("/");
+    await page.locator("body").click();
+    await page.keyboard.press("Control+7");
+    await page.getByRole("button", { name: /^(manage runbooks|gerenciar runbooks)$/i }).click();
+    await page.getByRole("button", { name: /^(run|executar)$/i }).click();
+    await page.getByRole("button", { name: /dry run|simular/i }).click();
+
+    await expect(page.getByText(/ready to execute|pronto para executar/i)).toBeVisible();
+    await expect(page.getByText(/dry run validated|dry-run validado/i)).toBeVisible();
+    await expectNoUnknownTauriCommands(page);
   });
 });

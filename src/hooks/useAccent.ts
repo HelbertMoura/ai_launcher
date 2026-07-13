@@ -1,23 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { readKey, writeKey } from "../lib/storage";
 
 export type Accent = "red" | "amber" | "green" | "blue" | "violet" | "custom";
 
 export const ACCENTS: Accent[] = ["red", "amber", "green", "blue", "violet"];
 
-const STORAGE_KEY = "ai-launcher:accent";
-const CUSTOM_KEY = "ai-launcher:accent-custom";
 const DEFAULT_CUSTOM = "#9d4edd";
 
 function readSaved(): Accent {
   if (typeof window === "undefined") return "red";
-  const v = window.localStorage.getItem(STORAGE_KEY);
+  const v = readKey("accent");
   const valid: Accent[] = [...ACCENTS, "custom"];
   return valid.includes(v as Accent) ? (v as Accent) : "red";
 }
 
 function readCustomHex(): string {
   if (typeof window === "undefined") return DEFAULT_CUSTOM;
-  const v = window.localStorage.getItem(CUSTOM_KEY);
+  const v = readKey("accentCustom");
   return /^#[0-9a-f]{6}$/i.test(v ?? "") ? (v as string) : DEFAULT_CUSTOM;
 }
 
@@ -72,11 +71,7 @@ export function useAccent(): {
     setAccentState(next);
     accentRef.current = next;
     document.documentElement.setAttribute("data-accent", next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore
-    }
+    writeKey("accent", next);
     if (next === "custom") {
       applyCustomAccent(customHexRef.current);
     } else {
@@ -89,11 +84,7 @@ export function useAccent(): {
     if (!/^#[0-9a-f]{6}$/.test(normalized)) return;
     setCustomHexState(normalized);
     customHexRef.current = normalized;
-    try {
-      window.localStorage.setItem(CUSTOM_KEY, normalized);
-    } catch {
-      // ignore
-    }
+    writeKey("accentCustom", normalized);
     if (accentRef.current === "custom") {
       applyCustomAccent(normalized);
     }

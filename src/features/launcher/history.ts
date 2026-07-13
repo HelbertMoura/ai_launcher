@@ -1,4 +1,5 @@
 import type { SessionStatus } from "../history/useHistory";
+import { readKey, writeKey } from "../../lib/storage";
 
 export interface HistoryItem {
   cli: string;
@@ -13,23 +14,12 @@ export interface HistoryItem {
   errorMessage?: string;
 }
 
-const CONFIG_KEY = "ai-launcher-config";
-
 function readConfig(): Record<string, unknown> {
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
+  return readKey("config");
 }
 
 function writeConfig(cfg: Record<string, unknown>): void {
-  try {
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-  } catch {
-    /* quota or private mode — ignore */
-  }
+  writeKey("config", cfg);
 }
 
 export function appendHistory(item: HistoryItem): void {

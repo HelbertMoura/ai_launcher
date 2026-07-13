@@ -16,7 +16,34 @@ use tauri_plugin_global_shortcut::ShortcutState;
 use crate::tray::{setup_tray, toggle_main_window};
 use crate::util::read_tray_config;
 
+#[cfg(target_os = "windows")]
+fn exit_if_another_instance_is_running() {
+    use windows_sys::Win32::Foundation::{GetLastError, ERROR_ALREADY_EXISTS};
+    use windows_sys::Win32::System::Threading::CreateMutexW;
+
+    let mutex_name = if std::env::var_os("AI_LAUNCHER_SMOKE").is_some() {
+        "Local\\DevManiacs.AILauncher.SingleInstance.Smoke.v1"
+    } else {
+        "Local\\DevManiacs.AILauncher.SingleInstance.v1"
+    };
+    let name: Vec<u16> = mutex_name
+        .encode_utf16()
+        .chain(std::iter::once(0))
+        .collect();
+
+    // Keep the named mutex handle open for the process lifetime. Windows closes
+    // it automatically when the process exits, which releases the single-instance
+    // guard even if the app crashes.
+    let handle = unsafe { CreateMutexW(std::ptr::null(), 1, name.as_ptr()) };
+    if !handle.is_null() && unsafe { GetLastError() } == ERROR_ALREADY_EXISTS {
+        std::process::exit(0);
+    }
+}
+
 fn main() {
+    #[cfg(target_os = "windows")]
+    exit_if_another_instance_is_running();
+
     // Panic hook — salva qualquer panic do backend em disco.
     std::panic::set_hook(Box::new(|info| {
         let ts = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
@@ -35,20 +62,25 @@ fn main() {
         let _ = std::fs::write(file, payload);
     }));
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+    let builder = tauri::Builder::default();
+    let builder = if std::env::var_os("AI_LAUNCHER_SMOKE").is_some() {
+        builder
+    } else {
+        builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.unminimize();
                 let _ = window.show();
                 let _ = window.set_focus();
             }
         }))
+    };
+
+    builder
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec!["--minimized"]),
         ))
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -93,8 +125,7 @@ fn main() {
             commands::updates::check_environment,
             // commands::self_update
             commands::self_update::check_app_update,
-            commands::self_update::download_app_update,
-            commands::self_update::verify_update_checksum,
+            commands::self_update::download_verified_app_update,
             // commands::config
             commands::config::reset_all_config,
             commands::config::reset_claude_state,
@@ -104,7 +135,6 @@ fn main() {
             commands::config::read_crash_log,
             // commands::system
             commands::system::open_external_url,
-            commands::system::open_in_explorer,
             commands::system::open_crash_dir,
             commands::system::get_tray_hotkey,
             commands::system::set_tray_hotkey,
@@ -118,6 +148,7 @@ fn main() {
             commands::mcp::mcp_health_check,
             // commands::runbook
             commands::runbook::run_runbook_step,
+            commands::runbook::stop_runbook_execution,
             commands::runbook::evaluate_runbook_condition,
             // secrets
             secrets::store_secret,
