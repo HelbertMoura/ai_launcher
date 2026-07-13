@@ -78,6 +78,33 @@ const runbookSchema = z
   })
   .passthrough();
 
+const runbookStepExecutionSchema = z.object({
+  stepId: z.string(),
+  label: z.string(),
+  status: z.enum(['pending', 'running', 'ready', 'success', 'failed', 'skipped']),
+  output: z.string().default(''),
+  startedAt: z.string().optional(),
+  finishedAt: z.string().optional(),
+  durationMs: z.number().optional(),
+}).passthrough();
+
+const runbookExecutionSchema = z.object({
+  id: z.string(),
+  runbookId: z.string(),
+  runbookName: z.string(),
+  runbookUpdatedAt: z.string().optional(),
+  cwd: z.string().optional(),
+  workspaceId: z.string().optional(),
+  mode: z.enum(['execute', 'dry-run']).optional(),
+  status: z.enum(['running', 'success', 'validated', 'failed', 'stopped']),
+  nextStepIndex: z.number().int().nonnegative().optional(),
+  attempt: z.number().int().positive().optional(),
+  startedAt: z.string(),
+  finishedAt: z.string().optional(),
+  durationMs: z.number().optional(),
+  steps: z.array(runbookStepExecutionSchema).default([]),
+}).passthrough();
+
 const budgetLimitSchema = z
   .object({
     providerKey: z.string(),
@@ -249,6 +276,25 @@ export const REGISTRY = {
     key: STORAGE_KEYS.runbooks,
     schema: z.object({ runbooks: z.array(runbookSchema).default([]) }).passthrough(),
     default: { runbooks: [] as z.infer<typeof runbookSchema>[] },
+    version: 1,
+  }),
+
+  runbookExecutions: entry({
+    id: 'runbookExecutions',
+    key: STORAGE_KEYS.runbookExecutions,
+    schema: z.object({ executions: z.array(runbookExecutionSchema).default([]) }).passthrough(),
+    default: { executions: [] as z.infer<typeof runbookExecutionSchema>[] },
+    version: 1,
+  }),
+
+  historyFilters: entry({
+    id: 'historyFilters',
+    key: STORAGE_KEYS.historyFilters,
+    schema: z.object({
+      cli: z.string(), provider: z.string(), range: z.string(),
+      timelineRange: z.string(), timelineOpen: z.boolean(),
+    }).passthrough(),
+    default: { cli: 'all', provider: 'all', range: 'all', timelineRange: '24h', timelineOpen: true },
     version: 1,
   }),
 
@@ -428,6 +474,39 @@ export const REGISTRY = {
     default: {} as Record<string, string[]>,
     version: 1,
   }),
+
+  schemaVersion: entry({
+    id: 'schemaVersion',
+    key: STORAGE_KEYS.schemaVersion,
+    schema: z.string(), default: '0', serialize: 'raw', version: 1,
+  }),
+
+  migrationManifest: entry({
+    id: 'migrationManifest',
+    key: STORAGE_KEYS.migrationManifest,
+    schema: z.object({ from: z.number(), to: z.number(), migratedAt: z.string(), backup: z.record(z.string(), z.unknown()) }),
+    default: { from: 0, to: 0, migratedAt: '', backup: {} },
+    version: 1,
+  }),
+
+  executionMode: entry({
+    id: 'executionMode', key: STORAGE_KEYS.executionMode,
+    schema: z.enum(['safe', 'standard']), default: 'safe', serialize: 'raw', version: 1,
+  }),
+
+  temporaryAdminUntil: entry({
+    id: 'temporaryAdminUntil', key: STORAGE_KEYS.temporaryAdminUntil,
+    schema: z.string(), default: '', serialize: 'raw', version: 1,
+  }),
+
+  auditLog: entry({
+    id: 'auditLog', key: STORAGE_KEYS.auditLog,
+    schema: z.array(z.object({
+      id: z.string(), at: z.string(), action: z.string(), outcome: z.enum(['allowed', 'confirmed', 'blocked', 'failed']),
+      mode: z.enum(['safe', 'standard', 'admin']), workspaceId: z.string().optional(), detail: z.string().optional(),
+    })),
+    default: [], version: 1,
+  }),
 } as const satisfies Record<StorageKeyId | string, RegistryEntry>;
 
 export type RegistryId = keyof typeof REGISTRY;
@@ -448,6 +527,10 @@ const NON_BACKUP_IDS: ReadonlySet<RegistryId> = new Set<RegistryId>([
   'profilesMigrated', // one-shot migration flag — machine-local
   'onboardingDone', // first-run UI flag — machine-local
   'showOnboarding', // first-run UI flag — machine-local
+  'schemaVersion',
+  'migrationManifest',
+  'temporaryAdminUntil',
+  'auditLog',
 ]);
 
 export function backupEntries(): RegistryEntry[] {

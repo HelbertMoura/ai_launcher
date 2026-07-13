@@ -1,6 +1,6 @@
 [package]
 name = "ai-launcher"
-version = "20.0.0"
+version = "21.0.0"
 description = "Desktop launcher for AI coding CLIs (Windows)"
 authors = ["Helbert Moura"]
 license = "MIT"
@@ -14,7 +14,6 @@ tauri-build = { version = "2.0", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "2.0", features = ["tray-icon", "image-png"] }
-tauri-plugin-shell = "2.0"
 tauri-plugin-dialog = "2.0"
 tauri-plugin-global-shortcut = "2.0"
 tauri-plugin-single-instance = "2.0"
@@ -22,7 +21,7 @@ tauri-plugin-autostart = "2.0"
 tauri-plugin-notification = "2.0"
 regex-lite = "0.1"
 open = "5"
-tokio = { version = "1", features = ["process", "io-util", "rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1", features = ["process", "io-util", "rt-multi-thread", "macros", "sync", "time"] }
 dirs = "5"
 ureq = { version = "2", features = ["json"] }
 base64 = "0.22"
@@ -31,6 +30,14 @@ thiserror = "1.0"
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
 toml_edit = "0.22"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_Security_Credentials",
+  "Win32_Security_Cryptography",
+  "Win32_System_Threading",
+] }
 
 [features]
 default = ["custom-protocol"]

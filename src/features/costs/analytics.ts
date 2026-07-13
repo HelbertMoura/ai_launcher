@@ -24,6 +24,23 @@ export interface Trend {
   deltaPct: number | null;
 }
 
+export interface CliRollup {
+  cli: string;
+  todayUsd: number;
+  monthUsd: number;
+  entries: number;
+}
+
+export interface CostsOverview {
+  todayUsd: number;
+  monthUsd: number;
+  entries: number;
+  cliCount: number;
+  tokens30d: number;
+  averageDailyUsd: number;
+  cliRollups: CliRollup[];
+}
+
 function todayISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -111,4 +128,44 @@ export function trend(entries: UsageEntry[], days = 30, today = todayISO()): Tre
   }
   const deltaPct = previousUsd > 0 ? ((currentUsd - previousUsd) / previousUsd) * 100 : null;
   return { currentUsd, previousUsd, deltaPct };
+}
+
+export function buildCostsOverview(
+  entries: UsageEntry[],
+  days = 30,
+  today = todayISO(),
+): CostsOverview {
+  const month = today.slice(0, 7);
+  const series = dailySeries(entries, days, today);
+  const cliMap = new Map<string, CliRollup>();
+  let todayUsd = 0;
+  let monthUsd = 0;
+
+  for (const e of entries) {
+    const cli = e.cli || "unknown";
+    const rollup = cliMap.get(cli) ?? { cli, todayUsd: 0, monthUsd: 0, entries: 0 };
+    if (e.date === today) {
+      todayUsd += e.cost_estimate_usd;
+      rollup.todayUsd += e.cost_estimate_usd;
+    }
+    if (e.date.startsWith(month)) {
+      monthUsd += e.cost_estimate_usd;
+      rollup.monthUsd += e.cost_estimate_usd;
+    }
+    rollup.entries += 1;
+    cliMap.set(cli, rollup);
+  }
+
+  const tokens30d = series.reduce((sum, point) => sum + point.tokensIn + point.tokensOut, 0);
+  const windowUsd = series.reduce((sum, point) => sum + point.costUsd, 0);
+
+  return {
+    todayUsd,
+    monthUsd,
+    entries: entries.length,
+    cliCount: cliMap.size,
+    tokens30d,
+    averageDailyUsd: days > 0 ? windowUsd / days : 0,
+    cliRollups: [...cliMap.values()].sort((a, b) => b.monthUsd - a.monthUsd),
+  };
 }

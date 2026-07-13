@@ -3,6 +3,7 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 import { ptBR } from "./locales/pt-BR";
 import { en } from "./locales/en";
+import { writeKey } from "../lib/storage";
 
 export const LOCALE_STORAGE_KEY = "ai-launcher:locale";
 
@@ -29,11 +30,7 @@ void i18n
 
 export function setLocale(locale: Locale): void {
   void i18n.changeLanguage(locale);
-  try {
-    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-  } catch {
-    /* ignore storage errors */
-  }
+  writeKey("locale", locale);
 }
 
 export function getLocale(): Locale {

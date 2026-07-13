@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { readKey, writeKey, STORAGE_KEYS } from "../../lib/storage";
 
 export type SessionStatus =
   | "starting"
@@ -25,8 +26,7 @@ export interface HistoryItem {
   providerId?: string;
 }
 
-const CONFIG_KEY = "ai-launcher-config";
-const LAST_DIR_KEY = "ai-launcher:last-dir";
+const CONFIG_KEY = STORAGE_KEYS.config;
 
 // A "starting" session that began more than this long ago almost certainly
 // never reached the running state (the app was closed mid-launch, the spawn
@@ -88,15 +88,9 @@ function migrateItem(item: Record<string, unknown>): HistoryItem {
 }
 
 function readItems(): HistoryItem[] {
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    if (!raw) return [];
-    const cfg = JSON.parse(raw) as Record<string, unknown>;
+    const cfg = readKey("config");
     if (!Array.isArray(cfg.history)) return [];
     return (cfg.history as Record<string, unknown>[]).map(migrateItem);
-  } catch {
-    return [];
-  }
 }
 
 // In-tab change notifier. The browser `storage` event only fires across tabs,
@@ -115,14 +109,9 @@ function notify(): void {
 }
 
 function writeItems(items: HistoryItem[]): void {
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    const cfg = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+    const cfg = readKey("config");
     cfg.history = items;
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-  } catch {
-    /* ignore */
-  }
+    writeKey("config", cfg);
   notify();
 }
 
@@ -214,49 +203,22 @@ export function useHistory(): {
 }
 
 export function getLastDir(cliKey: string): string {
-  try {
-    const raw = localStorage.getItem(LAST_DIR_KEY);
-    if (!raw) return "";
-    const map = JSON.parse(raw) as Record<string, string>;
-    return map[cliKey] ?? "";
-  } catch {
-    return "";
-  }
+  return readKey("lastDir")[cliKey] ?? "";
 }
 
 export function saveLastDir(cliKey: string, dir: string): void {
-  try {
-    const raw = localStorage.getItem(LAST_DIR_KEY);
-    const map = raw ? (JSON.parse(raw) as Record<string, string>) : {};
-    map[cliKey] = dir;
-    localStorage.setItem(LAST_DIR_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
+  writeKey("lastDir", { ...readKey("lastDir"), [cliKey]: dir });
 }
 
-const RECENT_DIRS_KEY = "ai-launcher:recent-dirs";
 const MAX_RECENT_DIRS = 10;
 
 export function getRecentDirs(cliKey: string): string[] {
-  try {
-    const raw = localStorage.getItem(RECENT_DIRS_KEY);
-    if (!raw) return [];
-    const map = JSON.parse(raw) as Record<string, string[]>;
-    return map[cliKey] ?? [];
-  } catch {
-    return [];
-  }
+  return readKey("recentDirs")[cliKey] ?? [];
 }
 
 export function addRecentDir(cliKey: string, dir: string): void {
-  try {
-    const raw = localStorage.getItem(RECENT_DIRS_KEY);
-    const map = raw ? (JSON.parse(raw) as Record<string, string[]>) : {};
+    const map = readKey("recentDirs");
     const list = (map[cliKey] ?? []).filter((d) => d !== dir);
     map[cliKey] = [dir, ...list].slice(0, MAX_RECENT_DIRS);
-    localStorage.setItem(RECENT_DIRS_KEY, JSON.stringify(map));
-  } catch {
-    /* ignore */
-  }
+    writeKey("recentDirs", map);
 }

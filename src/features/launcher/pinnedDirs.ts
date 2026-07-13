@@ -1,23 +1,16 @@
+import { z } from "zod";
+import { readScoped, writeScoped } from "../../lib/storage";
+
 const KEY = (cliKey: string): string => `ai-launcher:pinned-dirs:${cliKey}`;
 const MAX_PINS = 3;
+const pinsSchema = z.array(z.string());
 
 function readPins(cliKey: string): string[] {
-  try {
-    const raw = localStorage.getItem(KEY(cliKey));
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as string[]).filter((x) => typeof x === "string") : [];
-  } catch {
-    return [];
-  }
+  return readScoped(KEY(cliKey), pinsSchema, []);
 }
 
 function writePins(cliKey: string, pins: string[]): void {
-  try {
-    localStorage.setItem(KEY(cliKey), JSON.stringify(pins));
-  } catch {
-    /* ignore quota */
-  }
+  writeScoped(KEY(cliKey), pinsSchema, pins);
 }
 
 export function getPinnedDirs(cliKey: string): string[] {

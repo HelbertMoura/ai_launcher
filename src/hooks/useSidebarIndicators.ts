@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { UsageReport } from "../features/costs/useUsage";
 import { loadWorkspaces } from "../features/workspace/workspaceStore";
 import type { HistoryItem } from "../features/history/useHistory";
+import { readKey, STORAGE_KEYS } from "../lib/storage";
 
 export interface SidebarIndicators {
   /** Number of sessions started today (YYYY-MM-DD match on startedAt/timestamp). */
@@ -17,23 +18,15 @@ export interface SidebarIndicators {
   pinnedWorkspaces: number;
 }
 
-const CONFIG_KEY = "ai-launcher-config";
-
 function isToday(iso: string | undefined, todayPrefix: string): boolean {
   if (!iso) return false;
   return iso.slice(0, 10) === todayPrefix;
 }
 
 function readHistoryItems(): HistoryItem[] {
-  try {
-    const raw = localStorage.getItem(CONFIG_KEY);
-    if (!raw) return [];
-    const cfg = JSON.parse(raw) as Record<string, unknown>;
+    const cfg = readKey("config");
     if (!Array.isArray(cfg.history)) return [];
     return cfg.history as HistoryItem[];
-  } catch {
-    return [];
-  }
 }
 
 function countSessionsToday(items: HistoryItem[]): number {
@@ -78,7 +71,7 @@ export function useSidebarIndicators(
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === CONFIG_KEY) setHistoryItems(readHistoryItems());
+      if (e.key === STORAGE_KEYS.config) setHistoryItems(readHistoryItems());
       if (e.key && e.key.includes("workspace")) {
         setPinned(countPinnedWorkspaces());
       }

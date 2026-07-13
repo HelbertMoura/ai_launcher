@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Chip } from "../../ui/Chip";
 import { Skeleton } from "../../ui/Skeleton";
 import { ACCENTS, useAccent, type Accent } from "../../hooks/useAccent";
 import { useTheme, type Theme } from "../../hooks/useTheme";
 import { readShowOnStartup, setShowOnStartup } from "../../app/onboarding";
+import { invokeOrFallback } from "../../lib/tauri";
 import pkg from "../../../package.json";
 import "./OnboardingPage.css";
 
@@ -41,6 +41,7 @@ const THEME_LABELS: Record<Theme, string> = {
   "high-contrast": "High Contrast",
 };
 const TOTAL_STEPS = 3;
+const STEP_KEYS = ["welcome", "appearance", "scan"] as const;
 
 /* ---- Welcome terminal script ---- */
 
@@ -78,11 +79,11 @@ function WelcomeTerminal() {
   const [lines, setLines] = useState<TermLine[]>([]);
   const [typing, setTyping] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const cancelRef = useRef(false);
-  const doneRef = useRef(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
-    cancelRef.current = false;
+    let cancelled = false;
+    setDone(false);
     let idx = 0;
 
     const delay = (ms: number) =>
@@ -95,7 +96,7 @@ function WelcomeTerminal() {
       await delay(600);
 
       for (const line of getWelcomeLines()) {
-        if (cancelRef.current) return;
+        if (cancelled) return;
 
         if (line.kind === "blank" || (line.kind === "output" && line.text === "")) {
           setLines((prev) => [...prev, line]);
@@ -115,7 +116,7 @@ function WelcomeTerminal() {
           setIsTyping(true);
           const cmd = line.command ?? "";
           for (const ch of cmd) {
-            if (cancelRef.current) return;
+            if (cancelled) return;
             setTyping((prev) => prev + ch);
             scroll();
             await delay(25);
@@ -130,12 +131,13 @@ function WelcomeTerminal() {
         idx++;
       }
 
-      doneRef.current = true;
+      if (!cancelled) setDone(true);
+
     };
 
     void run();
     return () => {
-      cancelRef.current = true;
+      cancelled = true;
     };
 
     function scroll() {
@@ -191,7 +193,7 @@ function WelcomeTerminal() {
             </span>
           </div>
         )}
-        {!isTyping && doneRef.current && (
+        {!isTyping && done && (
           <div className="at__line at__line--cmd">
             <span className="at__ps">$</span>
             <span className="at__cursor" />
@@ -213,12 +215,14 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
   const [scanning, setScanning] = useState(false);
   const [results, setResults] = useState<ScanResult[] | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
+  const installedCount = results?.filter((r) => r.installed).length ?? 0;
+  const missingCount = results ? results.length - installedCount : 0;
 
   const runScan = async () => {
     setScanning(true);
     setScanError(null);
     try {
-      const r = await invoke<ScanResult[]>("check_clis");
+      const r = await invokeOrFallback<ScanResult[]>("check_clis", undefined, []);
       setResults(r);
     } catch (e) {
       setScanError(e instanceof Error ? e.message : String(e));
@@ -239,145 +243,194 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
   return (
     <div className="cd-onb" role="dialog" aria-modal="true" aria-labelledby="cd-onb-title">
       <div className="cd-onb__panel">
-        <div className="cd-onb__indicator">
-          {t("onboarding.indicator", { current: step, total: TOTAL_STEPS })}
-        </div>
+        <aside className="cd-onb__rail" aria-label={t("onboarding.progressLabel")}>
+          <div className="cd-onb__rail-brand">
+            <span className="cd-onb__rail-mark">AI</span>
+            <span>v{VERSION}</span>
+          </div>
+          <ol className="cd-onb__steps">
+            {STEP_KEYS.map((key, index) => {
+              const current = index + 1;
+              return (
+                <li
+                  key={key}
+                  className={`cd-onb__step-pill${current === step ? " is-active" : ""}${current < step ? " is-done" : ""}`}
+                >
+                  <span className="cd-onb__step-index">{String(current).padStart(2, "0")}</span>
+                  <span>{t(`onboarding.steps.${key}`)}</span>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="cd-onb__trust">
+            <span className="cd-onb__trust-label">{t("onboarding.trustLabel")}</span>
+            <span>{t("onboarding.trustLocal")}</span>
+          </div>
+        </aside>
 
-        {step === 1 && (
-          <div className="cd-onb__step">
-            <div className="cd-onb__brand">
+        <main className="cd-onb__main">
+          <div className="cd-onb__indicator">
+            {t("onboarding.indicator", { current: step, total: TOTAL_STEPS })}
+          </div>
+
+          {step === 1 && (
+            <div className="cd-onb__step">
+              <div className="cd-onb__brand">
+                <h1 id="cd-onb-title" className="cd-onb__title">
+                  AI LAUNCHER
+                </h1>
+                <span className="cd-onb__badge">PRO</span>
+              </div>
+              <WelcomeTerminal />
+              <p className="cd-onb__lede">{t("onboarding.step1Lede")}</p>
+              <div className="cd-onb__promise-grid" aria-label={t("onboarding.promiseLabel")}>
+                <span>{t("onboarding.promiseLocal")}</span>
+                <span>{t("onboarding.promiseSecure")}</span>
+                <span>{t("onboarding.promiseControl")}</span>
+              </div>
+              <div className="cd-onb__byline">
+                <span className="cd-onb__byline-text">by <strong>DevManiac&apos;s</strong> · Helbert Moura</span>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="cd-onb__step">
               <h1 id="cd-onb-title" className="cd-onb__title">
-                AI LAUNCHER
+                {t("onboarding.step2Title")}
               </h1>
-              <span className="cd-onb__badge">PRO</span>
-            </div>
-            <WelcomeTerminal />
-            <p className="cd-onb__lede">{t("onboarding.step1Lede")}</p>
-            <div className="cd-onb__byline">
-              <span className="cd-onb__byline-text">by <strong>DevManiac&apos;s</strong> · Helbert Moura</span>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="cd-onb__step">
-            <h1 id="cd-onb-title" className="cd-onb__title">
-              {t("onboarding.step2Title")}
-            </h1>
-            <div className="cd-onb__field">
-              <div className="cd-onb__label">{t("onboarding.step2Theme")}</div>
-              <div className="cd-onb__row">
-                {THEMES.map((th) => (
-                  <Button
-                    key={th}
-                    size="sm"
-                    variant={theme === th ? "primary" : "ghost"}
-                    onClick={() => setTheme(th)}
-                  >
-                    {THEME_LABELS[th]}
-                  </Button>
-                ))}
+              <p className="cd-onb__lede">{t("onboarding.step2Lede")}</p>
+              <div className="cd-onb__field">
+                <div className="cd-onb__label">{t("onboarding.step2Theme")}</div>
+                <div className="cd-onb__row cd-onb__theme-grid">
+                  {THEMES.map((th) => (
+                    <button
+                      key={th}
+                      type="button"
+                      className={`cd-onb__theme ${theme === th ? "is-active" : ""}`}
+                      aria-pressed={theme === th}
+                      onClick={() => setTheme(th)}
+                    >
+                      <span className="cd-onb__theme-preview" aria-hidden="true" />
+                      <span>{THEME_LABELS[th]}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="cd-onb__field">
-              <div className="cd-onb__label">{t("onboarding.step2Accent")}</div>
-              <div className="cd-onb__swatches">
-                {ACCENTS.map((a) => (
-                  <button
-                    key={a}
-                    type="button"
-                    className={`cd-onb__swatch cd-onb__swatch--${a} ${accent === a ? "is-active" : ""}`}
-                    aria-label={`${t("topBar.accent")} ${a}`}
-                    aria-pressed={accent === a}
-                    onClick={() => setAccent(a satisfies Accent)}
+              <div className="cd-onb__field">
+                <div className="cd-onb__label">{t("onboarding.step2Accent")}</div>
+                <div className="cd-onb__swatches">
+                  {ACCENTS.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      className={`cd-onb__swatch cd-onb__swatch--${a} ${accent === a ? "is-active" : ""}`}
+                      aria-label={`${t("topBar.accent")} ${a}`}
+                      aria-pressed={accent === a}
+                      onClick={() => setAccent(a satisfies Accent)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="cd-onb__toggle-field">
+                <label className="cd-onb__toggle">
+                  <input
+                    type="checkbox"
+                    checked={showStartup}
+                    onChange={toggleShowStartup}
                   />
-                ))}
+                  <span className="cd-onb__toggle-slider" />
+                  <span className="cd-onb__toggle-text">
+                    {t("onboarding.step2ShowOnStartup")}
+                  </span>
+                </label>
+                <span className="cd-onb__toggle-hint">
+                  {t("onboarding.step2ShowOnStartupHint")}
+                </span>
               </div>
             </div>
+          )}
 
-            <div className="cd-onb__toggle-field">
-              <label className="cd-onb__toggle">
-                <input
-                  type="checkbox"
-                  checked={showStartup}
-                  onChange={toggleShowStartup}
-                />
-                <span className="cd-onb__toggle-slider" />
-                <span className="cd-onb__toggle-text">
-                  {t("onboarding.step2ShowOnStartup")}
-                </span>
-              </label>
-              <span className="cd-onb__toggle-hint">
-                {t("onboarding.step2ShowOnStartupHint")}
-              </span>
+          {step === 3 && (
+            <div className="cd-onb__step">
+              <h1 id="cd-onb-title" className="cd-onb__title">
+                {t("onboarding.step3Title")}
+              </h1>
+              <p className="cd-onb__lede">{t("onboarding.step3Lede")}</p>
+
+              <div className="cd-onb__scan-summary" aria-live="polite">
+                <div>
+                  <span className="cd-onb__metric-value">{results ? installedCount : "—"}</span>
+                  <span className="cd-onb__metric-label">{t("onboarding.scanInstalled")}</span>
+                </div>
+                <div>
+                  <span className="cd-onb__metric-value">{results ? missingCount : "—"}</span>
+                  <span className="cd-onb__metric-label">{t("onboarding.scanMissing")}</span>
+                </div>
+              </div>
+
+              {!results && !scanning && (
+                <Button size="md" onClick={() => void runScan()}>
+                  {t("onboarding.step3ScanNow")}
+                </Button>
+              )}
+
+              {scanning && (
+                <div className="cd-onb__scan">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} variant="line" height={24} />
+                  ))}
+                </div>
+              )}
+
+              {scanError && (
+                <div className="cd-onb__error" role="alert">
+                  {t("onboarding.step3ScanError", { error: scanError })}
+                </div>
+              )}
+
+              {results && !scanning && (
+                <ul className="cd-onb__results" aria-label={t("onboarding.scanResults")} tabIndex={0}>
+                  {results.map((r) => (
+                    <li key={r.name} className="cd-onb__result">
+                      <span className="cd-onb__result-name">{r.name}</span>
+                      <Chip variant={r.installed ? "online" : "missing"} dot>
+                        {r.installed ? (r.version ?? t("common.online")) : t("common.missing")}
+                      </Chip>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {step === 3 && (
-          <div className="cd-onb__step">
-            <h1 id="cd-onb-title" className="cd-onb__title">
-              {t("onboarding.step3Title")}
-            </h1>
-            <p className="cd-onb__lede">{t("onboarding.step3Lede")}</p>
+          <div className="cd-onb__nav">
+            {step > 1 ? (
+              <Button variant="ghost" size="sm" onClick={back}>
+                {t("onboarding.back")}
+              </Button>
+            ) : (
+              <span />
+            )}
 
-            {!results && !scanning && (
-              <Button size="md" onClick={() => void runScan()}>
-                {t("onboarding.step3ScanNow")}
+            {step < TOTAL_STEPS && (
+              <Button size="sm" onClick={next}>
+                {t("onboarding.next")}
               </Button>
             )}
 
-            {scanning && (
-              <div className="cd-onb__scan">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} variant="line" height={24} />
-                ))}
+            {step === TOTAL_STEPS && (
+              <div className="cd-onb__finish">
+                {!results && <span>{t("onboarding.finishHint")}</span>}
+                <Button size="sm" disabled={!results} onClick={onFinish}>
+                  {t("onboarding.finish")}
+                </Button>
               </div>
-            )}
-
-            {scanError && (
-              <div className="cd-onb__error">
-                {t("onboarding.step3ScanError", { error: scanError })}
-              </div>
-            )}
-
-            {results && !scanning && (
-              <ul className="cd-onb__results">
-                {results.map((r) => (
-                  <li key={r.name} className="cd-onb__result">
-                    <span className="cd-onb__result-name">{r.name}</span>
-                    <Chip variant={r.installed ? "online" : "missing"} dot>
-                      {r.installed ? (r.version ?? t("common.online")) : t("common.missing")}
-                    </Chip>
-                  </li>
-                ))}
-              </ul>
             )}
           </div>
-        )}
-
-        <div className="cd-onb__nav">
-          {step > 1 ? (
-            <Button variant="ghost" size="sm" onClick={back}>
-              {t("onboarding.back")}
-            </Button>
-          ) : (
-            <span />
-          )}
-
-          {step < TOTAL_STEPS && (
-            <Button size="sm" onClick={next}>
-              {t("onboarding.next")}
-            </Button>
-          )}
-
-          {step === TOTAL_STEPS && (
-            <Button size="sm" disabled={!results} onClick={onFinish}>
-              {t("onboarding.finish")}
-            </Button>
-          )}
-        </div>
+        </main>
       </div>
     </div>
   );

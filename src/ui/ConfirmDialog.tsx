@@ -12,6 +12,7 @@ interface ConfirmDialogProps {
   readonly confirmLabel?: string;
   readonly cancelLabel?: string;
   readonly variant?: ConfirmVariant;
+  readonly confirmDisabled?: boolean;
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
   /** Optional extra content rendered between the message and the actions
@@ -26,6 +27,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   variant = "normal",
+  confirmDisabled = false,
   onConfirm,
   onCancel,
   children,
@@ -110,6 +112,7 @@ export function ConfirmDialog({
             data-confirm
             size="sm"
             variant={variant === "danger" ? "danger" : "primary"}
+            disabled={confirmDisabled}
             onClick={onConfirm}
           >
             {resolvedConfirmLabel}

@@ -28,8 +28,8 @@
 }
 
 .cd-chip--online {
-  color: var(--accent);
-  border-color: var(--accent);
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
 }
 .cd-chip--offline {
   color: var(--text-dim);
@@ -41,12 +41,12 @@
   opacity: 0.7;
 }
 .cd-chip--update {
-  color: var(--warn);
-  border-color: var(--warn);
+  color: color-mix(in srgb, var(--warn) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--warn) 70%, var(--border));
 }
 .cd-chip--warn {
-  color: var(--warn);
-  border-color: var(--warn);
+  color: color-mix(in srgb, var(--warn) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--warn) 70%, var(--border));
 }
 .cd-chip--admin {
   background: var(--accent);

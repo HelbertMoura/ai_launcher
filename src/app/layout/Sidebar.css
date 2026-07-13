@@ -1,13 +1,12 @@
 .cd-side {
   width: var(--sidebar-w);
-  background: var(--surface-1-alpha);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--surface-1);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: var(--s-3) var(--s-2);
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
+  transition: width var(--dur) var(--ease);
 }
 
 .cd-side__brand {
@@ -21,6 +20,18 @@
   border-bottom: 1px dashed var(--border);
   margin-bottom: var(--s-3);
 }
+.cd-side__name { white-space: nowrap; }
+.cd-side__collapse {
+  margin-left: auto;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.cd-side__collapse:hover { color: var(--text); border-color: var(--border-strong); }
 .cd-side__led {
   width: 9px;
   height: 9px;
@@ -40,14 +51,16 @@
 }
 
 .cd-side__item {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7px var(--s-3);
+  min-height: 38px;
+  padding: 7px var(--s-2);
   background: transparent;
   border: 0;
-  border-left: 2px solid transparent;
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
   color: var(--text-muted);
   cursor: pointer;
   font-size: var(--text-sm);
@@ -58,10 +71,13 @@
 .cd-side__item:hover { background: var(--surface-hover); color: var(--text); }
 .cd-side__item--on {
   background: var(--accent-soft);
-  border-left-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 36%, transparent);
   color: var(--text);
   font-weight: 700;
 }
+.cd-side__item-main { min-width: 0; display: inline-flex; align-items: center; gap: 10px; }
+.cd-side__item-main svg { flex: 0 0 auto; color: currentColor; }
+.cd-side__item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cd-side__item-key { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
 /* The active item sits on an accent-tinted surface; dim text drops below AA
    there (axe: 4.37 on the composited bg) - promote to muted for that state. */
@@ -90,14 +106,14 @@
 }
 
 .cd-side__indicator--accent {
-  color: var(--accent);
+  color: color-mix(in oklch, var(--accent) 82%, var(--text));
   background: var(--accent-soft);
   font-weight: 700;
 }
 
 .cd-side__indicator--warn {
   color: var(--warn);
-  background: rgba(255, 159, 28, 0.12);
+  background: color-mix(in oklch, var(--warn) 12%, transparent);
   font-weight: 700;
 }
 
@@ -111,3 +127,53 @@
   color: var(--text-dim);
 }
 .cd-side__ver { letter-spacing: 1.5px; }
+.cd-side__mode { display: flex; align-items: center; gap: 7px; color: var(--text-muted); font: 10px var(--font-mono); text-transform: uppercase; }
+.cd-side__mode > span { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.cd-side__mode--safe { color: var(--ok); }
+.cd-side__mode--standard { color: var(--warn); }
+.cd-side__mode--admin { color: var(--err); }
+
+.cd-side--collapsed { align-items: stretch; }
+.cd-side--collapsed .cd-side__brand { justify-content: center; padding-inline: 0; }
+.cd-side--collapsed .cd-side__name,
+.cd-side--collapsed .cd-side__label,
+.cd-side--collapsed .cd-side__item-name,
+.cd-side--collapsed .cd-side__item-key,
+.cd-side--collapsed .cd-side__mode,
+.cd-side--collapsed .cd-side__ver { display: none; }
+.cd-side--collapsed .cd-side__collapse { position: absolute; left: 50px; margin: 0; background: var(--surface-1); }
+.cd-side--collapsed .cd-side__item {
+  justify-content: center;
+  width: 52px;
+  min-height: 42px;
+  padding-inline: 0;
+  overflow: hidden;
+}
+.cd-side--collapsed .cd-side__item-main { justify-content: center; }
+.cd-side--collapsed .cd-side__item-trail {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  margin: 0;
+  gap: 0;
+}
+.cd-side--collapsed .cd-side__indicator {
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  max-width: 22px;
+  height: 16px;
+  padding: 0 4px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: clip;
+  font-size: 9px;
+  line-height: 16px;
+}
+.cd-side--collapsed .cd-side__foot { min-height: 24px; }
+
+@media (max-height: 760px) {
+  .cd-side { padding-block: var(--s-2); }
+  .cd-side__nav { gap: var(--s-2); overflow-y: auto; }
+  .cd-side__item { min-height: 34px; padding-block: 5px; }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { byModel, byProject, dailySeries, trend } from "./analytics";
+import { buildCostsOverview, byModel, byProject, dailySeries, trend } from "./analytics";
 import type { UsageEntry } from "./useUsage";
 
 function entry(partial: Partial<UsageEntry>): UsageEntry {
@@ -99,5 +99,23 @@ describe("trend", () => {
   it("returns null deltaPct when previous window is zero", () => {
     const t = trend([entry({ date: "2026-06-10" })], 3, "2026-06-10");
     expect(t.deltaPct).toBeNull();
+  });
+});
+
+describe("buildCostsOverview", () => {
+  it("summarizes spend, tokens and CLI rollups deterministically", () => {
+    const overview = buildCostsOverview([
+      entry({ date: "2026-06-10", cli: "codex", cost_estimate_usd: 4, tokens_in: 10, tokens_out: 5 }),
+      entry({ date: "2026-06-09", cli: "claude", cost_estimate_usd: 2, tokens_in: 20, tokens_out: 10 }),
+      entry({ date: "2026-05-20", cli: "codex", cost_estimate_usd: 8, tokens_in: 100, tokens_out: 50 }),
+    ], 3, "2026-06-10");
+
+    expect(overview.todayUsd).toBe(4);
+    expect(overview.monthUsd).toBe(6);
+    expect(overview.entries).toBe(3);
+    expect(overview.cliCount).toBe(2);
+    expect(overview.tokens30d).toBe(45);
+    expect(overview.averageDailyUsd).toBe(2);
+    expect(overview.cliRollups.map((r) => r.cli)).toEqual(["codex", "claude"]);
   });
 });

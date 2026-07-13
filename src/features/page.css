@@ -1,4 +1,4 @@
-.cd-page { max-width: 1080px; margin: 0 auto; }
+.cd-page { max-width: var(--content-max); margin: 0 auto; }
 .cd-page__head {
   margin-bottom: var(--s-5);
   display: flex;
@@ -11,15 +11,16 @@
 .cd-page__heading {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s-1);
   min-width: 0;
 }
 .cd-page__title {
   margin: 0;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
-  letter-spacing: 0.5px;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.35px;
   color: var(--text);
   display: flex;
   align-items: center;
@@ -27,12 +28,11 @@
 }
 .cd-page__sub {
   margin: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 400;
   color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 .cd-page__grid {
   display: grid;

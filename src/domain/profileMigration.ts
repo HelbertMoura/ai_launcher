@@ -4,9 +4,8 @@
 // ==============================================================================
 
 import type { LaunchProfile } from './types';
-
-const PROFILES_KEY = 'ai-launcher:v15:profiles';
-const MIGRATION_KEY = 'ai-launcher:v15:migrated';
+import { z } from 'zod';
+import { readKey, readScoped, writeKey, writeScoped } from '../lib/storage';
 
 // Legacy keys
 const LEGACY_PRESETS_KEY = 'ai-launcher-presets';
@@ -38,25 +37,11 @@ interface LegacyTemplate {
 }
 
 function readLegacyPresets(): LegacyPreset[] {
-  try {
-    const raw = localStorage.getItem(LEGACY_PRESETS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return readKey('presets') as LegacyPreset[];
 }
 
 function readLegacyTemplates(): LegacyTemplate[] {
-  try {
-    const raw = localStorage.getItem(LEGACY_TEMPLATES_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return readScoped(LEGACY_TEMPLATES_KEY, z.array(z.unknown()), []) as LegacyTemplate[];
 }
 
 function presetToProfile(p: LegacyPreset): LaunchProfile {
@@ -104,7 +89,7 @@ function templateToProfile(t: LegacyTemplate): LaunchProfile {
  * Idempotent — safe to call on every app load.
  */
 export function migrateIfNeeded(): boolean {
-  if (localStorage.getItem(MIGRATION_KEY) === '1') return false;
+  if (readKey('profilesMigrated') === '1') return false;
 
   const legacyPresets = readLegacyPresets();
   const legacyTemplates = readLegacyTemplates();
@@ -127,26 +112,14 @@ export function migrateIfNeeded(): boolean {
   }
 
   // Backup old data before writing new
-  try {
-    if (legacyPresets.length > 0) {
-      localStorage.setItem(`${LEGACY_PRESETS_KEY}.bak`, JSON.stringify(legacyPresets));
-    }
-    if (legacyTemplates.length > 0) {
-      localStorage.setItem(`${LEGACY_TEMPLATES_KEY}.bak`, JSON.stringify(legacyTemplates));
-    }
-  } catch {
-    // Backup failure should not block migration
-  }
+  if (legacyPresets.length > 0) writeScoped(`${LEGACY_PRESETS_KEY}.bak`, z.array(z.unknown()), legacyPresets);
+  if (legacyTemplates.length > 0) writeScoped(`${LEGACY_TEMPLATES_KEY}.bak`, z.array(z.unknown()), legacyTemplates);
 
   // Save unified profiles
   if (profiles.length > 0) {
-    try {
-      localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
-    } catch {
-      // Storage write failure
-    }
+    writeKey('profiles', profiles);
   }
 
-  localStorage.setItem(MIGRATION_KEY, '1');
+  writeKey('profilesMigrated', '1');
   return true;
 }

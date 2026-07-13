@@ -16,7 +16,6 @@ export const DEFAULT_HISTORY_FILTERS: HistoryFilters = {
   timelineOpen: true,
 };
 
-const HISTORY_FILTERS_KEY = "ai-launcher:v20:history-filters";
 const VALID_RANGES = new Set<HistoryFilterRange>(["today", "week", "month", "all"]);
 const VALID_TIMELINE_RANGES = new Set(["24h", "7d"]);
 
@@ -45,18 +44,10 @@ export function normalizeHistoryFilters(raw: unknown): HistoryFilters {
 }
 
 export function loadHistoryFilters(): HistoryFilters {
-  try {
-    const raw = localStorage.getItem(HISTORY_FILTERS_KEY);
-    return raw ? normalizeHistoryFilters(JSON.parse(raw)) : DEFAULT_HISTORY_FILTERS;
-  } catch {
-    return DEFAULT_HISTORY_FILTERS;
-  }
+  return normalizeHistoryFilters(readKey("historyFilters"));
 }
 
 export function saveHistoryFilters(filters: HistoryFilters): void {
-  try {
-    localStorage.setItem(HISTORY_FILTERS_KEY, JSON.stringify(normalizeHistoryFilters(filters)));
-  } catch {
-    /* ignore */
-  }
+  writeKey("historyFilters", normalizeHistoryFilters(filters));
 }
+import { readKey, writeKey } from "../../lib/storage";

@@ -5,6 +5,7 @@
 
 import { z } from 'zod';
 import type { UsageEntry } from '../features/costs/useUsage';
+import { readKey, removeKey, writeKey } from '../lib/storage';
 
 // --- Types -------------------------------------------------------------------
 
@@ -42,8 +43,6 @@ export interface BudgetAlert {
 
 // --- Storage -----------------------------------------------------------------
 
-const STORAGE_KEY = 'ai-launcher:v15:budget';
-
 interface BudgetStore {
   limits: BudgetLimit[];
 }
@@ -62,10 +61,7 @@ const budgetLimitSchema = z.object({
 });
 
 function loadStore(): BudgetStore {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { limits: [] };
-    const parsed = JSON.parse(raw) as unknown;
+    const parsed = readKey('budget') as unknown;
     const limitsRaw = (parsed as { limits?: unknown })?.limits;
     if (!Array.isArray(limitsRaw)) return { limits: [] };
     // Drop any malformed entries rather than failing the whole store.
@@ -74,17 +70,10 @@ function loadStore(): BudgetStore {
       return result.success ? [result.data] : [];
     });
     return { limits };
-  } catch {
-    return { limits: [] };
-  }
 }
 
 function saveStore(store: BudgetStore): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch (e) {
-    console.error('[budget] failed to save', e);
-  }
+  writeKey('budget', store);
 }
 
 // --- Helpers -----------------------------------------------------------------
@@ -295,5 +284,5 @@ export function getAllBudgetUsage(entries: UsageEntry[]): BudgetUsage[] {
 
 /** Reset all budget limits. */
 export function resetBudgetLimits(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  removeKey('budget');
 }

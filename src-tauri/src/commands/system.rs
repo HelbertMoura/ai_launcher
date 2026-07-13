@@ -6,18 +6,6 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 use crate::util::{crash_dir, read_tray_config, write_tray_config, CREATE_NO_WINDOW};
 
 #[tauri::command]
-pub fn open_in_explorer(path: String) -> Result<String, String> {
-    if !std::path::Path::new(&path).exists() {
-        return Err("Diretório não encontrado".into());
-    }
-    std::process::Command::new("explorer")
-        .arg(&path)
-        .spawn()
-        .map(|_| "Aberto".into())
-        .map_err(|e| format!("Erro: {}", e))
-}
-
-#[tauri::command]
 pub fn open_external_url(url: String) -> Result<String, String> {
     let trimmed = url.trim();
     if !trimmed.starts_with("https://") && !trimmed.starts_with("http://") {

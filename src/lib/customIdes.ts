@@ -1,4 +1,6 @@
 // ==============================================================================
+
+import { readKey, writeKey } from './storage';
 // AI Launcher Pro - Custom IDEs (v7.0)
 // Storage + validation for user-defined IDE entries persisted in localStorage.
 // Mirrors customClis.ts for API parity. Additive feature — does not alter
@@ -16,37 +18,20 @@ export interface CustomIde {
   createdAt: number;        // ms since epoch
 }
 
-const STORAGE_KEY = 'ai-launcher:custom-ides';
-
 // Same-tab sync bus. Mirrors customClis.ts semantics.
 export const CUSTOM_IDES_CHANGED_EVENT = 'ai-launcher:custom-ides-changed';
 
 export function loadCustomIdes(): CustomIde[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is CustomIde => {
-      return typeof item === 'object' && item !== null
-        && typeof item.key === 'string' && typeof item.name === 'string'
-        && typeof item.detectCmd === 'string' && typeof item.launchCmd === 'string';
-    });
-  } catch {
-    return [];
-  }
+  return readKey('customIdes') as CustomIde[];
 }
 
 export function saveCustomIdes(ides: CustomIde[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ides));
+  if (writeKey('customIdes', ides)) {
     try {
       window.dispatchEvent(new CustomEvent(CUSTOM_IDES_CHANGED_EVENT, { detail: ides }));
     } catch {
       /* ignore */
     }
-  } catch (e) {
-    console.error('[customIdes] save failed', e);
   }
 }
 

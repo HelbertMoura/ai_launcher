@@ -28,6 +28,7 @@ import { CustomCliLaunchDialog } from "./CustomCliLaunchDialog";
 import { useClis, type CliInfo } from "./useClis";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import { readKey, writeKey } from "../../lib/storage";
 import {
   loadProfiles,
   removeProfile,
@@ -37,6 +38,7 @@ import type { CustomCli } from "../../lib/customClis";
 import { launchCliSession, recordFailedLaunch, type LaunchableCli } from "./launchSession";
 import { showToast } from "../../ui/toastStore";
 import type { TabId } from "../../app/layout/TabId";
+import { buildLauncherOverview } from "./launcherPageModel";
 import "../page.css";
 import "./LauncherPage.css";
 
@@ -58,10 +60,18 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
   const [launchingProfileId, setLaunchingProfileId] = useState<string | null>(null);
   const refreshProfiles = () => setProfiles(loadProfiles());
 
-  const allCount = clis.length + customClis.length;
+  const updateNames = useMemo(
+    () => new Set(updates?.cli_updates.filter((update) => update.has_update).map((update) => update.cli) ?? []),
+    [updates],
+  );
+  const overview = useMemo(
+    () => buildLauncherOverview(clis, customClis.length, checks, updateNames),
+    [checks, clis, customClis.length, updateNames],
+  );
+  const allCount = overview.total;
 
   const cliHasUpdate = (name: string) =>
-    updates?.cli_updates.some((u) => u.cli === name && u.has_update) ?? false;
+    updateNames.has(name);
 
   const onInstall = async (cli: CliInfo) => {
     setInstalling(cli.key);
@@ -132,8 +142,7 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
   };
 
   const [order, setOrderState] = useState<string[]>(() => {
-    const saved = localStorage.getItem("ai-launcher:cli-order");
-    return saved ? (JSON.parse(saved) as string[]) : [];
+    return readKey("cliOrder");
   });
 
   const sortedClis = useMemo(() => {
@@ -164,7 +173,7 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
 
   const persistOrder = useCallback((nextKeys: string[]) => {
     setOrderState(nextKeys);
-    localStorage.setItem("ai-launcher:cli-order", JSON.stringify(nextKeys));
+    writeKey("cliOrder", nextKeys);
   }, []);
 
   const sensors = useSensors(
@@ -189,8 +198,6 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
     [sortableIds, persistOrder],
   );
 
-  const installedCount = Object.values(checks).filter((c) => c.installed).length;
-
   return (
     <section className="cd-page cd-launcher">
       <header className="cd-page__head">
@@ -200,7 +207,7 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
             {loading
               ? t("common.scanning")
               : t("launcher.installedCount", {
-                  installed: installedCount,
+                  installed: overview.installed,
                   total: allCount,
                 })}
           </p>
@@ -216,13 +223,37 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
         </Button>
       </header>
 
-      {error && <Banner variant="err">{error}</Banner>}
+      {!loading && allCount > 0 && (
+        <section className="cd-launcher-overview" aria-label={t("launcher.overviewLabel")}>
+          <div className="cd-launcher-overview__lead">
+            <span className="cd-launcher-overview__eyebrow">{t("launcher.readyToLaunch")}</span>
+            <strong>{t("launcher.readyCount", { count: overview.installed })}</strong>
+            <span>{t("launcher.readyHint")}</span>
+          </div>
+          <div className="cd-launcher-overview__metrics">
+            <div><strong>{overview.total}</strong><span>{t("launcher.metricConfigured")}</span></div>
+            <div><strong>{overview.missing}</strong><span>{t("launcher.metricMissing")}</span></div>
+            <div><strong>{overview.updates}</strong><span>{t("launcher.metricUpdates")}</span></div>
+          </div>
+        </section>
+      )}
+
+      {error && (
+        <Banner variant="err">
+          <span>{error}</span>
+          <Button size="sm" variant="ghost" onClick={() => void refresh()}>{t("common.retry")}</Button>
+        </Banner>
+      )}
 
       {profiles.length > 0 && (
-        <div className="cd-launcher__templates">
-          <h2 className="cd-launcher__section-title">
-            {t("launcher.templates")}
-          </h2>
+        <section className="cd-launcher__templates" aria-labelledby="launcher-templates-title">
+          <div className="cd-launcher__section-head">
+            <div>
+              <h2 id="launcher-templates-title" className="cd-launcher__section-title">{t("launcher.templates")}</h2>
+              <p>{t("launcher.templatesHint")}</p>
+            </div>
+            <span>{t("launcher.templateCount", { count: profiles.length })}</span>
+          </div>
           <div className="cd-launcher__templates-grid">
             {profiles.map((p) => (
               <div key={p.id} className="cd-launcher__template-card">
@@ -234,28 +265,27 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
                   {p.cliKeys[0] ?? ""} · {p.directory ?? ""}
                 </div>
                 <div className="cd-launcher__template-actions">
-                  <button
-                    type="button"
-                    className="cd-launcher__template-launch"
+                  <Button
+                    size="sm"
                     disabled={launchingProfileId === p.id}
                     onClick={() => void launchProfile(p)}
                   >
                     {launchingProfileId === p.id ? t("common.loading") : t("launcher.launch")}
-                  </button>
-                  <button
-                    type="button"
-                    className="cd-launcher__template-delete"
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => setConfirmDeleteProfile(p)}
                     title={t("common.delete")}
                     aria-label={t("common.delete")}
                   >
                     ✕
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {loading && (
@@ -284,7 +314,15 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
       )}
 
       {!loading && allCount > 0 && (
-        <DndContext
+        <section className="cd-launcher__catalog" aria-labelledby="launcher-catalog-title">
+          <div className="cd-launcher__section-head">
+            <div>
+              <h2 id="launcher-catalog-title" className="cd-launcher__section-title">{t("launcher.catalogTitle")}</h2>
+              <p>{t("launcher.catalogHint")}</p>
+            </div>
+            <span>{t("launcher.catalogCount", { count: allCount })}</span>
+          </div>
+          <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -319,7 +357,8 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
               })}
             </div>
           </SortableContext>
-        </DndContext>
+          </DndContext>
+        </section>
       )}
 
       <LaunchDialog

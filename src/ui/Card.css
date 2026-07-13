@@ -1,7 +1,7 @@
 .cd-card {
-  background: var(--surface-2);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--text) 6%), var(--surface-card));
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   padding: var(--s-4);
   transition: border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease),
@@ -12,9 +12,9 @@
 }
 
 .cd-card--interactive:hover {
-  border-color: var(--accent);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--accent-soft);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border-strong));
+  box-shadow: var(--shadow-card), 0 0 0 1px var(--accent-soft);
+  transform: translateY(-2px);
 }
 
 .cd-card--active {

@@ -19,6 +19,10 @@ import {
 import { MCP_CATALOG, isCatalogEntryValid, type McpCatalogEntry } from "./catalog";
 import { serverToHealthInput } from "./projectMcp";
 import { McpServerDialog, type McpDialogInitial } from "./McpServerDialog";
+import { buildMcpOverview, mcpHealthKey } from "./mcpPageModel";
+import { getExecutionMode } from '../../domain/executionMode';
+import { appendAuditEvent } from '../../lib/auditLog';
+import { getActiveWorkspaceId } from '../workspace/workspaceStore';
 import "../page.css";
 import "./McpPage.css";
 
@@ -52,6 +56,11 @@ export function McpPage() {
     for (const s of servers) map[s.cli].push(s);
     return map;
   }, [servers]);
+
+  const overview = useMemo(
+    () => buildMcpOverview(servers, health),
+    [servers, health],
+  );
 
   // Run a lightweight health check for every listed server whenever the list
   // changes. Failures degrade gracefully (no entry => "unknown" pill).
@@ -118,9 +127,11 @@ export function McpPage() {
     async (cli: McpCli, name: string, server: McpServerInput) => {
       if (dialogMode === "add") {
         await addServer(cli, server);
+        appendAuditEvent({ action: 'mcp.server.add', outcome: 'confirmed', mode: getExecutionMode(), workspaceId: getActiveWorkspaceId() ?? undefined, detail: `${cli}:${server.name}` });
         showToast(t("mcp.toastAdded", { name: server.name }), "success");
       } else {
         await updateServer(cli, name, server);
+        appendAuditEvent({ action: 'mcp.server.update', outcome: 'confirmed', mode: getExecutionMode(), workspaceId: getActiveWorkspaceId() ?? undefined, detail: `${cli}:${server.name}` });
         showToast(t("mcp.toastUpdated", { name: server.name }), "success");
       }
     },
@@ -133,8 +144,10 @@ export function McpPage() {
     setConfirmTarget(null);
     try {
       await removeServer(target.cli, target.name);
+      appendAuditEvent({ action: 'mcp.server.remove', outcome: 'confirmed', mode: getExecutionMode(), workspaceId: getActiveWorkspaceId() ?? undefined, detail: `${target.cli}:${target.name}` });
       showToast(t("mcp.toastRemoved", { name: target.name }), "success");
     } catch (e: unknown) {
+      appendAuditEvent({ action: 'mcp.server.remove', outcome: 'failed', mode: getExecutionMode(), workspaceId: getActiveWorkspaceId() ?? undefined, detail: `${target.cli}:${target.name}` });
       showToast(e instanceof Error ? e.message : String(e), "error");
     }
   }, [confirmTarget, removeServer, t]);
@@ -145,7 +158,7 @@ export function McpPage() {
     <section className="cd-page cd-mcp">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h1 className="cd-page__title">▎ {t("mcp.title")}</h1>
+            <h1 id="mcp-page-title" className="cd-page__title">▎ {t("mcp.title")}</h1>
           <p className="cd-page__sub">{t("mcp.subtitle")}</p>
         </div>
         <div className="cd-mcp__head-actions">
@@ -157,6 +170,28 @@ export function McpPage() {
           </Button>
         </div>
       </header>
+
+      <section
+        className="cd-mcp-overview"
+        aria-labelledby="mcp-overview-title"
+        aria-live="polite"
+      >
+        <div className="cd-mcp-overview__lead">
+          <span className="cd-mcp-overview__eyebrow">{t("mcp.overviewEyebrow")}</span>
+          <strong id="mcp-overview-title">
+            {loading
+              ? t("mcp.overviewLoading")
+              : t("mcp.overviewTitle", { count: overview.total })}
+          </strong>
+          <span>{t("mcp.overviewHint")}</span>
+        </div>
+        <div className="cd-mcp-overview__metrics">
+          <div><strong>{overview.healthy}</strong><span>{t("mcp.metricHealthy")}</span></div>
+          <div><strong>{overview.unavailable}</strong><span>{t("mcp.metricUnavailable")}</span></div>
+          <div><strong>{overview.unknown}</strong><span>{t("mcp.metricUnknown")}</span></div>
+          <div><strong>{overview.configuredClis}</strong><span>{t("mcp.metricClis")}</span></div>
+        </div>
+      </section>
 
       {error && <Banner variant="err">{error}</Banner>}
 
@@ -183,9 +218,12 @@ export function McpPage() {
           const list = grouped[cli];
           if (list.length === 0) return null;
           return (
-            <div key={cli} className="cd-mcp__group">
+            <section key={cli} className="cd-mcp__group" aria-labelledby={`mcp-group-${cli}`}>
               <div className="cd-mcp__group-head">
-                <h2 className="cd-mcp__group-title">{CLI_LABELS[cli]}</h2>
+                <div>
+                  <span className="cd-mcp__group-kicker">{t("mcp.targetCli")}</span>
+                  <h2 id={`mcp-group-${cli}`} className="cd-mcp__group-title">{CLI_LABELS[cli]}</h2>
+                </div>
                 <Chip variant="neutral">{list.length}</Chip>
                 <Button
                   size="sm"
@@ -200,26 +238,39 @@ export function McpPage() {
                   <ServerCard
                     key={`${s.cli}:${s.name}`}
                     server={s}
-                    health={health[`${s.cli}:${s.name}`]}
+                    health={health[mcpHealthKey(s)]}
                     onEdit={() => openEdit(s)}
                     onRemove={() => setConfirmTarget(s)}
                   />
                 ))}
               </div>
-            </div>
+            </section>
           );
         })}
 
-      <div className="cd-mcp__catalog">
-        <h2 className="cd-mcp__group-title">{t("mcp.catalogTitle")}</h2>
-        <p className="cd-mcp__catalog-sub">{t("mcp.catalogHint")}</p>
-        <p className="cd-mcp__catalog-sub">{t("mcp.catalogBackupHint")}</p>
+      <section className="cd-mcp__catalog" aria-labelledby="mcp-catalog-title">
+        <div className="cd-mcp__catalog-head">
+          <div>
+            <span className="cd-mcp__group-kicker">{t("mcp.catalogEyebrow")}</span>
+            <h2 id="mcp-catalog-title" className="cd-mcp__group-title">{t("mcp.catalogTitle")}</h2>
+          </div>
+          <Chip variant="admin">{t("mcp.catalogCount", { count: MCP_CATALOG.length })}</Chip>
+        </div>
+        <div className="cd-mcp__catalog-note">
+          <strong>{t("mcp.catalogSafeTitle")}</strong>
+          <span>{t("mcp.catalogHint")}</span>
+          <span>{t("mcp.catalogBackupHint")}</span>
+        </div>
         <div className="cd-page__grid">
           {MCP_CATALOG.map((entry) => (
             <Card key={entry.id} className="cd-mcp__catalog-card">
               <div className="cd-mcp__catalog-name">{entry.label}</div>
               <p className="cd-mcp__catalog-desc">{entry.description}</p>
-              <code className="cd-mcp__catalog-cmd">
+              <code
+                className="cd-mcp__catalog-cmd"
+                tabIndex={0}
+                aria-label={t("mcp.commandLabel", { name: entry.label })}
+              >
                 {entry.transport === "stdio"
                   ? `${entry.command} ${(entry.args ?? []).join(" ")}`.trim()
                   : entry.url}
@@ -228,6 +279,7 @@ export function McpPage() {
                 <Button
                   size="sm"
                   variant="ghost"
+                  aria-label={t("mcp.catalogAddLabel", { name: entry.label })}
                   onClick={() => openCatalog(entry)}
                 >
                   {t("mcp.add")}
@@ -236,7 +288,7 @@ export function McpPage() {
             </Card>
           ))}
         </div>
-      </div>
+      </section>
 
       <McpServerDialog
         open={dialogOpen}
@@ -282,16 +334,24 @@ function ServerCard({ server, health, onEdit, onRemove }: ServerCardProps) {
   return (
     <Card className="cd-mcp__card">
       <div className="cd-mcp__card-head">
-        <span className="cd-mcp__card-name">{server.name}</span>
+        <div className="cd-mcp__card-identity">
+          <span className="cd-mcp__status-dot" data-status={health ? (health.ok ? "ok" : "bad") : "unknown"} aria-hidden />
+          <span className="cd-mcp__card-name">{server.name}</span>
+        </div>
         <div className="cd-mcp__card-badges">
           <Chip variant={transportVariant}>{server.transport}</Chip>
           <Chip variant={healthTone} dot title={health?.detail}>
             {healthText}
           </Chip>
+          {!server.enabled && <Chip variant="neutral">{t("mcp.disabled")}</Chip>}
         </div>
       </div>
 
-      <code className="cd-mcp__card-cmd">
+      <code
+        className="cd-mcp__card-cmd"
+        tabIndex={0}
+        aria-label={t("mcp.commandLabel", { name: server.name })}
+      >
         {server.transport === "stdio"
           ? `${server.command ?? ""} ${(server.args ?? []).join(" ")}`.trim()
           : server.url}
@@ -313,6 +373,7 @@ function ServerCard({ server, health, onEdit, onRemove }: ServerCardProps) {
       )}
 
       <div className="cd-mcp__card-foot">
+        <span className="cd-mcp__card-scope">{t("mcp.localConfig")}</span>
         <Button size="sm" variant="ghost" onClick={onEdit}>
           {t("common.edit")}
         </Button>

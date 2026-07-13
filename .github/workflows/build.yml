@@ -39,6 +39,9 @@ jobs:
       - name: Install npm dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Verify release readiness
+        run: npm run release:readiness
+
       - name: Build frontend
         run: npm run build
 

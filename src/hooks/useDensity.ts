@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { readKey, writeKey } from "../lib/storage";
 
 export type Density = "comfortable" | "compact";
 
-const STORAGE_KEY = "ai-launcher:v15:density";
-
 function readSaved(): Density {
   if (typeof window === "undefined") return "comfortable";
-  const v = window.localStorage.getItem(STORAGE_KEY);
+  const v = readKey("density");
   return v === "compact" ? "compact" : "comfortable";
 }
 
@@ -30,22 +29,14 @@ export function useDensity(): {
   const setDensity = useCallback((next: Density) => {
     setDensityState(next);
     applyDensity(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      // ignore storage errors (private mode)
-    }
+    writeKey("density", next);
   }, []);
 
   const toggleDensity = useCallback(() => {
     setDensityState((prev) => {
       const next: Density = prev === "compact" ? "comfortable" : "compact";
       applyDensity(next);
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next);
-      } catch {
-        // ignore storage errors
-      }
+      writeKey("density", next);
       return next;
     });
   }, []);

@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
@@ -66,11 +67,15 @@ interface StepEditorProps {
 }
 
 function StepEditor({ step, isFirst, isLast, onChange, onRemove, onMove }: StepEditorProps) {
+  const { t } = useTranslation();
   return (
     <Card className="cd-rb-step">
       <div className="cd-rb-step__header">
         <span className="cd-rb-step__icon">{TYPE_ICONS[step.type]}</span>
         <span className="cd-rb-step__id">#{step.id.slice(-4)}</span>
+        <span className={`cd-rb-step__approval ${step.auto ? 'is-auto' : 'is-manual'}`}>
+          {t(step.auto ? 'runbook.editor.auto' : 'runbook.editor.manualApproval')}
+        </span>
       </div>
       <div className="cd-rb-step__fields">
         <label className="cd-rb-step__field">
@@ -99,6 +104,7 @@ function StepEditor({ step, isFirst, isLast, onChange, onRemove, onMove }: StepE
             <Toggle
               checked={step.auto}
               onChange={(val) => onChange(step.id, { auto: val })}
+              label={t('runbook.editor.autoToggle')}
             />
           </label>
         </div>

@@ -4,8 +4,7 @@
 // ==============================================================================
 
 import type { Runbook, RunbookStep } from '../../domain/types';
-
-const STORAGE_KEY = 'ai-launcher:v15:runbooks';
+import { readKey, writeKey } from '../../lib/storage';
 
 // --- Storage -----------------------------------------------------------------
 
@@ -14,22 +13,12 @@ interface RunbookStore {
 }
 
 function loadStore(): RunbookStore {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { runbooks: [] };
-    const parsed = JSON.parse(raw) as Partial<RunbookStore>;
+    const parsed = readKey('runbooks') as Partial<RunbookStore>;
     return { runbooks: Array.isArray(parsed.runbooks) ? parsed.runbooks : [] };
-  } catch {
-    return { runbooks: [] };
-  }
 }
 
 function saveStore(store: RunbookStore): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch (e) {
-    console.error('[runbooks] failed to save', e);
-  }
+  writeKey('runbooks', store);
 }
 
 // --- Helpers -----------------------------------------------------------------

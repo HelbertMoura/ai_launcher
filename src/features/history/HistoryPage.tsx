@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
+import { EmptyState, ART_TERMINAL } from "../../ui/EmptyState";
 import { useHistory, type HistoryItem, type SessionStatus } from "./useHistory";
 import { loadProviders } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
@@ -19,6 +20,7 @@ import {
 } from "./historyFilters";
 import "../page.css";
 import "./HistoryPage.css";
+import { buildHistoryOverview, sortSessionsByPriority } from "./historyPageModel";
 
 function truncateDir(dir: string, max = 48): string {
   if (dir.length <= max) return dir;
@@ -308,14 +310,6 @@ function findAgentForSession(
   });
 }
 
-function averageDuration(items: HistoryItem[]): number {
-  const durations = items
-    .map((item) => item.duration)
-    .filter((duration): duration is number => typeof duration === "number" && duration > 0);
-  if (durations.length === 0) return 0;
-  return Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length);
-}
-
 export function HistoryPage() {
   const { t } = useTranslation();
   const { items, clear, updateItem, removeItem } = useHistory();
@@ -361,7 +355,7 @@ export function HistoryPage() {
       week: now - 7 * msPerDay,
       month: now - 30 * msPerDay,
     };
-    return items.filter((it) => {
+    return sortSessionsByPriority(items.filter((it) => {
       if (filterCli !== "all" && it.cliKey !== filterCli) return false;
       if (filterProvider !== "all") {
         if ((it.providerId ?? "") !== filterProvider) return false;
@@ -371,7 +365,7 @@ export function HistoryPage() {
         if (isNaN(t) || t < cutoff[filterRange]) return false;
       }
       return true;
-    });
+    }));
   }, [items, filterCli, filterProvider, filterRange]);
 
   const hasActiveFilters =
@@ -392,17 +386,15 @@ export function HistoryPage() {
     setConfirmClear(false);
   };
 
-  const activeCount = items.filter(
-    (item) => item.status === "running" || item.status === "starting",
-  ).length;
-  const failedCount = items.filter((item) => item.status === "failed").length;
+  const overview = buildHistoryOverview(items);
   const linkedWorkspaces = new Set(
     items
       .map((item) => findWorkspaceForSession(item, workspaces)?.id)
       .filter((id): id is string => Boolean(id)),
   ).size;
-  const avgMs = averageDuration(items);
-  const lastSession = items[0];
+  const activeSession = sortSessionsByPriority(items).find(
+    (item) => item.status === "running" || item.status === "starting",
+  );
 
   return (
     <section className="cd-page cd-history">
@@ -423,23 +415,33 @@ export function HistoryPage() {
       </header>
 
       {items.length === 0 ? (
-        <div className="cd-page__empty">{t("history.none")}.</div>
+        <EmptyState
+          art={ART_TERMINAL}
+          title={t("history.emptyTitle")}
+          description={t("history.emptyHint")}
+        />
       ) : (
         <>
           <section className="cd-history-dashboard" aria-label={t("history.dashboard.title")}>
-            <div className="cd-history-dashboard__card">
+            <div className={`cd-history-dashboard__card cd-history-dashboard__card--focus${activeSession ? " is-live" : ""}`}>
               <span>{t("history.dashboard.active")}</span>
-              <strong>{activeCount}</strong>
-              <small>{t("history.dashboard.activeHint")}</small>
+              <strong>{activeSession?.cli ?? t("history.dashboard.noActive")}</strong>
+              <small>{activeSession?.directory ?? t("history.dashboard.activeHint")}</small>
+              <b>{t("history.dashboard.activeCount", { count: overview.active })}</b>
             </div>
             <div className="cd-history-dashboard__card">
               <span>{t("history.dashboard.failed")}</span>
-              <strong>{failedCount}</strong>
+              <strong>{overview.failed}</strong>
               <small>{t("history.dashboard.failedHint")}</small>
             </div>
             <div className="cd-history-dashboard__card">
+              <span>{t("history.dashboard.completed")}</span>
+              <strong>{overview.completed}</strong>
+              <small>{t("history.dashboard.completedHint")}</small>
+            </div>
+            <div className="cd-history-dashboard__card">
               <span>{t("history.dashboard.avgDuration")}</span>
-              <strong>{avgMs > 0 ? formatDurationShort(avgMs) : "—"}</strong>
+              <strong>{overview.averageDuration > 0 ? formatDurationShort(overview.averageDuration) : "—"}</strong>
               <small>{t("history.dashboard.avgDurationHint")}</small>
             </div>
             <div className="cd-history-dashboard__card">
@@ -447,15 +449,12 @@ export function HistoryPage() {
               <strong>{linkedWorkspaces}</strong>
               <small>{t("history.dashboard.workspacesHint")}</small>
             </div>
-            <div className="cd-history-dashboard__card cd-history-dashboard__card--wide">
-              <span>{t("history.dashboard.last")}</span>
-              <strong>{lastSession?.cli ?? "—"}</strong>
-              <small>{lastSession?.directory ?? t("history.noDirectory", "no directory")}</small>
-            </div>
           </section>
 
-          <div className="cd-history__filters">
-            <select
+          <div className="cd-history__filters" role="search" aria-label={t("history.filter.label")}>
+            <label className="cd-history__filter-field">
+              <span>{t("history.filter.cliLabel")}</span>
+              <select
               className="cd-history__filter-select"
               value={filterCli}
               onChange={(e) => setFilterCli(e.target.value)}
@@ -464,9 +463,12 @@ export function HistoryPage() {
               {distinctClis.map((k) => (
                 <option key={k} value={k}>{k}</option>
               ))}
-            </select>
+              </select>
+            </label>
 
-            <select
+            <label className="cd-history__filter-field">
+              <span>{t("history.filter.providerLabel")}</span>
+              <select
               className="cd-history__filter-select"
               value={filterProvider}
               onChange={(e) => setFilterProvider(e.target.value)}
@@ -475,9 +477,12 @@ export function HistoryPage() {
               {distinctProviders.map((p) => (
                 <option key={p} value={p}>{p}</option>
               ))}
-            </select>
+              </select>
+            </label>
 
-            <select
+            <label className="cd-history__filter-field">
+              <span>{t("history.filter.periodLabel")}</span>
+              <select
               className="cd-history__filter-select"
               value={filterRange}
               onChange={(e) => setFilterRange(e.target.value as typeof filterRange)}
@@ -486,7 +491,8 @@ export function HistoryPage() {
               <option value="today">{t("history.filter.today")}</option>
               <option value="week">{t("history.filter.week")}</option>
               <option value="month">{t("history.filter.month")}</option>
-            </select>
+              </select>
+            </label>
 
             {hasActiveFilters && (
               <button
@@ -524,7 +530,7 @@ export function HistoryPage() {
                     : t("history.timeline.range7d")}
                 </span>
               </button>
-              <div className="cd-timeline__range" role="group" aria-label="Timeline range">
+              <div className="cd-timeline__range" role="group" aria-label={t("history.timeline.rangeLabel")}>
                 <button
                   type="button"
                   className={`cd-timeline__range-btn ${timelineRange === "24h" ? "is-active" : ""}`}
@@ -754,7 +760,8 @@ function HistoryRow({
                 />
               </div>
             ) : (
-              <div
+              <button
+                type="button"
                 className={`cd-history__desc ${item.description ? "" : "cd-history__desc--empty"}`}
                 onClick={() => {
                   setDescValue(item.description ?? "");
@@ -762,7 +769,7 @@ function HistoryRow({
                 }}
               >
                 {item.description || t("history.addDescription")}
-              </div>
+              </button>
             )}
           </div>
           <div className="cd-history__side">

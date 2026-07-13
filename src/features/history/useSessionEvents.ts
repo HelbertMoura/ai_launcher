@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { z } from "zod";
 import { pushEvent } from "../inbox/inboxStore";
 import { markSessionEnded, updateSessionStatus } from "./useHistory";
+import { readKey } from "../../lib/storage";
 
 /**
  * Payload emitted by the Rust backend when a tracked session ends.
@@ -28,9 +29,7 @@ export type SessionEndedPayload = z.infer<typeof sessionEndedSchema>;
 /** Best-effort CLI name lookup for a session id (history lives in the config blob). */
 function sessionCli(sessionId: string): string {
   try {
-    const raw = localStorage.getItem("ai-launcher-config");
-    if (!raw) return "CLI";
-    const cfg = JSON.parse(raw) as {
+    const cfg = readKey("config") as {
       history?: Array<{ sessionId?: string; cli?: string; cliKey?: string }>;
     };
     const item = cfg.history?.find((h) => h.sessionId === sessionId);

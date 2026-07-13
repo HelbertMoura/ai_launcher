@@ -1,8 +1,9 @@
-// ==============================================================================
-// AI Launcher Pro - Secure Secrets Storage
-// Stores API keys using Windows DPAPI encryption via PowerShell subprocess.
-// Falls back to base64-only encoding with warning when DPAPI is unavailable.
-// ==============================================================================
+//! Secure provider credential storage.
+//!
+//! v21 stores each secret as an independent Windows generic credential. The
+//! old `secrets.json` file is read only for a verified, idempotent migration.
+//! New writes never downgrade to base64 or expose plaintext through a process
+//! command line.
 
 use std::collections::HashMap;
 use std::fs;
@@ -11,243 +12,362 @@ use std::path::PathBuf;
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
-// Keystore file format
-// ---------------------------------------------------------------------------
+const CREDENTIAL_PREFIX: &str = "DevManiacs.AILauncher/";
+const BACKEND_NAME: &str = "windows-credential-manager";
+const MAX_SECRET_KEY_LEN: usize = 240;
 
-/// Secrets file format. `encrypted` flag indicates DPAPI was used.
-#[derive(Serialize, Deserialize, Default)]
-struct SecretStore {
-    /// Whether the values are DPAPI-encrypted (versus base64-only fallback).
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecretStoreResult {
+    stored: bool,
+    backend: &'static str,
+    migrated_legacy: bool,
+}
+
+#[derive(Deserialize, Default)]
+struct LegacySecretStore {
     encrypted: bool,
-    /// Map of secret key -> base64-encoded (and possibly DPAPI-encrypted) value.
     entries: HashMap<String, String>,
 }
 
-// ---------------------------------------------------------------------------
-// File I/O helpers
-// ---------------------------------------------------------------------------
-
-fn secrets_dir() -> Result<PathBuf, String> {
-    let base = dirs::data_dir().ok_or("Cannot determine app data directory")?;
-    let dir = base.join("ai-launcher").join("secrets");
-    if !dir.exists() {
-        fs::create_dir_all(&dir).map_err(|e| format!("Failed to create secrets dir: {e}"))?;
-    }
-    Ok(dir)
-}
-
-fn secrets_file() -> Result<PathBuf, String> {
-    Ok(secrets_dir()?.join("secrets.json"))
-}
-
-fn load_store() -> Result<SecretStore, String> {
-    let path = secrets_file()?;
-    if !path.exists() {
-        return Ok(SecretStore::default());
-    }
-    let content =
-        fs::read_to_string(&path).map_err(|e| format!("Failed to read secrets file: {e}"))?;
-    serde_json::from_str(&content).map_err(|e| format!("Failed to parse secrets file: {e}"))
-}
-
-fn save_store(store: &SecretStore) -> Result<(), String> {
-    let path = secrets_file()?;
-    let content = serde_json::to_string_pretty(store)
-        .map_err(|e| format!("Failed to serialize secrets: {e}"))?;
-    fs::write(&path, content).map_err(|e| format!("Failed to write secrets file: {e}"))?;
-    Ok(())
-}
-
-// ---------------------------------------------------------------------------
-// Encryption / Decryption
-// ---------------------------------------------------------------------------
-
-/// Encrypt a value. On Windows, attempts DPAPI via PowerShell subprocess.
-/// Falls back to base64-only encoding (not encrypted, but not human-readable).
-fn encrypt_value(plain: &str) -> Result<(String, bool), String> {
-    #[cfg(target_os = "windows")]
-    {
-        if let Ok(encrypted) = dpapi_encrypt(plain) {
-            return Ok((encrypted, true));
-        }
-    }
-    let encoded = B64.encode(plain.as_bytes());
-    Ok((encoded, false))
-}
-
-/// Decrypt a value. Returns the plaintext string.
-fn decrypt_value(cipher: &str, was_encrypted: bool) -> Result<String, String> {
-    if was_encrypted {
-        #[cfg(target_os = "windows")]
-        {
-            return dpapi_decrypt(cipher);
-        }
-        #[cfg(not(target_os = "windows"))]
-        {
-            let _ = cipher;
-            return Err("DPAPI decryption not available on this platform".to_string());
-        }
-    }
-    // Base64-only fallback
-    let bytes = B64
-        .decode(cipher)
-        .map_err(|e| format!("Failed to decode base64 secret: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("Invalid UTF-8 in secret: {e}"))
-}
-
-// ---------------------------------------------------------------------------
-// Windows DPAPI via PowerShell
-// ---------------------------------------------------------------------------
-
-#[cfg(target_os = "windows")]
-fn dpapi_encrypt(plain: &str) -> Result<String, String> {
-    let b64_plain = B64.encode(plain.as_bytes());
-    let ps_script = format!(
-        r#"
-Add-Type -AssemblyName System.Security
-$bytes = [Convert]::FromBase64String('{}')
-$enc = [Security.Cryptography.ProtectedData]::Protect($bytes, $null, 'CurrentUser')
-[Convert]::ToBase64String($enc)
-"#,
-        b64_plain
-    );
-    let output = std::process::Command::new("powershell")
-        .args([
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command",
-            &ps_script,
-        ])
-        .output()
-        .map_err(|e| format!("Failed to run PowerShell for DPAPI: {e}"))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("DPAPI encrypt failed: {}", stderr.trim()));
-    }
-    let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if result.is_empty() {
-        return Err("DPAPI encrypt returned empty result".to_string());
-    }
-    Ok(result)
-}
-
-#[cfg(target_os = "windows")]
-fn dpapi_decrypt(cipher: &str) -> Result<String, String> {
-    let ps_script = format!(
-        r#"
-Add-Type -AssemblyName System.Security
-$enc = [Convert]::FromBase64String('{}')
-$plain = [Security.Cryptography.ProtectedData]::Unprotect($enc, $null, 'CurrentUser')
-[Convert]::ToBase64String($plain)
-"#,
-        cipher
-    );
-    let output = std::process::Command::new("powershell")
-        .args([
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command",
-            &ps_script,
-        ])
-        .output()
-        .map_err(|e| format!("Failed to run PowerShell for DPAPI decrypt: {e}"))?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(format!("DPAPI decrypt failed: {}", stderr.trim()));
-    }
-    let b64_plain = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    let bytes = B64
-        .decode(&b64_plain)
-        .map_err(|e| format!("Failed to decode DPAPI result: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("Invalid UTF-8 in decrypted secret: {e}"))
-}
-
-// ---------------------------------------------------------------------------
-// Tauri Commands
-// ---------------------------------------------------------------------------
-
-/// Store a secret securely. Returns `true` if DPAPI encryption was used.
-#[tauri::command]
-pub fn store_secret(key: String, value: String) -> Result<bool, String> {
+fn validate_key(key: &str) -> Result<(), String> {
     if key.is_empty() {
         return Err("Secret key cannot be empty".to_string());
     }
-    let mut store = load_store()?;
-    let (encrypted_val, was_encrypted) = encrypt_value(&value)?;
-    store.encrypted = was_encrypted;
-    store.entries.insert(key, encrypted_val);
-    save_store(&store)?;
-    Ok(was_encrypted)
-}
-
-/// Retrieve a secret. Returns `null` (None) if not found.
-#[tauri::command]
-pub fn get_secret(key: String) -> Result<Option<String>, String> {
-    let store = load_store()?;
-    match store.entries.get(&key) {
-        Some(cipher) => {
-            let plain = decrypt_value(cipher, store.encrypted)?;
-            Ok(Some(plain))
-        }
-        None => Ok(None),
+    if key.len() > MAX_SECRET_KEY_LEN {
+        return Err("Secret key is too long".to_string());
     }
+    if !key
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, ':' | '.' | '_' | '-'))
+    {
+        return Err("Secret key contains unsupported characters".to_string());
+    }
+    Ok(())
 }
 
-/// Delete a secret. Returns `true` if the key existed.
-#[tauri::command]
-pub fn delete_secret(key: String) -> Result<bool, String> {
-    let mut store = load_store()?;
-    let removed = store.entries.remove(&key).is_some();
+fn target_name(key: &str) -> Result<String, String> {
+    validate_key(key)?;
+    Ok(format!("{CREDENTIAL_PREFIX}{key}"))
+}
+
+fn legacy_file() -> Result<PathBuf, String> {
+    let base = dirs::data_dir().ok_or("Cannot determine app data directory")?;
+    Ok(base
+        .join("ai-launcher")
+        .join("secrets")
+        .join("secrets.json"))
+}
+
+fn load_legacy_store() -> Result<Option<LegacySecretStore>, String> {
+    let path = legacy_file()?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let content = fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read legacy secret store: {e}"))?;
+    let store = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse legacy secret store: {e}"))?;
+    Ok(Some(store))
+}
+
+fn save_legacy_store(store: &LegacySecretStore) -> Result<(), String> {
+    let path = legacy_file()?;
+    if store.entries.is_empty() {
+        if path.exists() {
+            fs::remove_file(path)
+                .map_err(|e| format!("Failed to remove migrated legacy secret store: {e}"))?;
+        }
+        return Ok(());
+    }
+
+    let content = serde_json::json!({
+        "encrypted": store.encrypted,
+        "entries": store.entries,
+    });
+    fs::write(
+        path,
+        serde_json::to_vec_pretty(&content)
+            .map_err(|e| format!("Failed to serialize legacy secret store: {e}"))?,
+    )
+    .map_err(|e| format!("Failed to update legacy secret store: {e}"))
+}
+
+fn decode_legacy_value(value: &str, encrypted: bool) -> Result<String, String> {
+    let bytes = B64
+        .decode(value)
+        .map_err(|e| format!("Failed to decode legacy secret: {e}"))?;
+    if encrypted {
+        return legacy_dpapi_decrypt(bytes);
+    }
+    String::from_utf8(bytes).map_err(|e| format!("Legacy secret is not valid UTF-8: {e}"))
+}
+
+fn migrate_legacy_secret(key: &str) -> Result<Option<String>, String> {
+    let Some(mut store) = load_legacy_store()? else {
+        return Ok(None);
+    };
+    let Some(encoded) = store.entries.get(key).cloned() else {
+        return Ok(None);
+    };
+
+    let plain = decode_legacy_value(&encoded, store.encrypted)?;
+    credential_write(key, &plain)?;
+    let verified =
+        credential_read(key)?.ok_or("Credential migration verification returned no value")?;
+    if verified != plain {
+        let _ = credential_delete(key);
+        return Err("Credential migration verification failed".to_string());
+    }
+
+    store.entries.remove(key);
+    save_legacy_store(&store)?;
+    Ok(Some(plain))
+}
+
+fn delete_legacy_secret(key: &str) -> Result<bool, String> {
+    let Some(mut store) = load_legacy_store()? else {
+        return Ok(false);
+    };
+    let removed = store.entries.remove(key).is_some();
     if removed {
-        save_store(&store)?;
+        save_legacy_store(&store)?;
     }
     Ok(removed)
 }
 
-/// Check if secure storage (DPAPI on Windows) is available.
-#[tauri::command]
-pub fn has_secure_storage() -> bool {
-    #[cfg(target_os = "windows")]
-    {
-        dpapi_encrypt("__probe__").is_ok()
-    }
-    #[cfg(not(target_os = "windows"))]
-    {
-        false
-    }
+#[cfg(windows)]
+fn wide_null(value: &str) -> Vec<u16> {
+    value.encode_utf16().chain(std::iter::once(0)).collect()
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+#[cfg(windows)]
+fn credential_write(key: &str, value: &str) -> Result<(), String> {
+    use windows_sys::Win32::Security::Credentials::{
+        CredWriteW, CREDENTIALW, CRED_MAX_CREDENTIAL_BLOB_SIZE, CRED_PERSIST_LOCAL_MACHINE,
+        CRED_TYPE_GENERIC,
+    };
+
+    let bytes = value.as_bytes();
+    if bytes.len() > CRED_MAX_CREDENTIAL_BLOB_SIZE as usize {
+        return Err(format!(
+            "Secret exceeds Windows Credential Manager limit of {CRED_MAX_CREDENTIAL_BLOB_SIZE} bytes"
+        ));
+    }
+
+    let mut target = wide_null(&target_name(key)?);
+    let mut username = wide_null("AI Launcher");
+    let credential = CREDENTIALW {
+        Type: CRED_TYPE_GENERIC,
+        TargetName: target.as_mut_ptr(),
+        CredentialBlobSize: bytes.len() as u32,
+        CredentialBlob: bytes.as_ptr() as *mut u8,
+        Persist: CRED_PERSIST_LOCAL_MACHINE,
+        UserName: username.as_mut_ptr(),
+        ..Default::default()
+    };
+
+    let ok = unsafe { CredWriteW(&credential, 0) };
+    if ok == 0 {
+        return Err(format!(
+            "Windows Credential Manager write failed: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn credential_write(_key: &str, _value: &str) -> Result<(), String> {
+    Err("Secure credential storage is only available on Windows".to_string())
+}
+
+#[cfg(windows)]
+fn credential_read(key: &str) -> Result<Option<String>, String> {
+    use std::ptr::null_mut;
+    use windows_sys::Win32::Foundation::{GetLastError, ERROR_NOT_FOUND};
+    use windows_sys::Win32::Security::Credentials::{
+        CredFree, CredReadW, CREDENTIALW, CRED_TYPE_GENERIC,
+    };
+
+    let target = wide_null(&target_name(key)?);
+    let mut raw: *mut CREDENTIALW = null_mut();
+    let ok = unsafe { CredReadW(target.as_ptr(), CRED_TYPE_GENERIC, 0, &mut raw) };
+    if ok == 0 {
+        let error = unsafe { GetLastError() };
+        if error == ERROR_NOT_FOUND {
+            return Ok(None);
+        }
+        return Err(format!(
+            "Windows Credential Manager read failed: {}",
+            std::io::Error::from_raw_os_error(error as i32)
+        ));
+    }
+    if raw.is_null() {
+        return Err("Windows Credential Manager returned an empty record".to_string());
+    }
+
+    let credential = unsafe { &*raw };
+    let value = if credential.CredentialBlobSize == 0 {
+        String::new()
+    } else {
+        let bytes = unsafe {
+            std::slice::from_raw_parts(
+                credential.CredentialBlob,
+                credential.CredentialBlobSize as usize,
+            )
+        };
+        String::from_utf8(bytes.to_vec())
+            .map_err(|e| format!("Stored credential is not valid UTF-8: {e}"))?
+    };
+    unsafe { CredFree(raw.cast()) };
+    Ok(Some(value))
+}
+
+#[cfg(not(windows))]
+fn credential_read(_key: &str) -> Result<Option<String>, String> {
+    Err("Secure credential storage is only available on Windows".to_string())
+}
+
+#[cfg(windows)]
+fn credential_delete(key: &str) -> Result<bool, String> {
+    use windows_sys::Win32::Foundation::{GetLastError, ERROR_NOT_FOUND};
+    use windows_sys::Win32::Security::Credentials::{CredDeleteW, CRED_TYPE_GENERIC};
+
+    let target = wide_null(&target_name(key)?);
+    let ok = unsafe { CredDeleteW(target.as_ptr(), CRED_TYPE_GENERIC, 0) };
+    if ok != 0 {
+        return Ok(true);
+    }
+    let error = unsafe { GetLastError() };
+    if error == ERROR_NOT_FOUND {
+        return Ok(false);
+    }
+    Err(format!(
+        "Windows Credential Manager delete failed: {}",
+        std::io::Error::from_raw_os_error(error as i32)
+    ))
+}
+
+#[cfg(not(windows))]
+fn credential_delete(_key: &str) -> Result<bool, String> {
+    Err("Secure credential storage is only available on Windows".to_string())
+}
+
+#[cfg(windows)]
+fn legacy_dpapi_decrypt(mut cipher: Vec<u8>) -> Result<String, String> {
+    use std::ptr::{null, null_mut};
+    use windows_sys::Win32::Foundation::LocalFree;
+    use windows_sys::Win32::Security::Cryptography::{
+        CryptUnprotectData, CRYPTPROTECT_UI_FORBIDDEN, CRYPT_INTEGER_BLOB,
+    };
+
+    let input = CRYPT_INTEGER_BLOB {
+        cbData: cipher.len() as u32,
+        pbData: cipher.as_mut_ptr(),
+    };
+    let mut output = CRYPT_INTEGER_BLOB::default();
+    let ok = unsafe {
+        CryptUnprotectData(
+            &input,
+            null_mut(),
+            null(),
+            null(),
+            null(),
+            CRYPTPROTECT_UI_FORBIDDEN,
+            &mut output,
+        )
+    };
+    if ok == 0 {
+        return Err(format!(
+            "Legacy DPAPI decrypt failed: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+
+    let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) };
+    let value = String::from_utf8(bytes.to_vec())
+        .map_err(|e| format!("Legacy DPAPI value is not valid UTF-8: {e}"));
+    unsafe {
+        LocalFree(output.pbData.cast());
+    }
+    value
+}
+
+#[cfg(not(windows))]
+fn legacy_dpapi_decrypt(_cipher: Vec<u8>) -> Result<String, String> {
+    Err("Legacy DPAPI migration is only available on Windows".to_string())
+}
+
+#[tauri::command]
+pub fn store_secret(key: String, value: String) -> Result<SecretStoreResult, String> {
+    validate_key(&key)?;
+    credential_write(&key, &value)?;
+    let verified =
+        credential_read(&key)?.ok_or("Credential write verification returned no value")?;
+    if verified != value {
+        let _ = credential_delete(&key);
+        return Err("Credential write verification failed".to_string());
+    }
+    Ok(SecretStoreResult {
+        stored: true,
+        backend: BACKEND_NAME,
+        migrated_legacy: false,
+    })
+}
+
+#[tauri::command]
+pub fn get_secret(key: String) -> Result<Option<String>, String> {
+    validate_key(&key)?;
+    if let Some(value) = credential_read(&key)? {
+        return Ok(Some(value));
+    }
+    migrate_legacy_secret(&key)
+}
+
+#[tauri::command]
+pub fn delete_secret(key: String) -> Result<bool, String> {
+    validate_key(&key)?;
+    let secure_removed = credential_delete(&key)?;
+    let legacy_removed = delete_legacy_secret(&key)?;
+    Ok(secure_removed || legacy_removed)
+}
+
+#[tauri::command]
+pub fn has_secure_storage() -> bool {
+    cfg!(windows)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn base64_roundtrip() {
-        let plain = "sk-ant-test-key-12345";
-        let encoded = B64.encode(plain.as_bytes());
-        let decoded = B64.decode(&encoded).expect("decode");
-        let result = String::from_utf8(decoded).expect("utf8");
-        assert_eq!(result, plain);
+    fn validates_supported_secret_keys() {
+        assert!(validate_key("provider-apikey:abc-123_test.v2").is_ok());
     }
 
     #[test]
-    fn encrypt_decrypt_roundtrip() {
-        // Test that encrypt -> decrypt produces the original value,
-        // regardless of whether DPAPI or base64 fallback is used.
-        let plain = "sk-ant-test-key-roundtrip-12345";
-        let (encoded, was_encrypted) = encrypt_value(plain).expect("encrypt");
-        let result = decrypt_value(&encoded, was_encrypted).expect("decrypt");
-        assert_eq!(result, plain);
+    fn rejects_unsafe_secret_keys() {
+        for key in ["", "with space", "../escape", "slash/value", "line\nbreak"] {
+            assert!(validate_key(key).is_err(), "accepted unsafe key: {key:?}");
+        }
+    }
+
+    #[test]
+    fn legacy_base64_value_decodes_without_persistence() {
+        let encoded = B64.encode("sk-test-value".as_bytes());
+        assert_eq!(
+            decode_legacy_value(&encoded, false).expect("decode"),
+            "sk-test-value"
+        );
+    }
+
+    #[test]
+    fn target_names_are_namespaced() {
+        assert_eq!(
+            target_name("provider-apikey:abc").expect("target"),
+            "DevManiacs.AILauncher/provider-apikey:abc"
+        );
     }
 }

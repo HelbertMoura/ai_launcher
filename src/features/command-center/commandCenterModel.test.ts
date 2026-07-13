@@ -88,6 +88,7 @@ describe("buildCommandCenterModel", () => {
     expect(model.actions.find((a) => a.id === "launch")?.disabled).toBe(false);
     expect(model.actions.find((a) => a.id === "ide")?.disabled).toBe(true);
     expect(model.readiness.find((c) => c.id === "sessions")?.value).toBe("1");
+    expect(model.state).toBe("running");
   });
 
   it("enables IDE action when a workspace and installed tool exist", () => {
@@ -120,8 +121,22 @@ describe("buildCommandCenterModel", () => {
     });
 
     expect(model.hasWorkspace).toBe(false);
+    expect(model.state).toBe("empty");
     expect(model.actions.find((a) => a.id === "launch")?.disabled).toBe(true);
     expect(model.readiness.find((c) => c.id === "workspace")?.tone).toBe("warn");
+  });
+
+  it("exposes loading and degraded states explicitly", () => {
+    const loading = buildCommandCenterModel({
+      activeWorkspace: workspace(), workspaces: [workspace()], clis, checks,
+      runbooks: [], history: [], doctor: { loading: true, error: null, total: 0, missing: 0, critical: 0 },
+    });
+    const degraded = buildCommandCenterModel({
+      activeWorkspace: workspace(), workspaces: [workspace()], clis, checks,
+      runbooks: [], history: [], doctor: { loading: false, error: null, total: 3, missing: 1, critical: 1 },
+    });
+    expect(loading.state).toBe("loading");
+    expect(degraded.state).toBe("degraded");
   });
 
   it("keeps recent sessions compact", () => {

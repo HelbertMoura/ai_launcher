@@ -5,6 +5,52 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
+
+Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.
+
+### Added — Trust Foundation
+- Secrets de providers agora falham fechado e usam Windows Credential Manager no app empacotado, sem fallback persistente em plaintext.
+- Migração legada de secrets com verificação de read-back antes de remover a origem antiga.
+- Registry/audit de storage com validação Zod, migrações idempotentes e guardrail `npm run audit:storage`.
+- Guardrail `npm run audit:capabilities` para impedir permissões shell amplas no capability principal do Tauri.
+
+### Added — Command Deck visual system
+- App Shell 2.0 com sidebar agrupada, topbar focada em comando, statusbar operacional e controles de tema/acento/densidade.
+- Redesign visual de Command Center, Launcher, Workspaces, History, MCP, Updates, Admin, Analytics, Doctor, Prereqs, Onboarding e Help.
+- Baselines Playwright para dark, light e high-contrast, com Axe em todas as matrizes visuais.
+- Prints públicos v21 em `docs/screenshots/v21/`.
+
+### Added — Command Center and Runbooks
+- Command Center 2.0 com estados guiados, readiness do projeto, revisão segura de `.ailauncher.json`, sessões ativas e ações primárias protegidas.
+- Runbooks 3.0 com dry-run, aprovações por modo de execução, retry/resume determinístico, stop real de processo e output limitado.
+- Timeline de atividade do workspace sem persistir comandos/env/output sensíveis.
+
+### Added — Release readiness
+- Suite crítica E2E com onboarding, workspace CRUD, credenciais, project profile, launch/kill, runbooks, MCP, backup, updater e navegação por teclado.
+- `npm run release:readiness` valida versão/tag, scripts, workflows, targets MSI/NSIS, signing/latest.json e breadth E2E.
+- `npm run smoke:packaged` valida executável Windows já buildado, metadata PE, boot da janela principal e single-instance.
+- Workflow de release roda readiness antes do build e publica MSI, NSIS, checksums e `latest.json`.
+
+### Fixed
+- Segunda instância empacotada no Windows agora sai imediatamente via named mutex nativo antes do Tauri Builder.
+- Smoke de app empacotado aguarda janela real, não apenas PID, e faz cleanup resiliente do perfil WebView2 temporário.
+- Snapshots visuais Wave A congelam o relógio do browser para evitar drift de tempos relativos.
+
+### Validation
+- `npx tsc --noEmit`
+- `npm test` — 217 testes
+- `npm run build`
+- `npm run rust:fmt`
+- `npm run rust:clippy`
+- `npm run rust:test` — 78 testes
+- `npm run audit:storage`
+- `npm run audit:capabilities`
+- `npm run audit:prod`
+- `RELEASE_TAG=v21.0.0 npm run release:readiness`
+- `npm run smoke:packaged -- --exe src-tauri/target/release/ai-launcher.exe --timeout-ms 45000 --json`
+- `npx playwright test` — 60 testes
+
 ## [20.0.0] — 2026-07-07 — Command OS mega release
 
 Release maior que transforma o AI Launcher em um centro operacional para agentes: home nova, inteligência por projeto, runbooks mais fortes, MCP por workspace, perfis de agente, sessões 2.0 e melhorias de confiança para backup/update/release.

@@ -24,6 +24,7 @@ import {
   backupEntries,
   REGISTRY,
   readRawForBackup,
+  writeEntryValue,
   type RegistryEntry,
   type RegistryId,
 } from './storage';
@@ -218,12 +219,7 @@ function dumpToKeyMap(dump: ConfigDump): Record<string, unknown> {
 
 /** Persist one registry value, honoring the entry's serialization mode. */
 function persistEntry(entry: RegistryEntry, value: unknown): void {
-  try {
-    const serialized = entry.serialize === 'raw' ? String(value) : JSON.stringify(value);
-    localStorage.setItem(entry.key, serialized);
-  } catch {
-    // ignore individual key write failures — best-effort restore
-  }
+  writeEntryValue(entry, value);
 }
 
 /** Read the current stored value for an entry (parsed for json, raw for raw). */

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" width="840" height="520" role="img" aria-label="AI Launcher Pro v20 Command OS terminal preview with workspace intelligence, runbooks, MCP health and release trust">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 520" width="840" height="520" role="img" aria-label="AI Launcher Pro v21 Command Deck terminal preview with trust foundation, runbooks, MCP health and release readiness">
   <defs>
     <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#101013"/>
@@ -69,9 +69,9 @@
   <circle cx="40" cy="27" r="5.5" fill="#ff5f57"/>
   <circle cx="60" cy="27" r="5.5" fill="#febc2e"/>
   <circle cx="80" cy="27" r="5.5" fill="#28c840"/>
-  <text x="420" y="32" class="mono muted" font-size="11" text-anchor="middle" letter-spacing="2">AI LAUNCHER PRO - v20.0.0 - COMMAND OS</text>
+  <text x="420" y="32" class="mono muted" font-size="11" text-anchor="middle" letter-spacing="2">AI LAUNCHER PRO - v21.0.0 - COMMAND DECK</text>
 
-  <text x="44" y="76" class="mono label">/ COMMAND CENTER</text>
+  <text x="44" y="76" class="mono label">/ COMMAND DECK</text>
   <text x="204" y="76" class="mono small muted">workspace</text>
   <text x="288" y="76" class="mono small dim">/</text>
   <text x="306" y="76" class="mono small muted">runbooks</text>
@@ -80,7 +80,7 @@
   <text x="444" y="76" class="mono small dim">/</text>
   <text x="462" y="76" class="mono small muted">sessions</text>
   <text x="548" y="76" class="mono small dim">/</text>
-  <text x="566" y="76" class="mono small muted">trust</text>
+  <text x="566" y="76" class="mono small muted">readiness</text>
   <text x="780" y="76" class="mono small green" text-anchor="end">READY</text>
 
   <rect x="44" y="94" width="478" height="148" rx="6" class="panel"/>
@@ -107,11 +107,11 @@
   <rect x="554" y="149" width="196" height="4" rx="2" fill="url(#greenline)"/>
 
   <rect x="536" y="176" width="260" height="66" rx="6" class="panel"/>
-  <text x="554" y="198" class="mono label">RELEASE TRUST</text>
+  <text x="554" y="198" class="mono label">RELEASE READINESS</text>
   <text x="554" y="220" class="mono small green">OK latest.json</text>
   <text x="658" y="220" class="mono small green">OK sha256</text>
   <text x="744" y="220" class="mono small green">OK tag</text>
-  <text x="554" y="235" class="mono tiny dim">v20.0.0 assets verified on GitHub Releases</text>
+  <text x="554" y="235" class="mono tiny dim">v21.0.0 MSI + NSIS smoke verified</text>
 
   <text x="44" y="274" class="mono label">/ SESSIONS - LAST 24H</text>
   <text x="44" y="300" class="mono small text">claude</text>
@@ -146,12 +146,12 @@
   <text x="154" y="442" class="mono small amber">2 updates</text>
   <text x="260" y="442" class="mono small blue">3 MCP healthy</text>
   <text x="398" y="442" class="mono small text">$4.20 today</text>
-  <text x="540" y="442" class="mono small green">release trusted</text>
-  <text x="780" y="442" class="mono tiny dim" text-anchor="end">v20.0.0</text>
+  <text x="540" y="442" class="mono small green">release ready</text>
+  <text x="780" y="442" class="mono tiny dim" text-anchor="end">v21.0.0</text>
 
   <text x="44" y="484" class="mono body red" font-weight="700">$</text>
-  <text x="60" y="484" class="mono body text">ai-launcher launch --workspace ai-launcher-tutra --profile command-os</text>
+  <text x="60" y="484" class="mono body text">ai-launcher launch --workspace ai-launcher-tutra --profile command-deck</text>
   <rect x="630" y="472" width="8" height="15" fill="#ff3b3b" opacity="0.92" filter="url(#cursorGlow)"/>
 
-  <text x="420" y="506" class="mono tiny dim" text-anchor="middle" letter-spacing="3">DEVMANIAC'S - COMMAND OS</text>
+  <text x="420" y="506" class="mono tiny dim" text-anchor="middle" letter-spacing="3">DEVMANIAC'S - TRUST &amp; FLOW</text>
 </svg>

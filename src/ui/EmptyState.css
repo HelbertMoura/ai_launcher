@@ -10,8 +10,8 @@
   max-width: 480px;
   margin: var(--s-4) auto;
   border: 1px dashed var(--border);
-  border-radius: var(--r-md);
-  background: linear-gradient(180deg, var(--surface-1) 0%, transparent 100%);
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--surface-panel) 0%, transparent 100%);
 }
 
 .cd-empty__art {

@@ -4,6 +4,7 @@
 // ==============================================================================
 
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
@@ -23,20 +24,14 @@ function formatUsd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
-function statusColor(status: BudgetUsage['status']): string {
-  switch (status) {
-    case 'exceeded':
-      return '#e53e3e';
-    case 'warning':
-      return '#d69e2e';
-    default:
-      return '#48bb78';
-  }
-}
-
 function progressBarBackground(percent: number, status: BudgetUsage['status']): string {
   const clamped = Math.min(percent, 100);
-  const color = statusColor(status);
+  const color =
+    status === 'exceeded'
+      ? 'var(--err)'
+      : status === 'warning'
+        ? 'var(--warn)'
+        : 'var(--ok)';
   return `linear-gradient(to right, ${color} ${clamped}%, var(--surface-1) ${clamped}%)`;
 }
 
@@ -49,6 +44,7 @@ interface BudgetFormProps {
 }
 
 function BudgetForm({ initialProviderKey, onSave, onCancel }: BudgetFormProps) {
+  const { t } = useTranslation();
   const [providerKey, setProviderKey] = useState(initialProviderKey ?? '');
   const [limitUsd, setLimitUsd] = useState('10');
   const [periodDays, setPeriodDays] = useState('30');
@@ -57,17 +53,17 @@ function BudgetForm({ initialProviderKey, onSave, onCancel }: BudgetFormProps) {
   const handleSubmit = useCallback(() => {
     const key = providerKey.trim();
     if (!key) {
-      setError('Provider name is required');
+      setError(t('costs.budget.providerRequired'));
       return;
     }
     const limit = parseFloat(limitUsd);
     const days = parseInt(periodDays, 10);
     if (!Number.isFinite(limit) || limit <= 0) {
-      setError('Limit must be a positive number');
+      setError(t('costs.budget.limitInvalid'));
       return;
     }
     if (!Number.isFinite(days) || days < 1) {
-      setError('Period must be at least 1 day');
+      setError(t('costs.budget.periodInvalid'));
       return;
     }
     onSave(key, limit, days);
@@ -78,18 +74,18 @@ function BudgetForm({ initialProviderKey, onSave, onCancel }: BudgetFormProps) {
       {error && <Banner variant="err">{error}</Banner>}
       <div className="cd-budget__form-row">
         <label className="cd-budget__form-label">
-          Provider
+          {t('costs.budget.provider')}
           <Input
             value={providerKey}
             onChange={(e) => setProviderKey(e.target.value)}
-            placeholder="e.g. anthropic, zai"
+            placeholder={t('costs.budget.providerPlaceholder')}
             disabled={!!initialProviderKey}
           />
         </label>
       </div>
       <div className="cd-budget__form-row">
         <label className="cd-budget__form-label">
-          Limit (USD)
+          {t('costs.budget.limit')}
           <Input
             type="number"
             value={limitUsd}
@@ -100,7 +96,7 @@ function BudgetForm({ initialProviderKey, onSave, onCancel }: BudgetFormProps) {
           />
         </label>
         <label className="cd-budget__form-label">
-          Period (days)
+          {t('costs.budget.period')}
           <Input
             type="number"
             value={periodDays}
@@ -111,8 +107,8 @@ function BudgetForm({ initialProviderKey, onSave, onCancel }: BudgetFormProps) {
         </label>
       </div>
       <div className="cd-budget__form-actions">
-        <Button size="sm" onClick={handleSubmit}>Save</Button>
-        <Button size="sm" variant="ghost" onClick={onCancel}>Cancel</Button>
+        <Button size="sm" onClick={handleSubmit}>{t('common.save')}</Button>
+        <Button size="sm" variant="ghost" onClick={onCancel}>{t('common.cancel')}</Button>
       </div>
     </div>
   );
@@ -127,12 +123,20 @@ interface BudgetBarProps {
 }
 
 function BudgetBar({ usage, onRemove, onReset }: BudgetBarProps) {
+  const { t } = useTranslation();
+  const statusLabel =
+    usage.status === 'exceeded'
+      ? t('costs.budget.statusExceeded')
+      : usage.status === 'warning'
+        ? t('costs.budget.statusWarning')
+        : t('costs.budget.statusOk');
+
   return (
     <Card className="cd-budget__bar">
       <div className="cd-budget__bar-header">
         <span className="cd-budget__bar-name">{usage.providerKey}</span>
-        <span className="cd-budget__bar-status" style={{ color: statusColor(usage.status) }}>
-          {usage.status === 'exceeded' ? 'OVER LIMIT' : usage.status === 'warning' ? 'WARNING' : 'OK'}
+        <span className={`cd-budget__bar-status cd-budget__bar-status--${usage.status}`}>
+          {statusLabel}
         </span>
       </div>
       <div className="cd-budget__bar-track" style={{ background: progressBarBackground(usage.percentUsed, usage.status) }}>
@@ -141,15 +145,15 @@ function BudgetBar({ usage, onRemove, onReset }: BudgetBarProps) {
         </div>
       </div>
       <div className="cd-budget__bar-meta">
-        <span>{usage.percentUsed.toFixed(1)}% used</span>
-        <span>{usage.periodStart} to {usage.periodEnd}</span>
+        <span>{t('costs.budget.percentUsed', { value: usage.percentUsed.toFixed(1) })}</span>
+        <span>{t('costs.budget.periodRange', { start: usage.periodStart, end: usage.periodEnd })}</span>
       </div>
       <div className="cd-budget__bar-actions">
         <Button size="sm" variant="ghost" onClick={() => onReset(usage.providerKey)}>
-          Reset
+          {t('costs.budget.reset')}
         </Button>
         <Button size="sm" variant="danger" onClick={() => onRemove(usage.providerKey)}>
-          Remove
+          {t('costs.budget.remove')}
         </Button>
       </div>
     </Card>
@@ -159,6 +163,7 @@ function BudgetBar({ usage, onRemove, onReset }: BudgetBarProps) {
 // --- Main Dashboard ----------------------------------------------------------
 
 export function BudgetDashboard() {
+  const { t } = useTranslation();
   const { report } = useUsage();
   const entries = report?.entries ?? [];
   const [showForm, setShowForm] = useState(false);
@@ -193,7 +198,7 @@ export function BudgetDashboard() {
 
   return (
     <div className="cd-budget">
-      <h2 className="cd-costs__section">Budget Guard</h2>
+      <h2 className="cd-costs__section">{t('costs.budget.title')}</h2>
 
       {budgetUsages.length > 0 && (
         <div className="cd-budget__list">
@@ -210,9 +215,9 @@ export function BudgetDashboard() {
 
       {budgetUsages.length === 0 && !showForm && (
         <Card className="cd-budget__empty">
-          <p className="cd-budget__empty-text">No budget limits configured.</p>
+          <p className="cd-budget__empty-text">{t('costs.budget.empty')}</p>
           <Button size="sm" onClick={() => setShowForm(true)}>
-            Add Budget Limit
+            {t('costs.budget.add')}
           </Button>
         </Card>
       )}
@@ -228,7 +233,7 @@ export function BudgetDashboard() {
 
       {!showForm && budgetUsages.length > 0 && (
         <Button size="sm" onClick={() => setShowForm(true)} className="cd-budget__add-btn">
-          + Add Budget Limit
+          {t('costs.budget.add')}
         </Button>
       )}
     </div>

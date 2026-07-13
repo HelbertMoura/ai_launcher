@@ -8,6 +8,7 @@ import { ConfirmDialog } from "../../../ui/ConfirmDialog";
 import {
   loadProviders,
   loadProviderApiKey,
+  deleteProviderApiKey,
   removeProfile,
   saveProvidersSecure,
   setActive,
@@ -19,6 +20,9 @@ import type {
   ProvidersState,
 } from "../../../providers/types";
 import { ProviderEditor } from "../editors/ProviderEditor";
+import { showToast } from "../../../ui/toastStore";
+import { EmptyState, ART_TOOLBOX } from "../../../ui/EmptyState";
+import { buildProvidersOverview } from "../providersPageModel";
 
 interface TestResult {
   ok: boolean;
@@ -44,6 +48,7 @@ export function ProvidersSection() {
     () => state.profiles.map((p) => p.id),
     [state.profiles],
   );
+  const overview = useMemo(() => buildProvidersOverview(state), [state]);
 
   const refresh = () => setState(loadProviders());
 
@@ -59,18 +64,25 @@ export function ProvidersSection() {
     setEditorOpen(true);
   };
 
-  const handleSave = (profile: ProviderProfile) => {
+  const handleSave = async (profile: ProviderProfile) => {
     const next = upsertProfile(state, profile);
-    // Fire-and-forget secure save; state updates immediately for responsiveness.
-    saveProvidersSecure(next);
+    const saved = await saveProvidersSecure(next);
+    if (!saved) {
+      showToast(t("admin.providers.secureSaveFailed"), "error");
+      return;
+    }
     setState(next);
     setEditorOpen(false);
     setEditing(null);
   };
 
-  const handleActivate = (id: string) => {
+  const handleActivate = async (id: string) => {
     const next = setActive(state, id);
-    saveProvidersSecure(next);
+    const saved = await saveProvidersSecure(next);
+    if (!saved) {
+      showToast(t("admin.providers.secureSaveFailed"), "error");
+      return;
+    }
     setState(next);
   };
 
@@ -79,10 +91,15 @@ export function ProvidersSection() {
     setConfirmDelete(profile);
   };
 
-  const confirmDeleteProvider = () => {
+  const confirmDeleteProvider = async () => {
     if (!confirmDelete) return;
     const next = removeProfile(state, confirmDelete.id);
-    saveProvidersSecure(next);
+    const saved = await saveProvidersSecure(next);
+    if (!saved) {
+      showToast(t("admin.providers.secureSaveFailed"), "error");
+      return;
+    }
+    await deleteProviderApiKey(confirmDelete.id);
     setState(next);
     setConfirmDelete(null);
   };
@@ -124,27 +141,44 @@ export function ProvidersSection() {
     <div>
       <div className="cd-admin-section__head">
         <div>
-          <h2 className="cd-admin-section__title">Providers</h2>
+          <span className="cd-admin-section__eyebrow">{t("admin.providers.eyebrow")}</span>
+          <h2 className="cd-admin-section__title">{t("admin.providers.title")}</h2>
           <p className="cd-admin-section__sub">
-            {state.profiles.length} profile
-            {state.profiles.length === 1 ? "" : "s"} · active:{" "}
-            <code>{state.activeId}</code>
+            {t("admin.providers.subtitle")}
           </p>
         </div>
         <Button size="sm" onClick={openNew}>
-          + Add provider
+          + {t("admin.providers.add")}
         </Button>
       </div>
 
+      <section className="cd-provider-overview" aria-label={t("admin.providers.overviewLabel")}>
+        <div className="cd-provider-overview__active">
+          <span>{t("admin.providers.activeProvider")}</span>
+          <strong>{overview.activeName}</strong>
+          <small>{t("admin.providers.activeHint")}</small>
+        </div>
+        <div className="cd-provider-overview__metrics">
+          <div><strong>{overview.total}</strong><span>{t("admin.providers.metricProfiles")}</span></div>
+          <div><strong>{overview.custom}</strong><span>{t("admin.providers.metricCustom")}</span></div>
+          <div><strong>{overview.protectedCredentials}</strong><span>{t("admin.providers.metricProtected")}</span></div>
+        </div>
+      </section>
+
       {state.profiles.length === 0 ? (
-        <div className="cd-page__empty">No providers configured.</div>
+        <EmptyState
+          art={ART_TOOLBOX}
+          title={t("admin.providers.emptyTitle")}
+          description={t("admin.providers.emptyHint")}
+          action={{ label: t("admin.providers.add"), onClick: openNew }}
+        />
       ) : (
-        <div className="cd-page__grid">
+        <div className="cd-page__grid cd-provider-grid">
           {state.profiles.map((p) => {
             const isActive = p.id === state.activeId;
             const ts = testStates[p.id] ?? { status: "idle" };
             return (
-              <Card key={p.id} active={isActive}>
+              <Card key={p.id} active={isActive} className="cd-provider-card">
                 <div className="cd-admin-card">
                   <div className="cd-admin-card__name">{p.name}</div>
                   <div className="cd-admin-card__meta">
@@ -152,17 +186,17 @@ export function ProvidersSection() {
                     {p.protocol && p.protocol !== 'anthropic_messages' && (
                       <Chip variant="neutral">{p.protocol}</Chip>
                     )}
-                    {isActive && <Chip variant="online">active</Chip>}
-                    {p.builtin && <Chip variant="admin">builtin</Chip>}
+                    {isActive && <Chip variant="online">{t("admin.providers.active")}</Chip>}
+                    {p.builtin && <Chip variant="admin">{t("admin.providers.builtin")}</Chip>}
                   </div>
                   {p.mainModel && (
                     <div className="cd-admin-card__detail">
-                      main: {p.mainModel}
+                      {t("admin.providers.mainModel")}: {p.mainModel}
                     </div>
                   )}
                   {p.fastModel && (
                     <div className="cd-admin-card__detail">
-                      fast: {p.fastModel}
+                      {t("admin.providers.fastModel")}: {p.fastModel}
                     </div>
                   )}
                   {ts.status === "ok" && (
@@ -188,7 +222,7 @@ export function ProvidersSection() {
                     </Button>
                     {!isActive && (
                       <Button size="sm" onClick={() => handleActivate(p.id)}>
-                        Activate
+                        {t("admin.providers.activate")}
                       </Button>
                     )}
                     <Button
@@ -196,7 +230,7 @@ export function ProvidersSection() {
                       variant="ghost"
                       onClick={() => openEdit(p)}
                     >
-                      Edit
+                      {t("common.edit")}
                     </Button>
                     {!p.builtin && (
                       <Button
@@ -204,7 +238,7 @@ export function ProvidersSection() {
                         variant="danger"
                         onClick={() => handleDelete(p)}
                       >
-                        Delete
+                        {t("common.delete")}
                       </Button>
                     )}
                   </div>

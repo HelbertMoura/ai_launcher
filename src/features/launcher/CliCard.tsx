@@ -79,7 +79,6 @@ export function CliCard({
       ref={dndId ? sortable.setNodeRef : undefined}
       style={dragStyle}
       className={`cd-draggable-item${sortable.isDragging ? " cd-draggable-item--dragging" : ""}`}
-      {...(dndId ? sortable.attributes : {})}
     >
       <Card interactive>
       <div className="cd-cli-card__head">
@@ -88,6 +87,7 @@ export function CliCard({
             className="cd-drag-handle"
             aria-label={t("launcher.dragToReorder")}
             title={t("launcher.dragToReorder")}
+            {...sortable.attributes}
             {...sortable.listeners}
           >
             ⋮⋮
@@ -107,7 +107,7 @@ export function CliCard({
         <Chip variant={installed ? "online" : "missing"} dot>
           {installed ? (version ?? t("common.online")) : t("common.missing")}
         </Chip>
-        {hasUpdate && <span className="cd-cli-card__update" title="Update available" aria-label="Update available">&#x2191;</span>}
+        {hasUpdate && <span className="cd-cli-card__update" title={t("launcher.updateAvailable")} aria-label={t("launcher.updateAvailable")}>&#x2191;</span>}
       </div>
       <div className="cd-cli-card__actions">
         {installed ? (
@@ -120,6 +120,7 @@ export function CliCard({
       </div>
       {installed && (pinnedDirs.length > 0 || recentDirs.length > 0) && (
         <div className="cd-cli-card__recents">
+          <span className="cd-cli-card__recents-label">{t("launcher.quickLaunch")}</span>
           {pinnedDirs.map((d) => (
             <button
               key={`pin-${d}`}

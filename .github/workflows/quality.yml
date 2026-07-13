@@ -39,6 +39,26 @@ jobs:
       - name: Run tests
         run: npm test
 
+  npm-audit:
+    name: npm dependency audit
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+      - name: Production dependency audit
+        run: npm run audit:prod
+      - name: Full tooling dependency audit
+        run: npm run audit:all
+      - name: Tauri capability audit
+        run: npm run audit:capabilities
+      - name: Storage boundary audit
+        run: npm run audit:storage
+
   cargo:
     name: Rust (clippy + test + fmt)
     runs-on: windows-latest
@@ -107,3 +127,39 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  build-metrics:
+    name: Frontend build metrics
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+      - name: Build frontend
+        run: npm run build
+      - name: Report bundle metrics
+        run: npm run build:metrics | Tee-Object -FilePath build-metrics.json
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-metrics
+          path: build-metrics.json
+          retention-days: 30
+
+  release-readiness:
+    name: Release readiness contract
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+      - name: Verify release readiness
+        run: npm run release:readiness
