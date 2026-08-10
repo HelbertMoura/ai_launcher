@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - README updated to list all 13 supported CLIs (was 10).
+- **i18next 24.2 → 26.3** (Dependabot #52, major) and **react-i18next 15.7 → 17.0** (#54, major). react-i18next 17 declares i18next >= 26.2.0 as a peer; both upgrades landed together. No API changes required at call sites.
+- **Vite 8.2.0 → 8.2.1** patch (#50).
+- **base64 0.22 → 0.23** (Dependabot #55, minor). Bumps the direct `base64` dep; `tauri-codegen` transitively still pulls 0.22 (deferred to next Tauri major).
+- **toml_edit 0.22 → 0.25** (Dependabot #56, minor).
+- **Rust minor/patch group** (Dependabot #53): `tauri 2.10.3 → 2.11.5`, `tao 0.34.8 → 0.35.3`, `tray-icon 0.21.3 → 0.24.2`, `muda 0.17.2 → 0.19.3`, `open 5.4.0 → 5.4.1`, `tokio 1.53.0 → 1.53.1`.
+
+### Skipped (next session)
+- Dependabot #51 (frontend-dev): typescript 6→7, @types/node 22→26, jest-dom 6→7, jsdom 29→30 — too many simultaneous majors for one batch.
+- DEP-001/002: `windows-sys` (6 transitive versions) and `base64` (2 versions after this batch) still come from hard constraints in the Tauri/wry stack; `[patch.crates-io]` would risk binary compat.
 
 ### Validation
 - 92 Rust tests + 217 Vitest passing.
