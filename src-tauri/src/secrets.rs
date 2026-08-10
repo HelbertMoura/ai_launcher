@@ -148,6 +148,25 @@ fn credential_write(key: &str, value: &str) -> Result<(), String> {
         CRED_TYPE_GENERIC,
     };
 
+    // Persistence model (SEC-005 in .wolf/audit-2026-08-10.md):
+    //
+    // `CRED_PERSIST_LOCAL_MACHINE` here does NOT mean "shared across every
+    // Windows user on this machine". The Windows Credential Manager is a
+    // per-user vault: each Windows account only sees its own credentials and
+    // cannot enumerate the records of other users (unless they have admin
+    // rights and reach for `CredEnumerate` with the right flags). The
+    // LOCAL_MACHINE qualifier only controls whether the record survives
+    // logoff/reboot — it does NOT broaden the ACL of the underlying vault.
+    //
+    // Trade-off vs `CRED_PERSIST_ENTERPRISE` (roaming): the roaming flag
+    // would mirror the credential across domain-joined devices via the
+    // user's Azure AD / Active Directory profile. For a developer-focused
+    // launcher that may run on multiple machines per user, ENTERPRISE is
+    // arguably the better default — we kept LOCAL_MACHINE for v21 to keep
+    // the failure surface small and explicit (no domain dependency). When
+    // the user opts in, switch to `CRED_PERSIST_ENTERPRISE` and verify
+    // `CredReadW` still succeeds on the target machine. See SEC-005.
+
     let bytes = value.as_bytes();
     if bytes.len() > CRED_MAX_CREDENTIAL_BLOB_SIZE as usize {
         return Err(format!(

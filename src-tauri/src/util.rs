@@ -889,6 +889,16 @@ pub fn validate_directory(dir: &str) -> Result<String, String> {
     if dir.is_empty() {
         return Ok(user_home_dir_string());
     }
+    // Reject UNC paths (`\\server\share` or `//server/share`) before touching
+    // the filesystem. They trigger network round-trips, can stall on offline
+    // hosts, and broaden the surface for untrusted user input. See SEC-004
+    // in .wolf/audit-2026-08-10.md.
+    if dir.starts_with(r"\\") || dir.starts_with("//") {
+        return Err(format!(
+            "Caminhos de rede (UNC) não são permitidos: {}",
+            dir
+        ));
+    }
     let path = std::path::Path::new(dir);
     if !path.exists() {
         return Err(format!("Diretório não existe: {}", dir));
@@ -1338,5 +1348,42 @@ mod tests {
         };
         assert_eq!(cli.extra_paths.len(), 1);
         assert!(cli.update_manifest_url.is_some());
+    }
+
+    // -----------------------------------------------------------------------
+    // validate_directory (SEC-004 — UNC rejection)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn validate_directory_rejects_unc_backslash() {
+        let result = validate_directory(r"\\server\share");
+        assert!(result.is_err(), "UNC path must be rejected: {result:?}");
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("UNC") || err.contains("rede") || err.contains("rede (UNC)"),
+            "error must mention UNC/network, got: {err}"
+        );
+    }
+
+    #[test]
+    fn validate_directory_rejects_unc_forward_slash() {
+        // Windows treats `//server/share` the same as `\\server\share`; both
+        // must be rejected before any filesystem call.
+        let result = validate_directory("//server/share");
+        assert!(result.is_err(), "UNC forward-slash path must be rejected");
+    }
+
+    #[test]
+    fn validate_directory_rejects_unc_with_subpath() {
+        let result = validate_directory(r"\\evil.local\C$\Windows\System32");
+        assert!(result.is_err(), "UNC with subpath must be rejected");
+    }
+
+    #[test]
+    fn validate_directory_accepts_local_existing_dir() {
+        // tmp is always available on every platform we target.
+        let tmp = std::env::temp_dir();
+        let result = validate_directory(&tmp.to_string_lossy());
+        assert!(result.is_ok(), "local temp dir should validate: {result:?}");
     }
 }
