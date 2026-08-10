@@ -122,15 +122,7 @@ mod tests {
     #[test]
     fn is_valid_env_key_rejects_invalid_names() {
         for bad in [
-            "",
-            "1FOO",
-            "FOO BAR",
-            "FOO;BAR",
-            "FOO$BAR",
-            "FOO-BAR",
-            "FOO.BAR",
-            "-FOO",
-            "=FOO",
+            "", "1FOO", "FOO BAR", "FOO;BAR", "FOO$BAR", "FOO-BAR", "FOO.BAR", "-FOO", "=FOO",
             "FOO=BAR",
         ] {
             assert!(!is_valid_env_key(bad), "should reject: {:?}", bad);
