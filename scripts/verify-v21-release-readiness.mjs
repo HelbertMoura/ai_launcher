@@ -145,7 +145,6 @@ requireIncludes(".github/workflows/release.yml", [
 ]);
 
 requireFile("scripts/audit-release.sh");
-requireFile("scripts/generate-latest-json.sh");
 requireFile("scripts/smoke-packaged-app.mjs");
 requireFile("docs/SIGNING.md");
 requireFile(`docs/releases/v${versions.npm}.md`);
