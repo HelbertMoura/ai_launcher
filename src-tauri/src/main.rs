@@ -14,7 +14,7 @@ use std::path::PathBuf;
 use tauri::{Manager, WindowEvent};
 use tauri_plugin_global_shortcut::ShortcutState;
 
-use crate::tray::{setup_tray, toggle_main_window};
+use crate::tray::{matches_active_shortcut, setup_tray, toggle_main_window};
 use crate::util::read_tray_config;
 
 #[cfg(target_os = "windows")]
@@ -86,8 +86,17 @@ fn main() {
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
-                    if event.state() == ShortcutState::Pressed {
-                        let _ = shortcut;
+                    if event.state() != ShortcutState::Pressed {
+                        return;
+                    }
+                    // The plugin is registered with a single user-configured
+                    // hotkey, but the handler itself is catch-all across
+                    // every shortcut the plugin sees. Filter to the active
+                    // one so a future flow that re-binds the hotkey (or
+                    // any stray event the plugin fans out) does not toggle
+                    // the window unexpectedly. See SEC-REF005 in
+                    // .wolf/audit-2026-08-10.md.
+                    if matches_active_shortcut(shortcut) {
                         toggle_main_window(app);
                     }
                 })

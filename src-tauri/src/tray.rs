@@ -1,3 +1,5 @@
+use std::sync::{Mutex, OnceLock};
+
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -8,6 +10,42 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 use crate::util::{
     get_builtin_providers, get_cli_definitions, read_tray_config, DEFAULT_TRAY_HOTKEY,
 };
+
+/// Process-wide handle to the currently-registered global shortcut, so the
+/// shortcut handler installed in `main.rs` (which is catch-all across every
+/// shortcut the plugin ever sees) can decide whether the event matches
+/// the user-configured hotkey before toggling the window. `None` means no
+/// hotkey is currently active (failed to register, hotkey cleared, etc).
+///
+/// Wrapped in `Mutex` so a future Admin/Command Center flow that re-binds
+/// the hotkey at runtime (e.g. `set_tray_hotkey`) can swap the value
+/// without rebuilding the whole plugin. See SEC-REF005 in
+/// `.wolf/audit-2026-08-10.md`.
+pub static ACTIVE_SHORTCUT: OnceLock<Mutex<Option<Shortcut>>> = OnceLock::new();
+
+/// Returns true if `pressed` is the shortcut the user actually configured
+/// (as opposed to some other shortcut the global-shortcut plugin happens
+/// to know about). Used by the catch-all handler in `main.rs` to avoid
+/// toggling the window on stray events.
+pub fn matches_active_shortcut(pressed: &Shortcut) -> bool {
+    ACTIVE_SHORTCUT
+        .get()
+        .and_then(|m| m.lock().ok())
+        .and_then(|guard| guard.as_ref().map(|s| s == pressed))
+        .unwrap_or(false)
+}
+
+/// Stores `shortcut` as the active global shortcut, returning the
+/// previous one (if any) so the caller can unregister it cleanly.
+/// Idempotent on failure paths: a poisoned Mutex is treated as "no
+/// prior registration" by re-using the value via `into_inner`.
+pub fn set_active_shortcut(shortcut: Shortcut) -> Option<Shortcut> {
+    let cell = ACTIVE_SHORTCUT.get_or_init(|| Mutex::new(None));
+    let mut guard = cell.lock().unwrap_or_else(|p| p.into_inner());
+    let previous = guard.take();
+    *guard = Some(shortcut);
+    previous
+}
 
 pub fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -199,12 +237,16 @@ pub fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         Ok(shortcut) => {
             if let Err(e) = app.global_shortcut().register(shortcut) {
                 eprintln!("[tray] falha ao registrar hotkey '{hotkey_str}': {e}");
+            } else {
+                set_active_shortcut(shortcut);
             }
         }
         Err(e) => {
             eprintln!("[tray] hotkey inválido '{hotkey_str}': {e} — usando default");
             if let Ok(s) = DEFAULT_TRAY_HOTKEY.parse::<Shortcut>() {
-                let _ = app.global_shortcut().register(s);
+                if app.global_shortcut().register(s).is_ok() {
+                    set_active_shortcut(s);
+                }
             }
         }
     }

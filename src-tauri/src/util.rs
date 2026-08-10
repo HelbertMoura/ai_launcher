@@ -156,6 +156,41 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             update_manifest_url: None,
         },
         CliInfo {
+            key: "aider".into(),
+            name: "Aider".into(),
+            command: "aider".into(),
+            // Aider exposes --yes-to-all (or its alias --yolo) for
+            // unattended runs. Aider also accepts a positional
+            // directory, but for parity with the other CLIs we leave
+            // `directory` to the launch dialog.
+            flag: Some("--yes-to-all".into()),
+            install_cmd: "pip install aider-chat".into(),
+            version_cmd: "aider --version".into(),
+            npm_pkg: None,
+            pip_pkg: Some("aider-chat".into()),
+            install_method: "pip".into(),
+            install_url: Some("https://aider.chat/docs/install".into()),
+            extra_paths: vec![],
+            update_manifest_url: None,
+        },
+        CliInfo {
+            key: "continue".into(),
+            name: "Continue".into(),
+            command: "cn".into(),
+            // Continue CLI accepts --readonly to skip file edits; we
+            // default to allowing edits via the launch flow's `--yolo`
+            // pattern. The package ships its own `cn` binary.
+            flag: Some("--yolo".into()),
+            install_cmd: "npm install -g @continuedev/cli".into(),
+            version_cmd: "cn --version".into(),
+            npm_pkg: Some("@continuedev/cli".into()),
+            pip_pkg: None,
+            install_method: "npm".into(),
+            install_url: Some("https://docs.continue.dev/cli".into()),
+            extra_paths: vec![],
+            update_manifest_url: None,
+        },
+        CliInfo {
             key: "crush".into(),
             name: "Crush".into(),
             command: "crush".into(),
@@ -1266,6 +1301,36 @@ mod tests {
         assert!(
             !defs.iter().any(|c| c.key == "gemini"),
             "Gemini CLI foi descontinuado e não deve estar em get_cli_definitions"
+        );
+    }
+
+    #[test]
+    fn cli_definitions_include_aider_and_continue() {
+        // INT-001: Aider and Continue are first-class citizens on the
+        // launcher as of v21.1 — covering the Python (aider) and
+        // Node (continue) install paths ensures a wider audience sees
+        // their CLI as installable / launchable, not just Claude/Codex.
+        let defs = get_cli_definitions();
+        let aider = defs
+            .iter()
+            .find(|c| c.key == "aider")
+            .expect("aider deve estar em get_cli_definitions");
+        assert_eq!(aider.command, "aider");
+        assert_eq!(aider.install_method, "pip");
+        assert!(
+            aider.pip_pkg.as_deref() == Some("aider-chat"),
+            "aider pip package name is aider-chat, not aider"
+        );
+
+        let cont = defs
+            .iter()
+            .find(|c| c.key == "continue")
+            .expect("continue deve estar em get_cli_definitions");
+        assert_eq!(cont.command, "cn", "Continue CLI binary is `cn`");
+        assert_eq!(cont.install_method, "npm");
+        assert!(
+            cont.npm_pkg.as_deref() == Some("@continuedev/cli"),
+            "Continue CLI npm package is @continuedev/cli"
         );
     }
 
