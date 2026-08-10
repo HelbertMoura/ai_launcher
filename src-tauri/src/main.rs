@@ -5,6 +5,7 @@
 
 mod commands;
 mod errors;
+mod safety;
 mod secrets;
 mod tray;
 mod util;

@@ -2,10 +2,11 @@ use std::collections::HashMap;
 
 use serde::Serialize;
 
+use crate::safety::{append_env_assignments, sanitize_args};
 use crate::util::{
-    append_env_assignments, check_cli_installed, compare_versions, encode_powershell_command,
+    check_cli_installed, compare_versions, encode_powershell_command,
     fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
-    log_event, npm_latest, resolve_cli_path_win, sanitize_args, stream_install, validate_directory,
+    log_event, npm_latest, resolve_cli_path_win, stream_install, validate_directory,
     CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
