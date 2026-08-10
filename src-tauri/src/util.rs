@@ -234,6 +234,52 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
                 "https://antigravity-cli-auto-updater-974169037036.us-central1.run.app/manifests/windows_amd64.json".into(),
             ),
         },
+        // INT-001 cont. — additional Claude-compatible CLIs.
+        // Flags intentionally `None` for newer CLIs: their yolo/auto flag
+        // surface changes often, and Admins can override per-CLI in the
+        // Admin tab without redeploying.
+        CliInfo {
+            key: "cody".into(),
+            name: "Cody (Sourcegraph)".into(),
+            command: "cody".into(),
+            flag: None,
+            install_cmd: "npm install -g @sourcegraph/cody-ai".into(),
+            version_cmd: "cody --version".into(),
+            npm_pkg: Some("@sourcegraph/cody-ai".into()),
+            pip_pkg: None,
+            install_method: "npm".into(),
+            install_url: Some("https://sourcegraph.com/docs/cody/clients/install-cli".into()),
+            extra_paths: vec![],
+            update_manifest_url: None,
+        },
+        CliInfo {
+            key: "copilot".into(),
+            name: "GitHub Copilot".into(),
+            command: "copilot".into(),
+            flag: None,
+            install_cmd: "npm install -g @github/copilot".into(),
+            version_cmd: "copilot --version".into(),
+            npm_pkg: Some("@github/copilot".into()),
+            pip_pkg: None,
+            install_method: "npm".into(),
+            install_url: Some("https://github.com/features/copilot/cli".into()),
+            extra_paths: vec![],
+            update_manifest_url: None,
+        },
+        CliInfo {
+            key: "goose".into(),
+            name: "Goose (Block)".into(),
+            command: "goose".into(),
+            flag: None,
+            install_cmd: "irm https://github.com/block/goose/releases/latest/download/goose-installer.ps1 | iex".into(),
+            version_cmd: "goose --version".into(),
+            npm_pkg: None,
+            pip_pkg: None,
+            install_method: "script".into(),
+            install_url: Some("https://block.github.io/goose/docs/getting-started/installation".into()),
+            extra_paths: vec!["%LOCALAPPDATA%\\Programs\\Goose\\bin\\goose.exe".into()],
+            update_manifest_url: None,
+        },
     ]
 }
 
@@ -1356,6 +1402,41 @@ mod tests {
                 .unwrap_or(false),
             "update_manifest_url deve apontar para o manifesto Google"
         );
+    }
+
+    // INT-001 cont. — additional Claude-compatible CLIs (Cody, Copilot, Goose).
+    // These three are intentionally flag-less: their yolo/auto flags churn
+    // between releases, and Admins can override per-CLI in the Admin tab.
+    #[test]
+    fn cli_definitions_includes_cody_copilot_goose() {
+        let clis = get_cli_definitions();
+        let by_key: std::collections::HashMap<&str, &CliInfo> =
+            clis.iter().map(|c| (c.key.as_str(), c)).collect();
+
+        for (key, expected_cmd, expected_method) in [
+            ("cody", "cody", "npm"),
+            ("copilot", "copilot", "npm"),
+            ("goose", "goose", "script"),
+        ] {
+            let cli = by_key
+                .get(key)
+                .unwrap_or_else(|| panic!("CLI `{key}` not found in get_cli_definitions"));
+            assert_eq!(cli.command, expected_cmd, "{key}.command");
+            assert_eq!(cli.install_method, expected_method, "{key}.install_method");
+            // Newer CLIs expose a canonical install URL so users land on docs.
+            assert!(
+                cli.install_url
+                    .as_deref()
+                    .map(|u| !u.is_empty())
+                    .unwrap_or(false),
+                "{key}.install_url must be set"
+            );
+            // Newer CLIs do NOT ship a default yolo flag — Admins configure.
+            assert!(cli.flag.is_none(), "{key}.flag must be None by default");
+        }
+
+        // Total count: 10 legacy CLIs + 3 new = 13.
+        assert_eq!(clis.len(), 13, "expected 13 CLIs, got {}", clis.len());
     }
 
     #[test]
