@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Cody, Copilot CLI and Goose** (INT-001 cont.) — three additional Claude-compatible CLIs detected, installed and launched from the same surface as Claude/Codex. New total: 13 CLIs.
+- **Vendor chunking** (REF-006) — main JS chunk reduced 57% (gzip 92.43 kB → 41.15 kB) by splitting `react`, `i18n`, `tauri`, `dnd` and `icons` into separate long-lived chunks. Improves Tauri webview cache reuse and isolates upgrade blast-radius.
+
+### Changed
+- README updated to list all 13 supported CLIs (was 10).
+
+### Validation
+- 92 Rust tests + 217 Vitest passing.
+- `cargo fmt`, `cargo clippy -D warnings`, `tsc --noEmit` and `vite build` all clean.
+
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
 Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.
