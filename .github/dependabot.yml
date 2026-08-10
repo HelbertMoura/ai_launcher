@@ -1,7 +1,10 @@
 version: 2
 
 # Atualizações automáticas de dependências. Agrupa minor/patch pra não gerar
-# PR spam. Major fica separado pra review manual.
+# PR spam. Major também é agrupado mas em PR separado (e a cada 2 semanas, não
+# toda semana) para que major upgrades de React/Vite/Tauri entrem no radar
+# sem virar ruído. Major updates individuais podem quebrar build, então a
+# revisão humana é mandatória antes do merge.
 
 updates:
   # npm (frontend)
@@ -28,6 +31,14 @@ updates:
       frontend-dev:
         applies-to: version-updates
         dependency-type: development
+      # Major upgrades agrupados (React 19 -> 20, Vite 8 -> 9, Tauri API 2 -> 3).
+      # Frequency bi-weekly para não saturar a fila; open-pull-requests-limit
+      # menor para forçar resolução antes de acumular.
+      frontend-major:
+        applies-to: version-updates
+        update-types:
+          - major
+        frequency: "fortnightly"
 
   # cargo (Rust backend)
   - package-ecosystem: cargo
@@ -50,6 +61,11 @@ updates:
         update-types:
           - minor
           - patch
+      rust-major:
+        applies-to: version-updates
+        update-types:
+          - major
+        frequency: "fortnightly"
 
   # GitHub Actions
   - package-ecosystem: github-actions
@@ -62,3 +78,12 @@ updates:
     commit-message:
       prefix: ci
       include: scope
+    groups:
+      # Actions majors geralmente são breaking mas baixa disrupção (GitHub
+      # mantém compatibilidade de flags razoavelmente bem). Mensal mantém
+      # o ritmo sem empilhar PRs.
+      actions-major:
+        applies-to: version-updates
+        update-types:
+          - major
+        frequency: "monthly"
