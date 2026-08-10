@@ -33,6 +33,9 @@ scripts/certs/
 *.crt
 *.cer
 
+# Tauri updater keypair (pub is committed via tauri.conf.json, .key stays local)
+.tauri/
+
 # --- Env / Secrets ---
 .env
 .env.*

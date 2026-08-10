@@ -41,6 +41,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Why staged:** the plugin is opinionated (it requires a `latest.json` manifest hosted alongside the release, signing keys, and a release-workflow change). Doing it in one shot would mix infra (release workflow) with code (commands) and a config change (capabilities) — easy to miss a wiring step.
 
+### FEAT-002 step 2/3 (commands migrated)
+- New `src-tauri/src/commands/updater.rs` is a thin wrapper over `tauri-plugin-updater`. The frontend contract (`check_app_update` / `download_verified_app_update`, same return types) is preserved, so `useAppUpdate.ts` keeps working unchanged.
+- Plugin is configured in `tauri.conf.json` under `plugins.updater` (single endpoint at the GitHub Releases `latest.json`, public key baked in from a freshly generated keypair stored locally at `.tauri/ai-launcher.key` — gitignored).
+- Signature validation replaces the legacy SHA-256 checksum verification.
+
+### FEAT-002 step 3/3 (legacy path deleted, release workflow updated)
+- `src-tauri/src/commands/self_update.rs` moved to `.trash/` (not gitignored because of the existing `*.rs` rule; to be reaped on the next trash sweep).
+- `util::download_agent` removed (no other consumers).
+- Release workflow now signs the NSIS installer with `tauri signer sign` (uses `TAURI_SIGNING_PRIVATE_KEY` + `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` GitHub secrets; step is opt-in, skipped silently if the secrets are missing) and emits `latest.json` in the tauri-plugin-updater schema (version / notes / pub_date / url / signature).
+- Tests: 92 → 80. The 12 deleted tests were the legacy SHA-256 / asset-matching suite (`find_windows_asset`, `is_safe_asset_name`, etc.) — those guarantees now live inside the official plugin.
+
+**Operator note for the next release:** the pubkey in `tauri.conf.json` is a freshly generated placeholder. To make the in-app updater work end-to-end:
+1. Add the matching private key to GitHub Secrets as `TAURI_SIGNING_PRIVATE_KEY` (and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` if you keep the password on the key).
+2. Rotate the keypair if you do not trust the local `.tauri/ai-launcher.key` file (kept under `.gitignore`).
+
+Without the private key in secrets, the in-app updater rejects every manifest but the manual download still works — same as the legacy `download_verified_app_update` did when GitHub blocked the API.
+
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
 Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.

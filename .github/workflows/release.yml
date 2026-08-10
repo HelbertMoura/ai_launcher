@@ -117,41 +117,65 @@ jobs:
             "$hash  $($_.Name)" | Out-File -FilePath "$($_.DirectoryName)/$($_.Name).sha256" -Encoding utf8
           }
 
-      - name: Generate latest.json
+      # Sign the NSIS installer with the tauri updater key. The signature is
+      # required by tauri-plugin-updater; without it the updater refuses the
+      # payload. Skipped silently if the private key is not configured so
+      # the release still ships a working installer (the legacy updater path
+      # was deleted in FEAT-002 step 3/3, so a missing signature now means
+      # the in-app updater is broken but the manual download still works).
+      - name: Sign NSIS installer (opt-in)
+        if: env.TAURI_SIGNING_PRIVATE_KEY != ''
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: pwsh
+        run: |
+          $nsis = (Get-ChildItem -Path src-tauri/target/release/bundle/nsis -Filter *-setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1)
+          if ($nsis) {
+            $signature = npx tauri signer sign $nsis.FullName 2>&1 | Out-String
+            Write-Host "Signature generated for $($nsis.Name):`n$signature"
+            # tauri signer prints "<base64>" on the last line.
+            $sigBytes = ($signature -split "`n" | Where-Object { $_ -match '^[A-Za-z0-9+/=]{20,}$' } | Select-Object -Last 1)
+            if ($sigBytes) {
+              $sigBytes | Out-File -FilePath "$($nsis.FullName).sig" -Encoding ascii -NoNewline
+            } else {
+              Write-Error "Could not extract signature from tauri signer output"
+              exit 1
+            }
+          }
+
+      - name: Generate latest.json (tauri-plugin-updater schema)
         shell: pwsh
         run: |
           $tag = "${{ github.event.inputs.tag || github.ref_name }}"
           $version = $tag.TrimStart('v')
-          $date = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
+          $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
           $nsis = (Get-ChildItem -Path src-tauri/target/release/bundle/nsis -Filter *-setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1)
-          $msi = (Get-ChildItem -Path src-tauri/target/release/bundle/msi -Filter *.msi -ErrorAction SilentlyContinue | Select-Object -First 1)
           $nsisAssetName = if ($nsis) { $nsis.Name.Replace(' ', '.') } else { "" }
-          $msiAssetName = if ($msi) { $msi.Name.Replace(' ', '.') } else { "" }
+          $downloadUrl = if ($nsis) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$nsisAssetName" } else { "" }
 
-          $checksum = ""
+          # Plugin expects the signature as a base64 string. If the .sig
+          # file is missing the in-app updater will reject this manifest —
+          # we still emit latest.json so the build script never breaks.
+          $signature = ""
           if ($nsis) {
-            $shaFile = "$($nsis.FullName).sha256"
-            if (Test-Path $shaFile) {
-              $checksum = (Get-Content $shaFile -Raw).Trim().Split()[0]
+            $sigPath = "$($nsis.FullName).sig"
+            if (Test-Path $sigPath) {
+              $signature = (Get-Content $sigPath -Raw).Trim()
             }
           }
 
           $manifest = @{
             version = $version
-            releaseDate = $date
-            downloadUrls = @{
-              windowsNsis = if ($nsis) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$nsisAssetName" } else { "" }
-              windowsMsi = if ($msi) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$msiAssetName" } else { "" }
-            }
-            checksums = @{
-              sha256 = $checksum
-            }
-            releaseNotes = ""
-            releaseNotesUrl = "https://github.com/HelbertMoura/ai_launcher/releases/tag/$tag"
+            notes = "AI Launcher $tag — see https://github.com/HelbertMoura/ai_launcher/releases/tag/$tag"
+            pub_date = $date
+            url = $downloadUrl
+            signature = $signature
           }
 
           $manifest | ConvertTo-Json -Depth 5 | Out-File -FilePath "latest.json" -Encoding utf8
+          Write-Host "Generated latest.json for $tag (signature: $($signature.Length) chars)"
 
       - name: Attach checksums and latest.json to release
         uses: softprops/action-gh-release@v2.3.2
