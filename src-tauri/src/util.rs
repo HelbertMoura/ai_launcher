@@ -840,47 +840,6 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
     None
 }
 
-pub fn sanitize_args(args: &str) -> Result<String, String> {
-    let banned = [
-        ';', '&', '|', '`', '$', '>', '<', '\n', '\r', '(', ')', '{', '}',
-    ];
-    if args.chars().any(|c| banned.contains(&c)) {
-        return Err(
-            "Argumentos contêm caracteres proibidos (; & | ` $ > < newline ( ) { })".into(),
-        );
-    }
-    Ok(args.trim().to_string())
-}
-
-/// Validates an environment variable name against `^[A-Za-z_][A-Za-z0-9_]*$`.
-///
-/// Used before interpolating the raw key into a PowerShell `$env:KEY = '...'`
-/// assignment, preventing injection via crafted variable names.
-pub fn is_valid_env_key(key: &str) -> bool {
-    let mut chars = key.chars();
-    match chars.next() {
-        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
-        _ => return false,
-    }
-    chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-}
-
-/// Appends `$env:KEY = 'VALUE'` lines to a PowerShell script for each valid env var.
-///
-/// Keys failing [`is_valid_env_key`] are skipped and logged. Values have single
-/// quotes escaped (`'` -> `''`) so they remain inside the single-quoted literal.
-/// Shared by `launch_cli` and `launch_custom_cli`.
-pub fn append_env_assignments(script: &mut String, vars: &HashMap<String, String>) {
-    for (k, v) in vars {
-        if !is_valid_env_key(k) {
-            log_event("launch", &format!("skipping invalid env var name: {:?}", k));
-            continue;
-        }
-        let esc = v.replace('\'', "''");
-        script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-    }
-}
-
 pub fn user_home_dir_string() -> String {
     std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\".to_string())
 }
@@ -1213,60 +1172,6 @@ mod tests {
     #[test]
     fn extract_version_none_when_no_digits() {
         assert_eq!(extract_version("hello world"), None);
-    }
-
-    #[test]
-    fn sanitize_args_accepts_safe() {
-        assert_eq!(sanitize_args("--verbose").unwrap(), "--verbose");
-        assert_eq!(sanitize_args("").unwrap(), "");
-        assert_eq!(
-            sanitize_args("--model=claude-3").unwrap(),
-            "--model=claude-3"
-        );
-    }
-
-    #[test]
-    fn sanitize_args_rejects_injection() {
-        for bad in &[
-            "a; rm", "a && b", "a | b", "a > file", "a < file", "a`c`", "a$x",
-        ] {
-            assert!(sanitize_args(bad).is_err(), "should reject: {}", bad);
-        }
-    }
-
-    #[test]
-    fn sanitize_args_neutralizes_newline_injection() {
-        // A newline could otherwise inject a second PowerShell statement.
-        let payload = "--flag\nInvoke-Expression evil";
-        let result = sanitize_args(payload);
-        assert!(result.is_err(), "arg with newline must be rejected");
-        // Carriage return and other newly-banned chars too.
-        for bad in &["a\rb", "a(b", "a)b", "a{b", "a}b", "a\nb"] {
-            assert!(sanitize_args(bad).is_err(), "should reject: {:?}", bad);
-        }
-    }
-
-    #[test]
-    fn is_valid_env_key_accepts_valid_names() {
-        for ok in &["FOO", "_bar", "ANTHROPIC_API_KEY", "a1_2", "_"] {
-            assert!(is_valid_env_key(ok), "should accept: {}", ok);
-        }
-    }
-
-    #[test]
-    fn is_valid_env_key_rejects_invalid_names() {
-        for bad in &[
-            "",
-            "1abc",
-            "FOO-BAR",
-            "FOO BAR",
-            "FOO=BAR",
-            "FOO'; evil",
-            "FOO\nBAR",
-            "$env",
-        ] {
-            assert!(!is_valid_env_key(bad), "should reject: {:?}", bad);
-        }
     }
 
     #[test]

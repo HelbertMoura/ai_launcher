@@ -1,0 +1,100 @@
+name: SBOM
+
+# Generate a CycloneDX Software Bill of Materials on every release.
+# Two complementary formats:
+#   - JSON (sbom.cdx.json) — machine-friendly, used by vulnerability scanners
+#     like Dependency-Track, Grype and Trivy
+#   - XML  (sbom.cdx.xml)  — for older compliance tooling
+#
+# We also cover the Rust dependency tree (src-tauri) via cargo-cyclonedx
+# so the bundled installer is traceable from open-source consumers and
+# enterprise procurement flows.
+#
+# Triggered on tags (releases) and weekly so we always have a fresh
+# inventory even for the in-development main. Artifacts are uploaded
+# with a 90-day retention and never replace signed release assets —
+# the SBOM is informational, not security-critical.
+#
+# See SEC-INFRA001 in .wolf/audit-2026-08-10.md.
+
+on:
+  push:
+    branches: [main, "codex/**", "release/**"]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Sundays 04:00 UTC — quiet window between stale (Mon 06:00) and
+    # Dependabot (Mon 09:00 BRT) so the SBOM sees the latest lockfiles
+    # without racing them.
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom-frontend:
+    name: SBOM — frontend (CycloneDX JSON + XML)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install deps
+        run: npm ci --legacy-peer-deps --ignore-scripts
+
+      - name: Generate CycloneDX SBOM (npm)
+        # Use the official cyclonedx-npm generator. 1.6 spec, no validate
+        # flag in 1.6 mode (npm generator validates internally).
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --spec-version 1.6 --output-file sbom.frontend.cdx.json
+      - name: Generate CycloneDX SBOM (npm, XML)
+        run: npx --yes @cyclonedx/cyclonedx-npm --output-format XML --spec-version 1.6 --output-file sbom.frontend.cdx.xml
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-frontend
+          path: |
+            sbom.frontend.cdx.json
+            sbom.frontend.cdx.xml
+          retention-days: 90
+          if-no-files-found: error
+
+  sbom-rust:
+    name: SBOM — backend (cargo-cyclonedx)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install cargo-cyclonedx
+        run: cargo install --locked cargo-cyclonedx
+
+      - name: Generate CycloneDX SBOM (Rust)
+        working-directory: src-tauri
+        run: |
+          # 1.5 keeps broad compatibility with downstream scanners; bump
+          # to 1.6 once tooling catches up. --override-filename-root
+          # avoids clashing with the frontend output on merge.
+          cargo cyclonedx --format json --override-filename-root sbom.backend --spec-version 1.5
+
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-backend
+          path: src-tauri/target/sbom.backend.cdx.json
+          retention-days: 90
+          if-no-files-found: warn
