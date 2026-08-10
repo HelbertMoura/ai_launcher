@@ -11,7 +11,7 @@
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
-![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?labelColor=1a1a1d)
+![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6?labelColor=1a1a1d)
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
 
 </div>
@@ -225,6 +225,20 @@ MIT — see [LICENSE](./LICENSE).
 - **Author:** Helbert Moura — [DevManiac's](https://github.com/HelbertMoura)
 - **Icons** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon)
 - Brand names and trademarks belong to their respective owners.
+
+## For Maintainers
+
+- [docs/SIGNING.md](./docs/SIGNING.md) — how to wire code signing and rotate the
+  Tauri updater keypair.
+- [docs/marketing/producthunt.md](./docs/marketing/producthunt.md) — Product Hunt
+  draft (tagline, description, first comment, gallery).
+- [docs/marketing/dev-to.md](./docs/marketing/dev-to.md) — outline for a long-form
+  dev.to article.
+- [docs/marketing/launch-checklist.md](./docs/marketing/launch-checklist.md) —
+  T-7d to T+1w checklist plus open items.
+- [SECURITY.md](./SECURITY.md) — how to report vulnerabilities.
+- [CHANGELOG.md](./CHANGELOG.md) — release notes and `Unreleased` section.
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — module layout and data flow.
 
 ---
 

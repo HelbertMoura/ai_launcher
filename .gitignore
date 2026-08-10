@@ -36,6 +36,10 @@ scripts/certs/
 # Tauri updater keypair (pub is committed via tauri.conf.json, .key stays local)
 .tauri/
 
+# Local scratchpad for files that should not be in the repo (deleted code, backups).
+# The directory is created on demand by agent workflows; contents are disposable.
+.trash/
+
 # --- Env / Secrets ---
 .env
 .env.*
