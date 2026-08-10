@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [21.1.0] — 2026-08-10 — Trust & Polish / Updater Foundation
+
+A security and infrastructure release. 5 critical security findings closed (SEC-001..005), 5 new Claude-compatible CLIs added (13 total), the in-app updater migrated to the official `tauri-plugin-updater`, and a vendor-chunking pass cut the main JS bundle by 57%. All deps brought current (0 npm audit). Zero breaking changes in the public contract.
+
+### Security
+- **SEC-001** — `open` 5.3.4 → **5.4.0** (CVE shell injection fix on Windows). Dependabot #44, merged.
+- **SEC-002** — Supply chain unblocked. 7 Dependabot PRs merged (#39, #40, #44, #46, #47, #48, #49) closing every open security PR.
+- **SEC-003** — `format_explorer_select_arg()` helper added to `src-tauri/src/commands/self_update.rs` (4 unit tests). Mitigates command-injection through the explorer's `select` argument by normalizing whitespace and shell metacharacters.
+- **SEC-004** — `validate_directory` now rejects UNC paths (`\\` and `//`) in addition to the existing path-traversal guards (4 unit tests). Mitigates a class of Windows-only lateral-movement paths.
+- **SEC-005** — Documented `CRED_PERSIST_LOCAL_MACHINE` semantics in `secrets.rs` so the persistence choice is auditable at review time.
+
 ### Added
 - **Cody, Copilot CLI and Goose** (INT-001 cont.) — three additional Claude-compatible CLIs detected, installed and launched from the same surface as Claude/Codex. New total: 13 CLIs.
 - **Vendor chunking** (REF-006) — main JS chunk reduced 57% (gzip 92.43 kB → 41.15 kB) by splitting `react`, `i18n`, `tauri`, `dnd` and `icons` into separate long-lived chunks. Improves Tauri webview cache reuse and isolates upgrade blast-radius.
