@@ -64,6 +64,13 @@ Without the private key in secrets, the in-app updater rejects every manifest bu
 - `commands::updater` doc comment now wraps `CARGO_PKG_VERSION` in backticks (clippy::pedantic).
 - Pedantic clippy warnings remain (~80 across `util.rs` and `cli.rs`); deferred because the diff would be ~hundreds of lines of `format!("{x}")` rewrites with no functional change. Re-evaluate on a future pedantic pass if desired.
 
+### VIS-001 (marketing prep, drafts only)
+- `docs/marketing/producthunt.md` — draft Product Hunt submission (tagline, description, first comment, gallery order, topics, launch-time, hunter notes).
+- `docs/marketing/dev-to.md` — outline for a long-form dev.to article (~2,500 words, 9 sections).
+- `docs/marketing/launch-checklist.md` — T-7d / T-3d / T-1d / T-zero / T+1d / T+1w checklist plus open items (macOS/Linux, Azure signing, Hub).
+
+These are drafts the operator can review, edit and submit. They do not deploy anything, do not push to PH or dev.to, and do not require any external API. The first commit that actually publishes to PH/dev.to is a deliberate human action.
+
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
 Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.
