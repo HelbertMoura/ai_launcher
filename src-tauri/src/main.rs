@@ -135,8 +135,8 @@ fn main() {
             commands::updates::update_prerequisite,
             commands::updates::check_environment,
             // commands::self_update
-            commands::self_update::check_app_update,
-            commands::self_update::download_verified_app_update,
+            commands::updater::check_app_update,
+            commands::updater::download_verified_app_update,
             // commands::config
             commands::config::reset_all_config,
             commands::config::reset_claude_state,

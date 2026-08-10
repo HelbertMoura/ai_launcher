@@ -767,18 +767,9 @@ pub fn http_agent() -> ureq::Agent {
         .build()
 }
 
-/// HTTP agent tuned for large downloads (e.g. self-update installer).
-///
-/// Unlike [`http_agent`], this uses per-operation timeouts (connect + read)
-/// instead of a single total timeout, so a large but steady download is not
-/// aborted mid-transfer.
-pub fn download_agent() -> ureq::Agent {
-    ureq::AgentBuilder::new()
-        .timeout_connect(std::time::Duration::from_secs(30))
-        .timeout_read(std::time::Duration::from_secs(60))
-        .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
-        .build()
-}
+// `download_agent` (HTTP agent tuned for large downloads) was removed in
+// FEAT-002 step 3/3: the `tauri-plugin-updater` handles large downloads
+// via its own `reqwest` client with per-operation timeouts.
 
 pub fn fetch_vscode_latest() -> Option<String> {
     let resp = http_agent()
