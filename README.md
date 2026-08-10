@@ -22,7 +22,7 @@
 
 | | Feature | Description |
 |---|---------|-------------|
-| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Gemini CLI, Antigravity, Qwen, Crush, Droid, Kilocode, OpenCode, Aider, Continue, Cody, Copilot, Goose and more |
+| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Qwen, Kilocode, OpenCode, Aider, Continue, Crush, Droid, Antigravity, Cody, Copilot, Goose and more |
 | :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, JetBrains AI and custom IDEs |
 | :arrow_up: | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
 | :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily and monthly breakdowns |
