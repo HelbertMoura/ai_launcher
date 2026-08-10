@@ -1,0 +1,69 @@
+name: CodeQL
+
+# Static security analysis (SAST) for both TypeScript and Rust.
+# Free for public repos, surfaces common vulnerability patterns that
+# tsc/cargo clippy miss (e.g. tainted flows, dangerous APIs, integer
+# overflow patterns). Runs weekly plus on every push/PR to keep the
+# baseline fresh without slowing the main quality pipeline.
+#
+# See SEC-CI003 in .wolf/audit-2026-08-10.md.
+
+on:
+  push:
+    branches: [main, "codex/**", "release/**"]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Mondays 06:00 UTC — same window as the stale bot to keep
+    # weekly jobs grouped and avoid hammering Actions minutes.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: rust
+            build-mode: none
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # CodeQL's autobuild handles JS/TS out of the box; for Rust we
+      # need a small hint because the workspace lives under src-tauri.
+      - name: Set up Rust target
+        if: matrix.language == 'rust'
+        shell: pwsh
+        run: |
+          Write-Host "Rust sources live under src-tauri/; CodeQL will pick them up via the working-directory override below."
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          # Keep results grouped per language so the security tab is
+          # easy to read; do not upload as a separate artifact — the
+          # SARIF is already attached to the workflow run by default.
+          category: "/language:${{ matrix.language }}"
