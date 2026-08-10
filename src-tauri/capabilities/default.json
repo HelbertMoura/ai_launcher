@@ -17,6 +17,7 @@
     "dialog:allow-confirm",
     "global-shortcut:default",
     "autostart:default",
-    "notification:default"
+    "notification:default",
+    "updater:default"
   ]
 }

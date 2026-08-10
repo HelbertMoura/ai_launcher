@@ -32,6 +32,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cargo fmt`, `cargo clippy -D warnings`, `tsc --noEmit` and `vite build` all clean.
 - `npm audit`: **0 vulnerabilities** (down from 1 high).
 
+### FEAT-002 step 1/3 (tauri-plugin-updater)
+- Added `tauri-plugin-updater = "2.0"` to `src-tauri/Cargo.toml` (resolved 2.10.1).
+- Registered `updater:default` permission in `src-tauri/capabilities/default.json`.
+- Initialized plugin via `Builder::new().build()` in `main.rs`.
+
+**No behaviour change yet.** The plugin is wired but neither the frontend nor `self_update.rs` route through it. Next step is to migrate `check_app_update` / `download_verified_app_update` to the plugin (probably behind a feature flag so the legacy path stays as a safety net), then delete `self_update.rs` once the migration is observably stable.
+
+**Why staged:** the plugin is opinionated (it requires a `latest.json` manifest hosted alongside the release, signing keys, and a release-workflow change). Doing it in one shot would mix infra (release workflow) with code (commands) and a config change (capabilities) — easy to miss a wiring step.
+
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
 Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.
