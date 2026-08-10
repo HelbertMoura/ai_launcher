@@ -18,14 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **base64 0.22 → 0.23** (Dependabot #55, minor). Bumps the direct `base64` dep; `tauri-codegen` transitively still pulls 0.22 (deferred to next Tauri major).
 - **toml_edit 0.22 → 0.25** (Dependabot #56, minor).
 - **Rust minor/patch group** (Dependabot #53): `tauri 2.10.3 → 2.11.5`, `tao 0.34.8 → 0.35.3`, `tray-icon 0.21.3 → 0.24.2`, `muda 0.17.2 → 0.19.3`, `open 5.4.0 → 5.4.1`, `tokio 1.53.0 → 1.53.1`.
+- **TypeScript 6.0.3 → 7.0.2** (major, part of #51). Landed in isolation; no call-site changes required.
+- **@testing-library/jest-dom 6.9.1 → 7.0.0** (major, part of #51). jsdom 30 picks up jest-dom 7 cleanly; both already pin Node ≥ 22.
+- **jsdom 29.1.1 → 30.0.1** (major, part of #51). Brings the `@asamuzakjp/*` stack up two majors and `whatwg-url` 16→17.
+- **undici override 7.28.0 → 7.29.0** closes the 5 high-severity dev advisories in the 7.0.0–7.28.0 range. Production runtime was already safe (Tauri's HTTP stack is not on undici).
 
 ### Skipped (next session)
-- Dependabot #51 (frontend-dev): typescript 6→7, @types/node 22→26, jest-dom 6→7, jsdom 29→30 — too many simultaneous majors for one batch.
+- Dependabot #51 partial: **@types/node stays on 22.x (LTS)** by design (DEP-004). Skipping the bump to 26 in this batch.
 - DEP-001/002: `windows-sys` (6 transitive versions) and `base64` (2 versions after this batch) still come from hard constraints in the Tauri/wry stack; `[patch.crates-io]` would risk binary compat.
 
 ### Validation
 - 92 Rust tests + 217 Vitest passing.
 - `cargo fmt`, `cargo clippy -D warnings`, `tsc --noEmit` and `vite build` all clean.
+- `npm audit`: **0 vulnerabilities** (down from 1 high).
 
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
