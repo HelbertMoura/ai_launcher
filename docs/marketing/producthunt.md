@@ -6,22 +6,25 @@
 
 ## Tagline (60 char max)
 
+Lead pick — concrete, action verbs, fits under 60 chars:
+
 > **One window to discover, install and run every AI coding CLI.**
 
-Alternatives (try each, pick the one that reads cleanest):
+Alternates (if you want to swap before submitting):
 
-- The Command Deck for AI coding CLIs.
-- One desktop app for Claude, Codex, Qwen, Goose and 9 more.
-- Detect, install, launch — every AI CLI in one window.
+- **The Command Deck for AI coding CLIs.** *(37 chars — leans on the v21 visual identity)*
+- **One desktop app for Claude, Codex, Qwen, Goose and 9 more.** *(56 chars — names check, but ages as more CLIs land)*
+- **Detect, install, launch — every AI CLI in one window.** *(54 chars — punchiest, drops the "discover" verb)*
 
 ## Description (260 char max)
 
-> AI Launcher is a free, open-source desktop hub for AI coding CLIs. It
-> detects 13 CLIs (Claude, Codex, Qwen, Goose, Copilot, Cody, OpenCode,
-> Kilo, Crush, Droid, Aider, Continue, Antigravity), installs missing
-> ones with live progress, and launches them with the right provider,
-> directory and MCP context. Built in Tauri 2 + Rust. Windows today,
-> macOS and Linux next.
+> AI Launcher: a free, open-source Tauri 2 desktop hub for 13 AI coding
+> CLIs. Detects, installs and launches each one with the right
+> provider, directory and MCP context. Windows today, macOS and Linux
+> next.
+
+*(199 chars. The full list of 13 CLIs lives in the first comment, so
+the description stays scannable on the PH card.)*
 
 ## First comment (the "why we built it" post)
 
@@ -41,12 +44,14 @@ on.
   events — no terminal flashing.
 - 🚀 **Launch** with the right provider, directory and `.ailauncher.json`
   context per project.
-- 🛠 **Manage IDEs** (VS Code, Cursor, Windsurf, Antigravity, custom).
+- 🛠 **Manage IDEs** — VS Code, Cursor, Windsurf, Antigravity, plus
+  custom entries.
 - 🔌 **MCP Hub** with backups, health checks and catalog presets.
-- 📜 **Runbooks** 3.0 with dry-run, approvals, retry, resume.
-- 🔐 **Secrets** in Windows Credential Manager (never plaintext).
-- 🔄 **Auto-updates** signed via `tauri-plugin-updater` (the official
-  Tauri plugin).
+- 📜 **Runbooks** 3.0 with dry-run, approvals, retry and resume.
+- 🔐 **Secrets** stored in Windows Credential Manager (never plaintext
+  in storage).
+- 🔄 **Auto-updates** verified by `tauri-plugin-updater` (the official
+  Tauri 2 plugin) against a pubkey baked into the binary.
 
 **Why it's different from a `.bat` file**
 
@@ -61,12 +66,13 @@ on.
 
 **The technical story**
 
-- Tauri 2 + React 19 + Rust. 92+ Rust tests, 217+ Vitest, 0 npm audit
-  vulns, 0 cargo audit vulns, SBOM published on every release.
+- Tauri 2 + React 19 + Rust, on Windows. 92+ Rust tests, 217+ Vitest,
+  0 npm audit vulns, 0 cargo audit vulns, SBOM published on every
+  release.
 - 13 supported CLIs, 6 built-in providers, 4 supported IDEs.
-- Bundle size: 41 kB main chunk gzipped (down 57% from v20 after
-  vendor chunking).
-- GitHub: open source under MIT.
+- Bundle: 41 kB main chunk gzipped (down 57% from v20 after vendor
+  chunking with rolldown).
+- GitHub: open source under MIT, `HelbertMoura/ai_launcher`.
 
 **What's next**
 
@@ -105,5 +111,6 @@ installed, then launched — captures the "no terminal flashing" pitch.
 ## Hunter
 
 Use the company account if available, or Helbert's personal if not.
-Mention the GitHub star count in the first comment (refresh the count
-right before launch).
+Quote the live GitHub star count in the first comment — refresh it
+right before launch. The current public count is 0, so be honest
+about it; "0 stars, 0 fluff" reads better than a fake round number.

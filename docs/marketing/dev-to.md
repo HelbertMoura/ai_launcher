@@ -7,12 +7,14 @@
 
 ## Title (under 60 char)
 
-> **Stop wiring CLIs by hand: building a Tauri + Rust hub for 13 AI agents**
+Lead pick — fits the cap (59 chars):
+
+> **Stop wiring CLIs by hand: a Tauri + Rust hub for 13 AI CLIs**
 
 Alternatives:
 
-- "From scripts to a product: 18 months of building a desktop hub for AI CLIs"
-- "Why I rebuilt my AI launcher in Tauri 2 (and what I learned about signing)"
+- "From scripts to a product: 18 months of building a desktop hub for AI CLIs" *(78 chars — over cap, dev.to trims tags anyway)*
+- "Why I rebuilt my AI launcher in Tauri 2 (and what I learned about signing)" *(74 chars — over cap)*
 
 ## Cover image
 
@@ -48,38 +50,58 @@ Alternative: a 3-up mosaic of Command Center / Runbooks / MCP Hub.
 
 ### 4. The architecture: a Rust core with a React shell
 
-Show `docs/ARCHITECTURE.md` as a callout.
+Show `docs/ARCHITECTURE.md` as a callout (the "Directory Layout"
+tree is screenshot-friendly at 800 px).
 
 Key points:
 
 - All side effects (spawn, kill, install, file IO) live in
-  `src-tauri/src/commands/*`. Frontend is purely a view layer.
+  `src-tauri/src/commands/*` and are registered in
+  `src-tauri/src/main.rs`. The frontend is a view layer that talks to
+  them via `invoke()` from `@tauri-apps/api/core`.
 - A `.ailauncher.json` per project is the single source of truth for
-  CLI, provider, env, MCPs, runbook.
-- Storage is a Zod-validated registry, not localStorage free-for-all.
+  CLI, provider, env, MCPs and runbook. It is read/written by
+  `commands/cli.rs::read_project_profile` and
+  `commands/cli.rs::write_project_profile` (path-validated, size-capped).
+- Storage is a Zod-validated registry (`src/lib/storage/registry.ts`),
+  not localStorage free-for-all. See `src/lib/auditLog.ts` for the
+  bounded append-only log.
 
 ### 5. The features that took the longest
 
 #### 5.1 The auto-updater that almost shipped broken
 
-- v20 used a custom `self_update.rs` that called the GitHub API,
-  downloaded the NSIS installer, and verified a SHA-256.
-- It worked, but the "trust chain" was: GitHub username + repo + tag +
-  asset name. Easy to get wrong.
-- v21 replaces it with `tauri-plugin-updater`. Three changes:
-  - Endpoint in `tauri.conf.json`
-  - Generated pubkey baked in
+- v20 shipped a custom Rust updater that called the GitHub Releases
+  API, downloaded the NSIS installer, and verified a SHA-256 manifest
+  (see `docs/releases/v20.0.0.md`, "Updater Trust").
+- It worked, but the trust chain lived in our own code: GitHub
+  username + repo + tag + asset name. One typo in the asset name and
+  the updater silently no-op'd.
+- v21 replaces it with `tauri-plugin-updater` (declared in
+  `src-tauri/Cargo.toml` and configured in
+  `src-tauri/tauri.conf.json` under `plugins.updater`). Three things
+  changed:
+  - Endpoint in `tauri.conf.json` → `endpoints[0]`.
+  - Generated pubkey baked into the binary.
   - Release workflow signs the installer and emits `latest.json` in
-    the plugin's schema
-- Code: −180 lines, attack surface: −1 whole custom crypto path.
+    the plugin's manifest schema (see `.github/workflows/release.yml`
+    and `scripts/generate-latest-json.sh`).
+- Net effect: the custom crypto path is gone, the manifest comes from
+  the Tauri team, and the verifier is the same one every other
+  Tauri 2 app uses.
 
 #### 5.2 Secrets that fail closed
 
 - Old: API keys in `localStorage` (visible to any XSS).
-- New: Windows Credential Manager via the `keyring` crate. The
-  frontend never sees the plaintext after the user types it.
-- Migration: a one-shot reads every legacy key, writes to Credential
-  Manager, and deletes the source — only after a successful read-back.
+- New: Windows Credential Manager via the Win32 CredRead / CredWrite
+  API, called from `src-tauri/src/secrets.rs` using the
+  `windows-sys` crate (`Win32_Security_Credentials` feature in
+  `src-tauri/Cargo.toml`). The frontend never sees the plaintext after
+  the user types it.
+- Migration: a one-shot in `src/providers/storage.ts` reads every
+  legacy key, writes to Credential Manager, and only then deletes the
+  source — gated by a successful read-back from Credential Manager
+  before the legacy entry is removed.
 
 #### 5.3 Runbooks as first-class
 
@@ -107,13 +129,16 @@ Key points:
 ### 7. The things I'd do differently
 
 - **Sketches first.** I started coding the UI before I had a sketch of
-  the state machine. Refactored twice.
+  the state machine. The Command Center got refactored twice before it
+  felt right.
 - **Don't bundle 13 CLIs in the first release.** v1 was 4 CLIs and a
-  much smaller surface. Adding CLIs is now data, not code.
+  much smaller surface. Adding CLIs is now data (`src-tauri/src/util.rs::get_cli_definitions`),
+  not code.
 - **Up-front signing.** I waited until v21 to set up
   `tauri-plugin-updater` properly. The first v20 release had a manual
-  SHA-256 dance that scared a user into thinking the download was
-  corrupted.
+  SHA-256 dance that scared one user into thinking the download was
+  corrupted. `docs/SIGNING.md` exists now; future projects would adopt
+  it on day one.
 
 ### 8. What's next
 
@@ -123,16 +148,30 @@ Key points:
 
 ### 9. Try it
 
-- GitHub: `https://github.com/HelbertMoura/ai_launcher`
-- v21.0.0 release: `https://github.com/HelbertMoura/ai_launcher/releases/tag/v21.0.0`
+- GitHub: <https://github.com/HelbertMoura/ai_launcher>
+- v21.0.0 release: <https://github.com/HelbertMoura/ai_launcher/releases/tag/v21.0.0>
+- Windows installers: `.exe` (NSIS) and `.msi` under "Assets" on the
+  release page. SmartScreen will warn on unsigned builds — click
+  *More info → Run anyway* (or wait for the signed release).
 - Free, open source under MIT.
 
 ## Code blocks to embed
 
-- The `.ailauncher.json` example from the docs
-- The 4-line `tauri.conf.json` updater config
-- The release workflow `latest.json` step
-- A short Rust snippet showing `app.updater().check()`
+- A trimmed `.ailauncher.json` example (the "happy path" with `cli`,
+  `provider`, `env`, `mcp` populated; redact `env` before publishing).
+- The `plugins.updater` block from `src-tauri/tauri.conf.json` —
+  endpoint + pubkey + `windows.installMode: "passive"`. This is the
+  "trust chain in 8 lines" money shot for the article.
+- The `latest.json`-emitting step in `.github/workflows/release.yml`
+  (the one that calls `scripts/generate-latest-json.sh`).
+- A short Rust snippet showing the wrapper command in
+  `src-tauri/src/commands/updater.rs` that drives
+  `tauri-plugin-updater::check()` (it is *not* `app.updater().check()`
+  directly — the backend wraps it so the frontend never touches raw
+  download URLs).
+- A side-by-side of `src/lib/storage/registry.ts` keys vs. the raw
+  `localStorage` keys they replaced. Makes the "Zod-validated registry,
+  not free-for-all" claim concrete.
 
 ## Estimated length
 
