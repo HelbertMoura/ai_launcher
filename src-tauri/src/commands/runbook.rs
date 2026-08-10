@@ -24,9 +24,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 use crate::safety::{is_valid_env_key, sanitize_args};
-use crate::util::{
-    command_exists, strip_ansi, validate_directory, CREATE_NO_WINDOW,
-};
+use crate::util::{command_exists, strip_ansi, validate_directory, CREATE_NO_WINDOW};
 
 /// Default timeout for a single runbook step, in seconds.
 pub const DEFAULT_STEP_TIMEOUT_SECS: u64 = 120;

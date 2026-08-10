@@ -1125,6 +1125,64 @@ pub fn write_tray_config(cfg: &TrayConfig) -> Result<(), String> {
 }
 
 // ============================================================
+// BUILTIN PROVIDERS (shared between tray menu + future Tauri commands)
+// ============================================================
+//
+// Single source of truth for the providers the app ships with. Custom
+// user-defined providers stay in the frontend storage and are NOT
+// surfaced here; the tray menu opens the Admin tab to manage them.
+// Adding a new builtin provider only requires extending this list —
+// the tray menu builder and any future Tauri command that wants the
+// canonical provider set will pick it up automatically.
+//
+// IDs are stable across releases and match the `seeds.ts` keys in the
+// frontend; do not rename casually.
+
+/// Metadata for a built-in Claude-compatible provider.
+#[derive(Debug, Clone)]
+pub struct BuiltinProvider {
+    /// Stable identifier — matches the `id` field in the frontend
+    /// `seeds.ts` so a tray pick syncs with the same active provider
+    /// the Admin tab manages.
+    pub id: &'static str,
+    /// Human-readable display name (already in pt-BR; the UI shows it
+    /// as-is — do not run it through i18n since the tray cannot re-render
+    /// on locale change without rebuilding the entire menu).
+    pub display_name: &'static str,
+}
+
+/// Returns the canonical list of built-in Claude-compatible providers.
+/// Order is what the user sees in the tray submenu.
+pub fn get_builtin_providers() -> &'static [BuiltinProvider] {
+    &[
+        BuiltinProvider {
+            id: "anthropic",
+            display_name: "Anthropic (oficial)",
+        },
+        BuiltinProvider {
+            id: "zai",
+            display_name: "Z.AI (GLM)",
+        },
+        BuiltinProvider {
+            id: "minimax",
+            display_name: "MiniMax",
+        },
+        BuiltinProvider {
+            id: "moonshot",
+            display_name: "Moonshot (Kimi)",
+        },
+        BuiltinProvider {
+            id: "qwen",
+            display_name: "Qwen (DashScope)",
+        },
+        BuiltinProvider {
+            id: "openrouter",
+            display_name: "OpenRouter",
+        },
+    ]
+}
+
+// ============================================================
 // CRASH DIR (shared between commands::config + commands::system)
 // ============================================================
 
@@ -1253,6 +1311,49 @@ mod tests {
         };
         assert_eq!(cli.extra_paths.len(), 1);
         assert!(cli.update_manifest_url.is_some());
+    }
+
+    // -----------------------------------------------------------------------
+    // get_builtin_providers (REF-004 — single source of truth)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn builtin_providers_list_six_entries() {
+        // Six providers shipped with v21: Anthropic, Z.AI, MiniMax,
+        // Moonshot (Kimi), Qwen (DashScope), OpenRouter. Custom user
+        // providers stay in the frontend storage and are intentionally
+        // not enumerated here.
+        let providers = get_builtin_providers();
+        assert_eq!(providers.len(), 6, "got: {providers:?}");
+    }
+
+    #[test]
+    fn builtin_providers_have_unique_stable_ids() {
+        let providers = get_builtin_providers();
+        let mut seen = std::collections::HashSet::new();
+        for p in providers {
+            assert!(seen.insert(p.id), "duplicate builtin provider id: {}", p.id);
+            // IDs must align with the frontend `seeds.ts` so the tray
+            // selection syncs with the Admin tab.
+            assert!(!p.id.is_empty(), "empty id is not allowed");
+            assert!(
+                p.id.chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_'),
+                "id must be ascii lowercase / digits / underscore: {}",
+                p.id
+            );
+        }
+    }
+
+    #[test]
+    fn builtin_providers_have_non_empty_display_names() {
+        for p in get_builtin_providers() {
+            assert!(!p.display_name.is_empty(), "empty name: {}", p.id);
+            // Tray cannot re-render on locale change, so we tolerate
+            // any non-empty string but require it to be human-readable
+            // (>= 3 chars).
+            assert!(p.display_name.chars().count() >= 3);
+        }
     }
 
     // -----------------------------------------------------------------------

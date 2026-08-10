@@ -5,7 +5,9 @@ use tauri::{
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
-use crate::util::{get_cli_definitions, read_tray_config, DEFAULT_TRAY_HOTKEY};
+use crate::util::{
+    get_builtin_providers, get_cli_definitions, read_tray_config, DEFAULT_TRAY_HOTKEY,
+};
 
 pub fn toggle_main_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
@@ -81,22 +83,31 @@ fn build_tray_menu(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         ],
     )?;
 
-    let prov_anthropic = MenuItem::with_id(
-        app,
-        "tray-provider-anthropic",
-        "Anthropic (oficial)",
-        true,
-        None::<&str>,
-    )?;
-    let prov_zai = MenuItem::with_id(app, "tray-provider-zai", "Z.AI (GLM)", true, None::<&str>)?;
-    let prov_minimax =
-        MenuItem::with_id(app, "tray-provider-minimax", "MiniMax", true, None::<&str>)?;
-    let provider_menu = Submenu::with_items(
-        app,
-        "Provider Claude",
-        true,
-        &[&prov_anthropic, &prov_zai, &prov_minimax],
-    )?;
+    // Build the provider submenu from the canonical builtin list so we
+    // pick up new providers (and provider renames) automatically. The
+    // menu-item ids stay `tray-provider-<id>` for the existing handler
+    // matcher, which routes the selection to the Admin tab as a
+    // provider preset. Custom user-defined providers stay in the
+    // frontend storage and are managed via the Admin tab — the tray
+    // intentionally does not list them to keep the menu compact and
+    // to avoid leaking storage keys into the desktop.
+    let provider_items: Vec<MenuItem<tauri::Wry>> = get_builtin_providers()
+        .iter()
+        .map(|p| {
+            MenuItem::with_id(
+                app,
+                format!("tray-provider-{}", p.id),
+                p.display_name,
+                true,
+                None::<&str>,
+            )
+        })
+        .collect::<tauri::Result<Vec<_>>>()?;
+    let provider_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = provider_items
+        .iter()
+        .map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>)
+        .collect();
+    let provider_menu = Submenu::with_items(app, "Provider Claude", true, &provider_refs)?;
 
     let sep2 = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "tray-quit", "Sair", true, None::<&str>)?;

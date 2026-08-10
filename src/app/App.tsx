@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import pkg from "../../package.json";
 import { ACCENTS, useAccent, type Accent } from "../hooks/useAccent";
 import { useDensity } from "../hooks/useDensity";
@@ -21,8 +21,6 @@ import { useClis } from "../features/launcher/useClis";
 import { useUsage } from "../features/costs/useUsage";
 import { useUpdates } from "../hooks/useUpdates";
 import { useSidebarIndicators } from "../hooks/useSidebarIndicators";
-import { loadProviders } from "../providers/storage";
-import type { HistoryItem } from "../features/history/useHistory";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { ToastContainer } from "../ui/Toast";
 import { showToast } from "../ui/toastStore";
@@ -33,9 +31,13 @@ import type { UsageReport } from "../features/costs/useUsage";
 import { invokeOrFallback } from "../lib/tauri";
 import { useTranslation } from "react-i18next";
 import "./App.css";
-import { readKey, readScoped } from "../lib/storage";
 import { migrateStorage } from "../lib/storage/migrations";
-import { z } from "zod";
+import { useGlobalShortcuts } from "./shortcuts";
+import {
+  computeLastSession,
+  computeProviderLatency,
+  readHistoryItems,
+} from "./sessionInfo";
 import { EXECUTION_MODE_CHANGED_EVENT, getExecutionMode, type ExecutionMode } from "../domain/executionMode";
 
 const CommandCenterPage = lazy(() =>
@@ -78,21 +80,6 @@ const OnboardingPage = lazy(() =>
   import("../features/onboarding/OnboardingPage").then((m) => ({ default: m.OnboardingPage })),
 );
 
-const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform);
-
-const DIGIT_TABS: Record<string, TabId> = {
-  "1": "command-center",
-  "2": "launcher",
-  "3": "tools",
-  "4": "mcp",
-  "5": "history",
-  "6": "costs",
-  "7": "workspace",
-  "8": "doctor",
-  "9": "updates",
-  "0": "prereqs",
-};
-
 export function App() {
   const { t } = useTranslation();
   const [active, setActive] = useState<TabId>("command-center");
@@ -131,12 +118,25 @@ export function App() {
   }, [refreshUpdates]);
 
   // One-time migration of API keys to secure storage (runs in background).
+  // The effect intentionally depends on nothing: re-running it on every
+  // locale change used to retrigger migration (and spam the inbox) because
+  // `t` was a dep. The toast key is captured via a ref so a future locale
+  // switch still uses the right translation.
+  const credentialMigrationFailedKeyRef = useRef(t("security.credentialMigrationFailed"));
   useEffect(() => {
-    migrateApiKeysToSecureStorage().catch(() => {
-      // Source values remain untouched until a secure write is verified.
-      showToast(t("security.credentialMigrationFailed"), "error");
-    });
+    credentialMigrationFailedKeyRef.current = t("security.credentialMigrationFailed");
   }, [t]);
+  useEffect(() => {
+    let cancelled = false;
+    migrateApiKeysToSecureStorage().catch(() => {
+      if (cancelled) return;
+      // Source values remain untouched until a secure write is verified.
+      showToast(credentialMigrationFailedKeyRef.current, "error");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // On boot, check configured budget limits and surface a toast if any
   // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
@@ -181,35 +181,7 @@ export function App() {
     };
   }, []);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-
-      if (e.key === "?" && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault();
-        setActive("help");
-        return;
-      }
-
-      if ((IS_MAC ? e.metaKey : e.ctrlKey) && e.key === ",") {
-        e.preventDefault();
-        setActive("admin");
-        return;
-      }
-
-      if ((IS_MAC ? e.metaKey : e.ctrlKey) && DIGIT_TABS[e.key]) {
-        e.preventDefault();
-        setActive(DIGIT_TABS[e.key]);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  useGlobalShortcuts(setActive);
 
   if (!onboarded) {
     return (
@@ -295,74 +267,6 @@ function PageFallback() {
 
 function FullScreenFallback() {
   return <div className="cd-app__fallback">Loading…</div>;
-}
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-function readHistoryItems(): HistoryItem[] {
-  try {
-    const cfg = readKey("config");
-    if (!Array.isArray(cfg.history)) return [];
-    return cfg.history as HistoryItem[];
-  } catch {
-    return [];
-  }
-}
-
-function formatRelative(iso: string | undefined): string | null {
-  if (!iso) return null;
-  const ms = Date.parse(iso);
-  if (Number.isNaN(ms)) return null;
-  const diff = Date.now() - ms;
-  if (diff < 0 || diff > DAY_MS) return null;
-  if (diff < 60_000) return "just now";
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
-}
-
-function computeLastSession(items: HistoryItem[]): LastSessionInfo | undefined {
-  if (!items.length) return undefined;
-  const mostRecent = items.reduce<HistoryItem | null>((best, cur) => {
-    const cand = cur.startedAt || cur.timestamp;
-    const bestIso = best ? best.startedAt || best.timestamp : undefined;
-    if (!cand) return best;
-    if (!bestIso) return cur;
-    return Date.parse(cand) > Date.parse(bestIso) ? cur : best;
-  }, null);
-  if (!mostRecent) return undefined;
-  const rel = formatRelative(mostRecent.startedAt || mostRecent.timestamp);
-  if (!rel) return undefined;
-  return { cli: mostRecent.cli || mostRecent.cliKey || "session", relative: rel };
-}
-
-interface StoredProviderTest {
-  ok?: boolean;
-  testedAt?: string;
-}
-
-function readProviderTest(providerId: string): StoredProviderTest | null {
-  return readScoped(`ai-launcher:provider-test:${providerId}`, z.object({ ok: z.boolean().optional(), testedAt: z.string().optional() }), null as StoredProviderTest | null);
-}
-
-function computeProviderLatency(): ProviderLatency | undefined {
-  try {
-    const state = loadProviders();
-    const active = state.profiles.find((p) => p.id === state.activeId);
-    if (!active) return undefined;
-    const test = readProviderTest(active.id);
-    if (!test || !test.testedAt) {
-      return { name: active.name, tone: "warn" };
-    }
-    const age = Date.now() - Date.parse(test.testedAt);
-    if (Number.isNaN(age)) return { name: active.name, tone: "warn" };
-    if (test.ok === false) return { name: active.name, tone: "err" };
-    if (age > DAY_MS) return { name: active.name, tone: "warn" };
-    return { name: active.name, tone: "ok" };
-  } catch {
-    return undefined;
-  }
 }
 
 interface ChromeConnectorProps {
