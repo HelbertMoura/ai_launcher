@@ -130,23 +130,39 @@ except Exception as exc:
     sys.exit(1)
 
 errors = []
+
+# 1) version
 if data.get("version") != expected_version:
     errors.append(f"version {data.get('version')!r} != {expected_version!r}")
 
-download_urls = data.get("downloadUrls")
-platforms = data.get("platforms")
-url_container = download_urls if isinstance(download_urls, dict) else platforms
-if not isinstance(url_container, dict):
-    errors.append("downloadUrls/platforms object missing")
+# 2) collect Windows download URLs from every supported schema
+windows_urls = []
+seen = set()
+def _add(u):
+    if isinstance(u, str) and u.strip() and u not in seen:
+        seen.add(u)
+        windows_urls.append(u)
+
+# Schema A: legacy (pre-2026) downloadUrls.{windowsNsis,windowsMsi,windows}
+for src_key in ("downloadUrls",):
+    src = data.get(src_key)
+    if isinstance(src, dict):
+        for key in ("windowsNsis", "windowsMsi", "windows"):
+            _add(src.get(key))
+
+# Schema B: tauri-plugin-updater (post-2026) platforms.<triple>.url
+plat = data.get("platforms")
+if isinstance(plat, dict):
+    for _, pval in plat.items():
+        if isinstance(pval, dict):
+            _add(pval.get("url"))
+
+# Schema C: tauri-plugin-updater single-platform root-level url
+_add(data.get("url"))
+
+if not windows_urls:
+    errors.append("no Windows download URL present (downloadUrls/platforms/url)")
 else:
-    windows_urls = [
-        url_container.get("windowsNsis"),
-        url_container.get("windowsMsi"),
-        url_container.get("windows"),
-    ]
-    windows_urls = [url for url in windows_urls if isinstance(url, str) and url.strip()]
-    if not windows_urls:
-        errors.append("no Windows download URL present")
     for url in windows_urls:
         if f"/download/{expected_tag}/" not in url:
             errors.append(f"download URL does not point at {expected_tag}: {url}")
@@ -154,8 +170,13 @@ else:
         if asset_names and asset_name not in asset_names:
             errors.append(f"download URL asset is not attached to release: {asset_name}")
 
-if not data.get("releaseNotesUrl"):
-    errors.append("releaseNotesUrl missing")
+# 3) release notes (any of the supported fields)
+has_notes = any(
+    isinstance(data.get(k), str) and data.get(k).strip()
+    for k in ("notes", "releaseNotes", "releaseNotesUrl")
+)
+if not has_notes:
+    errors.append("notes/releaseNotes/releaseNotesUrl all missing")
 
 if errors:
     for error in errors:
