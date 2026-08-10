@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use serde::Serialize;
 
@@ -363,7 +363,7 @@ pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
         .await
         .map_err(|e| format!("Falha interna: {}", e))?;
     let clis = get_cli_definitions();
-    let mut seen_pkgs: std::collections::HashSet<String> = Default::default();
+    let mut seen_pkgs: std::collections::HashSet<String> = HashSet::default();
     let mut count = 0;
     let mut errors: Vec<String> = Vec::new();
 

@@ -58,6 +58,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Without the private key in secrets, the in-app updater rejects every manifest but the manual download still works — same as the legacy `download_verified_app_update` did when GitHub blocked the API.
 
+### Cleanup
+- `cli.rs:366` now uses `HashSet::default()` (was `Default::default()` — clippy::pedantic).
+- `commands::updater` gained 2 unit tests (roundtrip Serialize/Deserialize for `AppUpdateInfo` and `VerifiedUpdateResult`) — `VerifiedUpdateResult` is now `Serialize + Deserialize` (was `Serialize` only). Total Rust tests: 80 → 82.
+- `commands::updater` doc comment now wraps `CARGO_PKG_VERSION` in backticks (clippy::pedantic).
+- Pedantic clippy warnings remain (~80 across `util.rs` and `cli.rs`); deferred because the diff would be ~hundreds of lines of `format!("{x}")` rewrites with no functional change. Re-evaluate on a future pedantic pass if desired.
+
 ## [21.0.0] — 2026-07-13 — Trust & Flow / Command Deck
 
 Release maior que transforma a fundação Command OS da v20 em um workbench mais seguro, legível e validável para uso diário. A v21 combina hardening de secrets/update/storage, uma evolução visual completa e uma esteira de release com smoke do app empacotado.

@@ -28,7 +28,7 @@ pub struct AppUpdateInfo {
     pub update_available: bool,
     /// Version found on the release (e.g. "21.0.0").
     pub version: String,
-    /// Current app version (from CARGO_PKG_VERSION).
+    /// Current app version (from `CARGO_PKG_VERSION`).
     pub current_version: String,
     /// Link to the full release notes on GitHub.
     pub release_notes_url: String,
@@ -36,7 +36,7 @@ pub struct AppUpdateInfo {
     pub release_notes_body: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct VerifiedUpdateResult {
     pub version: String,
     pub asset_name: String,
@@ -163,4 +163,47 @@ pub async fn download_verified_app_update(
         version,
         asset_name,
     })
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Frontend depends on the exact wire format of these structs.
+    /// A roundtrip catches accidental renames and missing fields without
+    /// spinning up the Tauri runtime.
+    #[test]
+    fn app_update_info_serializes_roundtrip() {
+        let info = AppUpdateInfo {
+            update_available: true,
+            version: "21.0.0".into(),
+            current_version: "20.0.0".into(),
+            release_notes_url: "https://github.com/HelbertMoura/ai_launcher/releases/tag/v21.0.0"
+                .into(),
+            release_notes_body: "Bug fixes and improvements.".into(),
+        };
+        let json = serde_json::to_string(&info).expect("serialize");
+        let back: AppUpdateInfo = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(back.update_available, info.update_available);
+        assert_eq!(back.version, info.version);
+        assert_eq!(back.current_version, info.current_version);
+        assert_eq!(back.release_notes_url, info.release_notes_url);
+        assert_eq!(back.release_notes_body, info.release_notes_body);
+    }
+
+    #[test]
+    fn verified_update_result_serializes_roundtrip() {
+        let r = VerifiedUpdateResult {
+            version: "21.0.0".into(),
+            asset_name: "AI-Launcher_21.0.0_x64-setup.exe".into(),
+        };
+        let json = serde_json::to_string(&r).expect("serialize");
+        let back: VerifiedUpdateResult = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(back.version, r.version);
+        assert_eq!(back.asset_name, r.asset_name);
+    }
 }
