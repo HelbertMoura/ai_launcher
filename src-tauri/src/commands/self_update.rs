@@ -427,11 +427,29 @@ fn reveal_verified_update(path: &Path) -> Result<(), String> {
     if !path.is_file() {
         return Err("Verified update file is unavailable".to_string());
     }
+    let arg = format_explorer_select_arg(path);
     std::process::Command::new("explorer")
-        .arg(format!("/select,{}", path.display()))
+        .arg(arg)
         .spawn()
         .map_err(|e| format!("Failed to reveal verified update: {e}"))?;
     Ok(())
+}
+
+/// Formats the argument for `explorer /select,<path>` so that the path is treated
+/// as a single token even when it contains characters that would otherwise be
+/// interpreted by `explorer` (commas, extra spaces) or that would break the
+/// command parser. Windows accepts the path wrapped in double quotes; any
+/// embedded double quotes are doubled per the Windows escaping convention.
+///
+/// The Explorer `/select` flag does not treat commas in the path as option
+/// separators when the path is quoted, so this is sufficient to keep the
+/// path stable. This also makes the command-line injection surface explicit:
+/// `path.display()` is still interpolated, but the quoting prevents the
+/// Explorer parser from reinterpreting it.
+fn format_explorer_select_arg(path: &Path) -> String {
+    let display = path.display().to_string();
+    let escaped = display.replace('"', "\"\"");
+    format!("/select,\"{}\"", escaped)
 }
 
 // ---------------------------------------------------------------------------
@@ -525,5 +543,51 @@ mod tests {
         assert!(parse_checksum(&"a".repeat(64)).is_ok());
         assert!(parse_checksum("abc123").is_err());
         assert!(parse_checksum(&"z".repeat(64)).is_err());
+    }
+
+    // -----------------------------------------------------------------------
+    // Explorer /select argument formatting
+    // -----------------------------------------------------------------------
+    //
+    // `explorer /select,<path>` is sensitive to commas in the path because
+    // Explorer treats them as argument separators. Wrapping the path in
+    // double quotes (and doubling any embedded double quotes) is the Windows
+    // convention that keeps the path atomic regardless of its contents.
+    // See SEC-003 in .wolf/audit-2026-08-10.md.
+
+    #[test]
+    fn explorer_select_arg_quotes_plain_path() {
+        let path = Path::new(r"C:\AI Launcher_21.0.0_x64-setup.exe");
+        assert_eq!(
+            format_explorer_select_arg(path),
+            r#"/select,"C:\AI Launcher_21.0.0_x64-setup.exe""#
+        );
+    }
+
+    #[test]
+    fn explorer_select_arg_quotes_paths_with_commas() {
+        let path = Path::new(r"C:\downloads\evil,name.exe");
+        assert_eq!(
+            format_explorer_select_arg(path),
+            r#"/select,"C:\downloads\evil,name.exe""#
+        );
+    }
+
+    #[test]
+    fn explorer_select_arg_escapes_embedded_double_quotes() {
+        let path = Path::new(r#"C:\path with "quote.exe"#);
+        assert_eq!(
+            format_explorer_select_arg(path),
+            r#"/select,"C:\path with ""quote.exe""#
+        );
+    }
+
+    #[test]
+    fn explorer_select_arg_handles_combined_commas_and_quotes() {
+        let path = Path::new(r#"C:\mix, of "things".exe"#);
+        assert_eq!(
+            format_explorer_select_arg(path),
+            r#"/select,"C:\mix, of ""things"".exe""#
+        );
     }
 }
