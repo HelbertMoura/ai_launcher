@@ -50,15 +50,21 @@
 
 ### Command Deck v22 · Confiança, fluxo e clareza visual
 
-| Command Center | Runbooks Command Deck | Hub MCP |
+| Command Center | Launcher Multi-Agent | Runbooks Command Deck |
 |:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) | ![Hub MCP](./docs/screenshots/v22/03-mcp-hub.png) |
+| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Launcher Multi-Agent](./docs/screenshots/v22/07-launcher-multi-agent.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) |
 
-### Timeline de sessões · Doctor readiness · Ajuda
+### Hub MCP · Analytics de Custos 2.0 · Timeline de Sessões
 
-| Timeline de Sessões | Doctor Readiness | Ajuda e Suporte |
+| Hub MCP | Analytics de Custos 2.0 | Timeline de Sessões |
 |:---:|:---:|:---:|
-| ![Timeline de Sessões](./docs/screenshots/v22/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v22/06-help-support.png) |
+| ![Hub MCP](./docs/screenshots/v22/03-mcp-hub.png) | ![Analytics de Custos 2.0](./docs/screenshots/v22/08-costs-analytics.png) | ![Timeline de Sessões](./docs/screenshots/v22/04-history-timeline.png) |
+
+### Doctor Readiness · Ajuda e Marca Oficial
+
+| Doctor Readiness | Ajuda e Suporte |
+|:---:|:---:|
+| ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v22/06-help-support.png) |
 
 </div>
 
