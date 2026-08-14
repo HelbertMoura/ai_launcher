@@ -6,7 +6,7 @@ import { Skeleton } from "../../ui/Skeleton";
 import { ACCENTS, useAccent, type Accent } from "../../hooks/useAccent";
 import { useTheme, type Theme } from "../../hooks/useTheme";
 import { readShowOnStartup, setShowOnStartup } from "../../app/onboarding";
-import { invokeOrFallback } from "../../lib/tauri";
+import { invokeOrFallback, openExternalUrl } from "../../lib/tauri";
 import pkg from "../../../package.json";
 import "./OnboardingPage.css";
 
@@ -289,7 +289,24 @@ export function OnboardingPage({ onFinish }: OnboardingPageProps) {
                 <span>{t("onboarding.promiseControl")}</span>
               </div>
               <div className="cd-onb__byline">
-                <span className="cd-onb__byline-text">by <strong>DevManiac&apos;s</strong> · Helbert Moura</span>
+                <span className="cd-onb__byline-text">
+                  Desenvolvido à base de ☕ e ⚡ por{" "}
+                  <button
+                    type="button"
+                    className="cd-onb__byline-link"
+                    onClick={() => void openExternalUrl("https://devmaniacs.com.br/")}
+                  >
+                    <strong>Dev Maniac&apos;s</strong>
+                  </button>{" "}
+                  ·{" "}
+                  <button
+                    type="button"
+                    className="cd-onb__byline-link"
+                    onClick={() => void openExternalUrl("https://linktr.ee/helbertmoura")}
+                  >
+                    <strong>Redes e contatos</strong>
+                  </button>
+                </span>
               </div>
             </div>
           )}

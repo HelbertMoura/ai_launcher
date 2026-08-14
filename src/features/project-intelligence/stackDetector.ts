@@ -197,7 +197,7 @@ export function detectProjectStacks(snapshot: ProjectFileSnapshot): ProjectStack
         files.has("requirements.txt") ? "requirements.txt" : "",
         files.has("uv.lock") ? "uv.lock" : "",
       ].filter(Boolean),
-      recommendedClis: ["claude", "codex"],
+      recommendedClis: ["aider", "claude", "codex", "antigravity"],
       recommendedRunbooks: ["python-setup"],
     });
   }

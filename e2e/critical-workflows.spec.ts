@@ -321,12 +321,12 @@ test.describe("v21 critical workflows", () => {
     await openAdminSection(page, /^backup$/i);
 
     const backup = {
-      version: "21.0.0",
+      version: "22.0.0",
       exportedAt: NOW,
       manifest: {
         format: "ai-launcher-config",
         schemaVersion: 2,
-        appVersion: "21.0.0",
+        appVersion: "22.0.0",
         exportedAt: NOW,
         keyCount: 1,
         keys: ["workspaces"],

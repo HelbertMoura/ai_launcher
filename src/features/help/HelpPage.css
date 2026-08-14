@@ -147,6 +147,23 @@
   color: var(--accent);
 }
 
+.cd-help__author-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+  transition: opacity 0.15s ease;
+}
+
+.cd-help__author-link:hover {
+  opacity: 0.8;
+}
+
 .cd-help__version {
   font-family: var(--font-mono);
   font-size: var(--text-xs);

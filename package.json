@@ -1,6 +1,6 @@
 {
   "name": "ai-launcher",
-  "version": "21.1.0",
+  "version": "22.0.0",
   "description": "Desktop launcher for AI coding CLIs — by Helbert Moura | DevManiac's",
   "author": "Helbert Moura",
   "license": "MIT",
@@ -66,6 +66,8 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "undici": "^7.29.0"
+    "undici": "^7.29.0",
+    "nanoid": "^3.3.18",
+    "postcss": "^8.5.3"
   }
 }

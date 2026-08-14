@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
@@ -23,24 +23,32 @@ function formatUsd(n: number): string {
   return `$${n.toFixed(2)}`;
 }
 
+const RANGES: Array<{ days: number; label: string }> = [
+  { days: 7, label: "7d" },
+  { days: 14, label: "14d" },
+  { days: 30, label: "30d" },
+  { days: 90, label: "90d" },
+];
+
 export function CostsPage() {
   const { t } = useTranslation();
   const { report, loading, error } = useUsage();
+  const [rangeDays, setRangeDays] = useState<number>(30);
 
   const overview = useMemo(() => {
     const entries = report?.entries ?? [];
-    return buildCostsOverview(entries, 30, todayISO());
-  }, [report]);
+    return buildCostsOverview(entries, rangeDays, todayISO());
+  }, [report, rangeDays]);
 
   const analytics = useMemo(() => {
     const entries = report?.entries ?? [];
     return {
-      series: dailySeries(entries, 30),
-      projects: byProject(entries, 30, 8),
-      models: byModel(entries, 30),
-      trend30: trend(entries, 30),
+      series: dailySeries(entries, rangeDays),
+      projects: byProject(entries, rangeDays, 8),
+      models: byModel(entries, rangeDays),
+      trend30: trend(entries, rangeDays),
     };
-  }, [report]);
+  }, [report, rangeDays]);
 
   const trendLabel = useMemo(() => {
     const { deltaPct } = analytics.trend30;
@@ -74,6 +82,20 @@ export function CostsPage() {
           <h1 className="cd-page__title">▎ {t("costs.title")}</h1>
           <p className="cd-page__sub">{t("costs.subtitle")}</p>
         </div>
+        {hasData && (
+          <div className="cd-costs__range-selector" role="group" aria-label="Intervalo de tempo">
+            {RANGES.map((r) => (
+              <button
+                key={r.days}
+                type="button"
+                className={`cd-costs__range-btn${rangeDays === r.days ? " cd-costs__range-btn--active" : ""}`}
+                onClick={() => setRangeDays(r.days)}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        )}
       </header>
 
       {error && <Banner variant="err">{error}</Banner>}

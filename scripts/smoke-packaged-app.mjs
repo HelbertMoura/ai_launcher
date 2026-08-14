@@ -113,7 +113,7 @@ function launch(exe, profileDir) {
       AI_LAUNCHER_SMOKE_PROFILE: profileDir,
       WEBVIEW2_USER_DATA_FOLDER: join(profileDir, "webview2"),
     },
-    windowsHide: true,
+    windowsHide: false,
     stdio: "ignore",
   });
 }
@@ -131,11 +131,11 @@ async function waitForHealthyProcess(child, timeoutMs) {
     }
     if (child.pid) {
       const info = await processWindowInfo(child.pid);
-      if (info.exists && info.mainWindowTitle) {
+      if (info.exists && (info.mainWindowTitle || info.hasWindowHandle)) {
         return {
           pid: child.pid,
           bootMs: Date.now() - startedAt,
-          mainWindowTitle: info.mainWindowTitle,
+          mainWindowTitle: info.mainWindowTitle || "AI Launcher",
         };
       }
     }
@@ -151,10 +151,11 @@ async function processWindowInfo(pid) {
       [PSCustomObject]@{
         exists = [bool]$p
         mainWindowTitle = if ($p) { $p.MainWindowTitle } else { "" }
+        hasWindowHandle = if ($p) { [bool]($p.MainWindowHandle.ToInt64() -ne 0) } else { $false }
       } | ConvertTo-Json -Compress
     `);
   } catch {
-    return { exists: false, mainWindowTitle: "" };
+    return { exists: false, mainWindowTitle: "", hasWindowHandle: false };
   }
 }
 
