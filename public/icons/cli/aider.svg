@@ -1,6 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 17l6-6-6-6" />
-  <path d="M12 19h8" />
-  <path d="M14 7l4 4-4 4" />
-  <circle cx="18" cy="11" r="2" fill="currentColor" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="aider-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="50%" stop-color="#6D28D9"/>
+      <stop offset="100%" stop-color="#4C1D95"/>
+    </linearGradient>
+    <linearGradient id="aider-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#aider-bg)"/>
+  <!-- Outer Glow Ring -->
+  <circle cx="64" cy="64" r="46" stroke="#A78BFA" stroke-width="1.5" stroke-opacity="0.3" fill="none"/>
+  <!-- Stylized Aider "A" Pair-Programming Emblem -->
+  <path d="M64 26L30 96h17l6.8-16h20.4l6.8 16h17L64 26zm0 24.5l6.5 15h-13l6.5-15z" fill="#FFFFFF"/>
+  <!-- Pair-Programming Code Chevron & Cursor in center -->
+  <path d="M57 66.5l4-4-4-4" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <line x1="64" y1="66.5" x2="71" y2="66.5" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Bottom Sync Terminal Bar -->
+  <rect x="42" y="101" width="44" height="4" rx="2" fill="url(#aider-glow)"/>
 </svg>

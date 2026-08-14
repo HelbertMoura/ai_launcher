@@ -1,7 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" />
-  <circle cx="12" cy="11" r="3" />
-  <path d="M12 8v-2" />
-  <path d="M15 12.5l2 1" />
-  <path d="M9 12.5l-2 1" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="cline-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284C7"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+    <linearGradient id="cline-eyes" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#cline-bg)"/>
+  <!-- Top Antenna / Node -->
+  <rect x="58" y="22" width="12" height="12" rx="4" fill="#FFFFFF"/>
+  <rect x="62" y="32" width="4" height="6" fill="#FFFFFF"/>
+  <!-- Side Ear Modules -->
+  <rect x="20" y="56" width="8" height="24" rx="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <rect x="100" y="56" width="8" height="24" rx="4" fill="#FFFFFF" fill-opacity="0.9"/>
+  <!-- Robot Head / Helmet -->
+  <rect x="26" y="36" width="76" height="64" rx="20" fill="#FFFFFF"/>
+  <!-- Dark Visor Screen -->
+  <rect x="36" y="48" width="56" height="34" rx="10" fill="#0F172A"/>
+  <!-- Glowing Cyan Digital Eyes -->
+  <rect x="44" y="58" width="14" height="12" rx="5" fill="url(#cline-eyes)"/>
+  <rect x="70" y="58" width="14" height="12" rx="5" fill="url(#cline-eyes)"/>
+  <!-- Friendly Bot Mouth -->
+  <path d="M57 74h14" stroke="url(#cline-eyes)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Base Neck Mount -->
+  <rect x="52" y="102" width="24" height="6" rx="3" fill="#FFFFFF" fill-opacity="0.8"/>
 </svg>

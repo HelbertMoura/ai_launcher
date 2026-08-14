@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="cody-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9333EA"/>
+      <stop offset="100%" stop-color="#C026D3"/>
+    </linearGradient>
+    <linearGradient id="cody-visor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#cody-bg)"/>
+  <!-- Sourcegraph Cody Astronaut Helmet -->
+  <circle cx="64" cy="62" r="38" fill="#FFFFFF"/>
+  <ellipse cx="64" cy="62" rx="26" ry="18" fill="url(#cody-visor)"/>
+  <!-- Visor Reflection -->
+  <path d="M48 54 Q64 48 78 54" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" fill="none" stroke-opacity="0.8"/>
+  <!-- Astronaut Backpack / Base -->
+  <rect x="44" y="94" width="40" height="12" rx="6" fill="#FFFFFF"/>
+</svg>
