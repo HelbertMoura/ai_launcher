@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 22.0.0](https://img.shields.io/badge/version-22.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 22.5.0](https://img.shields.io/badge/version-22.5.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)

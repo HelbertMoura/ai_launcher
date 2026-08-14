@@ -9,20 +9,57 @@
     "side status";
   background: var(--bg);
   transition: grid-template-columns var(--dur) var(--ease);
+  contain: layout style;
 }
 .cd-app--nav-collapsed { grid-template-columns: var(--sidebar-collapsed-w) 1fr; }
-.cd-app__top { grid-area: top; }
-.cd-app__side { grid-area: side; display: flex; }
+.cd-app__top { grid-area: top; contain: layout style; }
+.cd-app__side { grid-area: side; display: flex; contain: layout style; }
 .cd-app__main {
   grid-area: main;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: clamp(var(--s-4), 2.5vw, var(--s-6));
   background-color: var(--bg);
   background-image: radial-gradient(circle, var(--grid-dot-color) 1px, transparent 1px);
   background-size: 28px 28px;
   background-position: 0 0;
+  contain: layout paint;
+  overscroll-behavior: contain;
 }
-.cd-app__status { grid-area: status; }
+.cd-app__status { grid-area: status; contain: layout style; }
+
+/* Keep-Alive Tab Panel Transitions */
+.cd-tab-panel {
+  width: 100%;
+  min-height: 100%;
+}
+
+.cd-tab-panel--active {
+  animation: cd-tab-fade-in 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.cd-tab-panel--hidden {
+  display: none !important;
+}
+
+@keyframes cd-tab-fade-in {
+  from {
+    opacity: 0.75;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-tab-panel--active {
+    animation: none;
+    will-change: auto;
+  }
+}
 
 .cd-app__fallback {
   min-height: 100vh;
