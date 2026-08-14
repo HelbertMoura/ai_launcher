@@ -62,13 +62,30 @@
   color: var(--accent);
 }
 
-.cd-status__cell--muted {
+.cd-status__cell--byline {
   color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.cd-status__cell--mode { font-weight: 700; text-transform: uppercase; }
-.cd-status__cell--mode-safe { color: var(--ok); }
-.cd-status__cell--mode-standard { color: var(--warn); }
-.cd-status__cell--mode-admin { color: var(--err); }
+
+.cd-status__link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+
+.cd-status__link:hover {
+  opacity: 0.8;
+}
+
 .cd-status__cell--clock,
 .cd-status__cell--version { color: var(--text-muted); }
 .cd-status__cell--version { padding-left: var(--s-2); border-left: 1px solid var(--border); }

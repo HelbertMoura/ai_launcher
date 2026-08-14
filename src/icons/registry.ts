@@ -12,12 +12,16 @@ export function getToolIcon(key: string): string {
 const CLI_KEYS = new Set([
   "claude",
   "codex",
+  "antigravity",
+  "aider",
+  "goose",
+  "cline",
+  "roocode",
   "qwen",
   "crush",
   "droid",
   "kilocode",
   "opencode",
-  "antigravity",
 ]);
 
 export function hasCliIcon(key: string): boolean {

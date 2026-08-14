@@ -16,6 +16,8 @@ const IS_MAC =
 const PALETTE_KEY = IS_MAC ? "⌘K" : "Ctrl+K";
 
 const LINKS: Array<{ label: string; url: string }> = [
+  { label: "Dev Maniac's", url: "https://devmaniacs.com.br/" },
+  { label: "Redes & Contatos", url: "https://linktr.ee/helbertmoura" },
   { label: "GitHub", url: "https://github.com/HelbertMoura/ai_launcher" },
   { label: "README", url: "https://github.com/HelbertMoura/ai_launcher#readme" },
   { label: "Issues", url: "https://github.com/HelbertMoura/ai_launcher/issues" },
@@ -144,7 +146,22 @@ export function HelpPage() {
             AI Launcher Pro — Desktop launcher for AI coding CLIs.
           </p>
           <p className="cd-help__body">
-            Made with ♥ by <strong>Helbert Moura</strong> · <strong>DevManiac's</strong>
+            Desenvolvido à base de ☕ e ⚡ por{" "}
+            <button
+              type="button"
+              className="cd-help__author-link"
+              onClick={() => void openLink("https://devmaniacs.com.br/")}
+            >
+              <strong>Dev Maniac&apos;s</strong>
+            </button>{" "}
+            ·{" "}
+            <button
+              type="button"
+              className="cd-help__author-link"
+              onClick={() => void openLink("https://linktr.ee/helbertmoura")}
+            >
+              <strong>Redes e contatos</strong>
+            </button>
           </p>
           <p className="cd-help__version">v{pkg.version} · MIT License</p>
         </Card>

@@ -7,7 +7,7 @@
 **Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 21.0.0](https://img.shields.io/badge/vers%C3%A3o-21.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 22.0.0](https://img.shields.io/badge/vers%C3%A3o-22.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -22,10 +22,10 @@
 
 | | Funcionalidade | Descrição |
 |---|---------------|-----------|
-| 🚀 | **Launcher de CLIs** | Detecte, instale e execute Claude Code, Codex, Gemini CLI, Antigravity, Qwen, Crush, Droid, Kilocode, OpenCode e mais |
+| 🚀 | **Launcher de CLIs** | Detecte, instale e execute Claude Code, Codex, Antigravity, Aider, Goose, Cline, Roo Code, Qwen, Crush, Droid, Kilocode, OpenCode e mais |
 | 🔧 | **Gerenciador de Tools** | Gerencie VS Code, Cursor, Windsurf, JetBrains AI e IDEs customizadas |
 | ⬆️ | **Hub de Atualizações** | Aba dedicada para updates de CLIs, ferramentas e pré-requisitos com instalação em um clique |
-| 💰 | **Rastreamento de Custos** | Acompanhe gastos por provider com breakdown diário e mensal |
+| 💰 | **Rastreamento de Custos** | Acompanhe gastos por provider com filtros por intervalo (7d, 14d, 30d, 90d) e run-rate |
 | 📋 | **Histórico Waterfall** | Timeline estilo terminal + log de sessões com reabertura, status dots e duração |
 | 🔍 | **Verificação de Pré-requisitos** | Cheque Node, npm, Bun, Python, Rust, Cargo, Git, Docker e mais |
 | 🔌 | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + endpoints customizados com botão de teste de API |
@@ -48,17 +48,17 @@
 
 <div align="center">
 
-### Command Deck v21 · Confiança, fluxo e clareza visual
+### Command Deck v22 · Confiança, fluxo e clareza visual
 
 | Command Center | Runbooks Command Deck | Hub MCP |
 |:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v21/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v21/02-runbooks-command-deck.png) | ![Hub MCP](./docs/screenshots/v21/03-mcp-hub.png) |
+| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) | ![Hub MCP](./docs/screenshots/v22/03-mcp-hub.png) |
 
 ### Timeline de sessões · Doctor readiness · Ajuda
 
 | Timeline de Sessões | Doctor Readiness | Ajuda e Suporte |
 |:---:|:---:|:---:|
-| ![Timeline de Sessões](./docs/screenshots/v21/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v21/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v21/06-help-support.png) |
+| ![Timeline de Sessões](./docs/screenshots/v22/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v22/06-help-support.png) |
 
 </div>
 
@@ -129,7 +129,17 @@ O app tem 11 superfícies principais acessíveis pela sidebar:
 | **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
 
-## 🚀 Novidades da v21 — Trust & Flow / Command Deck
+## 🚀 Novidades da v22 — Ecossistema Multi-Agente & Núcleo Modular
+
+- **Backend Rust Modular** — Núcleo monolítico refatorado em sub-módulos coesos (`definitions`, `process`, `terminal`, `versions`, `tray_cfg`) para máxima manutenibilidade e performance nativa.
+- **Suporte Expandido a Novos Agentes** — Integração de primeira classe e ícones vetoriais nativos para Aider, Goose, Cline e Roo Code junto aos motores existentes.
+- **Analytics & Inteligência de Custos 2.0** — Seletor de período dinâmico (7d, 14d, 30d, 90d), projeção de run-rate de tokens e telemetria de consumo em tempo real.
+- **Identidade Oficial Dev Maniac's** — Rodapé oficial e pontos de contato integrados em todas as superfícies com acionamento nativo de navegador externo.
+- **Decomposição de Componentes React** — Visual Command Deck polido com componentes desacoplados (`ProjectIntelligence`, `ReadinessCard`).
+
+Leia as [notas da release v22](./docs/releases/v22.0.0.md).
+
+<details><summary>Destaques da v21</summary>
 
 - **Trust Foundation** — secrets de providers falham fechado no Windows Credential Manager, com migração legada mais segura e guardrails de storage.
 - **Sistema visual Command Deck** — app shell mais claro, tipografia melhor, controles de densidade/acento, baselines light/dark/high-contrast e layouts keyboard-first.
@@ -138,7 +148,7 @@ O app tem 11 superfícies principais acessíveis pela sidebar:
 - **Páginas operacionais renovadas** — Launcher, Workspaces, History, MCP, Updates, Admin, Analytics, Doctor, Prereqs, Onboarding e Help.
 - **Release readiness** — E2E de workflows críticos, matriz visual, audits de capabilities/storage e smoke do executável Windows empacotado.
 
-Leia as [notas da v21](./docs/releases/v21.0.0.md) e o [PRD v21](./docs/PRD-v21.md) para o escopo Trust & Flow.
+</details>
 
 <details><summary>Destaques da v20</summary>
 
@@ -222,15 +232,18 @@ Faça fork do repositório, crie uma branch de feature e abra um PR contra `main
 
 MIT — veja [LICENSE](./LICENSE).
 
-## Créditos
+## Créditos & Suporte
 
-- **Autor:** Helbert Moura — [DevManiac's](https://github.com/HelbertMoura)
+- **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura)
+- **Autor:** Helbert Moura — [DevManiac's](https://devmaniacs.com.br/)
 - **Ícones** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon), [Phosphor Icons](https://phosphoricons.com/)
 - Nomes de marcas e marcas registradas pertencem aos seus respectivos donos.
 
 ---
 
 <div align="center">
+
+Desenvolvido à base de ☕ e ⚡ por **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Redes e contatos](https://linktr.ee/helbertmoura)**
 
 **[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 

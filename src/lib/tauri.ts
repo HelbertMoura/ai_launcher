@@ -12,3 +12,16 @@ export async function invokeOrFallback<T>(
   if (!isTauriRuntime()) return fallback;
   return invoke<T>(command, args);
 }
+
+export async function openExternalUrl(url: string): Promise<void> {
+  if (isTauriRuntime()) {
+    try {
+      await invoke("open_external_url", { url });
+      return;
+    } catch {
+      // Fallback to window.open if Tauri command fails
+    }
+  }
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+

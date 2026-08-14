@@ -100,7 +100,7 @@ const DEFAULT_RESPONSES: TauriResultMap = {
   install_cli: null,
   install_tool: null,
   install_prerequisite: null,
-  download_verified_app_update: { version: "21.0.0", asset_name: "AI Launcher Pro_21.0.0_x64-setup.exe" },
+  download_verified_app_update: { version: "22.0.0", asset_name: "AI Launcher Pro_22.0.0_x64-setup.exe" },
 };
 
 export async function installTauriStub(

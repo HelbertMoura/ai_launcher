@@ -7,7 +7,7 @@
 **One desktop app to detect, install, launch, update and track all your AI coding tools.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 21.0.0](https://img.shields.io/badge/version-21.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 22.0.0](https://img.shields.io/badge/version-22.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -21,11 +21,10 @@
 ## Features
 
 | | Feature | Description |
-|---|---------|-------------|
-| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Qwen, Kilocode, OpenCode, Aider, Continue, Crush, Droid, Antigravity, Cody, Copilot, Goose and more |
+| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Antigravity, Aider, Goose, Cline, Roo Code, Qwen, Crush, Droid, Kilocode, OpenCode, Continue, Cody, Copilot and more |
 | :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, JetBrains AI and custom IDEs |
 | :arrow_up: | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
-| :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily and monthly breakdowns |
+| :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily, monthly and custom time-range breakdowns |
 | :clipboard: | **Launch History** | Full session log with reopen, descriptions, status badges and duration tracking |
 | :mag: | **Prerequisites Check** | Verify Node, npm, Bun, Python, Rust, Cargo, Git, Docker and more |
 | :electric_plug: | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + custom endpoints with API test button |
@@ -48,17 +47,17 @@
 
 <div align="center">
 
-### Command Deck v21 · Trust, flow and visual clarity
+### Command Deck v22 · Trust, flow and visual clarity
 
 | Command Center | Runbooks Command Deck | MCP Hub |
 |:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v21/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v21/02-runbooks-command-deck.png) | ![MCP Hub](./docs/screenshots/v21/03-mcp-hub.png) |
+| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) | ![MCP Hub](./docs/screenshots/v22/03-mcp-hub.png) |
 
 ### Sessions timeline · Doctor readiness · Help
 
 | Sessions Timeline | Doctor Readiness | Help & Support |
 |:---:|:---:|:---:|
-| ![Sessions Timeline](./docs/screenshots/v21/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v21/05-doctor-readiness.png) | ![Help and Support](./docs/screenshots/v21/06-help-support.png) |
+| ![Sessions Timeline](./docs/screenshots/v22/04-history-timeline.png) | ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Help and Support](./docs/screenshots/v22/06-help-support.png) |
 
 </div>
 
@@ -129,7 +128,17 @@ The app has 11 main surfaces accessible from the sidebar:
 | **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
 | **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
 
-## 🚀 What's new in v21 — Trust & Flow / Command Deck
+## 🚀 What's new in v22 — Multi-Agent Ecosystem & Modular Core
+
+- **Modular Rust Backend** — Refactored monolithic core into modular sub-crates (`definitions`, `process`, `terminal`, `versions`, `tray_cfg`) for optimal maintainability and speed.
+- **Extended Multi-Agent Ecosystem** — First-class support and native icons for Aider, Goose, Cline and Roo Code alongside existing engines.
+- **Cost & Budget Intelligence 2.0** — Dynamic time-range filters (7d, 14d, 30d, 90d), live token velocity run-rate calculations, and refined chart telemetry.
+- **Brand & Official Identity** — Integrated Dev Maniac's official footer and contact surfaces across the entire application with native external browser handlers.
+- **Component Decomposition** — Decoupled massive views into clean, accessible sub-components (`ProjectIntelligence`, `ReadinessCard`).
+
+Read the [v22 release notes](./docs/releases/v22.0.0.md).
+
+<details><summary>v21 highlights</summary>
 
 - **Trust Foundation** — provider secrets fail closed into Windows Credential Manager, with safer legacy migration and storage guardrails.
 - **Command Deck visual system** — clearer app shell, typography, density/accent controls, light/dark/high-contrast baselines and keyboard-first layouts.
@@ -138,7 +147,7 @@ The app has 11 main surfaces accessible from the sidebar:
 - **Operational pages refreshed** — Launcher, Workspaces, History, MCP, Updates, Admin, Analytics, Doctor, Prereqs, Onboarding and Help.
 - **Release readiness** — critical workflow E2E, visual regression matrix, capability/storage audits and packaged Windows smoke harness.
 
-Read the [v21 release notes](./docs/releases/v21.0.0.md) and [v21 PRD](./docs/PRD-v21.md) for the Trust & Flow scope.
+</details>
 
 <details><summary>v20 highlights</summary>
 
@@ -220,9 +229,10 @@ Fork the repo, create a feature branch, open a PR against `main`. See [CONTRIBUT
 
 MIT — see [LICENSE](./LICENSE).
 
-## Credits
-
-- **Author:** Helbert Moura — [DevManiac's](https://github.com/HelbertMoura)
+## Credits & Support
+ 
+- **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura)
+- **Author:** Helbert Moura — [DevManiac's](https://devmaniacs.com.br/)
 - **Icons** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon)
 - Brand names and trademarks belong to their respective owners.
 
@@ -243,6 +253,8 @@ MIT — see [LICENSE](./LICENSE).
 ---
 
 <div align="center">
+
+Desenvolvido à base de ☕ e ⚡ por **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Redes e contatos](https://linktr.ee/helbertmoura)**
 
 **[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Report Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Request Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 

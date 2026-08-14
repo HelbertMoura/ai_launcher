@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { openExternalUrl } from "../../lib/tauri";
 import "./StatusBar.css";
 import type { ExecutionMode } from "../../domain/executionMode";
 
@@ -96,6 +97,26 @@ export function StatusBar({
           <button type="button" className="cd-status__btn" onClick={onRefresh}
             title={t("statusBar.refresh")} aria-label={t("statusBar.refresh")}>⟳</button>
         )}
+        <span className="cd-status__cell cd-status__cell--byline">
+          Desenvolvido à base de ☕ e ⚡ por{" "}
+          <button
+            type="button"
+            className="cd-status__link"
+            onClick={() => void openExternalUrl("https://devmaniacs.com.br/")}
+            title="Dev Maniac's"
+          >
+            Dev Maniac&apos;s
+          </button>{" "}
+          ·{" "}
+          <button
+            type="button"
+            className="cd-status__link"
+            onClick={() => void openExternalUrl("https://linktr.ee/helbertmoura")}
+            title="Redes e contatos"
+          >
+            Redes &amp; contatos
+          </button>
+        </span>
         <span className="cd-status__cell cd-status__cell--clock">{clock}</span>
         <span className="cd-status__cell cd-status__cell--version">v{version}</span>
       </div>

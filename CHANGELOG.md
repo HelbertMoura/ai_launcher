@@ -5,7 +5,42 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [22.0.0] — 2026-08-14 — Multi-Agent Ecosystem & Modular Core
+
+Release maior focada em modularização arquitetural nativa em Rust, suporte de primeira classe a novos agentes de IA (Aider, Goose, Cline, Roo Code, Cody, Copilot, Continue), novo sistema de Analytics e Custos com intervalos temporais dinâmicos, e identidade visual/rodapé oficial da Dev Maniac's.
+
+### Added — Multi-Agent Ecosystem & Native CLIs
+- Adicionados novos agentes ao ecossistema nativo: **Aider**, **Goose**, **Cline**, **Roo Code**, **Cody**, **Copilot** e **Continue**.
+- Novos ícones vetoriais SVG customizados em `public/icons/cli/` para todos os novos agentes.
+- Recomendações inteligentes no detector de stack para os novos agentes.
+
+### Added — Modular Rust Core Architecture
+- Desmembrado o arquivo monolítico `src-tauri/src/util.rs` (1.343 linhas) em submódulos dedicados em `src-tauri/src/util/`:
+  - `definitions.rs` — Catálogo de CLIs, feeds e extras.
+  - `process.rs` — Spawn, streaming, sanitização de argumentos e diretórios.
+  - `terminal.rs` — Resolução de Windows Terminal e PE paths.
+  - `versions.rs` — Extração de versão, semver comparison, cache registry e client ureq.
+  - `tray_cfg.rs` — Configuração do tray e crash reporter.
+  - `mod.rs` — Re-exports limpos e bateria de 79 testes unitários nativos.
+
+### Added — Analytics & Budget Intelligence 2.0
+- Seletor interativo de intervalo (7d, 14d, 30d, 90d) em `CostsPage.tsx` com recálculo instantâneo de séries temporais, ranking de projetos e modelos.
+- Rollups de consumo por CLI com métricas detalhadas diárias e mensais.
+
+### Added — Brand & Official Identity
+- Rodapé e assinaturas oficiais "Desenvolvido à base de ☕ e ⚡ por Dev Maniac's · Redes e contatos" integrados na barra de status, tela de ajuda/sobre e onboarding tour com acionamento nativo de navegador externo.
+
+### Added — Component Decomposition & Refactoring
+- Decomposição de `CommandCenterPage.tsx` em subcomponentes isolados (`ProjectIntelligence.tsx`, `ReadinessCard.tsx`).
+- Galeria de screenshots atualizada em `docs/screenshots/v22/`.
+
+### Validation
+- `npm run typecheck` — 0 erros
+- `npm test` — 35 arquivos, 217 testes passando
+- `cargo test` — 79 testes passando
+- `cargo clippy` — 0 warnings
+- `npm run build` — Vite production build PASS
+- `npm run release:readiness` — 41 checks PASS
 
 ## [21.1.0] — 2026-08-10 — Trust & Polish / Updater Foundation
 

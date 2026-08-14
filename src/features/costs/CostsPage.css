@@ -1,3 +1,36 @@
+.cd-costs__range-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-1);
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+
+.cd-costs__range-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: calc(var(--r-sm) - 2px);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.cd-costs__range-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cd-costs__range-btn--active {
+  background: var(--accent);
+  color: var(--bg, #000);
+}
+
 .cd-costs__loading {
   display: flex;
   flex-direction: column;

@@ -158,6 +158,21 @@
 .cd-onb__byline-text strong {
   color: var(--accent);
 }
+.cd-onb__byline-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+  transition: opacity var(--dur-fast) var(--ease);
+}
+.cd-onb__byline-link:hover {
+  opacity: 0.8;
+}
 .cd-onb__lede {
   margin: 0;
   font-size: var(--text-sm);
