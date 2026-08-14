@@ -181,6 +181,42 @@ export function App() {
     };
   }, []);
 
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabId>>(() => new Set<TabId>([active]));
+
+  useEffect(() => {
+    setVisitedTabs((prev) => {
+      if (prev.has(active)) return prev;
+      const next = new Set(prev);
+      next.add(active);
+      return next;
+    });
+  }, [active]);
+
+  // Preload remaining tab chunks in the background during browser idle time
+  useEffect(() => {
+    const preloader = () => {
+      void import("../features/command-center/CommandCenterPage");
+      void import("../features/launcher/LauncherPage");
+      void import("../features/tools/ToolsPage");
+      void import("../features/mcp/McpPage");
+      void import("../features/history/HistoryPage");
+      void import("../features/costs/CostsPage");
+      void import("../features/workspace/WorkspacePage");
+      void import("../features/workspace/DoctorPage");
+      void import("../features/prereqs/PrereqsPage");
+      void import("../features/help/HelpPage");
+      void import("../features/updates/UpdatesPage");
+      void import("../features/admin/AdminPage");
+    };
+    if (typeof window !== "undefined") {
+      if ("requestIdleCallback" in window) {
+        (window as unknown as { requestIdleCallback: (cb: () => void, opts: { timeout: number }) => void }).requestIdleCallback(preloader, { timeout: 1500 });
+      } else {
+        setTimeout(preloader, 200);
+      }
+    }
+  }, []);
+
   useGlobalShortcuts(setActive);
 
   if (!onboarded) {
@@ -216,20 +252,32 @@ export function App() {
         />
         <main className="cd-app__main">
           <Suspense fallback={<PageFallback />}>
-            {active === "command-center" && <CommandCenterPage onNavigate={setActive} />}
-            {active === "launcher" && <LauncherPage onNavigate={setActive} />}
-            {active === "tools" && <ToolsPage />}
-            {active === "mcp" && <McpPage />}
-            {active === "history" && <HistoryPage />}
-            {active === "costs" && <CostsPage />}
-            {active === "workspace" && (
-              <WorkspacePage historyItems={history.items} onNavigate={setActive} />
-            )}
-            {active === "doctor" && <DoctorPage />}
-            {active === "updates" && <UpdatesPage />}
-            {active === "prereqs" && <PrereqsPage />}
-            {active === "help" && <HelpPage />}
-            {active === "admin" && <AdminPage />}
+            {Array.from(visitedTabs).map((tab) => {
+              const isCurrent = active === tab;
+              return (
+                <div
+                  key={tab}
+                  className={`cd-tab-panel${isCurrent ? " cd-tab-panel--active" : " cd-tab-panel--hidden"}`}
+                  style={{ display: isCurrent ? "block" : "none" }}
+                  aria-hidden={!isCurrent}
+                >
+                  {tab === "command-center" && <CommandCenterPage onNavigate={setActive} />}
+                  {tab === "launcher" && <LauncherPage onNavigate={setActive} />}
+                  {tab === "tools" && <ToolsPage />}
+                  {tab === "mcp" && <McpPage />}
+                  {tab === "history" && <HistoryPage />}
+                  {tab === "costs" && <CostsPage />}
+                  {tab === "workspace" && (
+                    <WorkspacePage historyItems={history.items} onNavigate={setActive} />
+                  )}
+                  {tab === "doctor" && <DoctorPage />}
+                  {tab === "updates" && <UpdatesPage />}
+                  {tab === "prereqs" && <PrereqsPage />}
+                  {tab === "help" && <HelpPage />}
+                  {tab === "admin" && <AdminPage />}
+                </div>
+              );
+            })}
           </Suspense>
         </main>
         <CommandPalette

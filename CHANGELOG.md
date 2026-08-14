@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.5.0] — 2026-08-14 — Performance Acceleration, Keep-Alive Navigation & Official Icons
+
+Release de alta performance, otimização extrema de responsividade de UI, troca instantânea de abas com retenção de estado (`TabKeepAlive`), pré-carregamento assíncrono em segundo plano (`requestIdleCallback`), aceleração por hardware (GPU) e ícones oficiais de marca dos agentes de IA.
+
+### Performance & UI Responsiveness
+- **Instant Tab Switching (`TabKeepAlive`):** Eliminação completa do unmount/remount churn ao navegar entre abas. Abas visitadas permanecem em memória no DOM (`contain: layout paint`), permitindo transições instantâneas com 0ms de atraso e retenção total de rolagem e rascunhos.
+- **Background Idle Module Preloader:** Pré-carregamento assíncrono de todos os chunks de páginas secundárias durante o tempo ocioso do navegador (`requestIdleCallback` com fallback seguro).
+- **GPU-Accelerated Micro-Animations:** Animações de fade-in e translação suaves (`@keyframes cd-tab-fade-in`), aceleradas via GPU (`will-change: opacity, transform`), com suporte completo a `prefers-reduced-motion`.
+- **Sidebar & Interactive Micro-Interactions:** Micro-movimento tátil nas abas laterais (`translateX(2px)` com feedback de escala ativa) e transições ágeis de 120ms com curvas de interpolação `cubic-bezier(0.16, 1, 0.3, 1)`.
+
+### Official Vector Badge Icons
+- **Aider (`aider.svg`):** Ícone oficial em gradiente roxo/índigo com letra "A" estilizada e cursor de terminal ciano.
+- **Goose (`goose.svg`):** Mascote oficial do Block Goose com bico âmbar vibrante e plumagem vetorial sobre grafite escuro.
+- **Cline (`cline.svg`):** Mascote robô oficial do Cline com capacete e visor digital ciano sobre azul elétrico.
+- **Roo Code (`roocode.svg`):** Mascote canguru do Roo Code com óculos/visor de código `< >` sobre gradiente âmbar/laranja.
+- **Continue, Cody & Copilot:** Badges vetoriais oficiais em resolução 128x128 integrados ao catálogo central.
+
+### Validation & Suite
+- `npm run typecheck` — 0 erros.
+- `npm test` — 35 arquivos de teste e 217 testes passando.
+- `cargo test` — 86 testes unitários Rust passando.
+- `cargo clippy` — 0 avisos.
+- `smoke:packaged` — 626ms boot nativo com zero regressões.
+
 ## [22.0.0] — 2026-08-14 — Multi-Agent Ecosystem & Modular Core
 
 Release maior focada em modularização arquitetural nativa em Rust, suporte de primeira classe a novos agentes de IA (Aider, Goose, Cline, Roo Code, Cody, Copilot, Continue), novo sistema de Analytics e Custos com intervalos temporais dinâmicos, e identidade visual/rodapé oficial da Dev Maniac's.
