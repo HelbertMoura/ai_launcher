@@ -2,69 +2,120 @@
 
 <div align="center">
 
-<img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="720">
+<img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="760">
 
-**Um app desktop para detectar, instalar, executar, atualizar e monitorar todas as suas ferramentas de IA.**
+# AI Launcher
+### O Command Deck Open Source para Agentes de Código com IA & MCPs
+
+**Uma central desktop nativa, ultra leve e segura para detectar, executar, orquestrar e monitorar todos os seus agentes CLI de IA, IDEs customizadas, servidores MCP e limites de custo por provedor.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 22.5.0](https://img.shields.io/badge/vers%C3%A3o-22.5.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 22.6.0](https://img.shields.io/badge/vers%C3%A3o-22.6.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
-![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?labelColor=1a1a1d)
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
+![Memória <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
+
+[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Início Rápido](#-in%C3%ADcio-r%C3%A1pido)
 
 </div>
 
 ---
 
-## Funcionalidades
+## 💡 Por que o AI Launcher?
 
-| | Funcionalidade | Descrição |
-|---|---------------|-----------|
-| 🚀 | **Launcher de CLIs** | Detecte, instale e execute Claude Code, Codex, Antigravity, Aider, Goose, Cline, Roo Code, Qwen, Crush, Droid, Kilocode, OpenCode e mais |
-| 🔧 | **Gerenciador de Tools** | Gerencie VS Code, Cursor, Windsurf, JetBrains AI e IDEs customizadas |
-| ⬆️ | **Hub de Atualizações** | Aba dedicada para updates de CLIs, ferramentas e pré-requisitos com instalação em um clique |
-| 💰 | **Rastreamento de Custos** | Acompanhe gastos por provider com filtros por intervalo (7d, 14d, 30d, 90d) e run-rate |
-| 📋 | **Histórico Waterfall** | Timeline estilo terminal + log de sessões com reabertura, status dots e duração |
-| 🔍 | **Verificação de Pré-requisitos** | Cheque Node, npm, Bun, Python, Rust, Cargo, Git, Docker e mais |
-| 🔌 | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + endpoints customizados com botão de teste de API |
-| 🎨 | **4 Temas + Densidade** | Dark / Light / Amber (CRT retro) / Glacier (frio azul) + toggle compacto/confortável |
-| 🌐 | **i18n** | Inglês e Português (Brasil) com alternância instantânea |
-| ⌨️ | **Keyboard-First** | Paleta rica `Ctrl+K`, navegação `Ctrl+1-9/0`, admin `Ctrl+,`, ajuda `?` |
-| 🧭 | **Command Center** | Home com readiness do workspace, launch rápido, sessões, inteligência de projeto e setup |
-| 🧠 | **Project Intelligence** | Detecta stack, sugere CLIs/runbooks e cria `.ailauncher.json` com segurança |
-| 👥 | **Agent Profiles** | Salve presets de agente com CLI, args e provider para launches repetíveis |
-| 🔗 | **MCP por Projeto** | Relaciona MCPs exigidos pelo projeto, mostra faltantes/saudáveis e aplica presets validados |
-| 🔒 | **Privacidade Primeiro** | Tudo fica local — sem telemetria, sem sync na nuvem |
-| 🏢 | **Workspace Profiles** | Agrupe configurações por repositório, time ou contexto com troca em um clique |
-| 🧩 | **Agent Runbooks** | Sequências automatizadas de setup de ambiente para workflows de agentes IA |
-| 🛡️ | **Budget Guard** | Limites locais de custo por provider com alertas em thresholds configuráveis |
-| 🩺 | **Environment Doctor** | Diagnostique e repare ambientes de dev quebrados com fixes guiados |
-| 👁️ | **Safe Command Preview** | Revise executável, args, env e nível de risco antes de rodar comandos customizados |
-| 🔄 | **Auto-Atualização** | Verificação de updates in-app, download com progresso, validação por checksum |
+Desenvolver com IA hoje se tornou um desafio de organização: múltiplos CLIs espalhados, configurações `.mcp.json` desorganizadas a cada repositório, faturas surpresa no cartão de crédito por consumo de tokens e aplicativos pesados em Electron que consomem gigabytes de memória.
 
-## Screenshots
+**O AI Launcher devolve o controle, a fluidez e o foco para o seu ambiente de desenvolvimento:**
+
+- 🚀 **Hub Único & Centralizado:** Execute Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Continue, Cody, Copilot, VS Code e Cursor em 1 clique.
+- 🧩 **Hub MCP por Projeto:** Detecta automaticamente a stack do repositório e configura servidores MCP validados sem esforço manual.
+- 💰 **Budget Guard & Gestão de Custos:** Acompanhe gastos com tokens em tempo real com alertas proativos antes de estourar seu teto de gastos.
+- ⚡ **Local-First & Alta Performance:** Desenvolvido em **Tauri v2 + Rust**, inicializa em <300ms, consome menos de 40MB de RAM, sem telemetria e com armazenamento criptografado no seu próprio computador.
+
+---
+
+## 🌟 Os 4 Pilares do Sistema
+
+### 1. 🚀 Command Center Multi-Agente & Workspaces
+- **Launcher Inteligente:** Detecta ferramentas instaladas no sistema e oferece botões de lançamento, atualização e execução instantânea.
+- **Perfis de Workspace:** Agrupe diretórios, variáveis de ambiente, modelos de IA e projetos fixados para alternar de contexto sem fricção.
+- **Agent Runbooks:** Crie rotinas de automação declarativas para preparar ambientes de desenvolvimento com logs em tempo real.
+
+### 2. 🧠 Inteligência de Projeto & Diagnóstico
+- **Detecção Automática de Stack:** Lê com segurança os arquivos de configuração do repositório (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Dockerfile`) sem acessar dados sensíveis.
+- **Gestão de Servidores MCP:** Vincula ferramentas MCP aos projetos ativos, monitora integridade e aplica templates testados pela comunidade.
+- **Environment Doctor:** Diagnósticos paralelos ultra rápidos com Tokio (`check_environment`) verificam 14 ferramentas e oferecem reparo guiado em 1 clique.
+
+### 3. 💰 Governança de Custos, Segurança & Privacidade
+- **Analytics de Custos 2.0:** Painel em tempo real por provedor (Anthropic, OpenRouter, MiniMax, Qwen, Moonshot) com filtros de 7d, 14d, 30d e 90d.
+- **Budget Guard:** Defina limites financeiros mensais e receba notificações imediatas antes de surpresas no faturamento.
+- **Cofre Local Seguro:** Sem telemetria, sem contas na nuvem. Todas as chaves e tokens de API são criptografados no Gerenciador de Credenciais nativo do Windows.
+
+### 4. ⚡ Ergonomia para Desenvolvedores & Customização
+- **Keyboard-First:** Paleta global `Ctrl+K`, alternância de abas `Ctrl+1-9/0`, preferências `Ctrl+,` e ajuda rápida `?`.
+- **4 Temas de Alto Contraste:** Dark, Light, Amber CRT Retrô e Glacier Blue, com ajuste dinâmico de densidade (Compacto / Confortável).
+- **Atualização Criptografada (OTA):** Atualizações automáticas verificadas com assinatura digital minisign para upgrades silenciosos e seguros.
+
+---
+
+## 📸 Galeria & Tour Visual
 
 <div align="center">
 
-### Command Deck v22 · Confiança, fluxo e clareza visual
+<p><strong>Uma experiência de Command Deck fluida, moderna e pensada exclusivamente para desenvolvedores.</strong></p>
 
-| Command Center | Launcher Multi-Agent | Runbooks Command Deck |
-|:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Launcher Multi-Agent](./docs/screenshots/v22/07-launcher-multi-agent.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) |
-
-### Hub MCP · Analytics de Custos 2.0 · Timeline de Sessões
-
-| Hub MCP | Analytics de Custos 2.0 | Timeline de Sessões |
-|:---:|:---:|:---:|
-| ![Hub MCP](./docs/screenshots/v22/03-mcp-hub.png) | ![Analytics de Custos 2.0](./docs/screenshots/v22/08-costs-analytics.png) | ![Timeline de Sessões](./docs/screenshots/v22/04-history-timeline.png) |
-
-### Doctor Readiness · Ajuda e Marca Oficial
-
-| Doctor Readiness | Ajuda e Suporte |
-|:---:|:---:|
-| ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Ajuda e Suporte](./docs/screenshots/v22/06-help-support.png) |
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🧭 Command Center & Workspace Readiness</h3>
+      <a href="./docs/screenshots/v22/01-command-center.png"><img src="./docs/screenshots/v22/01-command-center.png" alt="Command Center & Workspace Readiness" width="100%"></a>
+      <p><em>Score de readiness em tempo real, detecção de stack de projeto, ações rápidas e sessões ativas.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🚀 Hub Multi-Agente & Launcher</h3>
+      <a href="./docs/screenshots/v22/07-launcher-multi-agent.png"><img src="./docs/screenshots/v22/07-launcher-multi-agent.png" alt="Hub Multi-Agente & Launcher" width="100%"></a>
+      <p><em>Detecção, instalação e execução em 1 clique para Claude Code, Antigravity, Codex, Aider, Goose e mais.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🧩 Runbooks & Automação de Setup</h3>
+      <a href="./docs/screenshots/v22/02-runbooks-command-deck.png"><img src="./docs/screenshots/v22/02-runbooks-command-deck.png" alt="Runbooks Command Deck" width="100%"></a>
+      <p><em>Fluxos automatizados e reproduzíveis de ambiente com aprovação por etapa e logs em tempo real.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🔗 Hub MCP por Projeto</h3>
+      <a href="./docs/screenshots/v22/03-mcp-hub.png"><img src="./docs/screenshots/v22/03-mcp-hub.png" alt="Hub MCP por Projeto" width="100%"></a>
+      <p><em>Mapeamento automático de servidores MCP requeridos pelo projeto, status de saúde e presets validados.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>💰 Analytics de Custos 2.0 & Budget Guard</h3>
+      <a href="./docs/screenshots/v22/08-costs-analytics.png"><img src="./docs/screenshots/v22/08-costs-analytics.png" alt="Analytics de Custos 2.0 & Budget Guard" width="100%"></a>
+      <p><em>Gráficos de consumo por provider com filtros dinâmicos (7d, 14d, 30d, 90d) e alertas de teto de gastos.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>📋 Linha do Tempo & Histórico Waterfall</h3>
+      <a href="./docs/screenshots/v22/04-history-timeline.png"><img src="./docs/screenshots/v22/04-history-timeline.png" alt="Linha do Tempo & Histórico Waterfall" width="100%"></a>
+      <p><em>Histórico estilo terminal com rastreamento de duração, status e reabertura em 1 clique.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🩺 Environment Doctor & Diagnósticos</h3>
+      <a href="./docs/screenshots/v22/05-doctor-readiness.png"><img src="./docs/screenshots/v22/05-doctor-readiness.png" alt="Environment Doctor & Diagnósticos" width="100%"></a>
+      <p><em>Verificação proativa de runtimes (Node, Python, Rust, Docker) com reparo guiado em 1 clique.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🎨 Ajuda, Suporte & Múltiplos Temas</h3>
+      <a href="./docs/screenshots/v22/06-help-support.png"><img src="./docs/screenshots/v22/06-help-support.png" alt="Ajuda, Suporte & Múltiplos Temas" width="100%"></a>
+      <p><em>Central de suporte, guia completo de atalhos e links oficiais da Dev Maniac's.</em></p>
+    </td>
+  </tr>
+</table>
 
 </div>
 

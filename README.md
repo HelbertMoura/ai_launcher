@@ -2,72 +2,126 @@
 
 <div align="center">
 
-<img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="720">
+<img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="760">
 
-**One desktop app to detect, install, launch, update and track all your AI coding tools.**
+# AI Launcher
+### The Open-Source Command Deck for AI Coding Agents & MCPs
+
+**A native, ultra-lightweight desktop control plane to discover, launch, orchestrate, and monitor all your AI CLI agents, custom IDEs, MCP servers, and multi-provider token budgets.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 22.5.0](https://img.shields.io/badge/version-22.5.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 22.6.0](https://img.shields.io/badge/version-22.6.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
-![TypeScript](https://img.shields.io/badge/TypeScript-7-3178c6?labelColor=1a1a1d)
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
+![Memory <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
+
+[📥 Download Installer](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Why AI Launcher?](#-why-ai-launcher) · [📸 Visual Tour](#-visual-tour) · [🌟 Core Pillars](#-core-system-pillars) · [⚡ Quick Start](#-quick-start)
 
 </div>
 
 ---
 
-## Features
+## 💡 Why AI Launcher?
 
-| | Feature | Description |
-| :rocket: | **CLI Launcher** | Detect, install and launch Claude Code, Codex, Antigravity, Aider, Goose, Cline, Roo Code, Qwen, Crush, Droid, Kilocode, OpenCode, Continue, Cody, Copilot and more |
-| :wrench: | **Tools Manager** | Manage VS Code, Cursor, Windsurf, JetBrains AI and custom IDEs |
-| :arrow_up: | **Updates Hub** | Dedicated tab for CLI, tool and prerequisite updates with one-click install |
-| :moneybag: | **Cost Tracking** | Per-provider spend tracking with daily, monthly and custom time-range breakdowns |
-| :clipboard: | **Launch History** | Full session log with reopen, descriptions, status badges and duration tracking |
-| :mag: | **Prerequisites Check** | Verify Node, npm, Bun, Python, Rust, Cargo, Git, Docker and more |
-| :electric_plug: | **Providers** | Anthropic, Z.AI, MiniMax, Moonshot, Qwen, OpenRouter + custom endpoints with API test button |
-| :art: | **Full Customization** | Dark/Light theme, 5 accent colors, 5 mono fonts, CLI overrides |
-| :globe_with_meridians: | **i18n** | English and Portuguese (Brazil) with instant toggle |
-| :keyboard: | **Keyboard-First** | `Ctrl+K` palette, `Ctrl+1-9/0` tab nav, `Ctrl+,` admin, `?` help |
-| :compass: | **Command Center** | Home base with workspace readiness, quick launch, sessions, project intelligence and setup actions |
-| :brain: | **Project Intelligence** | Detect stack, suggest CLIs/runbooks and create safe `.ailauncher.json` project profiles |
-| :busts_in_silhouette: | **Agent Profiles** | Save agent-specific CLI, args and provider presets for repeatable workspace launches |
-| :link: | **Project MCP** | Match project-required MCP servers, show missing/healthy state and apply validated presets |
-| :lock: | **Privacy-First** | Everything stays local -- no telemetry, no cloud sync |
-| :office: | **Workspace Profiles** | Group configs by repo, team or context for one-click switching |
-| :jigsaw: | **Agent Runbooks** | Automated environment setup sequences for AI agent workflows |
-| :shield: | **Budget Guard** | Local cost limits per provider with alerts at configurable thresholds |
-| :stethoscope: | **Environment Doctor** | Diagnose and repair broken dev environments with guided fixes |
-| :eye: | **Safe Command Preview** | Review executable, args, env and risk level before running custom commands |
-| :arrows_counterclockwise: | **Self-Updater** | In-app update checks, download with progress, checksum validation |
+Developing with AI today is fragmented: 10 different CLIs, conflicting API keys, scattered `.mcp.json` configs, unpredictable token spending across multiple providers, and heavy Electron apps that consume gigabytes of RAM.
 
-## Screenshots
+**AI Launcher brings peace, speed, and focus back to your workflow:**
+
+- 🚀 **One Unified Hub:** Launch Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Continue, Cody, Copilot, VS Code, and Cursor in 1 click.
+- 🧩 **Project-Aware MCP Hub:** Automatically detects your project stack and provisions validated Model Context Protocol servers per repository.
+- 💰 **Budget Guard & Cost Analytics:** Real-time token spend tracking with configurable alerts before unexpected monthly invoices.
+- ⚡ **Local-First & Blazing Fast:** Built with **Tauri v2 + Rust**, cold booting in <300ms, using less than 40MB RAM, with zero telemetry and 100% local encrypted storage.
+
+---
+
+## 🌟 Core System Pillars
+
+### 1. 🚀 Multi-Agent & Workspace Command Center
+- **Instant Multi-Agent Launcher:** Detects installed CLIs and IDEs, surfacing one-click launch, upgrade, and execution buttons.
+- **Workspace Profiles:** Group directories, environment variables, model presets, and pinned projects for effortless context switching.
+- **Agent Runbooks:** Define declarative, repeatable multi-step setup scripts with live log streaming and interactive safety checks.
+
+### 2. 🧠 Project Intelligence & System Doctor
+- **Automatic Stack Detection:** Scans manifest signals (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Dockerfile`) without reading sensitive files.
+- **MCP Server Management:** Relates required MCP tools to active projects, monitors connection health, and installs pre-tested tool configs.
+- **Environment Doctor:** Concurrent Tokio diagnostics (`check_environment`) verify 14 runtimes and offer guided one-click repairs.
+
+### 3. 💰 Cost Tracking, Governance & Privacy
+- **Cost Analytics 2.0:** Multi-provider spend tracking (Anthropic, OpenRouter, MiniMax, Qwen, Moonshot) with dynamic 7d, 14d, 30d, 90d rollups.
+- **Budget Guard:** Set monthly dollar thresholds per provider and receive proactive notification alerts.
+- **Privacy & Security Vault:** Zero telemetry, no cloud accounts. All API keys are encrypted directly in the native Windows Credential Manager.
+
+### 4. ⚡ Developer Ergonomics & Customization
+- **Keyboard-First:** `Ctrl+K` command palette, `Ctrl+1-9/0` tab switcher, `Ctrl+,` preferences, and `?` quick help.
+- **4 High-Contrast Themes:** Dark, Light, Amber CRT Retro, and Glacier Blue, with adjustable layout density (Compact / Comfortable).
+- **Cryptographic OTA Updates:** Built-in self-updater verified with Minisign signatures for safe, background updates.
+
+---
+
+## 📸 Visual Tour
 
 <div align="center">
 
-### Command Deck v22 · Trust, flow and visual clarity
+<p><strong>A cohesive, developer-first command deck engineered for speed, confidence, and focus.</strong></p>
 
-| Command Center | Multi-Agent Launcher | Runbooks Command Deck |
-|:---:|:---:|:---:|
-| ![Command Center](./docs/screenshots/v22/01-command-center.png) | ![Multi-Agent Launcher](./docs/screenshots/v22/07-launcher-multi-agent.png) | ![Runbooks Command Deck](./docs/screenshots/v22/02-runbooks-command-deck.png) |
-
-### MCP Hub · Cost Analytics 2.0 · History Timeline
-
-| MCP Hub | Cost Analytics 2.0 | Sessions Timeline |
-|:---:|:---:|:---:|
-| ![MCP Hub](./docs/screenshots/v22/03-mcp-hub.png) | ![Cost Analytics 2.0](./docs/screenshots/v22/08-costs-analytics.png) | ![Sessions Timeline](./docs/screenshots/v22/04-history-timeline.png) |
-
-### Doctor Readiness · Help & Brand Support
-
-| Doctor Readiness | Help & Support |
-|:---:|:---:|
-| ![Doctor Readiness](./docs/screenshots/v22/05-doctor-readiness.png) | ![Help and Support](./docs/screenshots/v22/06-help-support.png) |
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🧭 Command Center & Workspace Readiness</h3>
+      <a href="./docs/screenshots/v22/01-command-center.png"><img src="./docs/screenshots/v22/01-command-center.png" alt="Command Center & Workspace Readiness" width="100%"></a>
+      <p><em>Instant readiness score, project intelligence signals, quick actions and active sessions.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🚀 Multi-Agent Hub & Launcher</h3>
+      <a href="./docs/screenshots/v22/07-launcher-multi-agent.png"><img src="./docs/screenshots/v22/07-launcher-multi-agent.png" alt="Multi-Agent Hub & Launcher" width="100%"></a>
+      <p><em>One-click detect, install, and execute Claude Code, Antigravity, Codex, Aider, Goose and more.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🧩 Runbooks & Automated Pipelines</h3>
+      <a href="./docs/screenshots/v22/02-runbooks-command-deck.png"><img src="./docs/screenshots/v22/02-runbooks-command-deck.png" alt="Runbooks Command Deck" width="100%"></a>
+      <p><em>Automated, reproducible environment setups with step approval and live streaming logs.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🔗 Project MCP Hub</h3>
+      <a href="./docs/screenshots/v22/03-mcp-hub.png"><img src="./docs/screenshots/v22/03-mcp-hub.png" alt="Project MCP Hub" width="100%"></a>
+      <p><em>Automatic repository MCP detection, health status monitoring, and validated server presets.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>💰 Cost Analytics 2.0 & Budget Guard</h3>
+      <a href="./docs/screenshots/v22/08-costs-analytics.png"><img src="./docs/screenshots/v22/08-costs-analytics.png" alt="Cost Analytics 2.0 & Budget Guard" width="100%"></a>
+      <p><em>Real-time spend charts by provider with dynamic 7d/14d/30d/90d ranges and threshold alerts.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>📋 History Timeline & Waterfall Logs</h3>
+      <a href="./docs/screenshots/v22/04-history-timeline.png"><img src="./docs/screenshots/v22/04-history-timeline.png" alt="History Timeline & Waterfall Logs" width="100%"></a>
+      <p><em>Terminal-style waterfall history with duration tracking, status dots, and one-click relaunch.</em></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <h3>🩺 Environment Doctor & Diagnostics</h3>
+      <a href="./docs/screenshots/v22/05-doctor-readiness.png"><img src="./docs/screenshots/v22/05-doctor-readiness.png" alt="Environment Doctor & Diagnostics" width="100%"></a>
+      <p><em>Proactive runtime checks (Node, Python, Rust, Docker) and guided one-click automated fixes.</em></p>
+    </td>
+    <td width="50%" align="center">
+      <h3>🎨 Help, Brand & Multi-Theme Customization</h3>
+      <a href="./docs/screenshots/v22/06-help-support.png"><img src="./docs/screenshots/v22/06-help-support.png" alt="Help, Brand & Multi-Theme Customization" width="100%"></a>
+      <p><em>Built-in support, keyboard shortcut references, and official Dev Maniac's ecosystem links.</em></p>
+    </td>
+  </tr>
+</table>
 
 </div>
 
-## Quick Start
+---
+
+## ⚡ Quick Start
 
 ### Install (Windows)
 
@@ -96,7 +150,9 @@ The installers are generated in:
 - MSI: `src-tauri/target/release/bundle/msi/`
 - EXE (NSIS): `src-tauri/target/release/bundle/nsis/`
 
-## Keyboard Shortcuts
+---
+
+## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
@@ -115,24 +171,28 @@ The installers are generated in:
 | `?` | Help tab |
 | `Esc` | Close dialog |
 
-## Surfaces
+---
 
-The app has 11 main surfaces accessible from the sidebar:
+## 🧭 Surfaces & Navigation
+
+The app features 12 specialized surfaces accessible from the sidebar and command palette:
 
 | Tab | What it does |
 |-----|-------------|
-| **Command Center** | Start from the active workspace, launch agents, inspect readiness, sessions and project intelligence |
-| **Launch** | Scan for AI CLIs, install missing ones, launch with custom directory and args |
-| **Tools** | Detect and manage IDEs — install missing tools with one click |
-| **MCP** | Manage Claude/Codex/Gemini MCP configs with backups, catalog presets and health checks |
-| **History** | Sessions dashboard with filters, replay, kill and workspace/agent badges |
-| **Analytics** | Per-provider cost breakdown — today and monthly totals with token tracking |
-| **Workspaces** | Profiles, Agent Profiles, Budget, Doctor summary, Runbooks and Recent Sessions |
-| **Doctor** | Environment health check with severity (critical/warning/info) + guided fixes |
-| **Updates** | Central hub for CLI, tool and prerequisite updates — update all or individually |
-| **Prereqs** | System health check — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
-| **Admin** | Providers (with API test), profiles, appearance, CLI overrides, custom IDEs |
-| **Help** | Shortcuts, FAQ, animated terminal demo, welcome tour replay |
+| **Command Center** | Central command deck with workspace readiness, quick actions, active sessions, and project stack signals |
+| **Launch** | Scan for AI CLIs, install missing engines, launch with custom directories, model presets, and execution arguments |
+| **Tools** | Detect and manage IDEs — launch or install VS Code, Cursor, Windsurf, JetBrains AI with one click |
+| **MCP** | Manage Model Context Protocol configs for Claude/Codex/Gemini with catalog presets, health checks, and backups |
+| **History** | Waterfall session timeline with filters, duration tracking, process kill, and one-click session replay |
+| **Analytics** | Per-provider spend breakdown — today, weekly, and monthly totals with dynamic token velocity charts |
+| **Workspaces** | Workspace Profiles, Agent Profiles, Budget Guard, Doctor summary, Runbooks, and Recent Sessions |
+| **Doctor** | In-depth environment diagnostics with severity levels (critical/warning/info) and guided automated fixes |
+| **Updates** | Centralized hub for CLI, tool, and prerequisite updates with real-time download and upgrade progress |
+| **Prereqs** | High-speed concurrent verification for Node, npm, Bun, Python, Rust, Cargo, Git, Docker, and PowerShell |
+| **Admin** | Model Providers (with API test latency), profiles, appearance, CLI overrides, and custom executable IDEs |
+| **Help** | Keyboard shortcuts reference, FAQs, animated terminal demo, and welcome onboarding tour |
+
+---
 
 ## 🚀 What's new in v22 — Multi-Agent Ecosystem & Modular Core
 
@@ -215,52 +275,48 @@ The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prere
 
 </details>
 
-## Tech Stack
+---
+
+## 🛠️ Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Frontend | React 19 + TypeScript 6 + Vite |
-| Backend | Rust (Tauri v2) |
-| Styling | CSS Custom Properties (token system) |
-| i18n | i18next 24 |
-| Icons | Official brand logos (LobeHub Icons, devicons) |
-| Build | Tauri CLI -- `.msi` + `.exe` (NSIS) |
-| Distribution | GitHub Releases · Winget (🚧 coming soon) · Chocolatey (🚧 coming soon) |
+|---|---|
+| **Frontend** | React 19 + TypeScript + Vite |
+| **Backend** | Rust (Tauri v2) with Windows Credential Manager for secrets |
+| **Styling** | CSS Custom Properties (token system · dark / light / amber / glacier) |
+| **Typography** | JetBrains Mono · Inter · Space Grotesk (display) |
+| **Icons** | Official brand logos (LobeHub Icons, devicons) + Phosphor Icons |
+| **i18n** | i18next 24 (English & Portuguese - Brazil) |
+| **Testing** | Vitest (217 tests), Playwright E2E / visual, cargo test (86 Rust tests) |
+| **Build** | Tauri CLI → `.msi` + `.exe` (NSIS) |
+| **Distribution** | GitHub Releases · Winget (🚧 coming soon) · Chocolatey (🚧 coming soon) |
 
-## Contributing
+---
 
-Fork the repo, create a feature branch, open a PR against `main`. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, conventions and the PR checklist.
+## 🤝 Contributing
 
-## License
+Fork the repository, create a feature branch, and open a PR against `main`. See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup instructions, conventions, and the PR checklist.
 
-MIT — see [LICENSE](./LICENSE).
+---
 
-## Credits & Support
+## 📄 License
+
+MIT License — see [LICENSE](./LICENSE).
+
+---
+
+## ☕ Credits & Support
  
-- **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura)
-- **Author:** Helbert Moura — [DevManiac's](https://devmaniacs.com.br/)
-- **Icons** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon)
+- **Developed with ☕ and ⚡ by:** [Dev Maniac's](https://devmaniacs.com.br/) · [Links & Contacts](https://linktr.ee/helbertmoura)
+- **Author:** Helbert Moura — [Dev Maniac's](https://devmaniacs.com.br/)
+- **Icons:** [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon), [Phosphor Icons](https://phosphoricons.com/)
 - Brand names and trademarks belong to their respective owners.
-
-## For Maintainers
-
-- [docs/SIGNING.md](./docs/SIGNING.md) — how to wire code signing and rotate the
-  Tauri updater keypair.
-- [docs/marketing/producthunt.md](./docs/marketing/producthunt.md) — Product Hunt
-  draft (tagline, description, first comment, gallery).
-- [docs/marketing/dev-to.md](./docs/marketing/dev-to.md) — outline for a long-form
-  dev.to article.
-- [docs/marketing/launch-checklist.md](./docs/marketing/launch-checklist.md) —
-  T-7d to T+1w checklist plus open items.
-- [SECURITY.md](./SECURITY.md) — how to report vulnerabilities.
-- [CHANGELOG.md](./CHANGELOG.md) — release notes and `Unreleased` section.
-- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) — module layout and data flow.
 
 ---
 
 <div align="center">
 
-Desenvolvido à base de ☕ e ⚡ por **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Redes e contatos](https://linktr.ee/helbertmoura)**
+Developed with ☕ and ⚡ by **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Links & Contacts](https://linktr.ee/helbertmoura)**
 
 **[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Report Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Request Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
