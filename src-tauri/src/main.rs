@@ -117,6 +117,7 @@ fn main() {
             commands::cli::scan_project_stack,
             commands::cli::read_project_profile,
             commands::cli::write_project_profile,
+            commands::cli::cleanup_system_cache,
             // commands::session
             commands::session::list_active_sessions,
             commands::session::kill_session,
@@ -157,6 +158,8 @@ fn main() {
             commands::mcp::update_mcp_server,
             commands::mcp::remove_mcp_server,
             commands::mcp::mcp_health_check,
+            commands::mcp::export_all_mcp_configs,
+            commands::mcp::import_all_mcp_configs,
             // commands::runbook
             commands::runbook::run_runbook_step,
             commands::runbook::stop_runbook_execution,

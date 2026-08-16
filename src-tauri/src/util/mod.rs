@@ -273,4 +273,13 @@ mod tests {
         let result = validate_directory(&tmp.to_string_lossy());
         assert!(result.is_ok(), "local temp dir should validate: {result:?}");
     }
+
+    #[test]
+    fn ollama_tool_definition_exists() {
+        let tools = get_tool_definitions();
+        assert!(
+            tools.iter().any(|t| t.key == "ollama"),
+            "Ollama deve constar em get_tool_definitions"
+        );
+    }
 }

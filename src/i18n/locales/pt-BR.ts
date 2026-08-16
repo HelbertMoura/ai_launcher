@@ -626,6 +626,11 @@ export const ptBR = {
       replaceMessage: "As chaves reconhecidas do backup substituirão a configuração local atual. Credenciais redigidas não serão restauradas.",
       replaceConfirm: "Substituir configuração",
       imported: "{{count}} chaves importadas · {{redacted}} secrets preservados/redigidos",
+      exportMcp: "Exportar Bundle MCP",
+      importMcp: "Restaurar Bundle MCP",
+      mcpExported: "Bundle MCP exportado com sucesso!",
+      mcpImported: "Bundle MCP restaurado com sucesso!",
+      mcpImportFailed: "Falha ao restaurar bundle MCP.",
     },
     providers: {
       eyebrow: "Credenciais e roteamento",
@@ -875,6 +880,9 @@ export const ptBR = {
     wouldFix: "Corrigiria automaticamente",
     confirmFixTitle: "Corrigir {{name}}?",
     confirmFixMessage: "Revise o comando que será executado antes de prosseguir.",
+    cleanCache: "Limpar Cache & Reparar",
+    cleaningCache: "Limpando…",
+    cleanSuccess: "Limpeza concluída",
   },
   updates: {
     title: "Atualizações",

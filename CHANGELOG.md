@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.7.0] — 2026-08-16 — Ollama Local LLM Support, Doctor Cache Cleaner & Unified MCP Backup Bundle
+
+Release com suporte de primeira classe para execução de modelos locais com Ollama, botão de limpeza profunda de cache e restauração de stubs no Doctor, e ferramenta unificada de exportação e restauração de bundle de servidores MCP.
+
+### Ollama Local LLM Integration
+- **Local AI Tool & Prerequisite (`ollama`):** Adicionado suporte completo para detecção e diagnóstico do Ollama no sistema operacional (verificação via `ollama --version`, paths padrão `%LOCALAPPDATA%\Programs\Ollama` e `%PROGRAMFILES%\Ollama`).
+- **Parallel Health Check:** Integrado às verificações concorrentes em Tokio de pré-requisitos (`check_environment`) e atualizações de ferramentas (`check_tool_updates`).
+- **One-Click Download:** Link direto de instalação e atualização apontando para o instalador oficial do Windows.
+
+### Doctor Deep Cache Cleaning & Stub Repair
+- **System Cache Cleanup (`cleanup_system_cache`):** Novo comando Rust que executa a faxina de arquivos temporários órfãos de instalação (`goose.zip`, `agy_install`, `ai-launcher-tmp`), pastas temporárias do npm (`.claude-code-*`) e executa autocura preventiva de executáveis.
+- **Action Button no Doctor:** Botão visual `🧹 Limpar Cache & Reparar` no topo da página do Doctor com feedback instantâneo e re-execução de diagnósticos em ambiente limpo.
+
+### Unified MCP Configuration Bundle
+- **Full MCP Bundle Export & Restore (`export_all_mcp_configs` / `import_all_mcp_configs`):** Exportação em arquivo `.json` único de todas as configurações de servidores MCP ativas para Claude (`.mcp.json`), Codex (`config.toml`) e Gemini (`mcp_config.json`).
+- **Safe Automatic Backup:** Criação de cópias de segurança automáticas (`.bak`) dos arquivos de configuração antes de qualquer restauração de bundle.
+- **Dedicated Admin Section UI:** Novos cards na seção de Backup do Admin para backup/restore com 1 clique de MCP.
+
 ## [22.6.1] — 2026-08-16 — Claude Code Native Windows Fix & Self-Healing Installer
 
 Correção definitiva para o erro de incompatibilidade do binário do Claude Code no Windows (`Esta versão de claude.exe não é compatível com a versão do Windows sendo executada`) e migração para o instalador nativo oficial da Anthropic.

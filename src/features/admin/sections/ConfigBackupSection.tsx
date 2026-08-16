@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import {
@@ -8,12 +9,14 @@ import {
   previewImportConfig,
   type ConfigImportPreview,
 } from "../../../lib/configIO";
+import { downloadBlob } from "../../../lib/exportData";
 import { showToast } from "../../../ui/toastStore";
 import { ConfirmDialog } from "../../../ui/ConfirmDialog";
 
 export function ConfigBackupSection() {
   const { t, i18n } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputMcpRef = useRef<HTMLInputElement>(null);
   const [raw, setRaw] = useState("");
   const [fileName, setFileName] = useState("");
   const [preview, setPreview] = useState<ConfigImportPreview | null>(null);
@@ -23,6 +26,36 @@ export function ConfigBackupSection() {
   const handleExport = () => {
     downloadConfigJson(__APP_VERSION__);
     showToast(t("admin.backup.exported"), "success");
+  };
+
+  const handleExportMcp = async () => {
+    try {
+      const bundle = await invoke<Record<string, unknown>>("export_all_mcp_configs");
+      const jsonStr = JSON.stringify(bundle, null, 2);
+      const filename = `mcp-bundle-${new Date().toISOString().slice(0, 10)}.json`;
+      downloadBlob(jsonStr, filename, "application/json");
+      showToast(t("admin.backup.mcpExported"), "success");
+    } catch (e) {
+      showToast(String(e), "error");
+    }
+  };
+
+  const handleMcpFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const text = String(reader.result ?? "");
+        const bundle = JSON.parse(text);
+        const res = await invoke<string>("import_all_mcp_configs", { bundle });
+        showToast(res || t("admin.backup.mcpImported"), "success");
+      } catch (err) {
+        showToast(t("admin.backup.mcpImportFailed"), "error");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +132,24 @@ export function ConfigBackupSection() {
           </Button>
         </Card>
       </div>
+
+      <div className="cd-admin-backup__actions" style={{ marginTop: "1rem" }}>
+        <Card className="cd-admin-backup__action-card">
+          <span className="cd-admin-section__eyebrow">MODEL CONTEXT PROTOCOL</span>
+          <strong>{t("admin.backup.exportMcp")}</strong>
+          <p>Exporta as configurações de servidores MCP de Claude (.mcp.json), Codex (config.toml) e Gemini (mcp_config.json) em um bundle único.</p>
+          <Button size="sm" variant="ghost" onClick={handleExportMcp}>{t("admin.backup.exportMcp")}</Button>
+        </Card>
+        <Card className="cd-admin-backup__action-card">
+          <span className="cd-admin-section__eyebrow">MODEL CONTEXT PROTOCOL</span>
+          <strong>{t("admin.backup.importMcp")}</strong>
+          <p>Restaura servidores MCP a partir de um bundle JSON, criando backups automáticos antes de aplicar.</p>
+          <Button size="sm" variant="ghost" onClick={() => inputMcpRef.current?.click()}>
+            {t("admin.backup.importMcp")}
+          </Button>
+        </Card>
+      </div>
+
       <input
         ref={inputRef}
         type="file"
@@ -106,6 +157,14 @@ export function ConfigBackupSection() {
         aria-label={t("admin.backup.choose")}
         className="cd-admin-file-input"
         onChange={handleFile}
+      />
+      <input
+        ref={inputMcpRef}
+        type="file"
+        accept=".json,application/json"
+        aria-label={t("admin.backup.importMcp")}
+        className="cd-admin-file-input"
+        onChange={handleMcpFile}
       />
 
       <Card className="cd-admin-backup__preview">

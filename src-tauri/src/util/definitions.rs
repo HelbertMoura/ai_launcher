@@ -286,6 +286,14 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             install_hint: "Download de https://antigravity.google".into(),
             install_url: Some("https://antigravity.google".into()),
         },
+        ToolInfo {
+            key: "ollama".into(),
+            name: "Ollama (Local LLM)".into(),
+            command: "ollama".into(),
+            version_cmd: "ollama --version".into(),
+            install_hint: "Download de https://ollama.com/download/windows".into(),
+            install_url: Some("https://ollama.com/download/windows".into()),
+        },
     ]
 }
 

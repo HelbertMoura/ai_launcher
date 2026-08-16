@@ -76,6 +76,7 @@ pub fn check_tool_updates() -> Vec<UpdateInfo> {
                 "vscode" => fetch_vscode_latest(),
                 "cursor" => fetch_github_latest("getcursor/cursor"),
                 "windsurf" => fetch_github_latest("codeium/windsurf"),
+                "ollama" => fetch_github_latest("ollama/ollama"),
                 _ => None,
             };
             let has_update = match (&current, &latest) {
@@ -322,8 +323,19 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let (r_node, r_py, r_git, r_rust, r_cargo, r_pnpm, r_yarn, r_bun, r_wt, r_pwsh, r_gitlfs, r_docker, r_vscode, r_tauri) = tokio::join!(
-        t_node, t_py, t_git, t_rust, t_cargo, t_pnpm, t_yarn, t_bun, t_wt, t_pwsh, t_gitlfs, t_docker, t_vscode, t_tauri
+    let t_ollama = tokio::task::spawn_blocking(|| {
+        let (ollama_ok, ollama_ver) = run_silent("ollama", &["--version"]);
+        CheckResult {
+            key: "ollama".into(),
+            name: "Ollama (Local LLM)".into(),
+            installed: ollama_ok,
+            version: ollama_ver,
+            install_command: Some("https://ollama.com/download/windows".into()),
+        }
+    });
+
+    let (r_node, r_py, r_git, r_rust, r_cargo, r_pnpm, r_yarn, r_bun, r_wt, r_pwsh, r_gitlfs, r_docker, r_vscode, r_tauri, r_ollama) = tokio::join!(
+        t_node, t_py, t_git, t_rust, t_cargo, t_pnpm, t_yarn, t_bun, t_wt, t_pwsh, t_gitlfs, t_docker, t_vscode, t_tauri, t_ollama
     );
 
     let mut results = vec![];
@@ -341,6 +353,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
     if let Ok(r) = r_docker { results.push(r); }
     if let Ok(r) = r_vscode { results.push(r); }
     if let Ok(r) = r_tauri { results.push(r); }
+    if let Ok(r) = r_ollama { results.push(r); }
 
     results
 }
@@ -359,6 +372,7 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
         "rust" => url_for("https://rustup.rs/"),
         "bun" => url_for("https://bun.sh"),
         "docker" => url_for("https://www.docker.com/products/docker-desktop/"),
+        "ollama" => url_for("https://ollama.com/download/windows"),
         "windows-terminal" | "wt" => {
             open::that("ms-windows-store://pdp/?productid=9N0DX20HK701")
                 .or_else(|_| open::that("https://aka.ms/terminal"))
@@ -431,6 +445,7 @@ pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<S
         ("rust", "https://rustup.rs/"),
         ("bun", "https://bun.sh"),
         ("docker", "https://www.docker.com/products/docker-desktop/"),
+        ("ollama", "https://ollama.com/download/windows"),
         (
             "windows-terminal",
             "ms-windows-store://pdp/?productid=9N0DX20HK701",
