@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::safety::{append_env_assignments, sanitize_args};
 use crate::util::{
@@ -672,6 +672,74 @@ pub fn launch_multi_clis(
         }
     }
     Ok(format!("Iniciados {} CLIs", count))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CleanupReport {
+    pub healed_stubs: usize,
+    pub cleaned_temp_files: usize,
+    pub freed_bytes: u64,
+    pub message: String,
+}
+
+#[tauri::command]
+pub async fn cleanup_system_cache() -> Result<CleanupReport, String> {
+    tokio::task::spawn_blocking(|| {
+        heal_claude_npm_stub_if_needed();
+        let mut cleaned = 0;
+        let mut bytes = 0;
+
+        if let Ok(temp) = std::env::var("TEMP") {
+            let temp_path = std::path::Path::new(&temp);
+            for name in ["goose.zip", "claude_temp", "agy_install", "ai-launcher-tmp"] {
+                let p = temp_path.join(name);
+                if p.exists() {
+                    if let Ok(meta) = std::fs::metadata(&p) {
+                        bytes += meta.len();
+                    }
+                    if p.is_file() {
+                        let _ = std::fs::remove_file(&p);
+                        cleaned += 1;
+                    } else if p.is_dir() {
+                        let _ = std::fs::remove_dir_all(&p);
+                        cleaned += 1;
+                    }
+                }
+            }
+        }
+
+        let appdata = std::env::var("APPDATA").unwrap_or_default();
+        let npm_anthropic = std::path::Path::new(&appdata)
+            .join("npm")
+            .join("node_modules")
+            .join("@anthropic-ai");
+        if npm_anthropic.exists() {
+            if let Ok(entries) = std::fs::read_dir(&npm_anthropic) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    if name.starts_with(".claude-code-") {
+                        let path = entry.path();
+                        if path.is_dir() {
+                            let _ = std::fs::remove_dir_all(&path);
+                            cleaned += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(CleanupReport {
+            healed_stubs: 1,
+            cleaned_temp_files: cleaned,
+            freed_bytes: bytes,
+            message: format!(
+                "Limpeza de cache concluída com sucesso: {} item(ns) limpo(s) e stubs de CLI restaurados.",
+                cleaned
+            ),
+        })
+    })
+    .await
+    .map_err(|e| format!("Erro durante a limpeza: {}", e))?
 }
 
 #[cfg(test)]

@@ -256,6 +256,16 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
                 vec!["AntGravity.exe"],
             ),
         ],
+        "ollama" => vec![
+            (
+                expand_env(r"%LOCALAPPDATA%\Programs\Ollama"),
+                vec!["ollama app.exe", "ollama.exe"],
+            ),
+            (
+                expand_env(r"%PROGRAMFILES%\Ollama"),
+                vec!["ollama app.exe", "ollama.exe"],
+            ),
+        ],
         _ => vec![],
     };
     for (base, exes) in searches {
@@ -270,6 +280,7 @@ pub fn find_tool_path(tool_key: &str) -> Option<PathBuf> {
         "cursor" => Some("cursor"),
         "windsurf" => Some("windsurf"),
         "antigravity" => Some("antigravity"),
+        "ollama" => Some("ollama"),
         _ => None,
     };
     if let Some(hint) = lnk_hint {

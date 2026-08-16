@@ -738,6 +738,106 @@ pub fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, String> {
     }
 }
 
+/// A comprehensive MCP configuration export bundle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpBundle {
+    pub version: String,
+    pub exported_at: String,
+    pub claude: Option<serde_json::Value>,
+    pub codex: Option<String>,
+    pub gemini: Option<serde_json::Value>,
+}
+
+/// Exports raw MCP configuration files from Claude, Codex and Gemini.
+#[tauri::command]
+pub fn export_all_mcp_configs() -> Result<McpBundle, String> {
+    let home = dirs::home_dir().ok_or("Diretório de usuário (Home) não encontrado")?;
+    let claude_path = home.join(".claude").join(".mcp.json");
+    let codex_path = home.join(".codex").join("config.toml");
+    let gemini_path = home.join(".gemini").join("config").join("mcp_config.json");
+
+    let claude = if claude_path.exists() {
+        std::fs::read_to_string(&claude_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+    } else {
+        None
+    };
+
+    let codex = if codex_path.exists() {
+        std::fs::read_to_string(&codex_path).ok()
+    } else {
+        None
+    };
+
+    let gemini = if gemini_path.exists() {
+        std::fs::read_to_string(&gemini_path)
+            .ok()
+            .and_then(|s| serde_json::from_str(&s).ok())
+    } else {
+        None
+    };
+
+    Ok(McpBundle {
+        version: env!("CARGO_PKG_VERSION").to_string(),
+        exported_at: chrono::Local::now().to_rfc3339(),
+        claude,
+        codex,
+        gemini,
+    })
+}
+
+/// Imports and restores MCP configurations from an MCP bundle, creating backups first.
+#[tauri::command]
+pub fn import_all_mcp_configs(bundle: McpBundle) -> Result<String, String> {
+    let home = dirs::home_dir().ok_or("Diretório de usuário (Home) não encontrado")?;
+    let mut count = 0;
+
+    if let Some(claude_val) = bundle.claude {
+        let claude_path = home.join(".claude").join(".mcp.json");
+        if claude_path.exists() {
+            let _ = backup_file(&claude_path);
+        } else if let Some(parent) = claude_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let json_str = serde_json::to_string_pretty(&claude_val).map_err(|e| e.to_string())?;
+        std::fs::write(&claude_path, json_str).map_err(|e| e.to_string())?;
+        count += 1;
+    }
+
+    if let Some(codex_str) = bundle.codex {
+        let codex_path = home.join(".codex").join("config.toml");
+        if codex_path.exists() {
+            let _ = backup_file(&codex_path);
+        } else if let Some(parent) = codex_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        std::fs::write(&codex_path, codex_str).map_err(|e| e.to_string())?;
+        count += 1;
+    }
+
+    if let Some(gemini_val) = bundle.gemini {
+        let gemini_path = home.join(".gemini").join("config").join("mcp_config.json");
+        if gemini_path.exists() {
+            let _ = backup_file(&gemini_path);
+        } else if let Some(parent) = gemini_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let json_str = serde_json::to_string_pretty(&gemini_val).map_err(|e| e.to_string())?;
+        std::fs::write(&gemini_path, json_str).map_err(|e| e.to_string())?;
+        count += 1;
+    }
+
+    crate::util::log_event(
+        "mcp",
+        &format!("import_all_mcp_configs: {} configs restauradas", count),
+    );
+    Ok(format!(
+        "{} configuração(ões) de MCP restauradas com sucesso.",
+        count
+    ))
+}
+
 // ============================================================
 // TESTS
 // ============================================================

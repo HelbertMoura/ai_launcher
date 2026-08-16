@@ -7,6 +7,7 @@ import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
 import { reportDoctorResults } from "../inbox/inboxStore";
+import { showToast } from "../../ui/toastStore";
 import {
   buildDoctorItems,
   buildDoctorSummary,
@@ -25,6 +26,8 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const { items: prereqItems, loading, error: storeError, refresh } = usePrerequisites();
   const [actionError, setActionError] = useState<string | null>(null);
   const [fixing, setFixing] = useState<string | null>(null);
+  const [cleaning, setCleaning] = useState(false);
+  const [cleanMessage, setCleanMessage] = useState<string | null>(null);
   const [dryRun, setDryRun] = useState(dryRunProp);
   // Fix awaiting user preview/confirmation before it actually runs.
   const [pendingFix, setPendingFix] = useState<{
@@ -83,6 +86,24 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     setFixAcknowledged(false);
   }, []);
 
+  const handleCleanCache = useCallback(async () => {
+    setCleaning(true);
+    setActionError(null);
+    try {
+      const res = await invoke<{ healed_stubs: number; cleaned_temp_files: number; message: string }>(
+        "cleanup_system_cache",
+      );
+      setCleanMessage(res.message);
+      showToast(t("doctor.cleanSuccess"), "success");
+      await refresh();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : String(e));
+      showToast(String(e), "error");
+    } finally {
+      setCleaning(false);
+    }
+  }, [refresh, t]);
+
   const critical = items.filter((i) => i.severity === "critical");
   const warnings = items.filter((i) => i.severity === "warning");
   const infos = items.filter((i) => i.severity === "info");
@@ -96,6 +117,14 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
           <p className="cd-page__sub">{t("doctor.subtitle")}</p>
         </div>
         <div className="cd-doc__actions">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleCleanCache}
+            disabled={loading || cleaning}
+          >
+            {cleaning ? t("doctor.cleaningCache") : `🧹 ${t("doctor.cleanCache")}`}
+          </Button>
           <label className="cd-doc__dry-run">
             <input
               type="checkbox"
@@ -108,12 +137,18 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
             size="sm"
             variant="ghost"
             onClick={() => void refresh()}
-            disabled={loading}
+            disabled={loading || cleaning}
           >
             {loading ? t("common.loading") : t("doctor.runDiagnosis")}
           </Button>
         </div>
       </header>
+
+      {cleanMessage && (
+        <div className="cd-doc__clean-msg" style={{ marginBottom: "1rem", padding: "0.75rem 1rem", borderRadius: "8px", background: "var(--cd-bg-surface-2, rgba(255,255,255,0.04))", border: "1px solid var(--cd-border, rgba(255,255,255,0.08))", fontSize: "0.85rem", color: "var(--cd-accent, #6366f1)" }}>
+          ✓ {cleanMessage}
+        </div>
+      )}
 
       {!loading && !error && (
         <section className={`cd-doc__summary cd-doc__summary--${summary.status}`} aria-label={t("doctor.summaryLabel")}>

@@ -627,6 +627,11 @@ export const en: Dictionary = {
       replaceMessage: "Recognized backup keys will replace the current local configuration. Redacted credentials will not be restored.",
       replaceConfirm: "Replace configuration",
       imported: "{{count}} keys imported · {{redacted}} secrets preserved/redacted",
+      exportMcp: "Export MCP Bundle",
+      importMcp: "Restore MCP Bundle",
+      mcpExported: "MCP servers bundle exported successfully!",
+      mcpImported: "MCP bundle restored successfully!",
+      mcpImportFailed: "Failed to restore MCP bundle.",
     },
     providers: {
       eyebrow: "Credentials and routing",
@@ -876,6 +881,9 @@ export const en: Dictionary = {
     wouldFix: "Would auto-fix",
     confirmFixTitle: "Fix {{name}}?",
     confirmFixMessage: "Review the command that will be executed before continuing.",
+    cleanCache: "Clean Cache & Repair",
+    cleaningCache: "Cleaning…",
+    cleanSuccess: "Cleanup completed",
   },
   updates: {
     title: "Updates",
