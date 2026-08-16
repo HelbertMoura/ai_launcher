@@ -90,7 +90,7 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             pip_pkg: Some("aider-chat".into()),
             install_method: "pip".into(),
             install_url: Some("https://aider.chat/docs/install.html".into()),
-            extra_paths: vec![],
+            extra_paths: vec![r"%USERPROFILE%\.local\bin\aider.exe".into()],
             update_manifest_url: None,
         },
         CliInfo {
@@ -98,13 +98,15 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             name: "Goose".into(),
             command: "goose".into(),
             flag: None,
-            install_cmd: "irm https://github.com/block/goose/releases/latest/download/goose_windows_amd64.zip -OutFile goose.zip".into(),
+            install_cmd:
+                "$env:CONFIGURE='false'; irm https://github.com/block/goose/raw/main/download_cli.ps1 | iex"
+                    .into(),
             version_cmd: "goose --version".into(),
             npm_pkg: None,
             pip_pkg: None,
             install_method: "script".into(),
             install_url: Some("https://block.github.io/goose/".into()),
-            extra_paths: vec![],
+            extra_paths: vec![r"%USERPROFILE%\.local\bin\goose.exe".into()],
             update_manifest_url: None,
         },
         CliInfo {
