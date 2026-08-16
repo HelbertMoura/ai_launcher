@@ -35,13 +35,18 @@ pub fn get_cli_definitions() -> Vec<CliInfo> {
             name: "Claude".into(),
             command: "claude".into(),
             flag: Some("--dangerously-skip-permissions".into()),
-            install_cmd: "npm install -g @anthropic-ai/claude-code".into(),
+            install_cmd: "irm https://claude.ai/install.ps1 | iex".into(),
             version_cmd: "claude --version".into(),
             npm_pkg: Some("@anthropic-ai/claude-code".into()),
             pip_pkg: None,
-            install_method: "npm".into(),
-            install_url: None,
-            extra_paths: vec![],
+            install_method: "script".into(),
+            install_url: Some(
+                "https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview".into(),
+            ),
+            extra_paths: vec![
+                r"%USERPROFILE%\.local\bin\claude.exe".into(),
+                r"%LOCALAPPDATA%\Programs\claude\bin\claude.exe".into(),
+            ],
             update_manifest_url: None,
         },
         CliInfo {

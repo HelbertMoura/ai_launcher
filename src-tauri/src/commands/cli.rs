@@ -4,10 +4,10 @@ use serde::Serialize;
 
 use crate::safety::{append_env_assignments, sanitize_args};
 use crate::util::{
-    check_cli_installed, compare_versions, encode_powershell_command, fetch_manifest_version,
-    find_windows_terminal, get_cli_definitions, get_installed_version, log_event, npm_latest,
-    resolve_cli_path_win, stream_install, validate_directory, CheckResult, CliInfo,
-    DEFAULT_INSTALL_TIMEOUT_SEC,
+    check_cli_installed, command_exists, compare_versions, encode_powershell_command,
+    fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
+    heal_claude_npm_stub_if_needed, log_event, npm_latest, resolve_cli_path_win, stream_install,
+    validate_directory, CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
 /// Result returned by all launch commands.
@@ -163,11 +163,14 @@ pub fn write_project_profile(directory: String, contents: String) -> Result<(), 
 }
 
 #[tauri::command]
-pub fn check_clis() -> Vec<CheckResult> {
-    get_cli_definitions()
-        .iter()
-        .map(|cli| {
-            let (installed, version) = check_cli_installed(cli);
+pub async fn check_clis() -> Vec<CheckResult> {
+    heal_claude_npm_stub_if_needed();
+    let clis = get_cli_definitions();
+    let mut tasks = Vec::with_capacity(clis.len());
+
+    for cli in clis {
+        tasks.push(tokio::task::spawn_blocking(move || {
+            let (installed, version) = check_cli_installed(&cli);
             CheckResult {
                 key: cli.key.clone(),
                 name: cli.name.clone(),
@@ -175,12 +178,21 @@ pub fn check_clis() -> Vec<CheckResult> {
                 version,
                 install_command: Some(cli.install_cmd.clone()),
             }
-        })
-        .collect()
+        }));
+    }
+
+    let mut results = Vec::with_capacity(tasks.len());
+    for task in tasks {
+        if let Ok(res) = task.await {
+            results.push(res);
+        }
+    }
+    results
 }
 
 #[tauri::command]
 pub fn check_cli_updates() -> Vec<crate::util::UpdateInfo> {
+    heal_claude_npm_stub_if_needed();
     use crate::util::UpdateInfo;
     get_cli_definitions()
         .into_iter()
@@ -203,7 +215,7 @@ pub fn check_cli_updates() -> Vec<crate::util::UpdateInfo> {
                 has_update,
                 method: cli.install_method.clone(),
                 no_api,
-                key: None,
+                key: Some(cli.key.clone()),
             }
         })
         .collect()
@@ -233,14 +245,15 @@ pub async fn install_cli(
         match install_method.as_str() {
             "npm" => {
                 let pkg = npm_pkg.ok_or("Pacote npm ausente")?;
-                stream_install(
-                    app,
-                    key_for_work,
-                    "npm".into(),
-                    vec!["install".into(), "-g".into(), pkg],
-                    secs,
-                )
-                .await
+                let mut args = vec!["install".into(), "-g".into(), pkg.clone()];
+                if key_for_work == "claude" {
+                    args.push("--include=optional".into());
+                }
+                let res = stream_install(app, key_for_work.clone(), "npm".into(), args, secs).await;
+                if key_for_work == "claude" {
+                    heal_claude_npm_stub_if_needed();
+                }
+                res
             }
             "pip" => {
                 let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
@@ -254,14 +267,29 @@ pub async fn install_cli(
                 .await
             }
             "script" => {
-                stream_install(
+                let shell = if command_exists("pwsh") {
+                    "pwsh"
+                } else {
+                    "powershell"
+                };
+                let res = stream_install(
                     app,
-                    key_for_work,
-                    "pwsh".into(),
-                    vec!["-Command".into(), install_cmd],
+                    key_for_work.clone(),
+                    shell.into(),
+                    vec![
+                        "-NoProfile".into(),
+                        "-ExecutionPolicy".into(),
+                        "Bypass".into(),
+                        "-Command".into(),
+                        install_cmd,
+                    ],
                     secs,
                 )
-                .await
+                .await;
+                if key_for_work == "claude" {
+                    heal_claude_npm_stub_if_needed();
+                }
+                res
             }
             "browser" => {
                 if let Some(url) = install_url {
@@ -311,14 +339,15 @@ pub async fn update_cli(
         match install_method.as_str() {
             "npm" => {
                 let pkg = npm_pkg.ok_or("Pacote npm ausente")?;
-                stream_install(
-                    app,
-                    key_for_work,
-                    "npm".into(),
-                    vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
-                    secs,
-                )
-                .await
+                let mut args = vec!["install".into(), "-g".into(), format!("{}@latest", pkg)];
+                if key_for_work == "claude" {
+                    args.push("--include=optional".into());
+                }
+                let res = stream_install(app, key_for_work.clone(), "npm".into(), args, secs).await;
+                if key_for_work == "claude" {
+                    heal_claude_npm_stub_if_needed();
+                }
+                res
             }
             "pip" => {
                 let pkg = pip_pkg.ok_or("Pacote pip ausente")?;
@@ -332,14 +361,29 @@ pub async fn update_cli(
                 .await
             }
             "script" => {
-                stream_install(
+                let shell = if command_exists("pwsh") {
+                    "pwsh"
+                } else {
+                    "powershell"
+                };
+                let res = stream_install(
                     app,
-                    key_for_work,
-                    "pwsh".into(),
-                    vec!["-Command".into(), install_cmd],
+                    key_for_work.clone(),
+                    shell.into(),
+                    vec![
+                        "-NoProfile".into(),
+                        "-ExecutionPolicy".into(),
+                        "Bypass".into(),
+                        "-Command".into(),
+                        install_cmd,
+                    ],
                     secs,
                 )
-                .await
+                .await;
+                if key_for_work == "claude" {
+                    heal_claude_npm_stub_if_needed();
+                }
+                res
             }
             other => Err(format!("Atualização via '{}' não suportada", other)),
         }

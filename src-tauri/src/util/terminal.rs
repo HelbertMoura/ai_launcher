@@ -123,7 +123,60 @@ pub fn find_exe_from_start_menu(lnk_name_contains: &str) -> Option<PathBuf> {
     None
 }
 
+pub fn heal_claude_npm_stub_if_needed() {
+    let prefixes = [r"%APPDATA%\npm", r"%LOCALAPPDATA%\npm"];
+    for prefix in prefixes {
+        let base = expand_env(prefix);
+        let claude_bin = std::path::Path::new(&base)
+            .join("node_modules")
+            .join("@anthropic-ai")
+            .join("claude-code")
+            .join("bin")
+            .join("claude.exe");
+
+        if claude_bin.exists() {
+            let is_stub = match std::fs::metadata(&claude_bin) {
+                Ok(meta) => meta.len() < 4096,
+                Err(_) => false,
+            };
+            if is_stub {
+                let install_script = std::path::Path::new(&base)
+                    .join("node_modules")
+                    .join("@anthropic-ai")
+                    .join("claude-code")
+                    .join("install.cjs");
+                if install_script.exists() {
+                    let _ = run_silent("node", &[install_script.to_string_lossy().as_ref()]);
+                }
+                let still_stub = match std::fs::metadata(&claude_bin) {
+                    Ok(meta) => meta.len() < 4096,
+                    Err(_) => true,
+                };
+                if still_stub {
+                    for cand in [
+                        expand_env(r"%USERPROFILE%\.local\bin\claude.exe"),
+                        expand_env(r"%LOCALAPPDATA%\Programs\claude\bin\claude.exe"),
+                    ] {
+                        let cand_path = std::path::Path::new(&cand);
+                        if cand_path.exists() {
+                            if let Ok(meta) = std::fs::metadata(cand_path) {
+                                if meta.len() > 4096 {
+                                    let _ = std::fs::copy(cand_path, &claude_bin);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn resolve_cli_path_win(cmd: &str, extra_paths: &[String]) -> Option<String> {
+    if cmd == "claude" {
+        heal_claude_npm_stub_if_needed();
+    }
     for raw in extra_paths {
         let expanded = expand_env(raw);
         if std::path::Path::new(&expanded).exists() {
@@ -156,11 +209,6 @@ pub fn resolve_cli_path_win(cmd: &str, extra_paths: &[String]) -> Option<String>
             .unwrap_or_default()
     };
 
-    for path in &where_results {
-        if !path.to_lowercase().contains(r"\.local\bin\") {
-            return Some(path.clone());
-        }
-    }
     if let Some(first) = where_results.first() {
         return Some(first.clone());
     }

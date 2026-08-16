@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, startTransition, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import pkg from "../../package.json";
 import { ACCENTS, useAccent, type Accent } from "../hooks/useAccent";
 import { useDensity } from "../hooks/useDensity";
@@ -82,7 +82,12 @@ const OnboardingPage = lazy(() =>
 
 export function App() {
   const { t } = useTranslation();
-  const [active, setActive] = useState<TabId>("command-center");
+  const [active, setActiveState] = useState<TabId>("command-center");
+  const setActive = useCallback((tab: TabId) => {
+    startTransition(() => {
+      setActiveState(tab);
+    });
+  }, []);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const { theme, setTheme, cycleTheme } = useTheme();
   const { accent, setAccent } = useAccent();

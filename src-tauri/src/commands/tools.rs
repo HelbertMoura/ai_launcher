@@ -12,10 +12,12 @@ pub fn get_all_tools() -> Vec<ToolInfo> {
 }
 
 #[tauri::command]
-pub fn check_tools() -> Vec<CheckResult> {
-    get_tool_definitions()
-        .iter()
-        .map(|tool| {
+pub async fn check_tools() -> Vec<CheckResult> {
+    let tools = get_tool_definitions();
+    let mut tasks = Vec::with_capacity(tools.len());
+
+    for tool in tools {
+        tasks.push(tokio::task::spawn_blocking(move || {
             let cmd_in_path = command_exists(&tool.command);
             let path = find_tool_path(&tool.key);
             let has_binary = path.is_some();
@@ -58,8 +60,16 @@ pub fn check_tools() -> Vec<CheckResult> {
                 version,
                 install_command: Some(tool.install_hint.clone()),
             }
-        })
-        .collect()
+        }));
+    }
+
+    let mut results = Vec::with_capacity(tasks.len());
+    for task in tasks {
+        if let Ok(res) = task.await {
+            results.push(res);
+        }
+    }
+    results
 }
 
 #[tauri::command]

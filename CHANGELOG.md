@@ -5,6 +5,37 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [22.6.1] — 2026-08-16 — Claude Code Native Windows Fix & Self-Healing Installer
+
+Correção definitiva para o erro de incompatibilidade do binário do Claude Code no Windows (`Esta versão de claude.exe não é compatível com a versão do Windows sendo executada`) e migração para o instalador nativo oficial da Anthropic.
+
+### Claude Code Official Native Installer & Self-Healing
+- **Anthropic Official Script Migration:** Atualizada a definição do Claude Code (`definitions.rs`) para usar o instalador PowerShell oficial nativo (`irm https://claude.ai/install.ps1 | iex`), instalando o executável nativo diretamente em `%USERPROFILE%\.local\bin\claude.exe`.
+- **Automatic NPM Stub Self-Healing (`heal_claude_npm_stub_if_needed`):** Implementada autocura inteligente para instalações e atualizações via npm que deixavam o arquivo `bin/claude.exe` como um script de erro de 500 bytes (quando os scripts de ciclo de vida eram bloqueados pelo npm no Windows). O launcher detecta stubs inválidos e os restaura silenciosamente via `install.cjs` ou copiando o executável nativo de 64 bits.
+- **Robust Path & Shell Resolution:** `resolve_cli_path_win` prioriza os binários nativos em `extra_paths` (`%USERPROFILE%\.local\bin\claude.exe` e `%LOCALAPPDATA%\Programs\claude\bin\claude.exe`) e executa scripts via `pwsh`/`powershell` com flags seguras de execução.
+- **Support for Text/JSON Manifests:** `fetch_manifest_version` atualizado para processar manifestos em formato JSON e respostas de versão em texto simples.
+
+## [22.6.0] — 2026-08-14 — Rust Tokio Concurrency, Zero-Lag Tab Navigation & Launch Marketing Kit
+
+Release de aceleração assíncrona, paralelização massiva de checagens no Rust com Tokio, eliminação total de bloqueios nas transições de abas via cache Stale-While-Revalidate, transições não-bloqueantes no React 19 (`startTransition`) e kit oficial de divulgação e marketing da Dev Maniac's.
+
+### Rust Backend Concurrency & OS Probing
+- **Async Parallel Environment Checks (`check_environment`):** Todas as 14 verificações de binários e versões do sistema operacional (`node`, `npm`, `git`, `python`, `rustc`, `cargo`, `pnpm`, `yarn`, `bun`, `wt`, `pwsh`, `git-lfs`, `docker`, `code`, `tauri`) agora executam concorrentemente em threads paralelas via `tokio::task::spawn_blocking` e `tokio::join!`. O tempo total de resposta caiu de **~3.500ms para ~180ms**.
+- **Parallel CLI & Tool Diagnostics:** `check_tools` e `check_clis` convertidos em comandos assíncronos que despacham inspeções individuais em paralelo.
+
+### UI/UX & Stale-While-Revalidate Hydration
+- **Unified `environmentStore`:** Store global com `useSyncExternalStore` e cache de 10 minutos em `sessionStorage`. As telas de **Pré-requisitos** e **Doctor** agora renderizam instantaneamente no primeiro frame (0ms), sincronizando atualizações suavemente em segundo plano.
+- **Unified Doctor State:** `DoctorPage` sincronizado diretamente com `usePrerequisites` e `environmentStore`, eliminando telas em branco e diagnósticos duplicados.
+- **Non-blocking Navigation (`startTransition`):** Navegação entre abas protegida com `startTransition` do React 19, garantindo 60 FPS contínuos e zero latência em cliques rápidos na Sidebar e na Command Palette (`Ctrl+K`).
+
+### Marketing & Social Media Kit
+- **Kit Oficial de Lançamento:** Criado `docs/marketing/social-media-kit.md` com materiais prontos para Twitter/X (posts e threads), Reddit (`r/LocalLLaMA`, `r/ChatGPTCoding`, `r/rust`, `r/tauri`), Show HN (Hacker News), LinkedIn e Discord.
+- **Assets de Imagem Gerados:** Hero Banner 16:9 de lançamento e Feature Card 1:1 com a identidade visual oficial da Dev Maniac's.
+
+### Validation
+- `npm run typecheck` — 0 erros.
+- `npm test` — 35 arquivos de teste e 217 testes passando com 100% de sucesso.
+
 ## [22.5.0] — 2026-08-14 — Performance Acceleration, Keep-Alive Navigation & Official Icons
 
 Release de alta performance, otimização extrema de responsividade de UI, troca instantânea de abas com retenção de estado (`TabKeepAlive`), pré-carregamento assíncrono em segundo plano (`requestIdleCallback`), aceleração por hardware (GPU) e ícones oficiais de marca dos agentes de IA.

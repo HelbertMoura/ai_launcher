@@ -152,147 +152,195 @@ pub fn check_latest_release() -> Result<serde_json::Value, String> {
 }
 
 #[tauri::command]
-pub fn check_environment() -> Vec<CheckResult> {
-    let mut results = vec![];
-
-    let (npm_ok, npm_ver) = run_silent("npm", &["--version"]);
-    let (_, node_ver) = run_silent("node", &["--version"]);
-    results.push(CheckResult {
-        key: "node".into(),
-        name: "Node.js / npm".into(),
-        installed: npm_ok,
-        version: Some(format!(
-            "Node {} / npm {}",
-            node_ver.unwrap_or_else(|| "—".into()),
-            npm_ver.unwrap_or_else(|| "—".into())
-        )),
-        install_command: Some("https://nodejs.org".into()),
+pub async fn check_environment() -> Vec<CheckResult> {
+    let t_node = tokio::task::spawn_blocking(|| {
+        let (npm_ok, npm_ver) = run_silent("npm", &["--version"]);
+        let (_, node_ver) = run_silent("node", &["--version"]);
+        CheckResult {
+            key: "node".into(),
+            name: "Node.js / npm".into(),
+            installed: npm_ok,
+            version: Some(format!(
+                "Node {} / npm {}",
+                node_ver.unwrap_or_else(|| "—".into()),
+                npm_ver.unwrap_or_else(|| "—".into())
+            )),
+            install_command: Some("https://nodejs.org".into()),
+        }
     });
 
-    let (py_ok, py_ver) = detect_python();
-    let (pip_ok, _) = run_silent("pip", &["--version"]);
-    results.push(CheckResult {
-        key: "python".into(),
-        name: "Python / pip".into(),
-        installed: py_ok || pip_ok,
-        version: py_ver.map(|v| format!("Python {}", v)),
-        install_command: Some("https://python.org".into()),
+    let t_py = tokio::task::spawn_blocking(|| {
+        let (py_ok, py_ver) = detect_python();
+        let (pip_ok, _) = run_silent("pip", &["--version"]);
+        CheckResult {
+            key: "python".into(),
+            name: "Python / pip".into(),
+            installed: py_ok || pip_ok,
+            version: py_ver.map(|v| format!("Python {}", v)),
+            install_command: Some("https://python.org".into()),
+        }
     });
 
-    let (git_ok, git_ver) = run_silent("git", &["--version"]);
-    results.push(CheckResult {
-        key: "git".into(),
-        name: "Git".into(),
-        installed: git_ok,
-        version: git_ver,
-        install_command: Some("https://git-scm.com".into()),
+    let t_git = tokio::task::spawn_blocking(|| {
+        let (git_ok, git_ver) = run_silent("git", &["--version"]);
+        CheckResult {
+            key: "git".into(),
+            name: "Git".into(),
+            installed: git_ok,
+            version: git_ver,
+            install_command: Some("https://git-scm.com".into()),
+        }
     });
 
-    let (rust_ok, rust_ver) = run_silent("rustc", &["--version"]);
-    results.push(CheckResult {
-        key: "rust".into(),
-        name: "Rust".into(),
-        installed: rust_ok,
-        version: rust_ver,
-        install_command: Some("https://rustup.rs".into()),
+    let t_rust = tokio::task::spawn_blocking(|| {
+        let (rust_ok, rust_ver) = run_silent("rustc", &["--version"]);
+        CheckResult {
+            key: "rust".into(),
+            name: "Rust".into(),
+            installed: rust_ok,
+            version: rust_ver,
+            install_command: Some("https://rustup.rs".into()),
+        }
     });
 
-    let (cargo_ok, cargo_ver) = run_silent("cargo", &["--version"]);
-    if cargo_ok {
-        results.push(CheckResult {
-            key: "cargo".into(),
-            name: "Cargo".into(),
-            installed: true,
-            version: cargo_ver,
-            install_command: Some("Instalado com Rust".into()),
-        });
-    }
-
-    let (pnpm_ok, pnpm_ver) = run_silent("pnpm", &["--version"]);
-    results.push(CheckResult {
-        key: "pnpm".into(),
-        name: "pnpm".into(),
-        installed: pnpm_ok,
-        version: pnpm_ver,
-        install_command: Some("npm install -g pnpm".into()),
-    });
-
-    let (yarn_ok, yarn_ver) = run_silent("yarn", &["--version"]);
-    results.push(CheckResult {
-        key: "yarn".into(),
-        name: "yarn".into(),
-        installed: yarn_ok,
-        version: yarn_ver,
-        install_command: Some("npm install -g yarn".into()),
-    });
-
-    let (bun_ok, bun_ver) = run_silent("bun", &["--version"]);
-    results.push(CheckResult {
-        key: "bun".into(),
-        name: "Bun".into(),
-        installed: bun_ok,
-        version: bun_ver,
-        install_command: Some("https://bun.sh".into()),
-    });
-
-    let wt_found = find_windows_terminal().is_some();
-    results.push(CheckResult {
-        key: "windows-terminal".into(),
-        name: "Windows Terminal".into(),
-        installed: wt_found,
-        version: if wt_found {
-            Some("Disponível".into())
+    let t_cargo = tokio::task::spawn_blocking(|| {
+        let (cargo_ok, cargo_ver) = run_silent("cargo", &["--version"]);
+        if cargo_ok {
+            Some(CheckResult {
+                key: "cargo".into(),
+                name: "Cargo".into(),
+                installed: true,
+                version: cargo_ver,
+                install_command: Some("Instalado com Rust".into()),
+            })
         } else {
             None
-        },
-        install_command: Some("Microsoft Store → Windows Terminal".into()),
+        }
     });
 
-    let (pwsh_ok, pwsh_ver) = run_silent("pwsh", &["--version"]);
-    results.push(CheckResult {
-        key: "powershell".into(),
-        name: "PowerShell 7+".into(),
-        installed: pwsh_ok,
-        version: pwsh_ver,
-        install_command: Some("https://github.com/PowerShell/PowerShell".into()),
+    let t_pnpm = tokio::task::spawn_blocking(|| {
+        let (pnpm_ok, pnpm_ver) = run_silent("pnpm", &["--version"]);
+        CheckResult {
+            key: "pnpm".into(),
+            name: "pnpm".into(),
+            installed: pnpm_ok,
+            version: pnpm_ver,
+            install_command: Some("npm install -g pnpm".into()),
+        }
     });
 
-    let (gitlfs_ok, gitlfs_ver) = run_silent("git", &["lfs", "version"]);
-    results.push(CheckResult {
-        key: "git-lfs".into(),
-        name: "Git LFS".into(),
-        installed: gitlfs_ok,
-        version: gitlfs_ver,
-        install_command: Some("https://git-lfs.github.com".into()),
+    let t_yarn = tokio::task::spawn_blocking(|| {
+        let (yarn_ok, yarn_ver) = run_silent("yarn", &["--version"]);
+        CheckResult {
+            key: "yarn".into(),
+            name: "yarn".into(),
+            installed: yarn_ok,
+            version: yarn_ver,
+            install_command: Some("npm install -g yarn".into()),
+        }
     });
 
-    let (docker_ok, docker_ver) = run_silent("docker", &["--version"]);
-    results.push(CheckResult {
-        key: "docker".into(),
-        name: "Docker".into(),
-        installed: docker_ok,
-        version: docker_ver,
-        install_command: Some("https://docker.com".into()),
+    let t_bun = tokio::task::spawn_blocking(|| {
+        let (bun_ok, bun_ver) = run_silent("bun", &["--version"]);
+        CheckResult {
+            key: "bun".into(),
+            name: "Bun".into(),
+            installed: bun_ok,
+            version: bun_ver,
+            install_command: Some("https://bun.sh".into()),
+        }
     });
 
-    let (vscode_ok, vscode_ver) = run_silent("code", &["--version"]);
-    results.push(CheckResult {
-        key: "vscode".into(),
-        name: "VS Code".into(),
-        installed: vscode_ok,
-        version: vscode_ver.map(|v| v.lines().next().unwrap_or("").to_string()),
-        install_command: Some("https://code.visualstudio.com".into()),
+    let t_wt = tokio::task::spawn_blocking(|| {
+        let wt_found = find_windows_terminal().is_some();
+        CheckResult {
+            key: "windows-terminal".into(),
+            name: "Windows Terminal".into(),
+            installed: wt_found,
+            version: if wt_found {
+                Some("Disponível".into())
+            } else {
+                None
+            },
+            install_command: Some("Microsoft Store → Windows Terminal".into()),
+        }
     });
 
-    let (tauri_ok, _) = run_silent("npm", &["list", "-g", "@tauri-apps/cli", "--depth=0"]);
-    let (_, tauri_ver) = run_silent("tauri", &["--version"]);
-    results.push(CheckResult {
-        key: "tauri-cli".into(),
-        name: "Tauri CLI".into(),
-        installed: tauri_ok,
-        version: tauri_ver,
-        install_command: Some("npm install -g @tauri-apps/cli".into()),
+    let t_pwsh = tokio::task::spawn_blocking(|| {
+        let (pwsh_ok, pwsh_ver) = run_silent("pwsh", &["--version"]);
+        CheckResult {
+            key: "powershell".into(),
+            name: "PowerShell 7+".into(),
+            installed: pwsh_ok,
+            version: pwsh_ver,
+            install_command: Some("https://github.com/PowerShell/PowerShell".into()),
+        }
     });
+
+    let t_gitlfs = tokio::task::spawn_blocking(|| {
+        let (gitlfs_ok, gitlfs_ver) = run_silent("git", &["lfs", "version"]);
+        CheckResult {
+            key: "git-lfs".into(),
+            name: "Git LFS".into(),
+            installed: gitlfs_ok,
+            version: gitlfs_ver,
+            install_command: Some("https://git-lfs.github.com".into()),
+        }
+    });
+
+    let t_docker = tokio::task::spawn_blocking(|| {
+        let (docker_ok, docker_ver) = run_silent("docker", &["--version"]);
+        CheckResult {
+            key: "docker".into(),
+            name: "Docker".into(),
+            installed: docker_ok,
+            version: docker_ver,
+            install_command: Some("https://docker.com".into()),
+        }
+    });
+
+    let t_vscode = tokio::task::spawn_blocking(|| {
+        let (vscode_ok, vscode_ver) = run_silent("code", &["--version"]);
+        CheckResult {
+            key: "vscode".into(),
+            name: "VS Code".into(),
+            installed: vscode_ok,
+            version: vscode_ver.map(|v| v.lines().next().unwrap_or("").to_string()),
+            install_command: Some("https://code.visualstudio.com".into()),
+        }
+    });
+
+    let t_tauri = tokio::task::spawn_blocking(|| {
+        let (tauri_ok, _) = run_silent("npm", &["list", "-g", "@tauri-apps/cli", "--depth=0"]);
+        let (_, tauri_ver) = run_silent("tauri", &["--version"]);
+        CheckResult {
+            key: "tauri-cli".into(),
+            name: "Tauri CLI".into(),
+            installed: tauri_ok,
+            version: tauri_ver,
+            install_command: Some("npm install -g @tauri-apps/cli".into()),
+        }
+    });
+
+    let (r_node, r_py, r_git, r_rust, r_cargo, r_pnpm, r_yarn, r_bun, r_wt, r_pwsh, r_gitlfs, r_docker, r_vscode, r_tauri) = tokio::join!(
+        t_node, t_py, t_git, t_rust, t_cargo, t_pnpm, t_yarn, t_bun, t_wt, t_pwsh, t_gitlfs, t_docker, t_vscode, t_tauri
+    );
+
+    let mut results = vec![];
+    if let Ok(r) = r_node { results.push(r); }
+    if let Ok(r) = r_py { results.push(r); }
+    if let Ok(r) = r_git { results.push(r); }
+    if let Ok(r) = r_rust { results.push(r); }
+    if let Ok(Some(r)) = r_cargo { results.push(r); }
+    if let Ok(r) = r_pnpm { results.push(r); }
+    if let Ok(r) = r_yarn { results.push(r); }
+    if let Ok(r) = r_bun { results.push(r); }
+    if let Ok(r) = r_wt { results.push(r); }
+    if let Ok(r) = r_pwsh { results.push(r); }
+    if let Ok(r) = r_gitlfs { results.push(r); }
+    if let Ok(r) = r_docker { results.push(r); }
+    if let Ok(r) = r_vscode { results.push(r); }
+    if let Ok(r) = r_tauri { results.push(r); }
 
     results
 }
