@@ -74,6 +74,16 @@ pub fn read_exe_product_version(path: &std::path::Path) -> Option<String> {
 }
 
 pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
+    if cli.key == "claude" || cli.install_method == "script" || !cli.extra_paths.is_empty() {
+        if let Some(resolved) = resolve_cli_path_win(&cli.command, &cli.extra_paths) {
+            let (_, out) = run_silent(&resolved, &["--version"]);
+            if let Some(ref s) = out {
+                if let Some(ver) = extract_version(s) {
+                    return Some(ver);
+                }
+            }
+        }
+    }
     if let Some(ref npm_pkg) = cli.npm_pkg {
         let (_, out) = run_silent("npm", &["list", "-g", npm_pkg, "--depth=0", "--json"]);
         if let Some(ref s) = out {
@@ -244,10 +254,16 @@ pub fn fetch_github_latest(repo: &str) -> Option<String> {
 
 pub fn fetch_manifest_version(url: &str) -> Option<String> {
     let resp = http_agent().get(url).call().ok()?;
-    let json: serde_json::Value = resp.into_json().ok()?;
-    json["version"]
-        .as_str()
-        .map(|s| s.trim_start_matches('v').to_string())
+    let body = resp.into_string().ok()?;
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+        if let Some(v) = json["version"].as_str() {
+            return Some(v.trim_start_matches('v').to_string());
+        }
+        if let Some(t) = json["tag_name"].as_str() {
+            return Some(t.trim_start_matches('v').to_string());
+        }
+    }
+    extract_version(&body)
 }
 
 static NPM_LATEST_CACHE: std::sync::LazyLock<

@@ -162,6 +162,28 @@ mod tests {
     }
 
     #[test]
+    fn claude_cli_uses_official_script_and_extra_paths() {
+        let defs = get_cli_definitions();
+        let claude = defs
+            .iter()
+            .find(|c| c.key == "claude")
+            .expect("claude deve estar em get_cli_definitions");
+        assert_eq!(claude.command, "claude");
+        assert_eq!(claude.install_method, "script");
+        assert!(
+            claude
+                .extra_paths
+                .iter()
+                .any(|p| p.contains(r"\.local\bin\claude.exe")),
+            "extra_paths deve incluir %USERPROFILE%\\.local\\bin\\claude.exe"
+        );
+        assert!(
+            claude.install_cmd.contains("install.ps1"),
+            "install_cmd deve usar install.ps1 oficial"
+        );
+    }
+
+    #[test]
     fn includes_new_agents() {
         let defs = get_cli_definitions();
         for key in ["aider", "goose", "cline", "roocode"] {

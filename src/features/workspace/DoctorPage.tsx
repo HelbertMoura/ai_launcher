@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
-import type { PrereqCheck } from "../prereqs/usePrerequisites";
+import { usePrerequisites } from "../prereqs/usePrerequisites";
 import { Button } from "../../ui/Button";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
-import { invokeOrFallback } from "../../lib/tauri";
 import { reportDoctorResults } from "../inbox/inboxStore";
 import {
   buildDoctorItems,
@@ -23,9 +22,8 @@ interface DoctorPageProps {
 
 export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   const { t } = useTranslation();
-  const [items, setItems] = useState<DoctorItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { items: prereqItems, loading, error: storeError, refresh } = usePrerequisites();
+  const [actionError, setActionError] = useState<string | null>(null);
   const [fixing, setFixing] = useState<string | null>(null);
   const [dryRun, setDryRun] = useState(dryRunProp);
   // Fix awaiting user preview/confirmation before it actually runs.
@@ -37,25 +35,16 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
   // confirm button so a risky repair cannot run without explicit consent.
   const [fixAcknowledged, setFixAcknowledged] = useState(false);
 
-  const runDiagnosis = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const results = await invokeOrFallback<PrereqCheck[]>("check_environment", undefined, []);
-      setItems(buildDoctorItems(results));
-      reportDoctorResults(
-        results.map((r) => ({ key: r.key, name: r.name, installed: r.installed })),
-      );
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const items = useMemo(() => buildDoctorItems(prereqItems), [prereqItems]);
+  const error = actionError || storeError;
 
   useEffect(() => {
-    void runDiagnosis();
-  }, [runDiagnosis]);
+    if (prereqItems.length > 0) {
+      reportDoctorResults(
+        prereqItems.map((r) => ({ key: r.key, name: r.name, installed: r.installed })),
+      );
+    }
+  }, [prereqItems]);
 
   // Step 1: opening a fix only builds a preview and asks for confirmation.
   // The repair command is NOT executed until the user confirms.
@@ -77,16 +66,17 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     setPendingFix(null);
     setFixAcknowledged(false);
     setFixing(item.check.key);
+    setActionError(null);
     try {
       await invoke("install_prerequisite", { key: item.check.key });
       // Re-run diagnosis after fix
-      await runDiagnosis();
+      await refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setActionError(e instanceof Error ? e.message : String(e));
     } finally {
       setFixing(null);
     }
-  }, [pendingFix, runDiagnosis]);
+  }, [pendingFix, refresh]);
 
   const cancelFix = useCallback(() => {
     setPendingFix(null);
@@ -117,7 +107,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => void runDiagnosis()}
+            onClick={() => void refresh()}
             disabled={loading}
           >
             {loading ? t("common.loading") : t("doctor.runDiagnosis")}

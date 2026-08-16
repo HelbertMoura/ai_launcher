@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { invokeOrFallback } from "../../lib/tauri";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { environmentStore } from "./environmentStore";
 
 export interface PrereqCheck {
   /** Canonical key used by install_prerequisite (e.g. "node", "git", "vscode"). */
@@ -11,30 +11,17 @@ export interface PrereqCheck {
 }
 
 export function usePrerequisites() {
-  const [items, setItems] = useState<PrereqCheck[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const results = await invokeOrFallback<PrereqCheck[]>(
-        "check_environment",
-        undefined,
-        [],
-      );
-      setItems(results);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const snap = useSyncExternalStore(
+    environmentStore.subscribe,
+    environmentStore.getSnapshot,
+    environmentStore.getSnapshot,
+  );
 
   useEffect(() => {
-    void load();
+    void environmentStore.ensureLoaded();
   }, []);
 
-  return { items, loading, error, refresh: load };
+  const refresh = useCallback(() => environmentStore.refresh(), []);
+
+  return { ...snap, refresh };
 }
