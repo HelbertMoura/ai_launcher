@@ -1,6 +1,7 @@
 use tauri::Emitter;
 
 use crate::commands::cli::check_cli_updates;
+use crate::errors::AppError;
 use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
     fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal,
@@ -9,7 +10,7 @@ use crate::util::{
 };
 
 #[tauri::command]
-pub fn check_env_updates() -> Vec<UpdateInfo> {
+pub fn check_env_updates() -> Result<Vec<UpdateInfo>, AppError> {
     let items: Vec<(&str, &str, Option<&str>, &str)> = vec![
         ("Node.js", "node", None, "node"),
         ("npm", "npm", Some("npm"), "npm"),
@@ -47,7 +48,7 @@ pub fn check_env_updates() -> Vec<UpdateInfo> {
                 key: Some(key.to_string()),
             }
         })
-        .collect()
+        .collect())
 }
 
 #[tauri::command]
@@ -105,12 +106,14 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
     let app_env = app.clone();
     let app_tool = app.clone();
     let cli_task = tokio::task::spawn_blocking(move || {
-        let r = check_cli_updates();
+        // A scan error (task join failure) would previously have been impossible;
+        // degrade to an empty list instead of failing the whole summary.
+        let r = check_cli_updates().unwrap_or_default();
         let _ = app_cli.emit("updates-progress", "clis-done");
         r
     });
     let env_task = tokio::task::spawn_blocking(move || {
-        let r = check_env_updates();
+        let r = check_env_updates().unwrap_or_default();
         let _ = app_env.emit("updates-progress", "env-done");
         r
     });

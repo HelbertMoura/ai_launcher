@@ -23,6 +23,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use crate::errors::AppError;
+
 // ============================================================
 // TYPES
 // ============================================================
@@ -703,7 +705,7 @@ pub fn remove_mcp_server(cli: McpCli, name: String) -> Result<(), String> {
 ///   with a "reachable: unknown" note. (A real probe is deferred to a later
 ///   iteration to avoid leaking auth headers over the network here.)
 #[tauri::command]
-pub fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, String> {
+pub fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
     match server.transport {
         McpTransport::Stdio => {
             let Some(cmd) = server.command.as_deref().filter(|c| !c.trim().is_empty()) else {

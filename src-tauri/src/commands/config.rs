@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, OnceLock};
 
+use crate::errors::AppError;
 use crate::util::crash_dir;
 
 // The entire usage aggregator stays here — it's only called from read_usage_stats.
@@ -391,7 +392,7 @@ fn read_codex_usage(entries: &mut Vec<UsageEntry>, _warnings: &mut [String]) {
 // ============================================================
 
 #[tauri::command]
-pub fn read_usage_stats(force: Option<bool>) -> Result<UsageReport, String> {
+pub fn read_usage_stats(force: Option<bool>) -> Result<UsageReport, AppError> {
     if force.unwrap_or(false) {
         if let Ok(mut cache) = usage_cache().lock() {
             cache.clear();
