@@ -122,3 +122,6 @@ public/images/banner.*
 
 # OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
 src-tauri/.wolf
+
+# Mimosa hook runtime state (local)
+.mimosa/
