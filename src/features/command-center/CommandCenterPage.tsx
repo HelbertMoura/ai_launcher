@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import type { TabId } from "../../app/layout/TabId";
 import { Button } from "../../ui/Button";
 import { EmptyState, ART_TERMINAL } from "../../ui/EmptyState";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { showToast } from "../../ui/toastStore";
 import { loadProviders } from "../../providers/storage";
-import { invokeOrFallback } from "../../lib/tauri";
+import {
+  invokeOrFallback,
+  killSession,
+  launchCustomIde,
+  launchTool,
+} from "../../lib/tauri";
 import {
   formatProjectProfile,
   parseProjectProfile,
@@ -465,11 +469,12 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
   );
 
   const confirmKillSession = useCallback(async () => {
-    if (!killTarget?.sessionId) return;
+    const sessionId = killTarget?.sessionId;
+    if (!sessionId) return;
     const target = killTarget;
     setKillTarget(null);
     try {
-      await invoke("kill_session", { sessionId: target.sessionId });
+      await killSession(sessionId);
       showToast(t("commandCenter.killSuccess", { cli: target.cli }), "success");
       await refreshActiveSessions();
       history.refresh();
@@ -528,13 +533,10 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
     setLaunchingIde(true);
     try {
       if (installedTool) {
-        await invoke<string>("launch_tool", { toolKey: installedTool.key, directory });
+        await launchTool(installedTool.key, directory);
         showToast(t("commandCenter.ideStarted", { ide: installedTool.name }), "success");
       } else if (customIde) {
-        await invoke<string>("launch_custom_ide", {
-          launchCmd: customIde.launchCmd,
-          directory,
-        });
+        await launchCustomIde(customIde.launchCmd, directory);
         showToast(t("commandCenter.ideStarted", { ide: customIde.name }), "success");
       }
       appendAuditEvent({ action: "workspace.ide.open", outcome: "allowed", mode: getExecutionMode(), workspaceId: activeWorkspace?.id, detail: installedTool?.key ?? customIde?.key });

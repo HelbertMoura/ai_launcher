@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Banner } from "../../ui/Banner";
 import { EmptyState, ART_CHECK } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
+import {
+  runMaintenanceCommand,
+  updateAllClis,
+  type MaintenanceCommand,
+  type MaintenanceCommandArgs,
+} from "../../lib/tauri";
 import { useClis } from "../launcher/useClis";
 import { useTools } from "../tools/useTools";
 import { usePrerequisites } from "../prereqs/usePrerequisites";
@@ -38,15 +43,15 @@ export function UpdatesPage() {
     ? new Date(overview.checkedAt).toLocaleString(i18n.language)
     : t("updates.notChecked");
 
-  const run = async (id: string, cmd: string, args: Record<string, unknown>) => {
+  const run = async (id: string, cmd: MaintenanceCommand, args: MaintenanceCommandArgs) => {
     setBusy(id);
     setError(null);
     try {
-      await invoke(cmd, args);
+      await runMaintenanceCommand(cmd, args);
       const targetName =
-        (typeof args.cliKey === "string" && args.cliKey) ||
-        (typeof args.toolKey === "string" && args.toolKey) ||
-        (typeof args.key === "string" && args.key) ||
+        ("cliKey" in args && args.cliKey) ||
+        ("toolKey" in args && args.toolKey) ||
+        ("key" in args && args.key) ||
         "";
       if (cmd === "update_cli" || cmd === "install_cli" || cmd === "install_tool") {
         void ensurePermissionThenNotify(
@@ -66,7 +71,7 @@ export function UpdatesPage() {
     setBusy("__all__");
     setError(null);
     try {
-      await invoke("update_all_clis");
+      await updateAllClis();
       void ensurePermissionThenNotify(
         t("notifications.installDone.title", { name: t("updates.updateAll") }),
         t("notifications.installDone.body"),

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
+import { killSession } from "../../lib/tauri";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
@@ -667,7 +667,7 @@ function HistoryRow({
     if (!item.sessionId) return;
     setKilling(true);
     try {
-      await invoke("kill_session", { sessionId: item.sessionId });
+      await killSession(item.sessionId);
       const now = new Date().toISOString();
       onUpdate(index, {
         status: "failed",

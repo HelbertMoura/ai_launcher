@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useSyncExternalStore } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import {
+  addMcpServer,
+  mcpHealthCheck,
+  removeMcpServer,
+  updateMcpServer,
+} from "./commands";
 import { mcpStore, type McpSnapshot } from "./mcpStore";
 import {
   McpHealthSchema,
@@ -35,25 +40,25 @@ export function useMcp(): UseMcpResult {
   const refresh = useCallback(() => mcpStore.refresh(), []);
 
   const addServer = useCallback(async (cli: McpCli, server: McpServerInput) => {
-    await invoke("add_mcp_server", { cli, server });
+    await addMcpServer(cli, server);
     await mcpStore.refresh();
   }, []);
 
   const updateServer = useCallback(
     async (cli: McpCli, name: string, server: McpServerInput) => {
-      await invoke("update_mcp_server", { cli, name, server });
+      await updateMcpServer(cli, name, server);
       await mcpStore.refresh();
     },
     [],
   );
 
   const removeServer = useCallback(async (cli: McpCli, name: string) => {
-    await invoke("remove_mcp_server", { cli, name });
+    await removeMcpServer(cli, name);
     await mcpStore.refresh();
   }, []);
 
   const healthCheck = useCallback(async (server: McpServerInput) => {
-    const raw = await invoke<unknown>("mcp_health_check", { server });
+    const raw = await mcpHealthCheck(server);
     return McpHealthSchema.parse(raw);
   }, []);
 
