@@ -191,10 +191,10 @@ pub async fn check_clis() -> Vec<CheckResult> {
 }
 
 #[tauri::command]
-pub fn check_cli_updates() -> Vec<crate::util::UpdateInfo> {
+pub fn check_cli_updates() -> Result<Vec<crate::util::UpdateInfo>, crate::errors::AppError> {
     heal_claude_npm_stub_if_needed();
     use crate::util::UpdateInfo;
-    get_cli_definitions()
+    Ok(get_cli_definitions()
         .into_iter()
         .map(|cli| {
             let current = get_installed_version(&cli);
@@ -218,7 +218,7 @@ pub fn check_cli_updates() -> Vec<crate::util::UpdateInfo> {
                 key: Some(cli.key.clone()),
             }
         })
-        .collect()
+        .collect())
 }
 
 #[tauri::command]
@@ -405,7 +405,8 @@ pub async fn update_cli(
 pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
     let updates = tokio::task::spawn_blocking(check_cli_updates)
         .await
-        .map_err(|e| format!("Falha interna: {}", e))?;
+        .map_err(|e| format!("Falha interna: {}", e))?
+        .map_err(|e| e.to_string())?;
     let clis = get_cli_definitions();
     let mut seen_pkgs: std::collections::HashSet<String> = HashSet::default();
     let mut count = 0;
@@ -600,11 +601,11 @@ pub fn launch_custom_cli(
     args: Option<String>,
     directory: Option<String>,
     env: Option<HashMap<String, String>>,
-) -> Result<LaunchResult, String> {
+) -> Result<LaunchResult, crate::errors::AppError> {
     let session_id = uuid::Uuid::new_v4().to_string();
 
     if command.trim().is_empty() {
-        return Err("command vazio".to_string());
+        return Err("command vazio".into());
     }
     let safe_args = sanitize_args(args.as_deref().unwrap_or(""))?;
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;

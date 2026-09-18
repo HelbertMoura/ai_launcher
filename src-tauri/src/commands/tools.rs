@@ -1,5 +1,6 @@
 use std::os::windows::process::CommandExt;
 
+use crate::errors::AppError;
 use crate::util::{
     command_exists, encode_powershell_command, extract_version, find_tool_path,
     find_windows_terminal, get_tool_definitions, read_exe_product_version, resolve_windows_cmd,
@@ -128,9 +129,9 @@ pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String
 }
 
 #[tauri::command]
-pub fn launch_custom_ide(launch_cmd: String, directory: Option<String>) -> Result<String, String> {
+pub fn launch_custom_ide(launch_cmd: String, directory: Option<String>) -> Result<String, AppError> {
     if launch_cmd.trim().is_empty() {
-        return Err("launch_cmd vazio".to_string());
+        return Err("launch_cmd vazio".into());
     }
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
     let resolved = launch_cmd.replace("<dir>", &work_dir);
