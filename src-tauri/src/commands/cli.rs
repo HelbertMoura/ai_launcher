@@ -190,11 +190,12 @@ pub async fn check_clis() -> Vec<CheckResult> {
     results
 }
 
-#[tauri::command]
-pub fn check_cli_updates() -> Result<Vec<crate::util::UpdateInfo>, crate::errors::AppError> {
+/// Blocking scan of installed vs. latest CLI versions (filesystem + network
+/// per CLI). MUST run off the command thread — see [`check_cli_updates`].
+pub(crate) fn scan_cli_updates_blocking() -> Vec<crate::util::UpdateInfo> {
     heal_claude_npm_stub_if_needed();
     use crate::util::UpdateInfo;
-    Ok(get_cli_definitions()
+    get_cli_definitions()
         .into_iter()
         .map(|cli| {
             let current = get_installed_version(&cli);
@@ -218,7 +219,16 @@ pub fn check_cli_updates() -> Result<Vec<crate::util::UpdateInfo>, crate::errors
                 key: Some(cli.key.clone()),
             }
         })
-        .collect())
+        .collect()
+}
+
+#[tauri::command]
+pub async fn check_cli_updates() -> Result<Vec<crate::util::UpdateInfo>, crate::errors::AppError> {
+    tokio::task::spawn_blocking(scan_cli_updates_blocking)
+        .await
+        .map_err(|e| {
+            crate::errors::AppError::new(format!("background CLI update scan failed: {e}"))
+        })
 }
 
 #[tauri::command]
@@ -403,10 +413,9 @@ pub async fn update_cli(
 
 #[tauri::command]
 pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
-    let updates = tokio::task::spawn_blocking(check_cli_updates)
+    let updates = tokio::task::spawn_blocking(scan_cli_updates_blocking)
         .await
-        .map_err(|e| format!("Falha interna: {}", e))?
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| format!("Falha interna: {}", e))?;
     let clis = get_cli_definitions();
     let mut seen_pkgs: std::collections::HashSet<String> = HashSet::default();
     let mut count = 0;
