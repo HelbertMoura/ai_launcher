@@ -182,8 +182,8 @@ mod tests {
     #[test]
     fn reject_shell_metacharacters_blocks_injection_tokens() {
         for bad in [
-            "a;b", "a&b", "a|b", "a`b", "a$b", "a>b", "a<b", "a\nb", "a\rb", "a(b", "a)b",
-            "a{b", "a}b",
+            "a;b", "a&b", "a|b", "a`b", "a$b", "a>b", "a<b", "a\nb", "a\rb", "a(b", "a)b", "a{b",
+            "a}b",
         ] {
             assert!(
                 reject_shell_metacharacters(bad, "command").is_err(),

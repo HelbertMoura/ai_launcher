@@ -130,7 +130,10 @@ pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String
 }
 
 #[tauri::command]
-pub fn launch_custom_ide(launch_cmd: String, directory: Option<String>) -> Result<String, AppError> {
+pub fn launch_custom_ide(
+    launch_cmd: String,
+    directory: Option<String>,
+) -> Result<String, AppError> {
     if launch_cmd.trim().is_empty() {
         return Err("launch_cmd vazio".into());
     }

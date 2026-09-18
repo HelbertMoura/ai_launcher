@@ -48,9 +48,6 @@ impl Serialize for AppError {
     }
 }
 
-/// Convenience alias for command return types.
-pub type AppResult<T> = Result<T, AppError>;
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,7 +63,10 @@ mod tests {
     fn serializes_as_plain_string() {
         let err = AppError::new("falha ao ler arquivo");
         let json = serde_json::to_value(&err).expect("serialize AppError");
-        assert_eq!(json, serde_json::Value::String("falha ao ler arquivo".into()));
+        assert_eq!(
+            json,
+            serde_json::Value::String("falha ao ler arquivo".into())
+        );
     }
 
     #[test]
