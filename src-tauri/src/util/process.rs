@@ -152,7 +152,10 @@ pub fn validate_directory(dir: &str) -> Result<String, String> {
     }
     // SEC-004: Reject UNC paths (\\server\share and //server/share)
     if dir.starts_with(r"\\") || dir.starts_with("//") {
-        return Err(format!("Caminhos de rede (UNC) não são permitidos: {}", dir));
+        return Err(format!(
+            "Caminhos de rede (UNC) não são permitidos: {}",
+            dir
+        ));
     }
     let path = std::path::Path::new(dir);
     if !path.exists() {
