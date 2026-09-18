@@ -28,10 +28,11 @@ export async function openExternalUrl(url: string): Promise<void> {
 // ============================================================================
 // Typed command layer
 //
-// Every direct `invoke` call lives here (or in a feature-level commands
-// module when it needs domain types). Call sites never import
-// `@tauri-apps/api/core` themselves; errors keep surfacing as raw strings so
-// existing UI handling is unchanged.
+// This module is the canonical invoke layer for Tauri commands: new call
+// sites go through these typed wrappers instead of importing
+// `@tauri-apps/api/core` directly. A few legacy call sites still live
+// outside this module and migrate in their own waves; errors keep surfacing
+// as raw strings so existing UI handling is unchanged.
 // ============================================================================
 
 // --- Tray hotkey ------------------------------------------------------------
