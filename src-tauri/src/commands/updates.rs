@@ -1,6 +1,6 @@
 use tauri::Emitter;
 
-use crate::commands::cli::check_cli_updates;
+use crate::commands::cli::scan_cli_updates_blocking;
 use crate::errors::AppError;
 use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
@@ -9,8 +9,10 @@ use crate::util::{
     stream_install, CheckResult, UpdateInfo, UpdatesSummary, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
 
-#[tauri::command]
-pub fn check_env_updates() -> Result<Vec<UpdateInfo>, AppError> {
+/// Blocking scan of environment tool versions: up to 9 subprocess probes plus
+/// npm registry requests. MUST run off the command thread — see
+/// [`check_env_updates`].
+fn scan_env_updates_blocking() -> Vec<UpdateInfo> {
     let items: Vec<(&str, &str, Option<&str>, &str)> = vec![
         ("Node.js", "node", None, "node"),
         ("npm", "npm", Some("npm"), "npm"),
@@ -48,7 +50,14 @@ pub fn check_env_updates() -> Result<Vec<UpdateInfo>, AppError> {
                 key: Some(key.to_string()),
             }
         })
-        .collect())
+        .collect()
+}
+
+#[tauri::command]
+pub async fn check_env_updates() -> Result<Vec<UpdateInfo>, AppError> {
+    tokio::task::spawn_blocking(scan_env_updates_blocking)
+        .await
+        .map_err(|e| AppError::new(format!("background environment update scan failed: {e}")))
 }
 
 #[tauri::command]
@@ -106,14 +115,12 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
     let app_env = app.clone();
     let app_tool = app.clone();
     let cli_task = tokio::task::spawn_blocking(move || {
-        // A scan error (task join failure) would previously have been impossible;
-        // degrade to an empty list instead of failing the whole summary.
-        let r = check_cli_updates().unwrap_or_default();
+        let r = scan_cli_updates_blocking();
         let _ = app_cli.emit("updates-progress", "clis-done");
         r
     });
     let env_task = tokio::task::spawn_blocking(move || {
-        let r = check_env_updates().unwrap_or_default();
+        let r = scan_env_updates_blocking();
         let _ = app_env.emit("updates-progress", "env-done");
         r
     });

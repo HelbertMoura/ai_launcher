@@ -391,8 +391,10 @@ fn read_codex_usage(entries: &mut Vec<UsageEntry>, _warnings: &mut [String]) {
 // AGGREGATION
 // ============================================================
 
-#[tauri::command]
-pub fn read_usage_stats(force: Option<bool>) -> Result<UsageReport, AppError> {
+/// Blocking aggregation of Claude/Codex JSONL usage: walks thousands of files
+/// under `~/.claude/projects` and `~/.codex/sessions`. MUST run off the
+/// command thread — see [`read_usage_stats`].
+fn compute_usage_report(force: Option<bool>) -> Result<UsageReport, String> {
     if force.unwrap_or(false) {
         if let Ok(mut cache) = usage_cache().lock() {
             cache.clear();
@@ -458,6 +460,14 @@ pub fn read_usage_stats(force: Option<bool>) -> Result<UsageReport, AppError> {
         top_projects,
         warnings,
     })
+}
+
+#[tauri::command]
+pub async fn read_usage_stats(force: Option<bool>) -> Result<UsageReport, AppError> {
+    tokio::task::spawn_blocking(move || compute_usage_report(force))
+        .await
+        .map_err(|e| AppError::new(format!("background usage scan failed: {e}")))?
+        .map_err(AppError::from)
 }
 
 // ============================================================
