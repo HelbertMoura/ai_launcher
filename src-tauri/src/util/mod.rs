@@ -135,6 +135,51 @@ mod tests {
     }
 
     #[test]
+    fn compare_versions_accepts_v_prefix_on_either_side() {
+        assert!(compare_versions("v1.0.0", "v1.0.1"));
+        assert!(compare_versions("1.4.2", "v1.5.0"));
+        assert!(!compare_versions("v2.0.0", "1.9.9"));
+    }
+
+    #[test]
+    fn compare_versions_treats_prerelease_build_by_numeric_parts() {
+        // The comparator is NOT semver-aware: only the numeric dot-separated
+        // prefix is compared, so a prerelease suffix becomes extra parts.
+        // "1.2.3-beta.1" parses as [1,2,3,1] and thus compares as newer than
+        // plain "1.2.3" — this documents the shipped behavior used by the
+        // updates scan (updates.rs) so a future semver fix is deliberate.
+        assert!(!compare_versions("1.2.3-beta.1", "1.2.3"));
+        assert!(compare_versions("1.2.3", "1.3.0-beta.2"));
+        assert!(!compare_versions("1.2.3-beta.1", "1.2.3-beta.1"));
+    }
+
+    #[test]
+    fn compare_versions_pads_missing_parts_with_zero() {
+        assert!(compare_versions("1.2", "1.2.1"));
+        assert!(!compare_versions("1.2", "1.2.0"));
+        assert!(!compare_versions("1.2.0.0", "1.2"));
+    }
+
+    #[test]
+    fn compare_versions_falls_back_to_string_inequality_without_digits() {
+        assert!(compare_versions("detectado", "1.0.0"));
+        assert!(!compare_versions("abc", "abc"));
+    }
+
+    #[test]
+    fn extract_version_keeps_build_metadata() {
+        assert_eq!(
+            extract_version("tool 2.1.0+build.7 ready"),
+            Some("2.1.0+build.7".into())
+        );
+    }
+
+    #[test]
+    fn extract_version_falls_back_to_major_minor() {
+        assert_eq!(extract_version("v3.11"), Some("3.11".into()));
+    }
+
+    #[test]
     fn read_exe_product_version_returns_none_for_missing_file() {
         let p = std::path::Path::new(r"C:\__nonexistent__\fake.exe");
         assert_eq!(read_exe_product_version(p), None);
