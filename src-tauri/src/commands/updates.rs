@@ -344,26 +344,73 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let (r_node, r_py, r_git, r_rust, r_cargo, r_pnpm, r_yarn, r_bun, r_wt, r_pwsh, r_gitlfs, r_docker, r_vscode, r_tauri, r_ollama) = tokio::join!(
-        t_node, t_py, t_git, t_rust, t_cargo, t_pnpm, t_yarn, t_bun, t_wt, t_pwsh, t_gitlfs, t_docker, t_vscode, t_tauri, t_ollama
+    let (
+        r_node,
+        r_py,
+        r_git,
+        r_rust,
+        r_cargo,
+        r_pnpm,
+        r_yarn,
+        r_bun,
+        r_wt,
+        r_pwsh,
+        r_gitlfs,
+        r_docker,
+        r_vscode,
+        r_tauri,
+        r_ollama,
+    ) = tokio::join!(
+        t_node, t_py, t_git, t_rust, t_cargo, t_pnpm, t_yarn, t_bun, t_wt, t_pwsh, t_gitlfs,
+        t_docker, t_vscode, t_tauri, t_ollama
     );
 
     let mut results = vec![];
-    if let Ok(r) = r_node { results.push(r); }
-    if let Ok(r) = r_py { results.push(r); }
-    if let Ok(r) = r_git { results.push(r); }
-    if let Ok(r) = r_rust { results.push(r); }
-    if let Ok(Some(r)) = r_cargo { results.push(r); }
-    if let Ok(r) = r_pnpm { results.push(r); }
-    if let Ok(r) = r_yarn { results.push(r); }
-    if let Ok(r) = r_bun { results.push(r); }
-    if let Ok(r) = r_wt { results.push(r); }
-    if let Ok(r) = r_pwsh { results.push(r); }
-    if let Ok(r) = r_gitlfs { results.push(r); }
-    if let Ok(r) = r_docker { results.push(r); }
-    if let Ok(r) = r_vscode { results.push(r); }
-    if let Ok(r) = r_tauri { results.push(r); }
-    if let Ok(r) = r_ollama { results.push(r); }
+    if let Ok(r) = r_node {
+        results.push(r);
+    }
+    if let Ok(r) = r_py {
+        results.push(r);
+    }
+    if let Ok(r) = r_git {
+        results.push(r);
+    }
+    if let Ok(r) = r_rust {
+        results.push(r);
+    }
+    if let Ok(Some(r)) = r_cargo {
+        results.push(r);
+    }
+    if let Ok(r) = r_pnpm {
+        results.push(r);
+    }
+    if let Ok(r) = r_yarn {
+        results.push(r);
+    }
+    if let Ok(r) = r_bun {
+        results.push(r);
+    }
+    if let Ok(r) = r_wt {
+        results.push(r);
+    }
+    if let Ok(r) = r_pwsh {
+        results.push(r);
+    }
+    if let Ok(r) = r_gitlfs {
+        results.push(r);
+    }
+    if let Ok(r) = r_docker {
+        results.push(r);
+    }
+    if let Ok(r) = r_vscode {
+        results.push(r);
+    }
+    if let Ok(r) = r_tauri {
+        results.push(r);
+    }
+    if let Ok(r) = r_ollama {
+        results.push(r);
+    }
 
     results
 }
