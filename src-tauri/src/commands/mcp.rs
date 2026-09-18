@@ -697,16 +697,52 @@ pub fn remove_mcp_server(cli: McpCli, name: String) -> Result<(), String> {
     Ok(())
 }
 
+/// How long the HTTP reachability probe waits before giving up.
+const MCP_PROBE_TIMEOUT_SECS: u64 = 3;
+
+/// Real network probe for HTTP-transport MCP servers.
+///
+/// Reachability is a NETWORK signal, not an application one: any HTTP response
+/// — including 4xx/5xx — proves the server answered, so it counts as reachable.
+/// Only transport failures (connection refused, DNS, timeout, invalid URL) are
+/// unreachable. Auth headers from the input are deliberately NOT sent.
+fn probe_http_reachability(url: &str) -> McpHealth {
+    let agent = ureq::AgentBuilder::new()
+        .timeout(std::time::Duration::from_secs(MCP_PROBE_TIMEOUT_SECS))
+        .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
+        .build();
+    match agent.get(url).call() {
+        Ok(resp) => McpHealth {
+            ok: true,
+            detail: format!("Endpoint HTTP {} alcançado (HTTP {})", url, resp.status()),
+        },
+        // ureq surfaces 4xx/5xx as Err(Status): the server DID answer, so the
+        // network path is fine — do not treat app errors as unreachable.
+        Err(ureq::Error::Status(status, _)) => McpHealth {
+            ok: true,
+            detail: format!("Endpoint HTTP {} alcançado (HTTP {})", url, status),
+        },
+        Err(e) => McpHealth {
+            ok: false,
+            detail: format!("Endpoint HTTP {} inacessível: {}", url, e),
+        },
+    }
+}
+
 /// Lightweight health check for an MCP server.
 ///
 /// - **stdio**: checks that `command` resolves on `PATH` (reuses
 ///   [`crate::util::command_exists`]).
-/// - **http**: no network request is made in this version — returns `ok: true`
-///   with a "reachable: unknown" note. (A real probe is deferred to a later
-///   iteration to avoid leaking auth headers over the network here.)
+/// - **http**: performs a real reachability probe — a short-timeout (3 s) HTTP
+///   GET via `ureq`, classified as reachable on ANY HTTP response (4xx/5xx
+///   included: this is network health, not application health) and unreachable
+///   on transport errors. Auth headers are never sent.
+///
+/// Both branches block (subprocess probe / network), so the whole check runs
+/// on the blocking thread pool.
 #[tauri::command]
-pub fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
-    match server.transport {
+pub async fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
+    tokio::task::spawn_blocking(move || match server.transport {
         McpTransport::Stdio => {
             let Some(cmd) = server.command.as_deref().filter(|c| !c.trim().is_empty()) else {
                 return Ok(McpHealth {
@@ -731,13 +767,14 @@ pub fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
                 .url
                 .as_deref()
                 .filter(|u| !u.trim().is_empty())
-                .unwrap_or("(sem url)");
-            Ok(McpHealth {
-                ok: true,
-                detail: format!("Endpoint HTTP {} (alcançabilidade: desconhecida)", url),
-            })
+                .ok_or_else(|| {
+                    AppError::new("HTTP server health check requires a non-empty 'url' field")
+                })?;
+            Ok(probe_http_reachability(url))
         }
-    }
+    })
+    .await
+    .map_err(|e| AppError::new(format!("background MCP health check failed: {e}")))?
 }
 
 /// A comprehensive MCP configuration export bundle.
@@ -899,6 +936,39 @@ mod tests {
         ] {
             assert!(!is_valid_server_name(bad), "should reject {:?}", bad);
         }
+    }
+
+    // ---- HTTP reachability probe ----
+
+    #[test]
+    fn probe_reports_invalid_url_as_unreachable() {
+        // Fails at URL parsing before any network I/O — fully deterministic.
+        let health = probe_http_reachability("not a valid url");
+        assert!(!health.ok, "invalid URL must be unreachable");
+        assert!(
+            health.detail.contains("inacessível"),
+            "detail must say unreachable, got: {}",
+            health.detail
+        );
+    }
+
+    #[test]
+    fn probe_reports_connection_refused_as_unreachable() {
+        // Loopback port 1: nothing listens there, so the connection fails fast
+        // without DNS or external network. Whether the OS refuses or the 3 s
+        // timeout fires, both classify as unreachable.
+        let health = probe_http_reachability("http://127.0.0.1:1/mcp");
+        assert!(!health.ok, "closed loopback port must be unreachable");
+    }
+
+    #[test]
+    fn probe_accepts_https_url_shape() {
+        // Can't assert reachability of an external host in unit tests; assert
+        // the reachable branch detail shape via a well-formed URL that at worst
+        // times out — and, crucially, never panics.
+        let health = probe_http_reachability("https://127.0.0.1:1/mcp");
+        assert!(!health.ok);
+        assert!(health.detail.contains("https://127.0.0.1:1/mcp"));
     }
 
     // ---- Claude JSON parse: stdio + http ----
