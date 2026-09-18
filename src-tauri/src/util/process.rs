@@ -1,5 +1,4 @@
 use serde::Serialize;
-use std::collections::HashMap;
 use std::os::windows::process::CommandExt;
 use std::process::Command;
 
@@ -132,41 +131,6 @@ pub fn command_exists(cmd: &str) -> bool {
         }
     }
     false
-}
-
-#[allow(dead_code)]
-pub fn sanitize_args(args: &str) -> Result<String, String> {
-    let banned = [
-        ';', '&', '|', '`', '$', '>', '<', '\n', '\r', '(', ')', '{', '}',
-    ];
-    if args.chars().any(|c| banned.contains(&c)) {
-        return Err(
-            "Argumentos contêm caracteres proibidos (; & | ` $ > < newline ( ) { })".into(),
-        );
-    }
-    Ok(args.trim().to_string())
-}
-
-#[allow(dead_code)]
-pub fn is_valid_env_key(key: &str) -> bool {
-    let mut chars = key.chars();
-    match chars.next() {
-        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
-        _ => return false,
-    }
-    chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-}
-
-#[allow(dead_code)]
-pub fn append_env_assignments(script: &mut String, vars: &HashMap<String, String>) {
-    for (k, v) in vars {
-        if !is_valid_env_key(k) {
-            log_event("launch", &format!("skipping invalid env var name: {:?}", k));
-            continue;
-        }
-        let esc = v.replace('\'', "''");
-        script.push_str(&format!("$env:{} = '{}'\n", k, esc));
-    }
 }
 
 pub fn encode_powershell_command(script: &str) -> String {
