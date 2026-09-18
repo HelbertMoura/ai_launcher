@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::safety::{append_env_assignments, sanitize_args};
+use crate::safety::{append_env_assignments, reject_shell_metacharacters, sanitize_args};
 use crate::util::{
     check_cli_installed, command_exists, compare_versions, encode_powershell_command,
     fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
@@ -588,8 +588,12 @@ fn spawn_and_track(
         }
     }
 
+    // SEC: cmd.exe interprets `^` (escape) and `%VAR%` (env expansion) in the
+    // line it receives; escape both so user-provided args cannot inject either
+    // in this last-resort fallback.
+    let escaped = crate::safety::escape_cmd_fallback(cmd_line);
     let child = tokio::process::Command::new("cmd")
-        .args(["/K", cmd_line])
+        .args(["/K", &escaped])
         .current_dir(work_dir)
         .spawn()
         .map_err(|e| format!("Erro ao iniciar: {}", e))?;
@@ -616,6 +620,10 @@ pub fn launch_custom_cli(
     if command.trim().is_empty() {
         return Err("command vazio".into());
     }
+    // SEC: a token without spaces is interpolated verbatim into the PowerShell
+    // script (e.g. "a;b" would run two commands), so it must pass the same
+    // shell-metacharacter deny-list as launch args.
+    reject_shell_metacharacters(&command, "command")?;
     let safe_args = sanitize_args(args.as_deref().unwrap_or(""))?;
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
 

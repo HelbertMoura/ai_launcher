@@ -1,6 +1,7 @@
 use std::os::windows::process::CommandExt;
 
 use crate::errors::AppError;
+use crate::safety::reject_shell_metacharacters;
 use crate::util::{
     command_exists, encode_powershell_command, extract_version, find_tool_path,
     find_windows_terminal, get_tool_definitions, read_exe_product_version, resolve_windows_cmd,
@@ -135,6 +136,11 @@ pub fn launch_custom_ide(launch_cmd: String, directory: Option<String>) -> Resul
     }
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
     let resolved = launch_cmd.replace("<dir>", &work_dir);
+    // SEC: `resolved` is interpolated verbatim into a PowerShell script and
+    // into the cmd.exe fallback. The `<dir>` placeholder (which carries `<`/`>`)
+    // is substituted above, so any remaining metacharacter is user-supplied.
+    // Paths with spaces keep using the current quoting path unchanged.
+    reject_shell_metacharacters(&resolved, "launch_cmd")?;
 
     let mut ps_script =
         String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
@@ -179,8 +185,11 @@ pub fn launch_custom_ide(launch_cmd: String, directory: Option<String>) -> Resul
         launched = true;
     }
     if !launched {
+        // SEC: same cmd.exe `^`/`%VAR%` gap as the launcher fallback — escape
+        // before the line reaches cmd.exe.
+        let escaped = crate::safety::escape_cmd_fallback(&resolved);
         std::process::Command::new("cmd")
-            .args(["/K", &resolved])
+            .args(["/K", &escaped])
             .current_dir(&work_dir)
             .spawn()
             .map_err(|e| format!("Erro ao iniciar: {}", e))?;
