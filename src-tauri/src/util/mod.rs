@@ -16,6 +16,12 @@ pub use versions::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+
+    // Safety helpers live canonically in `crate::safety` (the copies that used
+    // to sit in `util::process` were dead code and were removed). These tests
+    // exercise the canonical implementations.
+    use crate::safety::{append_env_assignments, is_valid_env_key, sanitize_args};
 
     #[test]
     fn extract_version_simple() {
@@ -98,6 +104,26 @@ mod tests {
         ] {
             assert!(!is_valid_env_key(bad), "should reject: {:?}", bad);
         }
+    }
+
+    #[test]
+    fn append_env_assignments_skips_invalid_keys_and_escapes_quotes() {
+        let mut script = String::new();
+        let mut vars = HashMap::new();
+        vars.insert("VALID".to_string(), "ok".to_string());
+        vars.insert("1INVALID".to_string(), "x".to_string());
+        vars.insert("HAS SPACE".to_string(), "x".to_string());
+        vars.insert("WITH_QUOTE".to_string(), "it's".to_string());
+
+        append_env_assignments(&mut script, &vars);
+
+        assert!(script.contains("$env:VALID = 'ok'"), "got: {script}");
+        assert!(
+            script.contains("$env:WITH_QUOTE = 'it''s'"),
+            "single quote must be doubled: {script}"
+        );
+        assert!(!script.contains("1INVALID"), "got: {script}");
+        assert!(!script.contains("HAS SPACE"), "got: {script}");
     }
 
     #[test]
