@@ -91,10 +91,15 @@ if (uniqueVersions.size === 1) ok("version consistency", JSON.stringify(versions
 else fail("version consistency", JSON.stringify(versions));
 
 const expectedTag = process.env.RELEASE_TAG || process.env.GITHUB_REF_NAME || "";
+// Tag/version consistency is only enforced on tag builds (GITHUB_REF_TYPE=tag);
+// branch pushes (e.g. main) would always mismatch a package version, so there
+// the mismatch is downgraded to a warning.
+const isTagBuild = process.env.GITHUB_REF_TYPE === "tag";
 if (expectedTag) {
   const expectedVersion = expectedTag.replace(/^refs\/tags\//, "").replace(/^v/, "");
   if (expectedVersion === versions.npm) ok("tag/version consistency", expectedTag);
-  else fail("tag/version consistency", `tag=${expectedTag} package=${versions.npm}`);
+  else if (isTagBuild) fail("tag/version consistency", `tag=${expectedTag} package=${versions.npm}`);
+  else warn("tag/version consistency", `tag=${expectedTag} package=${versions.npm} (non-tag build; informational)`);
 }
 
 for (const script of [
