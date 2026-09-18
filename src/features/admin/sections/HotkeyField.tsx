@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
+import { getTrayHotkey, setTrayHotkey } from "../../../lib/tauri";
 import { Button } from "../../../ui/Button";
 import { Input } from "../../../ui/Input";
 
@@ -18,7 +18,7 @@ export function HotkeyField() {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   useEffect(() => {
-    invoke<string>("get_tray_hotkey")
+    getTrayHotkey()
       .then((hk) => {
         setInitial(hk);
         setValue(hk);
@@ -37,7 +37,7 @@ export function HotkeyField() {
     if (!trimmed) return;
     setStatus({ kind: "saving" });
     try {
-      await invoke("set_tray_hotkey", { hotkey: trimmed });
+      await setTrayHotkey(trimmed);
       setInitial(trimmed);
       setStatus({ kind: "saved" });
       window.setTimeout(() => {

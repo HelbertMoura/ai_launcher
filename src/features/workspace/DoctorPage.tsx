@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { usePrerequisites } from "../prereqs/usePrerequisites";
 import { Button } from "../../ui/Button";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { buildPreview, type CommandPreview } from "../../lib/commandPreview";
+import { cleanupSystemCache, installPrerequisite } from "../../lib/tauri";
 import { reportDoctorResults } from "../inbox/inboxStore";
 import { showToast } from "../../ui/toastStore";
 import {
@@ -71,7 +71,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     setFixing(item.check.key);
     setActionError(null);
     try {
-      await invoke("install_prerequisite", { key: item.check.key });
+      await installPrerequisite(item.check.key);
       // Re-run diagnosis after fix
       await refresh();
     } catch (e) {
@@ -90,9 +90,7 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     setCleaning(true);
     setActionError(null);
     try {
-      const res = await invoke<{ healed_stubs: number; cleaned_temp_files: number; message: string }>(
-        "cleanup_system_cache",
-      );
+      const res = await cleanupSystemCache();
       setCleanMessage(res.message);
       showToast(t("doctor.cleanSuccess"), "success");
       await refresh();
