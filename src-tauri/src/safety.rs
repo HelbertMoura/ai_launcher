@@ -11,23 +11,53 @@ use std::collections::HashMap;
 
 use crate::util::log_event;
 
+/// The shell-metacharacter deny-list shared by every token gate in this
+/// module. Covers the three Windows shell dispatchers (cmd, PowerShell, pwsh)
+/// and the obvious Unix surface (bash, sh) even though the production runtime
+/// is Windows-only.
+pub const SHELL_METACHARACTERS: &[char] = &[
+    ';', '&', '|', '`', '$', '>', '<', '\n', '\r', '(', ')', '{', '}',
+];
+
 /// Rejects shell metacharacters in a single argv-style argument string.
 ///
 /// The list is intentionally a deny-list (not allow-list) so the function
 /// stays useful for arbitrary tool CLIs that accept `--long-flag=value`
-/// style arguments. Banned characters cover the three Windows shell
-/// dispatchers (cmd, PowerShell, pwsh) and the obvious Unix surface
-/// (bash, sh) even though the production runtime is Windows-only.
+/// style arguments.
 pub fn sanitize_args(args: &str) -> Result<String, String> {
-    let banned = [
-        ';', '&', '|', '`', '$', '>', '<', '\n', '\r', '(', ')', '{', '}',
-    ];
-    if args.chars().any(|c| banned.contains(&c)) {
+    if args.chars().any(|c| SHELL_METACHARACTERS.contains(&c)) {
         return Err(
             "Argumentos contêm caracteres proibidos (; & | ` $ > < newline ( ) { })".into(),
         );
     }
     Ok(args.trim().to_string())
+}
+
+/// Rejects `value` when it contains any metacharacter from the shared
+/// deny-list used by [`sanitize_args`].
+///
+/// Used to gate raw, user-supplied tokens that get interpolated verbatim into
+/// a shell script (e.g. a command name with no space, which PowerShell would
+/// split into two commands). `what` names the rejected field in the error.
+pub fn reject_shell_metacharacters(value: &str, what: &str) -> Result<(), String> {
+    if value.chars().any(|c| SHELL_METACHARACTERS.contains(&c)) {
+        return Err(format!(
+            "{} contains forbidden characters: ; & | ` $ > < newline ( ) {{ }} — value: {:?}",
+            what, value
+        ));
+    }
+    Ok(())
+}
+
+/// Escapes the two metacharacters cmd.exe itself interprets (`^` escape char,
+/// `%VAR%` env expansion) in a command line destined for a `cmd /K ...`
+/// fallback spawn.
+///
+/// This is the last-resort layer below the PowerShell spawn chain: argument
+/// content is already gated by [`sanitize_args`], but `^` and `%` are not on
+/// that deny-list and would still be interpreted by cmd.exe.
+pub fn escape_cmd_fallback(line: &str) -> String {
+    line.replace('^', "^^").replace('%', "^%")
 }
 
 /// Validates an environment variable name against `^[A-Za-z_][A-Za-z0-9_]*$`.
@@ -147,5 +177,63 @@ mod tests {
         );
         assert!(!script.contains("1INVALID"), "got: {script}");
         assert!(!script.contains("HAS SPACE"), "got: {script}");
+    }
+
+    #[test]
+    fn reject_shell_metacharacters_blocks_injection_tokens() {
+        for bad in [
+            "a;b", "a&b", "a|b", "a`b", "a$b", "a>b", "a<b", "a\nb", "a\rb", "a(b", "a)b",
+            "a{b", "a}b",
+        ] {
+            assert!(
+                reject_shell_metacharacters(bad, "command").is_err(),
+                "should reject: {:?}",
+                bad
+            );
+        }
+    }
+
+    #[test]
+    fn reject_shell_metacharacters_allows_legitimate_tokens() {
+        let resolved = "zed <dir> --wait".replace("<dir>", r"C:\proj");
+        for ok in [
+            "claude",
+            "agy",
+            "code --wait",
+            r"C:\Program Files\Zed\zed.exe",
+            resolved.as_str(),
+        ] {
+            assert!(
+                reject_shell_metacharacters(ok, "command").is_ok(),
+                "should accept: {:?}",
+                ok
+            );
+        }
+    }
+
+    #[test]
+    fn escape_cmd_fallback_leaves_plain_text_untouched() {
+        assert_eq!(escape_cmd_fallback("claude --verbose"), "claude --verbose");
+        assert_eq!(
+            escape_cmd_fallback(r#""C:\Program Files\App\x.exe" --flag=1"#),
+            r#""C:\Program Files\App\x.exe" --flag=1"#
+        );
+    }
+
+    #[test]
+    fn escape_cmd_fallback_doubles_carets() {
+        assert_eq!(escape_cmd_fallback("a^b"), "a^^b");
+        assert_eq!(escape_cmd_fallback("^^"), "^^^^");
+    }
+
+    #[test]
+    fn escape_cmd_fallback_escapes_percent_expansion() {
+        assert_eq!(escape_cmd_fallback("%PATH%"), "^%PATH^%");
+        assert_eq!(escape_cmd_fallback("100%"), "100^%");
+    }
+
+    #[test]
+    fn escape_cmd_fallback_combines_caret_and_percent() {
+        assert_eq!(escape_cmd_fallback("x^%y%"), "x^^^%y^%");
     }
 }
