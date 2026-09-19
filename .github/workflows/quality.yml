@@ -19,7 +19,7 @@ concurrency:
 jobs:
   tsc:
     name: TypeScript (tsc --noEmit)
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -33,7 +33,7 @@ jobs:
 
   vitest:
     name: Frontend tests (Vitest)
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -80,6 +80,49 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+      - name: Install frontend deps
+        run: npm ci --legacy-peer-deps
+      - name: Build frontend (required by tauri::generate_context!)
+        run: npm run build
+      - name: Format check
+        working-directory: src-tauri
+        run: cargo fmt --check
+      - name: Clippy (deny warnings)
+        working-directory: src-tauri
+        run: cargo clippy --no-deps -- -D warnings
+      - name: Unit tests
+        working-directory: src-tauri
+        run: cargo test
+
+  cargo-linux:
+    name: Rust on Linux (clippy + test + fmt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: "npm"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - name: Install Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libdbus-1-dev
       - name: Install frontend deps
         run: npm ci --legacy-peer-deps
       - name: Build frontend (required by tauri::generate_context!)
