@@ -1,7 +1,9 @@
 name: release
 
-# Dispara quando uma tag `v*` é pushada. Builda MSI + NSIS e anexa ao release
-# correspondente (cria o release se ainda não existir).
+# Dispara quando uma tag `v*` é pushada. Três jobs em paralelo — Windows
+# (MSI + NSIS + latest.json do updater), macOS (DMG aarch64 + x86_64) e Linux
+# (AppImage + deb) — e todos anexam os bundles ao MESMO release da tag
+# (cria o release se ainda não existir).
 #
 # Signing opcional: configure os secrets `SIGNING_CERT_BASE64` e
 # `SIGNING_CERT_PASSWORD` em Settings → Secrets and variables → Actions pra
@@ -194,3 +196,148 @@ jobs:
         run: |
           chmod +x scripts/audit-release.sh
           bash scripts/audit-release.sh "${{ github.event.inputs.tag || github.ref_name }}"
+
+  # macOS: dois DMGs (Apple Silicon e Intel), checksums sha256 por bundle.
+  # Sem latest.json — o updater in-app é Windows-only (tauri-plugin-updater).
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache Cargo build
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+            ${{ runner.os }}-cargo-
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build DMG (Apple Silicon)
+        run: npm run tauri build -- --target aarch64-apple-darwin --bundles dmg
+
+      - name: Build DMG (Intel)
+        run: npm run tauri build -- --target x86_64-apple-darwin --bundles dmg
+
+      - name: Generate SHA-256 checksums (DMGs)
+        run: |
+          for dmg in \
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg \
+            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg; do
+            shasum -a 256 "$dmg" > "$dmg.sha256"
+          done
+
+      - name: Attach macOS DMGs to release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg.sha256
+            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
+            src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg.sha256
+          fail_on_unmatched_files: true
+          overwrite_files: true
+
+  # Linux: AppImage + deb, checksums sha256 por bundle. Sem latest.json —
+  # o updater in-app é Windows-only (tauri-plugin-updater).
+  build-linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo build
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-release-
+            ${{ runner.os }}-cargo-
+
+      - name: Install Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libdbus-1-dev
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build frontend
+        run: npm run build
+
+      # APPIMAGE_EXTRACT_AND_RUN lets the linuxdeploy AppImage self-extract on
+      # runners without FUSE, which is how the official Tauri docs handle CI.
+      - name: Build Tauri bundle (AppImage + deb)
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+        run: npm run tauri build -- --bundles appimage,deb
+
+      - name: Generate SHA-256 checksums (AppImage + deb)
+        run: |
+          cd src-tauri/target/release/bundle
+          for f in appimage/*.AppImage deb/*.deb; do
+            sha256sum "$f" > "$f.sha256"
+          done
+
+      - name: Attach Linux bundles to release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage.sha256
+            src-tauri/target/release/bundle/deb/*.deb.sha256
+          fail_on_unmatched_files: true
+          overwrite_files: true
