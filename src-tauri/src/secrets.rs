@@ -1,20 +1,37 @@
 //! Secure provider credential storage.
 //!
-//! v21 stores each secret as an independent Windows generic credential. The
-//! old `secrets.json` file is read only for a verified, idempotent migration.
-//! New writes never downgrade to base64 or expose plaintext through a process
-//! command line.
+//! Cross-platform vault layout (L4a):
+//! - **Windows** — Credential Manager via `CredWriteW`/`CredReadW`/`CredDeleteW`,
+//!   byte-for-byte the same records as v21: generic credential with target
+//!   `DevManiacs.AILauncher/<key>`, UTF-8 blob, `UserName = "AI Launcher"`.
+//!   The mechanism is intentionally UNCHANGED, so credentials written by older
+//!   builds keep reading without any migration step (the roundtrip test below
+//!   pins the exact target name and blob encoding).
+//! - **macOS** — Keychain via the `keyring` crate (`apple-native`): service
+//!   `DevManiacs.AILauncher`, account `<key>`.
+//! - **Linux** — Secret Service (libsecret-compatible) via `keyring`
+//!   (`sync-secret-service`): same service/account split.
+//!
+//! Fail-closed: when the platform vault is unavailable the secret commands
+//! return `AppError::SecureStorage` — there is no plaintext or file fallback,
+//! on any platform. The legacy `secrets.json` (DPAPI) migration remains
+//! Windows-only because that file never existed on macOS/Linux.
 
-use std::collections::HashMap;
-use std::fs;
-use std::path::PathBuf;
-
-use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use serde::{Deserialize, Serialize};
 
+use crate::errors::AppError;
+
 const CREDENTIAL_PREFIX: &str = "DevManiacs.AILauncher/";
-const BACKEND_NAME: &str = "windows-credential-manager";
 const MAX_SECRET_KEY_LEN: usize = 240;
+/// Key used for the availability probe (read-only; never written).
+const AVAILABILITY_PROBE_KEY: &str = "__ail_availability_probe__";
+
+#[cfg(windows)]
+const BACKEND_NAME: &str = "windows-credential-manager";
+#[cfg(target_os = "macos")]
+const BACKEND_NAME: &str = "macos-keychain";
+#[cfg(target_os = "linux")]
+const BACKEND_NAME: &str = "linux-secret-service";
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,11 +41,9 @@ pub struct SecretStoreResult {
     migrated_legacy: bool,
 }
 
-#[derive(Deserialize, Default)]
-struct LegacySecretStore {
-    encrypted: bool,
-    entries: HashMap<String, String>,
-}
+// ============================================================
+// SHARED VALIDATION
+// ============================================================
 
 fn validate_key(key: &str) -> Result<(), String> {
     if key.is_empty() {
@@ -51,90 +66,13 @@ fn target_name(key: &str) -> Result<String, String> {
     Ok(format!("{CREDENTIAL_PREFIX}{key}"))
 }
 
-fn legacy_file() -> Result<PathBuf, String> {
-    let base = dirs::data_dir().ok_or("Cannot determine app data directory")?;
-    Ok(base
-        .join("ai-launcher")
-        .join("secrets")
-        .join("secrets.json"))
+fn secure_storage_error(msg: String) -> AppError {
+    AppError::SecureStorage(msg)
 }
 
-fn load_legacy_store() -> Result<Option<LegacySecretStore>, String> {
-    let path = legacy_file()?;
-    if !path.exists() {
-        return Ok(None);
-    }
-    let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read legacy secret store: {e}"))?;
-    let store = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse legacy secret store: {e}"))?;
-    Ok(Some(store))
-}
-
-fn save_legacy_store(store: &LegacySecretStore) -> Result<(), String> {
-    let path = legacy_file()?;
-    if store.entries.is_empty() {
-        if path.exists() {
-            fs::remove_file(path)
-                .map_err(|e| format!("Failed to remove migrated legacy secret store: {e}"))?;
-        }
-        return Ok(());
-    }
-
-    let content = serde_json::json!({
-        "encrypted": store.encrypted,
-        "entries": store.entries,
-    });
-    fs::write(
-        path,
-        serde_json::to_vec_pretty(&content)
-            .map_err(|e| format!("Failed to serialize legacy secret store: {e}"))?,
-    )
-    .map_err(|e| format!("Failed to update legacy secret store: {e}"))
-}
-
-fn decode_legacy_value(value: &str, encrypted: bool) -> Result<String, String> {
-    let bytes = B64
-        .decode(value)
-        .map_err(|e| format!("Failed to decode legacy secret: {e}"))?;
-    if encrypted {
-        return legacy_dpapi_decrypt(bytes);
-    }
-    String::from_utf8(bytes).map_err(|e| format!("Legacy secret is not valid UTF-8: {e}"))
-}
-
-fn migrate_legacy_secret(key: &str) -> Result<Option<String>, String> {
-    let Some(mut store) = load_legacy_store()? else {
-        return Ok(None);
-    };
-    let Some(encoded) = store.entries.get(key).cloned() else {
-        return Ok(None);
-    };
-
-    let plain = decode_legacy_value(&encoded, store.encrypted)?;
-    credential_write(key, &plain)?;
-    let verified =
-        credential_read(key)?.ok_or("Credential migration verification returned no value")?;
-    if verified != plain {
-        let _ = credential_delete(key);
-        return Err("Credential migration verification failed".to_string());
-    }
-
-    store.entries.remove(key);
-    save_legacy_store(&store)?;
-    Ok(Some(plain))
-}
-
-fn delete_legacy_secret(key: &str) -> Result<bool, String> {
-    let Some(mut store) = load_legacy_store()? else {
-        return Ok(false);
-    };
-    let removed = store.entries.remove(key).is_some();
-    if removed {
-        save_legacy_store(&store)?;
-    }
-    Ok(removed)
-}
+// ============================================================
+// BACKEND — Windows (Credential Manager, unchanged from v21)
+// ============================================================
 
 #[cfg(windows)]
 fn wide_null(value: &str) -> Vec<u16> {
@@ -196,11 +134,6 @@ fn credential_write(key: &str, value: &str) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(not(windows))]
-fn credential_write(_key: &str, _value: &str) -> Result<(), String> {
-    Err("Secure credential storage is only available on Windows".to_string())
-}
-
 #[cfg(windows)]
 fn credential_read(key: &str) -> Result<Option<String>, String> {
     use std::ptr::null_mut;
@@ -243,11 +176,6 @@ fn credential_read(key: &str) -> Result<Option<String>, String> {
     Ok(Some(value))
 }
 
-#[cfg(not(windows))]
-fn credential_read(_key: &str) -> Result<Option<String>, String> {
-    Err("Secure credential storage is only available on Windows".to_string())
-}
-
 #[cfg(windows)]
 fn credential_delete(key: &str) -> Result<bool, String> {
     use windows_sys::Win32::Foundation::{GetLastError, ERROR_NOT_FOUND};
@@ -268,9 +196,197 @@ fn credential_delete(key: &str) -> Result<bool, String> {
     ))
 }
 
+#[cfg(windows)]
+fn storage_available() -> bool {
+    // Real probe, no side effects: Credential Manager answers ERROR_NOT_FOUND
+    // for a target that does not exist (proving the vault is reachable);
+    // any other failure means the vault is unusable.
+    credential_read(AVAILABILITY_PROBE_KEY).is_ok()
+}
+
+// ============================================================
+// BACKEND — macOS / Linux (keyring crate, fail-closed)
+// ============================================================
+
 #[cfg(not(windows))]
-fn credential_delete(_key: &str) -> Result<bool, String> {
-    Err("Secure credential storage is only available on Windows".to_string())
+const KEYRING_SERVICE: &str = "DevManiacs.AILauncher";
+
+#[cfg(not(windows))]
+fn keyring_entry(key: &str) -> Result<keyring::Entry, String> {
+    validate_key(key)?;
+    keyring::Entry::new(KEYRING_SERVICE, key).map_err(|e| format!("Keyring unavailable: {e}"))
+}
+
+#[cfg(not(windows))]
+fn credential_write(key: &str, value: &str) -> Result<(), String> {
+    let entry = keyring_entry(key)?;
+    entry
+        .set_password(value)
+        .map_err(|e| format!("Keyring write failed: {e}"))
+}
+
+#[cfg(not(windows))]
+fn credential_read(key: &str) -> Result<Option<String>, String> {
+    let entry = keyring_entry(key)?;
+    match entry.get_password() {
+        Ok(value) => Ok(Some(value)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(format!("Keyring read failed: {e}")),
+    }
+}
+
+#[cfg(not(windows))]
+fn credential_delete(key: &str) -> Result<bool, String> {
+    let entry = keyring_entry(key)?;
+    match entry.delete_credential() {
+        Ok(()) => Ok(true),
+        Err(keyring::Error::NoEntry) => Ok(false),
+        Err(e) => Err(format!("Keyring delete failed: {e}")),
+    }
+}
+
+#[cfg(not(windows))]
+fn storage_available() -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        // Fast, non-blocking pre-check: without a session bus the Secret
+        // Service cannot exist, so fail immediately instead of letting the
+        // keyring probe wait on D-Bus.
+        if !dbus_session_bus_likely() {
+            return false;
+        }
+    }
+    // Real probe: read a target that never exists. `NoEntry` proves the
+    // backend answered; anything else means the vault is unusable.
+    match keyring::Entry::new(KEYRING_SERVICE, AVAILABILITY_PROBE_KEY) {
+        Ok(entry) => matches!(entry.get_password(), Ok(_) | Err(keyring::Error::NoEntry)),
+        Err(_) => false,
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn dbus_session_bus_likely() -> bool {
+    if std::env::var_os("DBUS_SESSION_BUS_ADDRESS").is_some() {
+        return true;
+    }
+    if let Some(runtime) = std::env::var_os("XDG_RUNTIME_DIR") {
+        return std::path::Path::new(&runtime).join("bus").exists();
+    }
+    false
+}
+
+// ============================================================
+// LEGACY MIGRATION (Windows-only: DPAPI secrets.json)
+// ============================================================
+
+#[cfg(windows)]
+use base64::{engine::general_purpose::STANDARD as B64, Engine};
+
+#[cfg(windows)]
+#[derive(Deserialize, Default)]
+struct LegacySecretStore {
+    encrypted: bool,
+    entries: HashMap<String, String>,
+}
+
+#[cfg(windows)]
+use std::collections::HashMap;
+
+#[cfg(windows)]
+use std::fs;
+
+#[cfg(windows)]
+use std::path::PathBuf;
+
+#[cfg(windows)]
+fn legacy_file() -> Result<PathBuf, String> {
+    let base = dirs::data_dir().ok_or("Cannot determine app data directory")?;
+    Ok(base
+        .join("ai-launcher")
+        .join("secrets")
+        .join("secrets.json"))
+}
+
+#[cfg(windows)]
+fn load_legacy_store() -> Result<Option<LegacySecretStore>, String> {
+    let path = legacy_file()?;
+    if !path.exists() {
+        return Ok(None);
+    }
+    let content = fs::read_to_string(&path)
+        .map_err(|e| format!("Failed to read legacy secret store: {e}"))?;
+    let store = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to parse legacy secret store: {e}"))?;
+    Ok(Some(store))
+}
+
+#[cfg(windows)]
+fn save_legacy_store(store: &LegacySecretStore) -> Result<(), String> {
+    let path = legacy_file()?;
+    if store.entries.is_empty() {
+        if path.exists() {
+            fs::remove_file(path)
+                .map_err(|e| format!("Failed to remove migrated legacy secret store: {e}"))?;
+        }
+        return Ok(());
+    }
+
+    let content = serde_json::json!({
+        "encrypted": store.encrypted,
+        "entries": store.entries,
+    });
+    fs::write(
+        path,
+        serde_json::to_vec_pretty(&content)
+            .map_err(|e| format!("Failed to serialize legacy secret store: {e}"))?,
+    )
+    .map_err(|e| format!("Failed to update legacy secret store: {e}"))
+}
+
+#[cfg(windows)]
+fn decode_legacy_value(value: &str, encrypted: bool) -> Result<String, String> {
+    let bytes = B64
+        .decode(value)
+        .map_err(|e| format!("Failed to decode legacy secret: {e}"))?;
+    if encrypted {
+        return legacy_dpapi_decrypt(bytes);
+    }
+    String::from_utf8(bytes).map_err(|e| format!("Legacy secret is not valid UTF-8: {e}"))
+}
+
+#[cfg(windows)]
+fn migrate_legacy_secret(key: &str) -> Result<Option<String>, String> {
+    let Some(mut store) = load_legacy_store()? else {
+        return Ok(None);
+    };
+    let Some(encoded) = store.entries.get(key).cloned() else {
+        return Ok(None);
+    };
+
+    let plain = decode_legacy_value(&encoded, store.encrypted)?;
+    credential_write(key, &plain)?;
+    let verified =
+        credential_read(key)?.ok_or("Credential migration verification returned no value")?;
+    if verified != plain {
+        let _ = credential_delete(key);
+        return Err("Credential migration verification failed".to_string());
+    }
+
+    store.entries.remove(key);
+    save_legacy_store(&store)?;
+    Ok(Some(plain))
+}
+
+#[cfg(windows)]
+fn delete_legacy_secret(key: &str) -> Result<bool, String> {
+    let Some(mut store) = load_legacy_store()? else {
+        return Ok(false);
+    };
+    let removed = store.entries.remove(key).is_some();
+    if removed {
+        save_legacy_store(&store)?;
+    }
+    Ok(removed)
 }
 
 #[cfg(windows)]
@@ -313,20 +429,37 @@ fn legacy_dpapi_decrypt(mut cipher: Vec<u8>) -> Result<String, String> {
     value
 }
 
-#[cfg(not(windows))]
-fn legacy_dpapi_decrypt(_cipher: Vec<u8>) -> Result<String, String> {
-    Err("Legacy DPAPI migration is only available on Windows".to_string())
+/// Windows-only fallback: migrate a DPAPI-protected legacy value on first read.
+#[cfg(windows)]
+fn legacy_fallback(key: &str) -> Result<Option<String>, AppError> {
+    migrate_legacy_secret(key).map_err(secure_storage_error)
 }
 
+/// macOS/Linux have no legacy secrets.json (it was DPAPI/Windows-only), so the
+/// legacy step is a no-op that never touches disk.
+#[cfg(not(windows))]
+fn legacy_fallback(_key: &str) -> Result<Option<String>, AppError> {
+    Ok(None)
+}
+
+// ============================================================
+// TAURI COMMANDS
+// ============================================================
+
 #[tauri::command]
-pub fn store_secret(key: String, value: String) -> Result<SecretStoreResult, String> {
-    validate_key(&key)?;
-    credential_write(&key, &value)?;
-    let verified =
-        credential_read(&key)?.ok_or("Credential write verification returned no value")?;
+pub fn store_secret(key: String, value: String) -> Result<SecretStoreResult, AppError> {
+    validate_key(&key).map_err(AppError::new)?;
+    credential_write(&key, &value).map_err(secure_storage_error)?;
+    let verified = credential_read(&key)
+        .map_err(secure_storage_error)?
+        .ok_or_else(|| {
+            secure_storage_error("Credential write verification returned no value".into())
+        })?;
     if verified != value {
         let _ = credential_delete(&key);
-        return Err("Credential write verification failed".to_string());
+        return Err(secure_storage_error(
+            "Credential write verification failed".into(),
+        ));
     }
     Ok(SecretStoreResult {
         stored: true,
@@ -336,25 +469,36 @@ pub fn store_secret(key: String, value: String) -> Result<SecretStoreResult, Str
 }
 
 #[tauri::command]
-pub fn get_secret(key: String) -> Result<Option<String>, String> {
-    validate_key(&key)?;
-    if let Some(value) = credential_read(&key)? {
+pub fn get_secret(key: String) -> Result<Option<String>, AppError> {
+    validate_key(&key).map_err(AppError::new)?;
+    if let Some(value) = credential_read(&key).map_err(secure_storage_error)? {
         return Ok(Some(value));
     }
-    migrate_legacy_secret(&key)
+    legacy_fallback(&key)
 }
 
 #[tauri::command]
-pub fn delete_secret(key: String) -> Result<bool, String> {
-    validate_key(&key)?;
-    let secure_removed = credential_delete(&key)?;
-    let legacy_removed = delete_legacy_secret(&key)?;
+pub fn delete_secret(key: String) -> Result<bool, AppError> {
+    validate_key(&key).map_err(AppError::new)?;
+    let secure_removed = credential_delete(&key).map_err(secure_storage_error)?;
+    let legacy_removed = delete_legacy_fallback(&key)?;
     Ok(secure_removed || legacy_removed)
+}
+
+/// Legacy-store cleanup is Windows-only; other platforms have no legacy file.
+#[cfg(windows)]
+fn delete_legacy_fallback(key: &str) -> Result<bool, AppError> {
+    delete_legacy_secret(key).map_err(secure_storage_error)
+}
+
+#[cfg(not(windows))]
+fn delete_legacy_fallback(_key: &str) -> Result<bool, AppError> {
+    Ok(false)
 }
 
 #[tauri::command]
 pub fn has_secure_storage() -> bool {
-    cfg!(windows)
+    storage_available()
 }
 
 #[cfg(test)]
@@ -373,6 +517,7 @@ mod tests {
         }
     }
 
+    #[cfg(windows)]
     #[test]
     fn legacy_base64_value_decodes_without_persistence() {
         let encoded = B64.encode("sk-test-value".as_bytes());
@@ -388,5 +533,48 @@ mod tests {
             target_name("provider-apikey:abc").expect("target"),
             "DevManiacs.AILauncher/provider-apikey:abc"
         );
+    }
+
+    #[test]
+    fn availability_probe_key_is_valid() {
+        assert!(validate_key(AVAILABILITY_PROBE_KEY).is_ok());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn credential_roundtrip_writes_reads_and_deletes() {
+        // Exercises the REAL Credential Manager: the target name and UTF-8
+        // blob produced here are exactly what v21 wrote, so any credential
+        // recorded by earlier builds is readable by this implementation.
+        let key = "__ail_l4a_roundtrip__";
+        let value = "sk-l4a-roundtrip-áéí值";
+        credential_write(key, value).expect("credential write");
+        let read = credential_read(key)
+            .expect("credential read")
+            .expect("credential present after write");
+        assert_eq!(read, value, "UTF-8 blob must roundtrip unchanged");
+        assert!(credential_delete(key).expect("credential delete"));
+        assert_eq!(
+            credential_read(key).expect("credential read after delete"),
+            None,
+            "record must be gone after delete"
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn storage_available_reports_credential_manager_probe() {
+        assert!(storage_available(), "Credential Manager probe must succeed");
+    }
+
+    #[cfg(not(windows))]
+    #[test]
+    fn unix_backend_is_named_after_the_platform_vault() {
+        // Pure constant assertion — no Keychain/Secret Service access.
+        #[cfg(target_os = "macos")]
+        assert_eq!(BACKEND_NAME, "macos-keychain");
+        #[cfg(target_os = "linux")]
+        assert_eq!(BACKEND_NAME, "linux-secret-service");
+        assert_eq!(KEYRING_SERVICE, "DevManiacs.AILauncher");
     }
 }

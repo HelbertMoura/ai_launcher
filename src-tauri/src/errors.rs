@@ -17,6 +17,12 @@ pub enum AppError {
     /// verbatim so migrating a command never rewrites its error text.
     #[error("{0}")]
     Message(String),
+    /// Secure credential storage is unavailable or failed. Fail-closed: secret
+    /// commands must never fall back to plaintext, so a missing platform vault
+    /// (e.g. Linux without Secret Service) surfaces as an explicit error.
+    /// Still serializes as a plain string for the frontend contract.
+    #[error("secure storage: {0}")]
+    SecureStorage(String),
     /// Filesystem / process-spawn I/O failure.
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
@@ -75,5 +81,16 @@ mod tests {
         let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "no such file");
         let err: AppError = io_err.into();
         assert_eq!(err.to_string(), "io error: no such file");
+    }
+
+    #[test]
+    fn secure_storage_variant_prefixes_context_and_stays_a_string() {
+        let err = AppError::SecureStorage("vault indisponível".into());
+        assert_eq!(err.to_string(), "secure storage: vault indisponível");
+        let json = serde_json::to_value(&err).expect("serialize AppError");
+        assert_eq!(
+            json,
+            serde_json::Value::String("secure storage: vault indisponível".into())
+        );
     }
 }
