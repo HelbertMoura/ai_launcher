@@ -187,27 +187,66 @@ pub fn sh_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
 
+/// Provider-owned variable names dropped from the inherited environment when a
+/// session asks for hygiene — mirrors the Windows `Remove-Item Env:ANTHROPIC_*`
+/// block in `cli.rs`. Prefix matches first, then exact names.
+pub const PROVIDER_ENV_PREFIXES: &[&str] = &["ANTHROPIC_", "CLAUDE_CODE_"];
+pub const PROVIDER_ENV_EXACT: &[&str] = &["API_TIMEOUT_MS"];
+
+/// Collects the provider-managed variable names actually present in the current
+/// process environment, so the launch script can unset them by explicit name
+/// (see [`posix_unset_lines`]).
+#[allow(dead_code)]
+pub fn provider_env_keys_to_unset() -> Vec<String> {
+    std::env::vars()
+        .map(|(key, _)| key)
+        .filter(|key| {
+            PROVIDER_ENV_EXACT.iter().any(|exact| exact == key)
+                || PROVIDER_ENV_PREFIXES
+                    .iter()
+                    .any(|prefix| key.starts_with(prefix))
+        })
+        .collect()
+}
+
+/// Builds a POSIX-safe `unset` line from explicit variable names. Shell
+/// indirection like `unset ${!ANTHROPIC_*}` is bash-only — zsh (the macOS
+/// Terminal.app default login shell) fails with "bad substitution" — so the
+/// matching names are enumerated at runtime and emitted literally. Keys failing
+/// [`crate::safety::is_valid_env_key`] are dropped; valid keys are deduplicated
+/// and sorted (deterministic output). Returns an empty string when nothing
+/// remains to unset.
+#[allow(dead_code)]
+pub fn posix_unset_lines(keys: impl IntoIterator<Item = String>) -> String {
+    let mut names: Vec<String> = keys
+        .into_iter()
+        .filter(|key| crate::safety::is_valid_env_key(key))
+        .collect();
+    names.sort();
+    names.dedup();
+    if names.is_empty() {
+        String::new()
+    } else {
+        format!("unset {}\n", names.join(" "))
+    }
+}
+
 /// Builds the POSIX launch script for a Unix session:
 /// `cd` into the (validated) working directory, optionally drop inherited
-/// provider variables (the same hygiene as the Windows PowerShell script),
-/// export the sanitized env assignments, then run the CLI line.
+/// provider variables by explicit name (the same hygiene as the Windows
+/// PowerShell script — POSIX shells have no portable wildcard unset), export
+/// the sanitized env assignments, then run the CLI line.
 /// Pure — unit-tested on all platforms.
 #[allow(dead_code)]
 pub fn build_unix_session_script(
     work_dir: &str,
-    clean_provider_env: bool,
+    provider_env_keys: &[String],
     env_vars: Option<&std::collections::HashMap<String, String>>,
     cli_line: &str,
 ) -> String {
     let mut script = String::new();
     script.push_str(&format!("cd {}\n", sh_quote(work_dir)));
-    if clean_provider_env {
-        // Mirrors the Windows `Remove-Item Env:ANTHROPIC_*` block: bash
-        // `${!PREFIX*}` expands to the matching variable names.
-        script.push_str(
-            "unset ${!ANTHROPIC_*} ${!CLAUDE_CODE_*} API_TIMEOUT_MS 2>/dev/null || true\n",
-        );
-    }
+    script.push_str(&posix_unset_lines(provider_env_keys.iter().cloned()));
     if let Some(vars) = env_vars {
         for (key, value) in vars {
             if crate::safety::is_valid_env_key(key) {
@@ -559,7 +598,7 @@ mod tests {
         env.insert("WITH_QUOTE".to_string(), "it's".to_string());
 
         let script =
-            build_unix_session_script("/home/dev/proj", false, Some(&env), "claude --model x");
+            build_unix_session_script("/home/dev/proj", &[], Some(&env), "claude --model x");
 
         let lines: Vec<&str> = script.lines().collect();
         assert_eq!(lines[0], "cd '/home/dev/proj'");
@@ -583,23 +622,60 @@ mod tests {
     }
 
     #[test]
-    fn unix_session_script_cleans_provider_env_when_asked() {
-        let script = build_unix_session_script("/tmp", true, None, "claude");
+    fn unix_session_script_cleans_provider_env_by_explicit_name() {
+        let keys = vec![
+            "ANTHROPIC_API_KEY".to_string(),
+            "API_TIMEOUT_MS".to_string(),
+            "CLAUDE_CODE_SKIP_BEDROCK_CHECK".to_string(),
+        ];
+        let script = build_unix_session_script("/tmp", &keys, None, "claude");
         let lines: Vec<&str> = script.lines().collect();
         assert_eq!(lines[0], "cd '/tmp'");
-        assert!(
-            lines[1].starts_with("unset ${!ANTHROPIC_*}"),
-            "provider hygiene line expected, got: {}",
-            lines[1]
+        assert_eq!(
+            lines[1], "unset ANTHROPIC_API_KEY API_TIMEOUT_MS CLAUDE_CODE_SKIP_BEDROCK_CHECK",
+            "provider hygiene must emit an explicit POSIX-safe unset line (no bash indirection)"
         );
         assert_eq!(lines[2], "claude");
     }
 
     #[test]
     fn unix_session_script_without_env_only_has_cd_and_cli() {
-        let script = build_unix_session_script("/tmp", false, None, "codex");
+        let script = build_unix_session_script("/tmp", &[], None, "codex");
         let lines: Vec<&str> = script.lines().collect();
         assert_eq!(lines, vec!["cd '/tmp'", "codex"]);
+    }
+
+    #[test]
+    fn posix_unset_lines_filters_sorts_and_dedups() {
+        let out = posix_unset_lines([
+            "ANTHROPIC_BASE_URL".to_string(),
+            "1nvalid".to_string(),
+            "ANTHROPIC_API_KEY".to_string(),
+            "ANTHROPIC_BASE_URL".to_string(),
+        ]);
+        assert_eq!(
+            out, "unset ANTHROPIC_API_KEY ANTHROPIC_BASE_URL\n",
+            "invalid keys dropped, valid keys sorted and deduplicated"
+        );
+        assert_eq!(posix_unset_lines(Vec::new()), "", "empty input -> no line");
+        assert_eq!(
+            posix_unset_lines(["1nvalid".to_string()]),
+            "",
+            "only-invalid input -> no line"
+        );
+    }
+
+    #[test]
+    fn provider_env_collector_only_returns_provider_names() {
+        // No env mutation here (parallel tests): every returned key must match
+        // the documented prefix/exact filters, whatever the ambient environment.
+        for key in provider_env_keys_to_unset() {
+            let matches = PROVIDER_ENV_EXACT.iter().any(|exact| exact == &key)
+                || PROVIDER_ENV_PREFIXES
+                    .iter()
+                    .any(|prefix| key.starts_with(prefix));
+            assert!(matches, "collector returned a non-provider key: {key}");
+        }
     }
 
     #[test]

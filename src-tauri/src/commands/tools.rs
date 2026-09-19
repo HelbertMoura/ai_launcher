@@ -201,7 +201,7 @@ pub fn launch_custom_ide(
 
     #[cfg(not(windows))]
     {
-        let script = build_unix_session_script(&work_dir, false, None, &resolved);
+        let script = build_unix_session_script(&work_dir, &[], None, &resolved);
         crate::util::spawn_unix_terminal_session(&script)
             .map_err(|e| format!("Erro ao iniciar: {}", e))?;
     }

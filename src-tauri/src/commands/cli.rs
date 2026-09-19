@@ -9,7 +9,9 @@ use crate::safety::{reject_shell_metacharacters, sanitize_args};
 #[cfg(windows)]
 use crate::util::command_exists;
 #[cfg(not(windows))]
-use crate::util::{build_unix_session_script, sh_quote, spawn_unix_terminal_session};
+use crate::util::{
+    build_unix_session_script, provider_env_keys_to_unset, sh_quote, spawn_unix_terminal_session,
+};
 use crate::util::{
     check_cli_installed, compare_versions, fetch_manifest_version, get_cli_definitions,
     get_installed_version, heal_claude_npm_stub_if_needed, log_event, npm_latest, resolve_cli_path,
@@ -570,8 +572,16 @@ pub fn launch_cli(
     #[cfg(not(windows))]
     let display_line = {
         let cli_line = format!("{}{}", sh_quote(&resolved_cmd), tail_args);
+        // Provider hygiene mirrors the Windows `Remove-Item Env:ANTHROPIC_*`
+        // block: enumerate the matching names in OUR process environment and
+        // unset them by explicit name (bash `${!PREFIX*}` breaks under zsh).
+        let provider_keys: Vec<String> = if env_vars.is_some() {
+            provider_env_keys_to_unset()
+        } else {
+            Vec::new()
+        };
         let script =
-            build_unix_session_script(&work_dir, env_vars.is_some(), env_vars.as_ref(), &cli_line);
+            build_unix_session_script(&work_dir, &provider_keys, env_vars.as_ref(), &cli_line);
         spawn_unix_terminal_session(&script).map_err(AppError::from)?;
         crate::commands::session::register_detached(&app, &session_id, &cli_key, &work_dir);
         cli_line
@@ -721,7 +731,7 @@ pub fn launch_custom_cli(
     #[cfg(not(windows))]
     let display_line = {
         let cli_line = format!("{}{}", sh_quote(&resolved_cmd), tail_args);
-        let script = build_unix_session_script(&work_dir, false, env.as_ref(), &cli_line);
+        let script = build_unix_session_script(&work_dir, &[], env.as_ref(), &cli_line);
         spawn_unix_terminal_session(&script).map_err(AppError::from)?;
         crate::commands::session::register_detached(&app, &session_id, "custom", &work_dir);
         cli_line
