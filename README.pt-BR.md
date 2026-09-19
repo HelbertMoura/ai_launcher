@@ -18,7 +18,7 @@
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
 ![Memória <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
 
-[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Início Rápido](#-in%C3%ADcio-r%C3%A1pido)
+[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Início Rápido](#-in%C3%ADcio-r%C3%A1pido) · [🗺️ Roadmap](./ROADMAP.pt-BR.md)
 
 </div>
 
