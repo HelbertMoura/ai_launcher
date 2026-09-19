@@ -1,21 +1,16 @@
 import type { CheckResult, ToolInfo } from "./useTools";
-import { invokeOrFallback } from "../../lib/tauri";
 import {
   loadCustomIdes,
   CUSTOM_IDES_CHANGED_EVENT,
   type CustomIde,
 } from "../../lib/customIdes";
+import { createCatalogStore, type CatalogSnapshot } from "../shared/custom-entry/catalogStore";
 
-const CACHE_KEY = "ai-launcher:tools-cache";
-const TTL_MS = 10 * 60 * 1000; // 10 min
-
-interface CachedPayload {
-  tools: ToolInfo[];
-  checks: Record<string, CheckResult>;
-  savedAt: number;
-}
-
-interface Snapshot {
+/**
+ * Thin wrapper over the shared catalog store keeping the legacy snapshot
+ * shape (`tools` / `customIdes` field names) consumed by `useTools`.
+ */
+export interface ToolsSnapshot {
   tools: ToolInfo[];
   checks: Record<string, CheckResult>;
   customIdes: CustomIde[];
@@ -23,9 +18,17 @@ interface Snapshot {
   error: string | null;
 }
 
-type Listener = (snap: Snapshot) => void;
+const store = createCatalogStore<ToolInfo, CustomIde>({
+  cacheKey: "ai-launcher:tools-cache",
+  cacheItemsKey: "tools",
+  listCommand: "get_all_tools",
+  checkCommand: "check_tools",
+  loadCustomEntries: loadCustomIdes,
+  customChangedEvent: CUSTOM_IDES_CHANGED_EVENT,
+});
 
-let state: Snapshot = {
+let lastRaw: CatalogSnapshot<ToolInfo, CustomIde> | null = null;
+let mapped: ToolsSnapshot = {
   tools: [],
   checks: {},
   customIdes: [],
@@ -33,123 +36,28 @@ let state: Snapshot = {
   error: null,
 };
 
-const listeners = new Set<Listener>();
-let inflight: Promise<void> | null = null;
-let hydrated = false;
-
-function readCache(): CachedPayload | null {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedPayload;
-    if (Date.now() - parsed.savedAt > TTL_MS) return null;
-    return parsed;
-  } catch {
-    return null;
+function toPublicSnapshot(raw: CatalogSnapshot<ToolInfo, CustomIde>): ToolsSnapshot {
+  if (raw !== lastRaw) {
+    lastRaw = raw;
+    mapped = {
+      tools: raw.items,
+      checks: raw.checks,
+      customIdes: raw.custom,
+      loading: raw.loading,
+      error: raw.error,
+    };
   }
-}
-
-function writeCache(tools: ToolInfo[], checks: Record<string, CheckResult>): void {
-  try {
-    const payload: CachedPayload = { tools, checks, savedAt: Date.now() };
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-  } catch {
-    /* quota errors are non-fatal */
-  }
-}
-
-function clearCache(): void {
-  try {
-    sessionStorage.removeItem(CACHE_KEY);
-  } catch {
-    /* ignore */
-  }
-}
-
-function emit(): void {
-  for (const fn of listeners) fn(state);
-}
-
-function setState(partial: Partial<Snapshot>): void {
-  state = { ...state, ...partial };
-  emit();
-}
-
-/** Reload custom IDEs from localStorage and merge into snapshot. */
-function mergeCustomIdes(): void {
-  const customIdes = loadCustomIdes();
-  state = { ...state, customIdes };
-  emit();
-}
-
-/** Listen for same-tab custom IDE changes from the Admin panel. */
-function setupCustomIdeListener(): () => void {
-  const handler = () => mergeCustomIdes();
-  window.addEventListener(CUSTOM_IDES_CHANGED_EVENT, handler);
-  return () => window.removeEventListener(CUSTOM_IDES_CHANGED_EVENT, handler);
-}
-
-// Start listening once at module load
-const cleanupCustomIdeListener = setupCustomIdeListener();
-
-async function load(force = false): Promise<void> {
-  if (inflight) return inflight;
-  if (!force) {
-    const cached = readCache();
-    if (cached) {
-      const customIdes = loadCustomIdes();
-      state = { tools: cached.tools, checks: cached.checks, customIdes, loading: false, error: null };
-      hydrated = true;
-      emit();
-      return;
-    }
-  }
-  setState({ loading: true, error: null });
-  inflight = (async () => {
-    try {
-      const tools = await invokeOrFallback<ToolInfo[]>("get_all_tools", undefined, []);
-      const results = await invokeOrFallback<CheckResult[]>("check_tools", undefined, []);
-      const checks: Record<string, CheckResult> = {};
-      for (const r of results) checks[r.name] = r;
-      const customIdes = loadCustomIdes();
-      state = { tools, checks, customIdes, loading: false, error: null };
-      hydrated = true;
-      writeCache(tools, checks);
-      emit();
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      setState({ loading: false, error: message });
-    } finally {
-      inflight = null;
-    }
-  })();
-  return inflight;
+  return mapped;
 }
 
 export const toolsStore = {
-  getSnapshot(): Snapshot {
-    return state;
+  getSnapshot(): ToolsSnapshot {
+    return toPublicSnapshot(store.getSnapshot());
   },
-  isHydrated(): boolean {
-    return hydrated;
-  },
-  subscribe(listener: Listener): () => void {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  },
-  ensureLoaded(): Promise<void> {
-    return load(false);
-  },
-  refresh(): Promise<void> {
-    clearCache();
-    return load(true);
-  },
-  invalidate(): void {
-    clearCache();
-    hydrated = false;
-  },
-  /** Cleanup the custom IDE event listener (for tests). */
-  destroy(): void {
-    cleanupCustomIdeListener();
-  },
+  isHydrated: store.isHydrated,
+  subscribe: store.subscribe,
+  ensureLoaded: store.ensureLoaded,
+  refresh: store.refresh,
+  invalidate: store.invalidate,
+  destroy: store.destroy,
 };

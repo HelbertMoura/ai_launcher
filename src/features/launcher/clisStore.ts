@@ -4,18 +4,13 @@ import {
   CUSTOM_CLIS_CHANGED_EVENT,
   type CustomCli,
 } from "../../lib/customClis";
-import { invokeOrFallback } from "../../lib/tauri";
+import { createCatalogStore, type CatalogSnapshot } from "../shared/custom-entry/catalogStore";
 
-const CACHE_KEY = "ai-launcher:clis-cache";
-const TTL_MS = 10 * 60 * 1000; // 10 min
-
-interface CachedPayload {
-  clis: CliInfo[];
-  checks: Record<string, CheckResult>;
-  savedAt: number;
-}
-
-interface Snapshot {
+/**
+ * Thin wrapper over the shared catalog store keeping the legacy snapshot
+ * shape (`clis` / `customClis` field names) consumed by `useClis`.
+ */
+export interface ClisSnapshot {
   clis: CliInfo[];
   checks: Record<string, CheckResult>;
   customClis: CustomCli[];
@@ -23,9 +18,17 @@ interface Snapshot {
   error: string | null;
 }
 
-type Listener = (snap: Snapshot) => void;
+const store = createCatalogStore<CliInfo, CustomCli>({
+  cacheKey: "ai-launcher:clis-cache",
+  cacheItemsKey: "clis",
+  listCommand: "get_all_clis",
+  checkCommand: "check_clis",
+  loadCustomEntries: loadCustomClis,
+  customChangedEvent: CUSTOM_CLIS_CHANGED_EVENT,
+});
 
-let state: Snapshot = {
+let lastRaw: CatalogSnapshot<CliInfo, CustomCli> | null = null;
+let mapped: ClisSnapshot = {
   clis: [],
   checks: {},
   customClis: [],
@@ -33,123 +36,28 @@ let state: Snapshot = {
   error: null,
 };
 
-const listeners = new Set<Listener>();
-let inflight: Promise<void> | null = null;
-let hydrated = false;
-
-function readCache(): CachedPayload | null {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as CachedPayload;
-    if (Date.now() - parsed.savedAt > TTL_MS) return null;
-    return parsed;
-  } catch {
-    return null;
+function toPublicSnapshot(raw: CatalogSnapshot<CliInfo, CustomCli>): ClisSnapshot {
+  if (raw !== lastRaw) {
+    lastRaw = raw;
+    mapped = {
+      clis: raw.items,
+      checks: raw.checks,
+      customClis: raw.custom,
+      loading: raw.loading,
+      error: raw.error,
+    };
   }
-}
-
-function writeCache(clis: CliInfo[], checks: Record<string, CheckResult>): void {
-  try {
-    const payload: CachedPayload = { clis, checks, savedAt: Date.now() };
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-  } catch {
-    /* quota errors are non-fatal */
-  }
-}
-
-function clearCache(): void {
-  try {
-    sessionStorage.removeItem(CACHE_KEY);
-  } catch {
-    /* ignore */
-  }
-}
-
-function emit(): void {
-  for (const fn of listeners) fn(state);
-}
-
-function setState(partial: Partial<Snapshot>): void {
-  state = { ...state, ...partial };
-  emit();
-}
-
-/** Reload custom CLIs from localStorage and merge into snapshot. */
-function mergeCustomClis(): void {
-  const customClis = loadCustomClis();
-  state = { ...state, customClis };
-  emit();
-}
-
-/** Listen for same-tab custom CLI changes from the Admin panel. */
-function setupCustomCliListener(): () => void {
-  const handler = () => mergeCustomClis();
-  window.addEventListener(CUSTOM_CLIS_CHANGED_EVENT, handler);
-  return () => window.removeEventListener(CUSTOM_CLIS_CHANGED_EVENT, handler);
-}
-
-// Start listening once at module load
-const cleanupCustomCliListener = setupCustomCliListener();
-
-async function load(force = false): Promise<void> {
-  if (inflight) return inflight;
-  if (!force) {
-    const cached = readCache();
-    if (cached) {
-      const customClis = loadCustomClis();
-      state = { clis: cached.clis, checks: cached.checks, customClis, loading: false, error: null };
-      hydrated = true;
-      emit();
-      return;
-    }
-  }
-  setState({ loading: true, error: null });
-  inflight = (async () => {
-    try {
-      const clis = await invokeOrFallback<CliInfo[]>("get_all_clis", undefined, []);
-      const results = await invokeOrFallback<CheckResult[]>("check_clis", undefined, []);
-      const checks: Record<string, CheckResult> = {};
-      for (const r of results) checks[r.name] = r;
-      const customClis = loadCustomClis();
-      state = { clis, checks, customClis, loading: false, error: null };
-      hydrated = true;
-      writeCache(clis, checks);
-      emit();
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      setState({ loading: false, error: message });
-    } finally {
-      inflight = null;
-    }
-  })();
-  return inflight;
+  return mapped;
 }
 
 export const clisStore = {
-  getSnapshot(): Snapshot {
-    return state;
+  getSnapshot(): ClisSnapshot {
+    return toPublicSnapshot(store.getSnapshot());
   },
-  isHydrated(): boolean {
-    return hydrated;
-  },
-  subscribe(listener: Listener): () => void {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  },
-  ensureLoaded(): Promise<void> {
-    return load(false);
-  },
-  refresh(): Promise<void> {
-    clearCache();
-    return load(true);
-  },
-  invalidate(): void {
-    clearCache();
-    hydrated = false;
-  },
-  /** Cleanup the custom CLI event listener (for tests). */
-  destroy(): void {
-    cleanupCustomCliListener();
-  },
+  isHydrated: store.isHydrated,
+  subscribe: store.subscribe,
+  ensureLoaded: store.ensureLoaded,
+  refresh: store.refresh,
+  invalidate: store.invalidate,
+  destroy: store.destroy,
 };
