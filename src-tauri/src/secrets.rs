@@ -17,7 +17,9 @@
 //! on any platform. The legacy `secrets.json` (DPAPI) migration remains
 //! Windows-only because that file never existed on macOS/Linux.
 
-use serde::{Deserialize, Serialize};
+#[cfg(windows)]
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::errors::AppError;
 

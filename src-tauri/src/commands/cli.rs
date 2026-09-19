@@ -3,7 +3,9 @@ use std::collections::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::AppError;
-use crate::safety::{append_env_assignments, reject_shell_metacharacters, sanitize_args};
+#[cfg(windows)]
+use crate::safety::append_env_assignments;
+use crate::safety::{reject_shell_metacharacters, sanitize_args};
 #[cfg(windows)]
 use crate::util::command_exists;
 #[cfg(not(windows))]

@@ -7,6 +7,7 @@
 //! behavioural contract is identical; only the location changed. See
 //! `.wolf/audit-2026-08-10.md` for the rationale.
 
+#[cfg(windows)]
 use std::collections::HashMap;
 
 use crate::util::log_event;
@@ -56,6 +57,7 @@ pub fn reject_shell_metacharacters(value: &str, what: &str) -> Result<(), String
 /// This is the last-resort layer below the PowerShell spawn chain: argument
 /// content is already gated by [`sanitize_args`], but `^` and `%` are not on
 /// that deny-list and would still be interpreted by cmd.exe.
+#[cfg(windows)]
 pub fn escape_cmd_fallback(line: &str) -> String {
     line.replace('^', "^^").replace('%', "^%")
 }
@@ -78,6 +80,7 @@ pub fn is_valid_env_key(key: &str) -> bool {
 /// Keys failing [`is_valid_env_key`] are skipped and logged. Values have single
 /// quotes escaped (`'` -> `''`) so they remain inside the single-quoted literal.
 /// Shared by `launch_cli` and `launch_custom_cli`.
+#[cfg(windows)]
 pub fn append_env_assignments(script: &mut String, vars: &HashMap<String, String>) {
     for (k, v) in vars {
         if !is_valid_env_key(k) {
@@ -160,6 +163,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(windows)]
     fn append_env_assignments_skips_invalid_keys_and_escapes_quotes() {
         let mut script = String::new();
         let mut vars = HashMap::new();
@@ -212,6 +216,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(windows)]
     fn escape_cmd_fallback_leaves_plain_text_untouched() {
         assert_eq!(escape_cmd_fallback("claude --verbose"), "claude --verbose");
         assert_eq!(
@@ -221,18 +226,21 @@ mod tests {
     }
 
     #[test]
+    #[cfg(windows)]
     fn escape_cmd_fallback_doubles_carets() {
         assert_eq!(escape_cmd_fallback("a^b"), "a^^b");
         assert_eq!(escape_cmd_fallback("^^"), "^^^^");
     }
 
     #[test]
+    #[cfg(windows)]
     fn escape_cmd_fallback_escapes_percent_expansion() {
         assert_eq!(escape_cmd_fallback("%PATH%"), "^%PATH^%");
         assert_eq!(escape_cmd_fallback("100%"), "100^%");
     }
 
     #[test]
+    #[cfg(windows)]
     fn escape_cmd_fallback_combines_caret_and_percent() {
         assert_eq!(escape_cmd_fallback("x^%y%"), "x^^^%y^%");
     }

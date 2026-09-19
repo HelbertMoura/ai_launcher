@@ -25,6 +25,7 @@ use crate::errors::AppError;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaunchKind {
     /// Spawned directly (pwsh/powershell/cmd). The child handle is meaningful.
+    #[cfg(windows)]
     Tracked,
     /// Spawned through `wt.exe`, which exits immediately. Not measurable.
     Detached,
@@ -33,6 +34,7 @@ pub enum LaunchKind {
 impl LaunchKind {
     fn as_str(self) -> &'static str {
         match self {
+            #[cfg(windows)]
             LaunchKind::Tracked => "tracked",
             LaunchKind::Detached => "detached",
         }
@@ -151,6 +153,7 @@ pub fn register_detached(app: &AppHandle, session_id: &str, cli_key: &str, direc
 
 /// Register a tracked session backed by a tokio child process and spawn a task
 /// that awaits the child, then emits `session-ended` and de-registers it.
+#[cfg(windows)]
 pub fn track_child(
     app: &AppHandle,
     session_id: String,
@@ -233,6 +236,7 @@ mod tests {
     // avoid cross-test interference and cleans up after itself.
 
     #[test]
+    #[cfg(windows)]
     fn register_and_remove_roundtrip() {
         let id = "test-register-remove";
         register_session(make_entry(id, LaunchKind::Tracked, Some(1234)));
@@ -263,6 +267,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(windows)]
     fn session_pid_lookup() {
         let id = "test-pid-lookup";
         register_session(make_entry(id, LaunchKind::Tracked, Some(4321)));
@@ -273,11 +278,13 @@ mod tests {
 
     #[test]
     fn kind_serializes_to_expected_strings() {
+        #[cfg(windows)]
         assert_eq!(LaunchKind::Tracked.as_str(), "tracked");
         assert_eq!(LaunchKind::Detached.as_str(), "detached");
     }
 
     #[test]
+    #[cfg(windows)]
     fn active_session_view_maps_fields() {
         let entry = make_entry("view-test", LaunchKind::Tracked, Some(99));
         let view = ActiveSession::from(&entry);

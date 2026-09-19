@@ -4,9 +4,11 @@ use std::process::Command;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
+use super::process::command_exists;
+#[cfg(windows)]
+use super::process::run_silent;
 #[cfg(windows)]
 use super::process::CREATE_NO_WINDOW;
-use super::process::{command_exists, run_silent};
 
 // ============================================================
 // PATH / FILE RESOLUTION (platform split at the function level)
