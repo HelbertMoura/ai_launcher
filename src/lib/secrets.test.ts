@@ -87,4 +87,24 @@ describe("secure secrets boundary", () => {
       value: "sk-secure",
     });
   });
+
+  it.each(["macos-keychain", "linux-secret-service"])(
+    "accepts a verified %s write",
+    async (backend) => {
+      setTauriRuntime(true);
+      invokeMock
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce({
+          stored: true,
+          backend,
+          migratedLegacy: false,
+        });
+      const { storeSecret } = await loadModule();
+
+      await expect(
+        storeSecret("provider-apikey:test", "sk-secure"),
+      ).resolves.toBeUndefined();
+      expect(localStorage.length).toBe(0);
+    },
+  );
 });

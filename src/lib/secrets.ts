@@ -17,14 +17,27 @@ interface SecretStoreResult {
 }
 
 /**
+ * Backends approved for secret persistence, one per platform vault:
+ * Windows Credential Manager, macOS Keychain and the Linux Secret Service.
+ * Anything else is rejected (fail-closed, no plaintext fallback).
+ */
+const APPROVED_BACKENDS = new Set([
+  'windows-credential-manager',
+  'macos-keychain',
+  'linux-secret-service',
+]);
+
+/**
  * Whether the Tauri backend with secure storage is available.
- * Cached after first check to avoid repeated PowerShell probes.
+ * Cached after first check to avoid repeated OS vault probes.
  */
 let _secureAvailable: boolean | null = null;
 
 /**
  * Check if the Tauri secure storage backend is available.
- * Returns false when running in browser (dev mode) or when DPAPI is unavailable.
+ * Returns false when running in browser (dev mode) or when the platform
+ * credential vault (Credential Manager / Keychain / Secret Service) is
+ * unavailable.
  */
 export async function hasSecureStorage(): Promise<boolean> {
   if (_secureAvailable !== null) return _secureAvailable;
@@ -50,7 +63,7 @@ export async function storeSecret(key: string, value: string): Promise<void> {
     throw new Error('Secure credential storage is unavailable');
   }
   const result = await invoke<SecretStoreResult>('store_secret', { key, value });
-  if (!result.stored || result.backend !== 'windows-credential-manager') {
+  if (!result.stored || !APPROVED_BACKENDS.has(result.backend)) {
     throw new Error('The credential was not stored by an approved secure backend');
   }
 }
