@@ -1,0 +1,7 @@
+# Template — preenchido por scripts/gen-package-manifests.mjs. Não editar a
+# saída à mão para release; regenere a partir desta fonte.
+PackageIdentifier: DevManiacs.AILauncher
+PackageVersion: {{VERSION}}
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.9.0
