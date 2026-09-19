@@ -47,6 +47,42 @@ function requireIncludes(path, needles) {
   }
 }
 
+// Windows installers (msi + nsis) are mandatory on every release; extra bundle
+// targets (dmg, appimage, deb) are accepted so the macOS/Linux jobs can ship.
+function requireBundleTargets(path, required) {
+  if (!requireFile(path)) return;
+  let conf;
+  try {
+    conf = JSON.parse(read(path));
+  } catch (error) {
+    fail(`${path} bundle targets`, `unparseable JSON: ${error.message}`);
+    return;
+  }
+  const targets = conf?.bundle?.targets;
+  if (!Array.isArray(targets)) {
+    fail(
+      `${path} bundle targets`,
+      `expected an array containing ${required.join(", ")}, got: ${JSON.stringify(targets)}`,
+    );
+    return;
+  }
+  const missing = required.filter((target) => !targets.includes(target));
+  if (missing.length > 0) {
+    fail(
+      `${path} bundle targets`,
+      `missing required Windows installer target(s): ${missing.join(", ")} — targets: ${JSON.stringify(targets)}`,
+    );
+    return;
+  }
+  const extras = targets.filter((target) => !required.includes(target));
+  ok(
+    `${path} bundle targets`,
+    `Windows installers present: ${required.join(", ")}${
+      extras.length ? `; extra bundles accepted: ${extras.join(", ")}` : ""
+    }`,
+  );
+}
+
 function versionFromCargoToml(text) {
   const match = text.match(/^\s*version\s*=\s*"([^"]+)"/m);
   return match?.[1] ?? "";
@@ -118,8 +154,8 @@ for (const script of [
   else fail(`npm script:${script}`, "missing");
 }
 
+requireBundleTargets("src-tauri/tauri.conf.json", ["msi", "nsis"]);
 requireIncludes("src-tauri/tauri.conf.json", [
-  '"targets": ["msi", "nsis"]',
   '"webviewInstallMode"',
   '"downloadBootstrapper"',
 ]);
