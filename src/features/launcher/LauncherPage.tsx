@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
+import { runMaintenanceCommand } from "../../lib/tauri";
 import {
   DndContext,
   PointerSensor,
@@ -76,7 +76,7 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
   const onInstall = async (cli: CliInfo) => {
     setInstalling(cli.key);
     try {
-      await invoke<string>("install_cli", { cliKey: cli.key, timeoutSec: null });
+      await runMaintenanceCommand("install_cli", { cliKey: cli.key, timeoutSec: null });
       void ensurePermissionThenNotify(
         t("notifications.installDone.title", { name: cli.name }),
         t("notifications.installDone.body"),

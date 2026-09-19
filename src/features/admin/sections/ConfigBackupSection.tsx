@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import {
@@ -12,6 +11,7 @@ import {
 import { downloadBlob } from "../../../lib/exportData";
 import { showToast } from "../../../ui/toastStore";
 import { ConfirmDialog } from "../../../ui/ConfirmDialog";
+import { exportAllMcpConfigs, importAllMcpConfigs } from "../../mcp/commands";
 
 export function ConfigBackupSection() {
   const { t, i18n } = useTranslation();
@@ -30,7 +30,7 @@ export function ConfigBackupSection() {
 
   const handleExportMcp = async () => {
     try {
-      const bundle = await invoke<Record<string, unknown>>("export_all_mcp_configs");
+      const bundle = await exportAllMcpConfigs();
       const jsonStr = JSON.stringify(bundle, null, 2);
       const filename = `mcp-bundle-${new Date().toISOString().slice(0, 10)}.json`;
       downloadBlob(jsonStr, filename, "application/json");
@@ -48,7 +48,7 @@ export function ConfigBackupSection() {
       try {
         const text = String(reader.result ?? "");
         const bundle = JSON.parse(text);
-        const res = await invoke<string>("import_all_mcp_configs", { bundle });
+        const res = await importAllMcpConfigs(bundle);
         showToast(res || t("admin.backup.mcpImported"), "success");
       } catch (err) {
         showToast(t("admin.backup.mcpImportFailed"), "error");

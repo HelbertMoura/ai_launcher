@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { Banner } from "../../../ui/Banner";
 import { Button } from "../../../ui/Button";
@@ -10,13 +9,8 @@ import type {
   ProviderProfile,
   ProviderProtocol,
 } from "../../../providers/types";
+import { testProviderConnection } from "../../../providers/commands";
 import { KIND_DEFAULT_PROTOCOL } from "../../../providers/seeds";
-
-interface TestResult {
-  ok: boolean;
-  latencyMs?: number;
-  message?: string;
-}
 
 type TestState =
   | { status: "idle" }
@@ -145,7 +139,7 @@ export function ProviderEditor({
   const handleTest = async () => {
     setTestState({ status: "testing" });
     try {
-      const result = await invoke<TestResult>("test_provider_connection", {
+      const result = await testProviderConnection({
         baseUrl: draft.baseUrl.trim(),
         apiKey: draft.apiKey,
         model: draft.mainModel.trim(),

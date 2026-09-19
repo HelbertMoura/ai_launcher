@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Card } from "../../ui/Card";
 import { Chip } from "../../ui/Chip";
+import { launchCustomIde } from "../../lib/tauri";
 import { getToolIcon, hasToolIcon } from "../../icons/registry";
 import type { CustomIde } from "../../lib/customIdes";
 
@@ -25,10 +25,7 @@ export function CustomIdeCard({ ide, onLaunch }: CustomIdeCardProps) {
     setTesting(true);
     setTestResult(null);
     try {
-      await invoke<string>("launch_custom_ide", {
-        launchCmd: ide.detectCmd,
-        directory: null,
-      });
+      await launchCustomIde(ide.detectCmd, null);
       setTestResult("found");
     } catch {
       setTestResult("missing");

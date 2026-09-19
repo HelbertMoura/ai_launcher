@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { Chip } from "../../../ui/Chip";
 import { ConfirmDialog } from "../../../ui/ConfirmDialog";
+import { testProviderConnection } from "../../../providers/commands";
 import {
   loadProviders,
   loadProviderApiKey,
@@ -23,12 +23,6 @@ import { ProviderEditor } from "../editors/ProviderEditor";
 import { showToast } from "../../../ui/toastStore";
 import { EmptyState, ART_TOOLBOX } from "../../../ui/EmptyState";
 import { buildProvidersOverview } from "../providersPageModel";
-
-interface TestResult {
-  ok: boolean;
-  latencyMs?: number;
-  message?: string;
-}
 
 type TestState =
   | { status: "idle" }
@@ -111,7 +105,7 @@ export function ProvidersSection() {
       const apiKey = profile.apiKey === SECRET_KEY_MARKER
         ? await loadProviderApiKey(profile.id)
         : profile.apiKey;
-      const result = await invoke<TestResult>("test_provider_connection", {
+      const result = await testProviderConnection({
         baseUrl: profile.baseUrl,
         apiKey,
         model: profile.mainModel,

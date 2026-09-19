@@ -27,3 +27,13 @@ export function removeMcpServer(cli: McpCli, name: string): Promise<void> {
 export function mcpHealthCheck(server: McpServerInput): Promise<unknown> {
   return invoke<unknown>("mcp_health_check", { server });
 }
+
+/** Raw `export_all_mcp_configs` payload — callers treat it as opaque JSON. */
+export function exportAllMcpConfigs(): Promise<Record<string, unknown>> {
+  return invoke<Record<string, unknown>>("export_all_mcp_configs");
+}
+
+/** Raw `import_all_mcp_configs` payload — callers treat the bundle as opaque JSON. */
+export function importAllMcpConfigs(bundle: Record<string, unknown>): Promise<string> {
+  return invoke("import_all_mcp_configs", { bundle });
+}

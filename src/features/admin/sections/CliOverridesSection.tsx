@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../../ui/Banner";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
@@ -17,6 +16,7 @@ import {
 } from "../../../lib/clisOverrides";
 import { getBuiltinIconAsset } from "../../../lib/iconRegistry";
 import { readIconFileAsDataUrl } from "../../../lib/iconUpload";
+import { getAllClis } from "../../launcher/clisCommands";
 import type { CliInfo } from "../../launcher/useClis";
 
 type IconMode = "none" | "emoji" | "upload";
@@ -47,7 +47,7 @@ export function CliOverridesSection() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    invoke<CliInfo[]>("get_all_clis")
+    getAllClis()
       .then(setClis)
       .catch(() => setClis([]));
   }, []);

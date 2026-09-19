@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Dialog } from "../../ui/Dialog";
 import { TAB_KEYS } from "../../app/layout/TabId";
+import { openExternalUrlCommand } from "../../lib/tauri";
 import { removeKey } from "../../lib/storage";
 import { AnimatedTerminal } from "./AnimatedTerminal";
 import pkg from "../../../package.json";
@@ -51,7 +51,7 @@ export function HelpPage() {
 
   const openLink = async (url: string) => {
     try {
-      await invoke<string>("open_external_url", { url });
+      await openExternalUrlCommand(url);
     } catch {
       /* noop */
     }

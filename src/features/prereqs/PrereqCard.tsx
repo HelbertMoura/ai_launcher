@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
+import { installPrerequisite } from "../../lib/tauri";
 import type { PrereqCheck } from "./usePrerequisites";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
@@ -33,7 +33,7 @@ export function PrereqCard({ item, onInstalled }: PrereqCardProps) {
     setBusy(true);
     setError(null);
     try {
-      await invoke<string>("install_prerequisite", { key: item.key });
+      await installPrerequisite(item.key);
       onInstalled?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
