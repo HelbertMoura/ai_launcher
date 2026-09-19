@@ -1,10 +1,14 @@
-use std::os::windows::process::CommandExt;
 use std::process::Command;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
 use crate::errors::AppError;
-use crate::util::{crash_dir, read_tray_config, write_tray_config, CREATE_NO_WINDOW};
+#[cfg(windows)]
+use crate::util::CREATE_NO_WINDOW;
+use crate::util::{crash_dir, read_tray_config, write_tray_config};
 
 /// Pure validation for `open_external_url`: trims the input, enforces the
 /// http(s) scheme and rejects control characters/whitespace to avoid argument
@@ -47,11 +51,17 @@ pub fn open_external_url(url: String) -> Result<String, AppError> {
 pub fn open_crash_dir() -> Result<(), AppError> {
     let dir = crash_dir();
     std::fs::create_dir_all(&dir).map_err(|e| format!("falha ao criar diretório: {e}"))?;
-    Command::new("explorer")
+    // Per-OS file manager: explorer (hidden console) / open / xdg-open.
+    #[cfg(windows)]
+    let opened = Command::new("explorer")
         .arg(&dir)
         .creation_flags(CREATE_NO_WINDOW)
-        .spawn()
-        .map_err(|e| format!("falha ao abrir explorer: {e}"))?;
+        .spawn();
+    #[cfg(target_os = "macos")]
+    let opened = Command::new("open").arg(&dir).spawn();
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let opened = Command::new("xdg-open").arg(&dir).spawn();
+    opened.map_err(|e| format!("falha ao abrir o diretório: {e}"))?;
     Ok(())
 }
 

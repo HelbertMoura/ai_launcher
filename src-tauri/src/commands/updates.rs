@@ -2,11 +2,15 @@ use tauri::Emitter;
 
 use crate::commands::cli::scan_cli_updates_blocking;
 use crate::errors::AppError;
+#[cfg(not(windows))]
+use crate::util::find_terminal_emulator;
+#[cfg(windows)]
+use crate::util::find_windows_terminal;
 use crate::util::{
     chrono_format_local_now, command_exists, compare_versions, detect_python, extract_version,
-    fetch_github_latest, fetch_vscode_latest, find_tool_path, find_windows_terminal,
-    get_tool_definitions, http_agent, npm_latest, read_exe_product_version, run_silent,
-    stream_install, CheckResult, UpdateInfo, UpdatesSummary, DEFAULT_INSTALL_TIMEOUT_SEC,
+    fetch_github_latest, fetch_vscode_latest, find_tool_path, get_tool_definitions, http_agent,
+    npm_latest, read_exe_product_version, run_silent, stream_install, CheckResult, UpdateInfo,
+    UpdatesSummary, DEFAULT_INSTALL_TIMEOUT_SEC, OLLAMA_DOWNLOAD_URL,
 };
 
 /// Blocking scan of environment tool versions: up to 9 subprocess probes plus
@@ -262,18 +266,42 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
+    // Terminal check: Windows Terminal on Windows; on macOS/Linux the
+    // platform terminal emulator (Terminal.app is always present on macOS).
     let t_wt = tokio::task::spawn_blocking(|| {
-        let wt_found = find_windows_terminal().is_some();
-        CheckResult {
-            key: "windows-terminal".into(),
-            name: "Windows Terminal".into(),
-            installed: wt_found,
-            version: if wt_found {
-                Some("Disponível".into())
-            } else {
-                None
-            },
-            install_command: Some("Microsoft Store → Windows Terminal".into()),
+        #[cfg(windows)]
+        {
+            let wt_found = find_windows_terminal().is_some();
+            CheckResult {
+                key: "windows-terminal".into(),
+                name: "Windows Terminal".into(),
+                installed: wt_found,
+                version: if wt_found {
+                    Some("Disponível".into())
+                } else {
+                    None
+                },
+                install_command: Some("Microsoft Store → Windows Terminal".into()),
+            }
+        }
+        #[cfg(not(windows))]
+        {
+            let term_found = find_terminal_emulator().is_some();
+            CheckResult {
+                key: "terminal".into(),
+                name: "Terminal emulator".into(),
+                installed: term_found,
+                version: if term_found {
+                    Some("Disponível".into())
+                } else {
+                    None
+                },
+                install_command: Some(
+                    "Instale gnome-terminal, konsole, alacritty ou kitty (defina $TERMINAL \
+                     para um emulador customizado)"
+                        .into(),
+                ),
+            }
         }
     });
 
@@ -340,7 +368,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
             name: "Ollama (Local LLM)".into(),
             installed: ollama_ok,
             version: ollama_ver,
-            install_command: Some("https://ollama.com/download/windows".into()),
+            install_command: Some(OLLAMA_DOWNLOAD_URL.into()),
         }
     });
 
@@ -429,13 +457,19 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
         "rust" => url_for("https://rustup.rs/"),
         "bun" => url_for("https://bun.sh"),
         "docker" => url_for("https://www.docker.com/products/docker-desktop/"),
-        "ollama" => url_for("https://ollama.com/download/windows"),
+        "ollama" => url_for(OLLAMA_DOWNLOAD_URL),
         "windows-terminal" | "wt" => {
             open::that("ms-windows-store://pdp/?productid=9N0DX20HK701")
                 .or_else(|_| open::that("https://aka.ms/terminal"))
                 .map_err(|e| e.to_string())?;
             Ok("Abrindo Microsoft Store".into())
         }
+        #[cfg(not(windows))]
+        "terminal" => Err(
+            "Instale um emulador de terminal pelo gerenciador de pacotes do seu \
+             sistema (gnome-terminal, konsole, alacritty ou kitty)."
+                .into(),
+        ),
         "vscode" => url_for("https://code.visualstudio.com/Download"),
         "git-lfs" => url_for("https://git-lfs.com/"),
         "powershell" => url_for("https://github.com/PowerShell/PowerShell/releases/latest"),
@@ -500,7 +534,7 @@ pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<S
         ("rust", "https://rustup.rs/"),
         ("bun", "https://bun.sh"),
         ("docker", "https://www.docker.com/products/docker-desktop/"),
-        ("ollama", "https://ollama.com/download/windows"),
+        ("ollama", OLLAMA_DOWNLOAD_URL),
         (
             "windows-terminal",
             "ms-windows-store://pdp/?productid=9N0DX20HK701",

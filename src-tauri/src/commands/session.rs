@@ -8,6 +8,10 @@
 // in that case we mark the session as "detached" and emit `session-ended` with
 // `status = "detached"` and no exit code, rather than leaving it "starting"
 // forever (which would make the timeline lie).
+//
+// macOS/Linux launches always go through the platform terminal emulator
+// (Terminal.app / emuladores Linux), which detaches exactly like `wt.exe`,
+// so those sessions are also registered as "detached".
 
 use std::collections::HashMap;
 use std::sync::{Mutex, OnceLock};
@@ -206,39 +210,8 @@ pub fn kill_session(session_id: String) -> Result<(), AppError> {
     let Some(pid) = session_pid(&session_id) else {
         return Err("Sessão não encontrada ou não rastreável".to_string().into());
     };
-    kill_pid(pid).map_err(|e| AppError::new(format!("Falha ao encerrar sessão: {}", e)))
-}
-
-/// Terminate a process tree by pid on Windows via `taskkill`.
-#[cfg(target_os = "windows")]
-fn kill_pid(pid: u32) -> Result<(), String> {
-    use std::os::windows::process::CommandExt;
-    use std::process::Command;
-    const CREATE_NO_WINDOW: u32 = 0x08000000;
-    let status = Command::new("taskkill")
-        .args(["/PID", &pid.to_string(), "/T", "/F"])
-        .creation_flags(CREATE_NO_WINDOW)
-        .status()
-        .map_err(|e| e.to_string())?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("taskkill exit code {:?}", status.code()))
-    }
-}
-
-#[cfg(not(target_os = "windows"))]
-fn kill_pid(pid: u32) -> Result<(), String> {
-    use std::process::Command;
-    let status = Command::new("kill")
-        .arg(pid.to_string())
-        .status()
-        .map_err(|e| e.to_string())?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("kill exit code {:?}", status.code()))
-    }
+    crate::util::kill_tree(pid)
+        .map_err(|e| AppError::new(format!("Falha ao encerrar sessão: {}", e)))
 }
 
 #[cfg(test)]

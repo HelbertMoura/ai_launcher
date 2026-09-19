@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use super::definitions::CliInfo;
 use super::process::{command_exists, run_silent};
-use super::terminal::{expand_env, resolve_cli_path_win, scan_subdirs_for_exe_deep};
+use super::terminal::{expand_env, resolve_cli_path, scan_subdirs_for_exe_deep};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CheckResult {
@@ -57,25 +57,9 @@ pub fn extract_version(output: &str) -> Option<String> {
     candidates.into_iter().last()
 }
 
-pub fn read_exe_product_version(path: &std::path::Path) -> Option<String> {
-    if !path.exists() {
-        return None;
-    }
-    let escaped = path.to_string_lossy().replace('\'', "''");
-    let ps = format!(
-        "(Get-Item -LiteralPath '{}').VersionInfo.ProductVersion",
-        escaped
-    );
-    let (ok, out) = run_silent("powershell", &["-NoProfile", "-Command", &ps]);
-    if !ok {
-        return None;
-    }
-    out.as_deref().and_then(extract_version)
-}
-
 pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
     if cli.key == "claude" || cli.install_method == "script" || !cli.extra_paths.is_empty() {
-        if let Some(resolved) = resolve_cli_path_win(&cli.command, &cli.extra_paths) {
+        if let Some(resolved) = resolve_cli_path(&cli.command, &cli.extra_paths) {
             let (_, out) = run_silent(&resolved, &["--version"]);
             if let Some(ref s) = out {
                 if let Some(ver) = extract_version(s) {
@@ -105,7 +89,7 @@ pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
             }
         }
     }
-    if let Some(resolved) = resolve_cli_path_win(&cli.command, &cli.extra_paths) {
+    if let Some(resolved) = resolve_cli_path(&cli.command, &cli.extra_paths) {
         let (_, out) = run_silent(&resolved, &["--version"]);
         if let Some(ref s) = out {
             if let Some(ver) = extract_version(s) {
@@ -115,6 +99,31 @@ pub fn get_installed_version(cli: &CliInfo) -> Option<String> {
     }
     let (_, out) = run_silent(&cli.command, &["--version"]);
     out.as_ref().and_then(|s| extract_version(s))
+}
+
+/// Reads the PE `ProductVersion` metadata via PowerShell. Windows-only
+/// evidence; other platforms return `None` and callers fall back to
+/// "detectado" when the tool is present.
+#[cfg(windows)]
+pub fn read_exe_product_version(path: &std::path::Path) -> Option<String> {
+    if !path.exists() {
+        return None;
+    }
+    let escaped = path.to_string_lossy().replace('\'', "''");
+    let ps = format!(
+        "(Get-Item -LiteralPath '{}').VersionInfo.ProductVersion",
+        escaped
+    );
+    let (ok, out) = run_silent("powershell", &["-NoProfile", "-Command", &ps]);
+    if !ok {
+        return None;
+    }
+    out.as_deref().and_then(extract_version)
+}
+
+#[cfg(not(windows))]
+pub fn read_exe_product_version(_path: &std::path::Path) -> Option<String> {
+    None
 }
 
 pub fn check_cli_installed(cli: &CliInfo) -> (bool, Option<String>) {
@@ -235,10 +244,16 @@ pub fn download_agent() -> ureq::Agent {
 }
 
 pub fn fetch_vscode_latest() -> Option<String> {
-    let resp = http_agent()
-        .get("https://update.code.visualstudio.com/api/releases/stable/win32-x64/version")
-        .call()
-        .ok()?;
+    // VS Code publishes per-platform stable channels; ask for the current OS.
+    #[cfg(target_os = "macos")]
+    let platform = "darwin";
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let platform = "linux-x64";
+    #[cfg(windows)]
+    let platform = "win32-x64";
+    let url =
+        format!("https://update.code.visualstudio.com/api/releases/stable/{platform}/version");
+    let resp = http_agent().get(&url).call().ok()?;
     let json: serde_json::Value = resp.into_json().ok()?;
     json["productVersion"].as_str().map(|s| s.to_string())
 }

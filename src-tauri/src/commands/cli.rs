@@ -4,12 +4,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::AppError;
 use crate::safety::{append_env_assignments, reject_shell_metacharacters, sanitize_args};
+#[cfg(windows)]
+use crate::util::command_exists;
+#[cfg(not(windows))]
+use crate::util::{build_unix_session_script, sh_quote, spawn_unix_terminal_session};
 use crate::util::{
-    check_cli_installed, command_exists, compare_versions, encode_powershell_command,
-    fetch_manifest_version, find_windows_terminal, get_cli_definitions, get_installed_version,
-    heal_claude_npm_stub_if_needed, log_event, npm_latest, resolve_cli_path_win, stream_install,
-    validate_directory, CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
+    check_cli_installed, compare_versions, fetch_manifest_version, get_cli_definitions,
+    get_installed_version, heal_claude_npm_stub_if_needed, log_event, npm_latest, resolve_cli_path,
+    stream_install, validate_directory, CheckResult, CliInfo, DEFAULT_INSTALL_TIMEOUT_SEC,
 };
+#[cfg(windows)]
+use crate::util::{encode_powershell_command, find_windows_terminal};
 
 /// Result returned by all launch commands.
 #[derive(Debug, Serialize)]
@@ -280,29 +285,43 @@ pub async fn install_cli(
                 .await
             }
             "script" => {
-                let shell = if command_exists("pwsh") {
-                    "pwsh"
-                } else {
-                    "powershell"
-                };
-                let res = stream_install(
-                    app,
-                    key_for_work.clone(),
-                    shell.into(),
-                    vec![
-                        "-NoProfile".into(),
-                        "-ExecutionPolicy".into(),
-                        "Bypass".into(),
-                        "-Command".into(),
-                        install_cmd,
-                    ],
-                    secs,
-                )
-                .await;
-                if key_for_work == "claude" {
-                    heal_claude_npm_stub_if_needed();
+                #[cfg(windows)]
+                {
+                    let shell = if command_exists("pwsh") {
+                        "pwsh"
+                    } else {
+                        "powershell"
+                    };
+                    let res = stream_install(
+                        app,
+                        key_for_work.clone(),
+                        shell.into(),
+                        vec![
+                            "-NoProfile".into(),
+                            "-ExecutionPolicy".into(),
+                            "Bypass".into(),
+                            "-Command".into(),
+                            install_cmd,
+                        ],
+                        secs,
+                    )
+                    .await;
+                    if key_for_work == "claude" {
+                        heal_claude_npm_stub_if_needed();
+                    }
+                    res
                 }
-                res
+                #[cfg(not(windows))]
+                {
+                    // The shared definitions carry PowerShell one-liners
+                    // (irm ... | iex) — meaningless on Unix shells. Degrade
+                    // honestly instead of spawning a doomed shell.
+                    let _ = install_cmd;
+                    Err("Instalação via script do Windows não é suportada neste \
+                         sistema. Use o gerenciador de pacotes ou o instalador \
+                         nativo do CLI."
+                        .into())
+                }
             }
             "browser" => {
                 if let Some(url) = install_url {
@@ -374,29 +393,39 @@ pub async fn update_cli(
                 .await
             }
             "script" => {
-                let shell = if command_exists("pwsh") {
-                    "pwsh"
-                } else {
-                    "powershell"
-                };
-                let res = stream_install(
-                    app,
-                    key_for_work.clone(),
-                    shell.into(),
-                    vec![
-                        "-NoProfile".into(),
-                        "-ExecutionPolicy".into(),
-                        "Bypass".into(),
-                        "-Command".into(),
-                        install_cmd,
-                    ],
-                    secs,
-                )
-                .await;
-                if key_for_work == "claude" {
-                    heal_claude_npm_stub_if_needed();
+                #[cfg(windows)]
+                {
+                    let shell = if command_exists("pwsh") {
+                        "pwsh"
+                    } else {
+                        "powershell"
+                    };
+                    let res = stream_install(
+                        app,
+                        key_for_work.clone(),
+                        shell.into(),
+                        vec![
+                            "-NoProfile".into(),
+                            "-ExecutionPolicy".into(),
+                            "Bypass".into(),
+                            "-Command".into(),
+                            install_cmd,
+                        ],
+                        secs,
+                    )
+                    .await;
+                    if key_for_work == "claude" {
+                        heal_claude_npm_stub_if_needed();
+                    }
+                    res
                 }
-                res
+                #[cfg(not(windows))]
+                {
+                    let _ = install_cmd;
+                    Err("Atualização via script do Windows não é suportada neste \
+                         sistema. Use o gerenciador de pacotes do CLI."
+                        .into())
+                }
             }
             other => Err(format!("Atualização via '{}' não suportada", other)),
         }
@@ -479,18 +508,7 @@ pub fn launch_cli(
     let work_dir = validate_directory(&directory)?;
 
     let resolved_cmd =
-        resolve_cli_path_win(&cli.command, &cli.extra_paths).unwrap_or_else(|| cli.command.clone());
-
-    let ps_cmd = if resolved_cmd.contains(' ') {
-        format!("& '{}'", resolved_cmd.replace('\'', "''"))
-    } else {
-        resolved_cmd.clone()
-    };
-    let cmd_cmd = if resolved_cmd.contains(' ') {
-        format!("\"{}\"", resolved_cmd)
-    } else {
-        resolved_cmd.clone()
-    };
+        resolve_cli_path(&cli.command, &cli.extra_paths).unwrap_or_else(|| cli.command.clone());
 
     let tail_args = {
         let mut s = String::new();
@@ -507,37 +525,63 @@ pub fn launch_cli(
         s
     };
 
-    let ps_line = format!("{}{}", ps_cmd, tail_args);
-    let cmd_line = format!("{}{}", cmd_cmd, tail_args);
+    // Windows keeps the PowerShell `-EncodedCommand` launch path verbatim;
+    // macOS/Linux hand a POSIX script to the platform terminal emulator.
+    #[cfg(windows)]
+    let display_line = {
+        let ps_cmd = if resolved_cmd.contains(' ') {
+            format!("& '{}'", resolved_cmd.replace('\'', "''"))
+        } else {
+            resolved_cmd.clone()
+        };
+        let cmd_cmd = if resolved_cmd.contains(' ') {
+            format!("\"{}\"", resolved_cmd)
+        } else {
+            resolved_cmd.clone()
+        };
+        let cmd_line = format!("{}{}", cmd_cmd, tail_args);
 
-    let mut ps_script =
-        String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+        let ps_line = format!("{}{}", ps_cmd, tail_args);
+        let mut ps_script =
+            String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
 
-    if env_vars.is_some() {
-        ps_script.push_str(
-            "Remove-Item Env:ANTHROPIC_* -ErrorAction SilentlyContinue\n\
-             Remove-Item Env:CLAUDE_CODE_* -ErrorAction SilentlyContinue\n\
-             Remove-Item Env:API_TIMEOUT_MS -ErrorAction SilentlyContinue\n",
-        );
-    }
+        if env_vars.is_some() {
+            ps_script.push_str(
+                "Remove-Item Env:ANTHROPIC_* -ErrorAction SilentlyContinue\n\
+                 Remove-Item Env:CLAUDE_CODE_* -ErrorAction SilentlyContinue\n\
+                 Remove-Item Env:API_TIMEOUT_MS -ErrorAction SilentlyContinue\n",
+            );
+        }
 
-    if let Some(ref vars) = env_vars {
-        append_env_assignments(&mut ps_script, vars);
-    }
-    ps_script.push_str(&ps_line);
-    ps_script.push('\n');
+        if let Some(ref vars) = env_vars {
+            append_env_assignments(&mut ps_script, vars);
+        }
+        ps_script.push_str(&ps_line);
+        ps_script.push('\n');
 
-    let encoded = encode_powershell_command(&ps_script);
+        let encoded = encode_powershell_command(&ps_script);
 
-    spawn_and_track(&app, &session_id, &cli_key, &work_dir, &encoded, &cmd_line)?;
+        spawn_and_track(&app, &session_id, &cli_key, &work_dir, &encoded, &cmd_line)?;
+        cmd_line
+    };
+
+    #[cfg(not(windows))]
+    let display_line = {
+        let cli_line = format!("{}{}", sh_quote(&resolved_cmd), tail_args);
+        let script =
+            build_unix_session_script(&work_dir, env_vars.is_some(), env_vars.as_ref(), &cli_line);
+        spawn_unix_terminal_session(&script).map_err(AppError::from)?;
+        crate::commands::session::register_detached(&app, &session_id, &cli_key, &work_dir);
+        cli_line
+    };
 
     Ok(LaunchResult {
         session_id,
-        message: format!("Iniciando: {} em {}", cmd_line, work_dir),
+        message: format!("Iniciando: {} em {}", display_line, work_dir),
     })
 }
 
-/// Spawn a session and register it for lifecycle tracking.
+/// Spawn a session and register it for lifecycle tracking (Windows).
 ///
 /// Preference order: Windows Terminal (`wt.exe`) → pwsh → powershell → cmd.
 /// When launched through `wt.exe`, the `wt` process exits immediately after
@@ -546,6 +590,11 @@ pub fn launch_cli(
 /// For the direct fallbacks, we retain the child handle and track it: a tokio
 /// task awaits the process and emits `session-ended` with the real exit code
 /// and duration when it exits.
+///
+/// On macOS/Linux the session goes through the platform terminal emulator
+/// (see `spawn_unix_terminal_session`), which detaches the same way `wt.exe`
+/// does — so those launches are also registered as "detached" by the caller.
+#[cfg(windows)]
 fn spawn_and_track(
     app: &tauri::AppHandle,
     session_id: &str,
@@ -630,41 +679,55 @@ pub fn launch_custom_cli(
     let safe_args = sanitize_args(args.as_deref().unwrap_or(""))?;
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
 
-    let resolved_cmd = resolve_cli_path_win(&command, &[]).unwrap_or_else(|| command.clone());
-    let ps_cmd = if resolved_cmd.contains(' ') {
-        format!("& '{}'", resolved_cmd.replace('\'', "''"))
-    } else {
-        resolved_cmd.clone()
-    };
-    let cmd_cmd = if resolved_cmd.contains(' ') {
-        format!("\"{}\"", resolved_cmd)
-    } else {
-        resolved_cmd.clone()
-    };
+    let resolved_cmd = resolve_cli_path(&command, &[]).unwrap_or_else(|| command.clone());
 
     let tail_args = if safe_args.is_empty() {
         String::new()
     } else {
         format!(" {}", safe_args)
     };
-    let ps_line = format!("{}{}", ps_cmd, tail_args);
-    let cmd_line = format!("{}{}", cmd_cmd, tail_args);
 
-    let mut ps_script =
-        String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
-    if let Some(ref vars) = env {
-        append_env_assignments(&mut ps_script, vars);
-    }
-    ps_script.push_str(&ps_line);
-    ps_script.push('\n');
+    #[cfg(windows)]
+    let display_line = {
+        let ps_cmd = if resolved_cmd.contains(' ') {
+            format!("& '{}'", resolved_cmd.replace('\'', "''"))
+        } else {
+            resolved_cmd.clone()
+        };
+        let cmd_cmd = if resolved_cmd.contains(' ') {
+            format!("\"{}\"", resolved_cmd)
+        } else {
+            resolved_cmd.clone()
+        };
+        let cmd_line = format!("{}{}", cmd_cmd, tail_args);
 
-    let encoded = encode_powershell_command(&ps_script);
+        let ps_line = format!("{}{}", ps_cmd, tail_args);
+        let mut ps_script =
+            String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+        if let Some(ref vars) = env {
+            append_env_assignments(&mut ps_script, vars);
+        }
+        ps_script.push_str(&ps_line);
+        ps_script.push('\n');
 
-    spawn_and_track(&app, &session_id, "custom", &work_dir, &encoded, &cmd_line)?;
+        let encoded = encode_powershell_command(&ps_script);
+
+        spawn_and_track(&app, &session_id, "custom", &work_dir, &encoded, &cmd_line)?;
+        cmd_line
+    };
+
+    #[cfg(not(windows))]
+    let display_line = {
+        let cli_line = format!("{}{}", sh_quote(&resolved_cmd), tail_args);
+        let script = build_unix_session_script(&work_dir, false, env.as_ref(), &cli_line);
+        spawn_unix_terminal_session(&script).map_err(AppError::from)?;
+        crate::commands::session::register_detached(&app, &session_id, "custom", &work_dir);
+        cli_line
+    };
 
     Ok(LaunchResult {
         session_id,
-        message: format!("Iniciando: {} em {}", cmd_line, work_dir),
+        message: format!("Iniciando: {} em {}", display_line, work_dir),
     })
 }
 
@@ -729,20 +792,24 @@ pub async fn cleanup_system_cache() -> Result<CleanupReport, AppError> {
             }
         }
 
-        let appdata = std::env::var("APPDATA").unwrap_or_default();
-        let npm_anthropic = std::path::Path::new(&appdata)
-            .join("npm")
-            .join("node_modules")
-            .join("@anthropic-ai");
-        if npm_anthropic.exists() {
-            if let Ok(entries) = std::fs::read_dir(&npm_anthropic) {
-                for entry in entries.flatten() {
-                    let name = entry.file_name().to_string_lossy().to_string();
-                    if name.starts_with(".claude-code-") {
-                        let path = entry.path();
-                        if path.is_dir() {
-                            let _ = std::fs::remove_dir_all(&path);
-                            cleaned += 1;
+        // Windows-only npm cache sweep; macOS/Linux keep the generic TEMP pass.
+        #[cfg(windows)]
+        {
+            let appdata = std::env::var("APPDATA").unwrap_or_default();
+            let npm_anthropic = std::path::Path::new(&appdata)
+                .join("npm")
+                .join("node_modules")
+                .join("@anthropic-ai");
+            if npm_anthropic.exists() {
+                if let Ok(entries) = std::fs::read_dir(&npm_anthropic) {
+                    for entry in entries.flatten() {
+                        let name = entry.file_name().to_string_lossy().to_string();
+                        if name.starts_with(".claude-code-") {
+                            let path = entry.path();
+                            if path.is_dir() {
+                                let _ = std::fs::remove_dir_all(&path);
+                                cleaned += 1;
+                            }
                         }
                     }
                 }
