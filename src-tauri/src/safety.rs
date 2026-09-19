@@ -10,6 +10,7 @@
 #[cfg(windows)]
 use std::collections::HashMap;
 
+#[cfg(windows)]
 use crate::util::log_event;
 
 /// The shell-metacharacter deny-list shared by every token gate in this
