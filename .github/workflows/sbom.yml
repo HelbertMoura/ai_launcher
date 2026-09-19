@@ -87,14 +87,15 @@ jobs:
         working-directory: src-tauri
         run: |
           # 1.5 keeps broad compatibility with downstream scanners; bump
-          # to 1.6 once tooling catches up. --override-filename-root
-          # avoids clashing with the frontend output on merge.
-          cargo cyclonedx --format json --override-filename-root sbom.backend --spec-version 1.5
+          # to 1.6 once tooling catches up. cargo-cyclonedx has no
+          # filename-override flag by default: it writes next to
+          # Cargo.toml as <package>.cdx.json, i.e. ai-launcher.cdx.json.
+          cargo cyclonedx --format json --spec-version 1.5
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sbom-backend
-          path: src-tauri/target/sbom.backend.cdx.json
+          path: src-tauri/*.cdx.json
           retention-days: 90
-          if-no-files-found: warn
+          if-no-files-found: error
