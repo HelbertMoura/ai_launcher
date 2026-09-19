@@ -75,7 +75,7 @@ pub async fn check_tools() -> Vec<CheckResult> {
 }
 
 #[tauri::command]
-pub fn install_tool(tool_key: String) -> Result<String, String> {
+pub fn install_tool(tool_key: String) -> Result<String, AppError> {
     let tools = get_tool_definitions();
     let tool = tools
         .iter()
@@ -91,7 +91,7 @@ pub fn install_tool(tool_key: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String, String> {
+pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String, AppError> {
     let tools = get_tool_definitions();
     let tool = tools
         .iter()
@@ -126,7 +126,8 @@ pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String
     Err(format!(
         "{} não encontrado. Instale: {}",
         tool.name, tool.install_hint
-    ))
+    )
+    .into())
 }
 
 #[tauri::command]
