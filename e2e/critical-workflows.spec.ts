@@ -194,6 +194,24 @@ test.describe("v21 critical workflows", () => {
     await expectNoUnknownTauriCommands(page);
   });
 
+  test("locks credential actions when the system vault is unavailable", async ({ page }) => {
+    await preparePage(page, {
+      responses: {
+        has_secure_storage: false,
+      },
+    });
+    await gotoApp(page);
+    await openAdminSection(page, /^providers$/i);
+
+    await expect(page.getByText(/credential vault unavailable/i)).toBeVisible();
+    await expect(page.getByRole("button", { name: /add provider/i })).toBeDisabled();
+    const firstCard = page.locator(".cd-provider-card").first();
+    await expect(firstCard.getByRole("button", { name: /^edit$/i })).toBeDisabled();
+    await expect(firstCard.getByRole("button", { name: /^test connection$/i })).toBeDisabled();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expectNoUnknownTauriCommands(page);
+  });
+
   test("launches a CLI session from Command Center and can terminate an active session", async ({ page }) => {
     await preparePage(page, {
       seed: workspaceSeed(),

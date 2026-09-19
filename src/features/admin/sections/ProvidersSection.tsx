@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Banner } from "../../../ui/Banner";
 import { Button } from "../../../ui/Button";
 import { Card } from "../../../ui/Card";
 import { Chip } from "../../../ui/Chip";
@@ -23,6 +24,7 @@ import { ProviderEditor } from "../editors/ProviderEditor";
 import { showToast } from "../../../ui/toastStore";
 import { EmptyState, ART_TOOLBOX } from "../../../ui/EmptyState";
 import { buildProvidersOverview } from "../providersPageModel";
+import { isLinuxLikePlatform, useSecureStorage } from "../../../lib/useSecureStorage";
 
 type TestState =
   | { status: "idle" }
@@ -37,6 +39,9 @@ export function ProvidersSection() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [testStates, setTestStates] = useState<Record<string, TestState>>({});
   const [confirmDelete, setConfirmDelete] = useState<ProviderProfile | null>(null);
+  const storage = useSecureStorage();
+  // Fail-closed: credential actions only run with the OS vault confirmed.
+  const storageReady = storage === "available";
 
   const existingIds = useMemo(
     () => state.profiles.map((p) => p.id),
@@ -47,11 +52,13 @@ export function ProvidersSection() {
   const refresh = () => setState(loadProviders());
 
   const openNew = () => {
+    if (!storageReady) return;
     setEditing(null);
     setEditorOpen(true);
   };
 
   const openEdit = async (profile: ProviderProfile) => {
+    if (!storageReady) return;
     // Resolve API key from secure storage before opening the editor.
     const resolvedKey = await loadProviderApiKey(profile.id, profile.apiKey);
     setEditing({ ...profile, apiKey: resolvedKey });
@@ -71,6 +78,7 @@ export function ProvidersSection() {
   };
 
   const handleActivate = async (id: string) => {
+    if (!storageReady) return;
     const next = setActive(state, id);
     const saved = await saveProvidersSecure(next);
     if (!saved) {
@@ -81,6 +89,7 @@ export function ProvidersSection() {
   };
 
   const handleDelete = (profile: ProviderProfile) => {
+    if (!storageReady) return;
     if (profile.builtin) return;
     setConfirmDelete(profile);
   };
@@ -99,6 +108,7 @@ export function ProvidersSection() {
   };
 
   const handleTest = async (profile: ProviderProfile) => {
+    if (!storageReady) return;
     setTestStates((prev) => ({ ...prev, [profile.id]: { status: "testing" } }));
     try {
       // Resolve API key from secure storage if needed.
@@ -141,10 +151,22 @@ export function ProvidersSection() {
             {t("admin.providers.subtitle")}
           </p>
         </div>
-        <Button size="sm" onClick={openNew}>
+        <Button size="sm" onClick={openNew} disabled={!storageReady}>
           + {t("admin.providers.add")}
         </Button>
       </div>
+
+      {storage === "checking" && (
+        <Banner variant="info">{t("admin.providers.storageChecking")}</Banner>
+      )}
+      {storage === "unavailable" && (
+        <Banner variant="warn">
+          <strong>{t("admin.providers.storageUnavailableTitle")}</strong>{" "}
+          {isLinuxLikePlatform()
+            ? t("admin.providers.storageUnavailableHintLinux")
+            : t("admin.providers.storageUnavailableHint")}
+        </Banner>
+      )}
 
       <section className="cd-provider-overview" aria-label={t("admin.providers.overviewLabel")}>
         <div className="cd-provider-overview__active">
@@ -208,6 +230,7 @@ export function ProvidersSection() {
                       size="sm"
                       variant="ghost"
                       loading={ts.status === "testing"}
+                      disabled={!storageReady}
                       onClick={() => handleTest(p)}
                     >
                       {ts.status === "testing"
@@ -215,13 +238,14 @@ export function ProvidersSection() {
                         : t("admin.providers.testConnection")}
                     </Button>
                     {!isActive && (
-                      <Button size="sm" onClick={() => handleActivate(p.id)}>
+                      <Button size="sm" disabled={!storageReady} onClick={() => handleActivate(p.id)}>
                         {t("admin.providers.activate")}
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="ghost"
+                      disabled={!storageReady}
                       onClick={() => openEdit(p)}
                     >
                       {t("common.edit")}
@@ -230,6 +254,7 @@ export function ProvidersSection() {
                       <Button
                         size="sm"
                         variant="danger"
+                        disabled={!storageReady}
                         onClick={() => handleDelete(p)}
                       >
                         {t("common.delete")}
