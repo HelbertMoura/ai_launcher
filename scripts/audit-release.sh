@@ -7,6 +7,10 @@
 #   e.g.  ./scripts/audit-release.sh v15.0.0
 #
 # Exits non-zero if any asset filename does NOT contain the version string.
+# Windows installers + latest.json are mandatory (the Windows job gates the
+# audit); macOS DMGs and Linux AppImage/deb are attached by sibling jobs that
+# may still be running, so they are categorized and version-checked but their
+# presence is not a hard requirement here.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -52,6 +56,9 @@ echo ""
 
 INSTALLERS=()
 PORTABLE=()
+MACOS_DMG=()
+APPIMAGE=()
+DEB=()
 CHECKSUMS=()
 MANIFESTS=()
 SOURCE=()
@@ -67,6 +74,12 @@ while IFS= read -r name; do
     INSTALLERS+=("$name")
   elif [[ "$name" == *".exe" ]] && [[ "$name" != *"-setup.exe" ]]; then
     PORTABLE+=("$name")
+  elif [[ "$name" == *".dmg" ]]; then
+    MACOS_DMG+=("$name")
+  elif [[ "$name" == *".AppImage" ]]; then
+    APPIMAGE+=("$name")
+  elif [[ "$name" == *".deb" ]]; then
+    DEB+=("$name")
   elif [[ "$name" == *".sha256" ]] || [[ "$name" == *".checksum" ]]; then
     CHECKSUMS+=("$name")
   elif [[ "$name" == "latest.json" ]]; then
@@ -90,6 +103,12 @@ echo "Installers:      ${#INSTALLERS[@]}"
 for f in "${INSTALLERS[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Portable:        ${#PORTABLE[@]}"
 for f in "${PORTABLE[@]}"; do echo "  $f"; done 2>/dev/null || true
+echo "macOS DMGs:      ${#MACOS_DMG[@]}"
+for f in "${MACOS_DMG[@]}"; do echo "  $f"; done 2>/dev/null || true
+echo "AppImages:       ${#APPIMAGE[@]}"
+for f in "${APPIMAGE[@]}"; do echo "  $f"; done 2>/dev/null || true
+echo "Deb packages:    ${#DEB[@]}"
+for f in "${DEB[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Checksums:       ${#CHECKSUMS[@]}"
 for f in "${CHECKSUMS[@]}"; do echo "  $f"; done 2>/dev/null || true
 echo "Manifests:       ${#MANIFESTS[@]}"
