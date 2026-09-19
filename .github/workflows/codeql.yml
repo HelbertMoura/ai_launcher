@@ -55,13 +55,13 @@ jobs:
           Write-Host "Rust sources live under src-tauri/; CodeQL will pick them up via the working-directory override below."
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           # Keep results grouped per language so the security tab is
           # easy to read; do not upload as a separate artifact — the
