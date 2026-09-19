@@ -346,7 +346,9 @@ test.describe("v21 critical workflows", () => {
         }],
       },
     };
-    await page.locator('input[type="file"]').setInputFiles({
+    // The Backup section renders two file inputs (config backup + MCP bundle);
+    // target the config one by its dedicated accessible label, not by tag.
+    await page.getByLabel(/choose json/i).setInputFiles({
       name: "ai-launcher-backup.json",
       mimeType: "application/json",
       buffer: Buffer.from(JSON.stringify(backup)),
