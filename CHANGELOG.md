@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Language note:** starting with the next release, new changelog entries are
 > written in English, the repository's primary language. The existing pt-BR
-> entries for versions 22.5 through 22.7 are kept below as-is, as a historical
+> entries (15.x through 22.7) are kept below as-is, as a historical
 > record — they were not translated.
 
 ## [22.7.0] — 2026-08-16 — Ollama Local LLM Support, Doctor Cache Cleaner & Unified MCP Backup Bundle
