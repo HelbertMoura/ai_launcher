@@ -16,12 +16,15 @@ pub use versions::*;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(windows)]
     use std::collections::HashMap;
 
     // Safety helpers live canonically in `crate::safety` (the copies that used
     // to sit in `util::process` were dead code and were removed). These tests
     // exercise the canonical implementations.
-    use crate::safety::{append_env_assignments, is_valid_env_key, sanitize_args};
+    #[cfg(windows)]
+    use crate::safety::append_env_assignments;
+    use crate::safety::{is_valid_env_key, sanitize_args};
 
     #[test]
     fn extract_version_simple() {
@@ -107,6 +110,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(windows)]
     fn append_env_assignments_skips_invalid_keys_and_escapes_quotes() {
         let mut script = String::new();
         let mut vars = HashMap::new();
