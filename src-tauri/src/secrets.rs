@@ -23,6 +23,7 @@ use serde::Serialize;
 
 use crate::errors::AppError;
 
+#[cfg(windows)]
 const CREDENTIAL_PREFIX: &str = "DevManiacs.AILauncher/";
 const MAX_SECRET_KEY_LEN: usize = 240;
 /// Key used for the availability probe (read-only; never written).
@@ -63,6 +64,7 @@ fn validate_key(key: &str) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(windows)]
 fn target_name(key: &str) -> Result<String, String> {
     validate_key(key)?;
     Ok(format!("{CREDENTIAL_PREFIX}{key}"))
@@ -529,6 +531,7 @@ mod tests {
         );
     }
 
+    #[cfg(windows)]
     #[test]
     fn target_names_are_namespaced() {
         assert_eq!(

@@ -6,6 +6,7 @@ use std::os::unix::process::CommandExt as _;
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
+#[cfg(windows)]
 pub const CREATE_NO_WINDOW: u32 = 0x08000000;
 pub const RUN_SILENT_TIMEOUT_SECS: u64 = 15;
 pub const DEFAULT_INSTALL_TIMEOUT_SEC: u64 = 300;
@@ -207,6 +208,7 @@ pub fn kill_tree(pid: u32) -> Result<(), String> {
     }
 }
 
+#[cfg(windows)]
 pub fn encode_powershell_command(script: &str) -> String {
     use base64::{engine::general_purpose::STANDARD, Engine};
     let mut bytes = Vec::with_capacity(script.len() * 2);
