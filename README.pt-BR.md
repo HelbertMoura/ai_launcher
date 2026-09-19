@@ -4,6 +4,9 @@
 
 <img src="./docs/terminal-hero.svg" alt="AI Launcher Pro — Command Deck Terminal" width="760">
 
+<!-- demo gif: recorded by the Demo GIF workflow (scripts/record-demo.mjs) -->
+<img src="./docs/demo.gif" alt="Demonstração do AI Launcher — paleta de comandos e temas" width="760">
+
 # AI Launcher
 ### O Command Deck Open Source para Agentes de Código com IA & MCPs
 
