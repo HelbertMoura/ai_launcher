@@ -1,0 +1,43 @@
+name: Demo GIF
+
+# Records the README demo GIF on demand. The GIF is NOT committed here:
+# download the ai-launcher-demo-gif artifact and commit it at docs/demo.gif
+# (same canonical flow as the visual-baseline snapshot refresh).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: demo-gif-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    name: Record README demo GIF
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci --legacy-peer-deps
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+      - name: Record demo and encode GIF
+        run: node scripts/record-demo.mjs
+      - name: Upload demo GIF
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-launcher-demo-gif
+          path: docs/demo.gif
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload raw video on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-launcher-demo-video-debug
+          path: test-results/demo-video/*.webm
+          if-no-files-found: ignore
+          retention-days: 3
