@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import {
+  checkAppUpdate,
+  downloadVerifiedAppUpdate,
+  type AppUpdateInfo,
+} from "../lib/tauri";
 
-export interface AppUpdateInfo {
-  update_available: boolean;
-  version: string;
-  current_version: string;
-  release_notes_url: string;
-  release_notes_body: string;
-}
+export type { AppUpdateInfo };
 
 export interface DownloadProgress {
   phase: string;
@@ -44,7 +42,7 @@ export function useAppUpdate() {
   const check = useCallback(async () => {
     setState((prev) => ({ ...prev, status: "checking", error: null }));
     try {
-      const info = await invoke<AppUpdateInfo>("check_app_update");
+      const info = await checkAppUpdate();
       setState({
         info,
         status: info.update_available ? "available" : "idle",
@@ -66,9 +64,7 @@ export function useAppUpdate() {
 
     setState((prev) => ({ ...prev, status: "downloading", error: null }));
     try {
-      await invoke<{ version: string; asset_name: string }>("download_verified_app_update", {
-        version: info.version,
-      });
+      await downloadVerifiedAppUpdate(info.version);
 
       setState((prev) => ({ ...prev, status: "ready", progress: { phase: "done", downloaded: 0, total: 0, percent: 100 } }));
     } catch (e) {

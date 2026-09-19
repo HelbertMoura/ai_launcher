@@ -13,10 +13,18 @@ export async function invokeOrFallback<T>(
   return invoke<T>(command, args);
 }
 
+/**
+ * Raw `open_external_url` command: rejects on failure (no window.open
+ * fallback), so call sites keep surfacing errors as raw strings.
+ */
+export function openExternalUrlCommand(url: string): Promise<string> {
+  return invoke<string>("open_external_url", { url });
+}
+
 export async function openExternalUrl(url: string): Promise<void> {
   if (isTauriRuntime()) {
     try {
-      await invoke("open_external_url", { url });
+      await openExternalUrlCommand(url);
       return;
     } catch {
       // Fallback to window.open if Tauri command fails
@@ -51,13 +59,48 @@ export function killSession(sessionId: string): Promise<void> {
   return invoke("kill_session", { sessionId });
 }
 
-// --- Tool / IDE launch --------------------------------------------------------
-
-export function launchTool(toolKey: string, directory: string): Promise<string> {
-  return invoke("launch_tool", { toolKey, directory });
+/** Raw `launch_cli` payload (`LaunchResult` on the Rust side). */
+export interface LaunchCliCommandResult {
+  session_id: string;
+  message: string;
 }
 
-export function launchCustomIde(launchCmd: string, directory: string): Promise<string> {
+/** Args forwarded verbatim to `launch_cli`, so the wire payload is stable. */
+export type LaunchCliCommandArgs = {
+  cliKey: string;
+  directory: string;
+  args: string;
+  noPerms: boolean;
+  envVars: Record<string, string> | null;
+};
+
+export function launchCli(args: LaunchCliCommandArgs): Promise<LaunchCliCommandResult> {
+  return invoke("launch_cli", args);
+}
+
+/** Args forwarded verbatim to `launch_custom_cli`, so the wire payload is stable. */
+export type LaunchCustomCliCommandArgs = {
+  command: string;
+  args: string | null;
+  directory: string;
+  env: Record<string, string> | null;
+};
+
+export function launchCustomCli(
+  args: LaunchCustomCliCommandArgs,
+): Promise<LaunchCliCommandResult> {
+  return invoke("launch_custom_cli", args);
+}
+
+// --- Tool / IDE launch --------------------------------------------------------
+
+export function launchTool(toolKey: string, directory?: string | null): Promise<string> {
+  // Omit the key entirely when no directory is given, matching the legacy
+  // ad-hoc `{ toolKey }` payload byte for byte.
+  return invoke("launch_tool", directory === undefined ? { toolKey } : { toolKey, directory });
+}
+
+export function launchCustomIde(launchCmd: string, directory: string | null): Promise<string> {
   return invoke("launch_custom_ide", { launchCmd, directory });
 }
 
@@ -111,5 +154,30 @@ export function runMaintenanceCommand<T extends MaintenanceCommand>(
   // but the public signature guarantees the pair already matches.
   const runner = maintenanceCommands[cmd] as (a: MaintenanceCommandArgs) => Promise<void>;
   return runner(args);
+}
+
+// --- App update ---------------------------------------------------------------
+
+/** Raw `check_app_update` payload (`AppUpdateInfo` on the Rust side). */
+export interface AppUpdateInfo {
+  update_available: boolean;
+  version: string;
+  current_version: string;
+  release_notes_url: string;
+  release_notes_body: string;
+}
+
+/** Raw `download_verified_app_update` payload. */
+export interface AppUpdateDownloadResult {
+  version: string;
+  asset_name: string;
+}
+
+export function checkAppUpdate(): Promise<AppUpdateInfo> {
+  return invoke<AppUpdateInfo>("check_app_update");
+}
+
+export function downloadVerifiedAppUpdate(version: string): Promise<AppUpdateDownloadResult> {
+  return invoke("download_verified_app_update", { version });
 }
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
@@ -9,6 +8,7 @@ import { Banner } from "../../ui/Banner";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
 import { buildPreview } from "../../lib/commandPreview";
+import { launchCustomIde } from "../../lib/tauri";
 import type { CommandPreview } from "../../lib/commandPreview";
 import type { CustomIde } from "../../lib/customIdes";
 
@@ -94,10 +94,7 @@ export function CustomIdeLaunchDialog({ ide, onClose }: CustomIdeLaunchDialogPro
     if (!ide) return;
     dispatch({ type: "startLaunch" });
     try {
-      await invoke<string>("launch_custom_ide", {
-        launchCmd: ide.launchCmd,
-        directory: directory || null,
-      });
+      await launchCustomIde(ide.launchCmd, directory || null);
       void ensurePermissionThenNotify(
         t("notifications.sessionStarted.title", { cli: ide.name }),
         t("notifications.sessionStarted.body", { dir: directory || "~" }),

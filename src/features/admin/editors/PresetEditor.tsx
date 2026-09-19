@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Banner } from "../../../ui/Banner";
 import { Button } from "../../../ui/Button";
@@ -8,6 +7,7 @@ import { Input } from "../../../ui/Input";
 import { Toggle } from "../../../ui/Toggle";
 import { generateProfileId } from "../../../domain/profileStore";
 import type { LaunchProfile } from "../../../domain/types";
+import { getAllClis } from "../../launcher/clisCommands";
 import type { CliInfo } from "../../launcher/useClis";
 import type { ProviderProfile } from "../../../providers/types";
 
@@ -49,7 +49,7 @@ export function PresetEditor({
     if (!open) return;
     setDraft(preset ? { ...preset } : emptyProfile());
     setError(null);
-    invoke<CliInfo[]>("get_all_clis")
+    getAllClis()
       .then((list) => setClis(list))
       .catch(() => setClis([]));
   }, [open, preset]);

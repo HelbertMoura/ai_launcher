@@ -1,9 +1,9 @@
-import { invoke } from "@tauri-apps/api/core";
 import { loadProviders, setActive, buildLaunchEnvAsync } from "../../providers/storage";
 import type { ProvidersState } from "../../providers/types";
 import { getActiveWorkspace, loadWorkspaces } from "../workspace/workspaceStore";
 import { addRecentDir, saveLastDir } from "../history/useHistory";
 import { appendHistory } from "./history";
+import { launchCli } from "../../lib/tauri";
 import {
   mergeLaunchEnv,
   readProjectProfile,
@@ -96,7 +96,7 @@ export async function launchCliSession({
   const mergedEnv = mergeLaunchEnv(defaultEnv, workspaceEnv, profile?.env);
   const envVars = Object.keys(mergedEnv).length > 0 ? mergedEnv : undefined;
 
-  const result = await invoke<{ session_id: string; message: string }>("launch_cli", {
+  const result = await launchCli({
     cliKey: cli.key,
     directory: finalDirectory,
     args,

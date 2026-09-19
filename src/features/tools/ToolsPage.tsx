@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { Banner } from "../../ui/Banner";
 import { EmptyState, ART_TOOLBOX } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
@@ -10,6 +9,11 @@ import { CustomIdeLaunchDialog } from "./CustomIdeLaunchDialog";
 import { useTools, type ToolInfo } from "./useTools";
 import { useUpdates } from "../../hooks/useUpdates";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
+import {
+  launchTool,
+  openExternalUrlCommand,
+  runMaintenanceCommand,
+} from "../../lib/tauri";
 import type { CustomIde } from "../../lib/customIdes";
 import "../page.css";
 import "./ToolsPage.css";
@@ -32,7 +36,7 @@ export function ToolsPage() {
     setLaunching(tool.key);
     setActionError(null);
     try {
-      await invoke<string>("launch_tool", { toolKey: tool.key });
+      await launchTool(tool.key);
     } catch (e) {
       setActionError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -45,9 +49,9 @@ export function ToolsPage() {
     setActionError(null);
     try {
       if (tool.install_url) {
-        await invoke<string>("open_external_url", { url: tool.install_url });
+        await openExternalUrlCommand(tool.install_url);
       } else {
-        await invoke<string>("install_tool", { toolKey: tool.key });
+        await runMaintenanceCommand("install_tool", { toolKey: tool.key });
         void ensurePermissionThenNotify(
           t("notifications.installDone.title", { name: tool.name }),
           t("notifications.installDone.body"),

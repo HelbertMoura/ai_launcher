@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useReducer } from "react";
 import { useTranslation } from "react-i18next";
-import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Button } from "../../ui/Button";
 import { Dialog } from "../../ui/Dialog";
@@ -9,6 +8,7 @@ import { Banner } from "../../ui/Banner";
 import { SafeCommandPreview } from "../../ui/SafeCommandPreview";
 import { ensurePermissionThenNotify } from "../../lib/notifications";
 import { buildPreview } from "../../lib/commandPreview";
+import { launchCustomCli } from "../../lib/tauri";
 import type { CommandPreview } from "../../lib/commandPreview";
 import type { CustomCli } from "../../lib/customClis";
 
@@ -108,7 +108,7 @@ export function CustomCliLaunchDialog({ cli, onClose }: CustomCliLaunchDialogPro
     try {
       const command = cli.installCmd.split(/\s+/).pop() ?? cli.key;
       const allArgs = [cli.launchArgs, args].filter(Boolean).join(" ") || null;
-      await invoke<{ session_id: string; message: string }>("launch_custom_cli", {
+      await launchCustomCli({
         command,
         args: allArgs,
         directory,
