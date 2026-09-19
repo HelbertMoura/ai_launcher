@@ -108,7 +108,7 @@ pub fn check_tool_updates() -> Vec<UpdateInfo> {
 }
 
 #[tauri::command]
-pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, String> {
+pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, AppError> {
     let _ = app.emit("updates-progress", "start");
 
     let app_cli = app.clone();
@@ -147,7 +147,7 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
 }
 
 #[tauri::command]
-pub fn check_latest_release() -> Result<serde_json::Value, String> {
+pub fn check_latest_release() -> Result<serde_json::Value, AppError> {
     let agent = http_agent();
     let url = "https://api.github.com/repos/HelbertMoura/ai_launcher/releases/latest";
     let resp = agent
@@ -416,8 +416,8 @@ pub async fn check_environment() -> Vec<CheckResult> {
 }
 
 #[tauri::command]
-pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, String> {
-    let url_for = |u: &str| -> Result<String, String> {
+pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, AppError> {
+    let url_for = |u: &str| -> Result<String, AppError> {
         open::that(u).map_err(|e| e.to_string())?;
         Ok(format!("Abrindo {}", u))
     };
@@ -439,46 +439,43 @@ pub async fn install_prerequisite(app: tauri::AppHandle, key: String) -> Result<
         "vscode" => url_for("https://code.visualstudio.com/Download"),
         "git-lfs" => url_for("https://git-lfs.com/"),
         "powershell" => url_for("https://github.com/PowerShell/PowerShell/releases/latest"),
-        "pnpm" => {
-            stream_install(
-                app,
-                "pnpm".into(),
-                "npm".into(),
-                vec!["install".into(), "-g".into(), "pnpm".into()],
-                DEFAULT_INSTALL_TIMEOUT_SEC,
-            )
-            .await
-        }
-        "yarn" => {
-            stream_install(
-                app,
-                "yarn".into(),
-                "npm".into(),
-                vec!["install".into(), "-g".into(), "yarn".into()],
-                DEFAULT_INSTALL_TIMEOUT_SEC,
-            )
-            .await
-        }
-        "tauri" | "tauri-cli" => {
-            stream_install(
-                app,
-                "tauri-cli".into(),
-                "npm".into(),
-                vec!["install".into(), "-g".into(), "@tauri-apps/cli".into()],
-                DEFAULT_INSTALL_TIMEOUT_SEC,
-            )
-            .await
-        }
+        "pnpm" => stream_install(
+            app,
+            "pnpm".into(),
+            "npm".into(),
+            vec!["install".into(), "-g".into(), "pnpm".into()],
+            DEFAULT_INSTALL_TIMEOUT_SEC,
+        )
+        .await
+        .map_err(AppError::from),
+        "yarn" => stream_install(
+            app,
+            "yarn".into(),
+            "npm".into(),
+            vec!["install".into(), "-g".into(), "yarn".into()],
+            DEFAULT_INSTALL_TIMEOUT_SEC,
+        )
+        .await
+        .map_err(AppError::from),
+        "tauri" | "tauri-cli" => stream_install(
+            app,
+            "tauri-cli".into(),
+            "npm".into(),
+            vec!["install".into(), "-g".into(), "@tauri-apps/cli".into()],
+            DEFAULT_INSTALL_TIMEOUT_SEC,
+        )
+        .await
+        .map_err(AppError::from),
         "cargo" => {
             open::that("https://rustup.rs/").map_err(|e| e.to_string())?;
             Ok("Abrindo rustup.rs (Cargo vem com Rust)".into())
         }
-        _ => Err(format!("Pré-requisito desconhecido: {}", key)),
+        _ => Err(format!("Pré-requisito desconhecido: {}", key).into()),
     }
 }
 
 #[tauri::command]
-pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, String> {
+pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<String, AppError> {
     let npm_map: &[(&str, &str)] = &[
         ("npm", "npm"),
         ("pnpm", "pnpm"),
@@ -493,7 +490,8 @@ pub async fn update_prerequisite(app: tauri::AppHandle, key: String) -> Result<S
             vec!["install".into(), "-g".into(), format!("{}@latest", pkg)],
             DEFAULT_INSTALL_TIMEOUT_SEC,
         )
-        .await;
+        .await
+        .map_err(AppError::from);
     }
     let browser_urls: &[(&str, &str)] = &[
         ("node", "https://nodejs.org/"),

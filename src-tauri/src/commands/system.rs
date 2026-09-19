@@ -3,6 +3,7 @@ use std::process::Command;
 
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 
+use crate::errors::AppError;
 use crate::util::{crash_dir, read_tray_config, write_tray_config, CREATE_NO_WINDOW};
 
 /// Pure validation for `open_external_url`: trims the input, enforces the
@@ -34,16 +35,16 @@ fn normalize_hotkey(hotkey: &str) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn open_external_url(url: String) -> Result<String, String> {
+pub fn open_external_url(url: String) -> Result<String, AppError> {
     let trimmed = validate_external_url(&url)?;
     // `open::that` uses ShellExecute, avoiding the `cmd /C start` injection vector.
     open::that(trimmed)
         .map(|_| "Aberto".into())
-        .map_err(|e| format!("Erro: {}", e))
+        .map_err(|e| AppError::new(format!("Erro: {}", e)))
 }
 
 #[tauri::command]
-pub fn open_crash_dir() -> Result<(), String> {
+pub fn open_crash_dir() -> Result<(), AppError> {
     let dir = crash_dir();
     std::fs::create_dir_all(&dir).map_err(|e| format!("falha ao criar diretório: {e}"))?;
     Command::new("explorer")
@@ -55,12 +56,12 @@ pub fn open_crash_dir() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn get_tray_hotkey() -> Result<String, String> {
+pub fn get_tray_hotkey() -> Result<String, AppError> {
     Ok(read_tray_config().hotkey)
 }
 
 #[tauri::command]
-pub fn set_tray_hotkey(app: tauri::AppHandle, hotkey: String) -> Result<(), String> {
+pub fn set_tray_hotkey(app: tauri::AppHandle, hotkey: String) -> Result<(), AppError> {
     let trimmed = normalize_hotkey(&hotkey)?;
 
     let mut cfg = read_tray_config();
@@ -81,15 +82,15 @@ pub fn set_tray_hotkey(app: tauri::AppHandle, hotkey: String) -> Result<(), Stri
 }
 
 #[tauri::command]
-pub fn get_minimize_to_tray() -> Result<bool, String> {
+pub fn get_minimize_to_tray() -> Result<bool, AppError> {
     Ok(read_tray_config().minimize_to_tray)
 }
 
 #[tauri::command]
-pub fn set_minimize_to_tray(enabled: bool) -> Result<(), String> {
+pub fn set_minimize_to_tray(enabled: bool) -> Result<(), AppError> {
     let mut cfg = read_tray_config();
     cfg.minimize_to_tray = enabled;
-    write_tray_config(&cfg)
+    write_tray_config(&cfg).map_err(AppError::from)
 }
 
 #[cfg(test)]

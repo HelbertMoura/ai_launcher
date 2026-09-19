@@ -15,6 +15,8 @@ use std::sync::{Mutex, OnceLock};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 
+use crate::errors::AppError;
+
 /// How a session was launched, which determines whether we can measure it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaunchKind {
@@ -200,11 +202,11 @@ pub fn list_active_sessions() -> Vec<ActiveSession> {
 /// Kill a tracked session by id. Detached sessions cannot be killed (their
 /// process is gone). Returns Err with a user-facing message on failure.
 #[tauri::command]
-pub fn kill_session(session_id: String) -> Result<(), String> {
+pub fn kill_session(session_id: String) -> Result<(), AppError> {
     let Some(pid) = session_pid(&session_id) else {
-        return Err("Sessão não encontrada ou não rastreável".to_string());
+        return Err("Sessão não encontrada ou não rastreável".to_string().into());
     };
-    kill_pid(pid).map_err(|e| format!("Falha ao encerrar sessão: {}", e))
+    kill_pid(pid).map_err(|e| AppError::new(format!("Falha ao encerrar sessão: {}", e)))
 }
 
 /// Terminate a process tree by pid on Windows via `taskkill`.

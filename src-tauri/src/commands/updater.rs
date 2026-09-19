@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use tauri::AppHandle;
 use tauri_plugin_updater::UpdaterExt;
 
+use crate::errors::AppError;
 use crate::util::compare_versions;
 
 // ---------------------------------------------------------------------------
@@ -54,7 +55,7 @@ pub struct VerifiedUpdateResult {
 /// it does not know the running app's version. (Both come from the same
 /// semver source so `compare_versions` is enough.)
 #[tauri::command]
-pub async fn check_app_update(app: AppHandle) -> Result<AppUpdateInfo, String> {
+pub async fn check_app_update(app: AppHandle) -> Result<AppUpdateInfo, AppError> {
     let current = env!("CARGO_PKG_VERSION");
     let updater = app.updater().map_err(|e| format!("updater init: {e}"))?;
 
@@ -108,12 +109,13 @@ pub async fn check_app_update(app: AppHandle) -> Result<AppUpdateInfo, String> {
 pub async fn download_verified_app_update(
     app: AppHandle,
     version: String,
-) -> Result<VerifiedUpdateResult, String> {
+) -> Result<VerifiedUpdateResult, AppError> {
     let current = env!("CARGO_PKG_VERSION");
     if !compare_versions(current, &version) {
         return Err(format!(
             "Versão solicitada ({version}) não é mais recente que a atual ({current})"
-        ));
+        )
+        .into());
     }
 
     let updater = app.updater().map_err(|e| format!("updater init: {e}"))?;
@@ -134,7 +136,9 @@ pub async fn download_verified_app_update(
     {
         if update.version.to_string() != version {
             return Err(
-                "A release mudou desde a última verificação; verifique novamente".to_string(),
+                "A release mudou desde a última verificação; verifique novamente"
+                    .to_string()
+                    .into(),
             );
         }
     }

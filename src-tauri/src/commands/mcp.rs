@@ -570,7 +570,7 @@ fn read_cli_servers(cli: McpCli) -> Result<Vec<McpServer>, String> {
 /// A missing or malformed file for one CLI does not fail the whole call: that
 /// CLI simply contributes no servers. Secret values are never returned.
 #[tauri::command]
-pub fn list_mcp_servers() -> Result<Vec<McpServer>, String> {
+pub fn list_mcp_servers() -> Result<Vec<McpServer>, AppError> {
     let mut all = Vec::new();
     for cli in [McpCli::Claude, McpCli::Codex, McpCli::Gemini] {
         match read_cli_servers(cli) {
@@ -591,7 +591,7 @@ pub fn list_mcp_servers() -> Result<Vec<McpServer>, String> {
 /// Fails if a server with the same name already exists (use
 /// [`update_mcp_server`] to modify). A backup is written before the edit.
 #[tauri::command]
-pub fn add_mcp_server(cli: McpCli, server: McpServerInput) -> Result<(), String> {
+pub fn add_mcp_server(cli: McpCli, server: McpServerInput) -> Result<(), AppError> {
     validate_input(&server)?;
     let path = cli
         .config_path()
@@ -625,7 +625,11 @@ pub fn add_mcp_server(cli: McpCli, server: McpServerInput) -> Result<(), String>
 /// payload carries a different `name`, the entry is renamed (old key removed).
 /// A backup is written before the edit.
 #[tauri::command]
-pub fn update_mcp_server(cli: McpCli, name: String, server: McpServerInput) -> Result<(), String> {
+pub fn update_mcp_server(
+    cli: McpCli,
+    name: String,
+    server: McpServerInput,
+) -> Result<(), AppError> {
     validate_name(&name)?;
     validate_input(&server)?;
     let path = cli
@@ -672,7 +676,7 @@ pub fn update_mcp_server(cli: McpCli, name: String, server: McpServerInput) -> R
 /// A backup is written before the edit. Removing a non-existent server is an
 /// error so the caller knows the operation was a no-op.
 #[tauri::command]
-pub fn remove_mcp_server(cli: McpCli, name: String) -> Result<(), String> {
+pub fn remove_mcp_server(cli: McpCli, name: String) -> Result<(), AppError> {
     validate_name(&name)?;
     let path = cli
         .config_path()
@@ -789,7 +793,7 @@ pub struct McpBundle {
 
 /// Exports raw MCP configuration files from Claude, Codex and Gemini.
 #[tauri::command]
-pub fn export_all_mcp_configs() -> Result<McpBundle, String> {
+pub fn export_all_mcp_configs() -> Result<McpBundle, AppError> {
     let home = dirs::home_dir().ok_or("Diretório de usuário (Home) não encontrado")?;
     let claude_path = home.join(".claude").join(".mcp.json");
     let codex_path = home.join(".codex").join("config.toml");
@@ -828,7 +832,7 @@ pub fn export_all_mcp_configs() -> Result<McpBundle, String> {
 
 /// Imports and restores MCP configurations from an MCP bundle, creating backups first.
 #[tauri::command]
-pub fn import_all_mcp_configs(bundle: McpBundle) -> Result<String, String> {
+pub fn import_all_mcp_configs(bundle: McpBundle) -> Result<String, AppError> {
     let home = dirs::home_dir().ok_or("Diretório de usuário (Home) não encontrado")?;
     let mut count = 0;
 

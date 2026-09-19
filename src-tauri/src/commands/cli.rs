@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
 
+use crate::errors::AppError;
 use crate::safety::{append_env_assignments, reject_shell_metacharacters, sanitize_args};
 use crate::util::{
     check_cli_installed, command_exists, compare_versions, encode_powershell_command,
@@ -36,7 +37,7 @@ pub fn get_all_clis() -> Vec<CliInfo> {
 /// project stack. It does not recurse, does not read environment/secret files,
 /// and caps manifest reads so a bad checkout cannot freeze the UI.
 #[tauri::command]
-pub fn scan_project_stack(directory: String) -> Result<ProjectStackSnapshot, String> {
+pub fn scan_project_stack(directory: String) -> Result<ProjectStackSnapshot, AppError> {
     const MAX_MANIFEST_BYTES: u64 = 256 * 1024;
     const SIGNAL_FILES: &[&str] = &[
         "package.json",
@@ -111,7 +112,7 @@ pub fn scan_project_stack(directory: String) -> Result<ProjectStackSnapshot, Str
 /// is no path-traversal surface here. A size cap guards against pathological
 /// files. Parsing/validation of the JSON happens in the frontend (zod).
 #[tauri::command]
-pub fn read_project_profile(directory: String) -> Result<Option<String>, String> {
+pub fn read_project_profile(directory: String) -> Result<Option<String>, AppError> {
     /// Refuse to read absurdly large files (a `.ailauncher.json` is tiny).
     const MAX_PROFILE_BYTES: u64 = 256 * 1024;
 
@@ -127,7 +128,8 @@ pub fn read_project_profile(directory: String) -> Result<Option<String>, String>
             ".ailauncher.json é grande demais ({} bytes, limite {})",
             meta.len(),
             MAX_PROFILE_BYTES
-        ));
+        )
+        .into());
     }
     let contents = std::fs::read_to_string(&path)
         .map_err(|e| format!("Falha ao ler .ailauncher.json: {}", e))?;
@@ -140,7 +142,7 @@ pub fn read_project_profile(directory: String) -> Result<Option<String>, String>
 /// We validate the root directory, keep the same size cap as reads, require a
 /// JSON object, and then write the fixed `.ailauncher.json` path.
 #[tauri::command]
-pub fn write_project_profile(directory: String, contents: String) -> Result<(), String> {
+pub fn write_project_profile(directory: String, contents: String) -> Result<(), AppError> {
     const MAX_PROFILE_BYTES: usize = 256 * 1024;
 
     let work_dir = validate_directory(&directory)?;
@@ -149,7 +151,8 @@ pub fn write_project_profile(directory: String, contents: String) -> Result<(), 
             ".ailauncher.json é grande demais ({} bytes, limite {})",
             contents.len(),
             MAX_PROFILE_BYTES
-        ));
+        )
+        .into());
     }
     let parsed: serde_json::Value =
         serde_json::from_str(&contents).map_err(|e| format!(".ailauncher.json invalido: {}", e))?;
@@ -236,7 +239,7 @@ pub async fn install_cli(
     app: tauri::AppHandle,
     cli_key: String,
     timeout_sec: Option<u64>,
-) -> Result<String, String> {
+) -> Result<String, AppError> {
     let clis = get_cli_definitions();
     let cli = clis
         .iter()
@@ -314,13 +317,13 @@ pub async fn install_cli(
     };
 
     match tokio::time::timeout(std::time::Duration::from_secs(secs), work).await {
-        Ok(result) => result,
+        Ok(result) => result.map_err(AppError::from),
         Err(_) => {
             log_event(
                 "install_cli",
                 &format!("timeout key={} after {}s", cli_key, secs),
             );
-            Err(format!("Comando excedeu o tempo limite de {}s", secs))
+            Err(format!("Comando excedeu o tempo limite de {}s", secs).into())
         }
     }
 }
@@ -330,7 +333,7 @@ pub async fn update_cli(
     app: tauri::AppHandle,
     cli_key: String,
     timeout_sec: Option<u64>,
-) -> Result<String, String> {
+) -> Result<String, AppError> {
     log_event("update_cli", &format!("start key={}", cli_key));
     let clis = get_cli_definitions();
     let cli = clis
@@ -400,19 +403,19 @@ pub async fn update_cli(
     };
 
     match tokio::time::timeout(std::time::Duration::from_secs(secs), work).await {
-        Ok(result) => result,
+        Ok(result) => result.map_err(AppError::from),
         Err(_) => {
             log_event(
                 "update_cli",
                 &format!("timeout key={} after {}s", cli_key, secs),
             );
-            Err(format!("Comando excedeu o tempo limite de {}s", secs))
+            Err(format!("Comando excedeu o tempo limite de {}s", secs).into())
         }
     }
 }
 
 #[tauri::command]
-pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, String> {
+pub async fn update_all_clis(app: tauri::AppHandle) -> Result<String, AppError> {
     let updates = tokio::task::spawn_blocking(scan_cli_updates_blocking)
         .await
         .map_err(|e| format!("Falha interna: {}", e))?;
@@ -463,7 +466,7 @@ pub fn launch_cli(
     args: String,
     no_perms: bool,
     env_vars: Option<HashMap<String, String>>,
-) -> Result<LaunchResult, String> {
+) -> Result<LaunchResult, AppError> {
     let session_id = uuid::Uuid::new_v4().to_string();
 
     let clis = get_cli_definitions();
@@ -673,7 +676,7 @@ pub fn launch_multi_clis(
     args: String,
     no_perms: bool,
     env_vars: Option<HashMap<String, String>>,
-) -> Result<String, String> {
+) -> Result<String, AppError> {
     let mut count = 0usize;
     for cli_key in cli_keys {
         if launch_cli(
@@ -701,7 +704,7 @@ pub struct CleanupReport {
 }
 
 #[tauri::command]
-pub async fn cleanup_system_cache() -> Result<CleanupReport, String> {
+pub async fn cleanup_system_cache() -> Result<CleanupReport, AppError> {
     tokio::task::spawn_blocking(|| {
         heal_claude_npm_stub_if_needed();
         let mut cleaned = 0;
@@ -780,7 +783,7 @@ mod tests {
         let dir = temp_dir("absent");
         let res = read_project_profile(dir.to_string_lossy().into_owned());
         let _ = std::fs::remove_dir_all(&dir);
-        assert_eq!(res, Ok(None));
+        assert_eq!(res.ok(), Some(None));
     }
 
     #[test]
@@ -790,7 +793,7 @@ mod tests {
         std::fs::write(dir.join(".ailauncher.json"), body).expect("write profile");
         let res = read_project_profile(dir.to_string_lossy().into_owned());
         let _ = std::fs::remove_dir_all(&dir);
-        assert_eq!(res, Ok(Some(body.to_string())));
+        assert_eq!(res.ok().flatten(), Some(body.to_string()));
     }
 
     #[test]
@@ -808,7 +811,7 @@ mod tests {
         let res = read_project_profile(dir.to_string_lossy().into_owned());
         let _ = std::fs::remove_dir_all(&dir);
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("grande demais"));
+        assert!(res.unwrap_err().to_string().contains("grande demais"));
     }
 
     #[test]
@@ -831,7 +834,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
 
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("invalido"));
+        assert!(res.unwrap_err().to_string().contains("invalido"));
     }
 
     #[test]
@@ -841,7 +844,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
 
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("objeto JSON"));
+        assert!(res.unwrap_err().to_string().contains("objeto JSON"));
     }
 
     #[test]

@@ -23,6 +23,7 @@ use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
+use crate::errors::AppError;
 use crate::safety::{is_valid_env_key, sanitize_args};
 use crate::util::{command_exists, strip_ansi, validate_directory, CREATE_NO_WINDOW};
 
@@ -164,7 +165,7 @@ fn apply_negation(ok: bool, negate: bool) -> bool {
 pub fn evaluate_runbook_condition(
     condition: RunbookConditionInput,
     cwd: Option<String>,
-) -> Result<ConditionResult, String> {
+) -> Result<ConditionResult, AppError> {
     let kind = condition.condition_type.as_str();
     let raw_value = condition.value.as_deref().unwrap_or("").trim();
     let ok = match kind {
@@ -192,7 +193,7 @@ pub fn evaluate_runbook_condition(
         "previousSucceeded" => {
             return Err("previousSucceeded é avaliado pelo runner".into());
         }
-        other => return Err(format!("Tipo de condição desconhecido: {}", other)),
+        other => return Err(format!("Tipo de condição desconhecido: {}", other).into()),
     };
     let final_ok = apply_negation(ok, condition.negate);
     Ok(ConditionResult {
@@ -286,16 +287,17 @@ pub async fn run_runbook_step(
     cwd: Option<String>,
     timeout_secs: Option<u64>,
     execution_id: Option<String>,
-) -> Result<StepResult, String> {
+) -> Result<StepResult, AppError> {
     tauri::async_runtime::spawn_blocking(move || {
         run_runbook_step_blocking(command, cwd, timeout_secs, execution_id)
     })
     .await
     .map_err(|error| format!("Falha interna ao executar o passo: {}", error))?
+    .map_err(AppError::from)
 }
 
 #[tauri::command]
-pub fn stop_runbook_execution(execution_id: String) -> Result<bool, String> {
+pub fn stop_runbook_execution(execution_id: String) -> Result<bool, AppError> {
     let id = validate_execution_id(&execution_id)?;
     let pid = active_processes()
         .lock()
@@ -346,7 +348,7 @@ mod tests {
     fn empty_command_is_rejected() {
         let res = run_runbook_step_blocking("   ".to_string(), None, None, None);
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("vazio"));
+        assert!(res.unwrap_err().to_string().contains("vazio"));
     }
 
     #[test]
@@ -365,7 +367,7 @@ mod tests {
             None,
         );
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("não existe"));
+        assert!(res.unwrap_err().to_string().contains("não existe"));
     }
 
     #[test]
@@ -377,7 +379,7 @@ mod tests {
         };
         let res = evaluate_runbook_condition(condition, None);
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("workspace"));
+        assert!(res.unwrap_err().to_string().contains("workspace"));
     }
 
     #[test]
@@ -389,7 +391,7 @@ mod tests {
         };
         let res = evaluate_runbook_condition(condition, None);
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("inválido"));
+        assert!(res.unwrap_err().to_string().contains("inválido"));
     }
 
     #[test]
@@ -401,7 +403,7 @@ mod tests {
         };
         let res = evaluate_runbook_condition(condition, None);
         assert!(res.is_err());
-        assert!(res.unwrap_err().contains("nome do comando"));
+        assert!(res.unwrap_err().to_string().contains("nome do comando"));
     }
 
     #[test]
@@ -427,7 +429,10 @@ mod tests {
 
     #[test]
     fn stopping_an_unknown_execution_is_idempotent() {
-        assert_eq!(stop_runbook_execution("run-missing".into()), Ok(false));
+        assert_eq!(
+            stop_runbook_execution("run-missing".into()).ok(),
+            Some(false)
+        );
     }
 
     #[test]
@@ -451,7 +456,10 @@ mod tests {
             }
             thread::sleep(Duration::from_millis(20));
         }
-        assert_eq!(stop_runbook_execution("run-stop-test".into()), Ok(true));
+        assert_eq!(
+            stop_runbook_execution("run-stop-test".into()).ok(),
+            Some(true)
+        );
         let result = worker.join().expect("runbook worker").expect("step result");
         assert!(!result.ok);
         assert!(started.elapsed() < Duration::from_secs(5));

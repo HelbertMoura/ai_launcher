@@ -636,7 +636,7 @@ mod tests {
 // ============================================================
 
 #[tauri::command]
-pub fn reset_all_config() -> Result<String, String> {
+pub fn reset_all_config() -> Result<String, AppError> {
     if let Some(dir) = dirs::config_dir() {
         let log_path = dir.join("ai-launcher").join("install.log");
         if log_path.exists() {
@@ -647,7 +647,7 @@ pub fn reset_all_config() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn reset_claude_state() -> Result<String, String> {
+pub fn reset_claude_state() -> Result<String, AppError> {
     let home = dirs::home_dir().ok_or("HOME não encontrado")?;
     let path = home.join(".claude.json");
     if !path.exists() {
@@ -704,7 +704,7 @@ pub fn test_provider_connection(
     api_key: String,
     model: String,
     protocol: Option<String>,
-) -> Result<ProviderTestResult, String> {
+) -> Result<ProviderTestResult, AppError> {
     if base_url.trim().is_empty() {
         return Ok(ProviderTestResult {
             ok: false,
@@ -836,7 +836,7 @@ pub fn test_provider_connection(
 }
 
 #[tauri::command]
-pub fn save_crash_log(stack: String, context: String) -> Result<String, String> {
+pub fn save_crash_log(stack: String, context: String) -> Result<String, AppError> {
     let dir = crash_dir();
     std::fs::create_dir_all(&dir).map_err(|e| format!("falha ao criar diretório de crash: {e}"))?;
     let ts = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
@@ -857,7 +857,7 @@ pub fn save_crash_log(stack: String, context: String) -> Result<String, String> 
 }
 
 #[tauri::command]
-pub fn read_crash_log(path: String) -> Result<String, String> {
+pub fn read_crash_log(path: String) -> Result<String, AppError> {
     let p = PathBuf::from(&path);
     let canonical = p
         .canonicalize()
@@ -867,7 +867,7 @@ pub fn read_crash_log(path: String) -> Result<String, String> {
         .canonicalize()
         .map_err(|e| format!("diretório de crash inválido: {e}"))?;
     if !canonical.starts_with(&base_canonical) {
-        return Err("caminho fora do diretório de crashes".to_string());
+        return Err("caminho fora do diretório de crashes".to_string().into());
     }
-    std::fs::read_to_string(&canonical).map_err(|e| format!("falha ao ler log: {e}"))
+    std::fs::read_to_string(&canonical).map_err(|e| AppError::new(format!("falha ao ler log: {e}")))
 }

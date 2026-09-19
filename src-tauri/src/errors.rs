@@ -3,8 +3,9 @@
 //! `AppError` serializes to a **plain string** (its `Display` message), so the
 //! frontend contract is unchanged: command rejections keep arriving in JS as a
 //! `string` (see `src/lib/tauri.ts` and the `catch (e) => String(e)` handlers).
-//! Adoption started with the commands touched by the L1 hygiene wave; the
-//! remaining `Result<_, String>` commands migrate in a later wave.
+//! All `#[tauri::command]` handlers return `Result<_, AppError>`; internal
+//! helpers may keep `Result<_, String>` and convert at the command boundary
+//! via `From<String>`, preserving legacy error text verbatim.
 
 use serde::Serialize;
 use thiserror::Error;
