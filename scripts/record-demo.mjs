@@ -387,7 +387,7 @@ async function main() {
     const result = spawnSync("ffmpeg", [
       "-y",
       "-i", videoPath,
-      "-vf", "fps=12,scale=800:-1:flags=lanczos,split[s0][s1][s2];[s0]palettegen[p];[s1][p]paletteuse[r]",
+      "-vf", "fps=12,scale=800:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
       "-loop", "0",
       GIF_PATH,
     ], { stdio: "inherit" });
