@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Template — preenchido por scripts/gen-package-manifests.mjs. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>ai-launcher</id>
+    <version>{{VERSION}}</version>
+    <title>AI Launcher</title>
+    <authors>Helbert Moura</authors>
+    <owners>devmaniacs</owners>
+    <projectUrl>https://github.com/HelbertMoura/ai_launcher</projectUrl>
+    <licenseUrl>https://github.com/HelbertMoura/ai_launcher/blob/main/LICENSE</licenseUrl>
+    <projectSourceUrl>https://github.com/HelbertMoura/ai_launcher</projectSourceUrl>
+    <docsUrl>https://github.com/HelbertMoura/ai_launcher#readme</docsUrl>
+    <bugTrackerUrl>https://github.com/HelbertMoura/ai_launcher/issues</bugTrackerUrl>
+    <releaseNotes>https://github.com/HelbertMoura/ai_launcher/releases/tag/{{RELEASE_TAG}}</releaseNotes>
+    <summary>Desktop cockpit to detect, install and launch AI coding CLIs and IDEs.</summary>
+    <description>AI Launcher detects installed AI coding CLIs (Claude Code, Codex, Aider, Goose and more), installs missing engines, and launches sessions with custom projects, model presets and MCP tooling - from one desktop app.</description>
+    <tags>ai cli launcher claude codex aider terminal</tags>
+    <copyright>2026 Helbert Moura | Dev Maniac's</copyright>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <packageSourceUrl>https://github.com/HelbertMoura/ai_launcher/tree/main/packaging/choco</packageSourceUrl>
+  </metadata>
+</package>

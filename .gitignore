@@ -119,6 +119,8 @@ docs/screenshots/archive/
 docs/screenshots/v15/
 public/images/banner.*
 *.ps1
+# Chocolatey packaging script must be versioned (template for gen-package-manifests).
+!packaging/choco/tools/*.ps1
 
 # OpenWolf hook symlink (local, aponta para ../.wolf — nao versionar o link)
 src-tauri/.wolf

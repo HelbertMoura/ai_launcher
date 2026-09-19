@@ -1,0 +1,25 @@
+# Template — preenchido por scripts/gen-package-manifests.mjs.
+# en-US é o defaultLocale exigido pelo winget; a UI do app continua em pt-BR.
+PackageIdentifier: DevManiacs.AILauncher
+PackageVersion: {{VERSION}}
+PackageLocale: en-US
+Publisher: Dev Maniac's
+PublisherUrl: https://github.com/HelbertMoura
+PublisherSupportUrl: https://github.com/HelbertMoura/ai_launcher/issues
+PackageName: AI Launcher
+PackageUrl: https://github.com/HelbertMoura/ai_launcher
+License: MIT
+LicenseUrl: https://github.com/HelbertMoura/ai_launcher/blob/main/LICENSE
+ShortDescription: Desktop cockpit to detect, install and launch AI coding CLIs and IDEs.
+Description: |-
+  AI Launcher detects installed AI coding CLIs (Claude Code, Codex, Aider,
+  Goose and more), installs missing engines, and launches sessions with custom
+  projects, model presets and MCP tooling — from one desktop app.
+Tags:
+- ai
+- cli
+- launcher
+- claude
+- codex
+ManifestType: defaultLocale
+ManifestVersion: 1.9.0
