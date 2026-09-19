@@ -128,9 +128,35 @@ Baixe o instalador no [último release do GitHub](https://github.com/HelbertMour
 - `.exe` (NSIS) — recomendado para a maioria dos usuários.
 - `.msi` — útil para instalações gerenciadas ou administrativas.
 
-> **Winget e Chocolatey ainda não estão disponíveis.** Os IDs planejados são `DevManiacs.AILauncher` e `ai-launcher`, mas os comandos de instalação vão falhar até que os pacotes sejam publicados.
-
 > O SmartScreen pode alertar em builds sem assinatura — clique em **Mais informações → Executar mesmo assim**.
+
+### Download (macOS)
+
+Baixe o `.dmg` correspondente ao seu Mac no [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/releases/latest):
+
+- `*-aarch64.dmg` — Apple Silicon (M1/M2/M3/M4).
+- `*-x86_64.dmg` — Macs Intel.
+
+Abra o `.dmg` e arraste o **AI Launcher** para **Aplicativos**. O app ainda não é notarizado, então o Gatekeeper alerta na primeira abertura: clique com o botão direito no app em Aplicativos e escolha **Abrir**, depois confirme — da segunda abertura em diante ele abre normalmente.
+
+### Download (Linux)
+
+Pelo [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/releases/latest):
+
+- **AppImage** — torne o arquivo executável e execute:
+
+  ```bash
+  chmod +x AI.Launcher_<versão>_amd64.AppImage
+  ./AI.Launcher_<versão>_amd64.AppImage
+  ```
+
+- **Debian / Ubuntu (.deb)**:
+
+  ```bash
+  sudo apt install ./ai-launcher_<versão>_amd64.deb
+  ```
+
+> **Gerenciadores de pacote (winget, Scoop, Chocolatey):** os manifestos estão prontos em [`packaging/README.md`](packaging/README.md) — a submissão a cada loja acontece depois que existir um release real com URLs estáveis de download; os comandos de instalação vão falhar até que os pacotes sejam publicados.
 
 ### Build a Partir do Código
 

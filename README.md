@@ -130,9 +130,35 @@ Download the installer from the [latest GitHub release](https://github.com/Helbe
 - `.exe` (NSIS) — recommended for most users.
 - `.msi` — useful for managed or administrative deployments.
 
-> **Winget and Chocolatey are not available yet.** The planned package IDs are `DevManiacs.AILauncher` and `ai-launcher`, but installation commands using them will fail until the packages are published.
-
 > SmartScreen may warn on unsigned builds -- click **More info, then Run anyway**.
+
+### Install (macOS)
+
+Download the `.dmg` for your Mac from the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/releases/latest):
+
+- `*-aarch64.dmg` — Apple Silicon (M1/M2/M3/M4).
+- `*-x86_64.dmg` — Intel Macs.
+
+Open the `.dmg` and drag **AI Launcher** into **Applications**. The app is not notarized yet, so Gatekeeper warns on the first launch: right-click the app in Applications and choose **Open**, then confirm — from the second launch on it opens normally.
+
+### Install (Linux)
+
+From the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/releases/latest):
+
+- **AppImage** — make it executable and run it:
+
+  ```bash
+  chmod +x AI.Launcher_<version>_amd64.AppImage
+  ./AI.Launcher_<version>_amd64.AppImage
+  ```
+
+- **Debian / Ubuntu (.deb)**:
+
+  ```bash
+  sudo apt install ./ai-launcher_<version>_amd64.deb
+  ```
+
+> **Package managers (winget, Scoop, Chocolatey):** the manifests are prepared in [`packaging/README.md`](packaging/README.md) — submission to each store happens after a real release with stable download URLs exists; installation commands will fail until the packages are published.
 
 ### Build from Source
 
