@@ -18,7 +18,7 @@
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
 ![Memory <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
 
-[📥 Download Installer](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Why AI Launcher?](#-why-ai-launcher) · [📸 Visual Tour](#-visual-tour) · [🌟 Core Pillars](#-core-system-pillars) · [⚡ Quick Start](#-quick-start) · [🗺️ Roadmap](./ROADMAP.md)
+[📥 Download Installer](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Why AI Launcher?](#-why-ai-launcher) · [📸 Visual Tour](#-visual-tour) · [🌟 Core Pillars](#-core-system-pillars) · [⚡ Quick Start](#-quick-start) · [🗺️ Roadmap](./ROADMAP.md) · [🤝 Code of Conduct](./CODE_OF_CONDUCT.md)
 
 </div>
 
