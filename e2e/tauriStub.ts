@@ -81,7 +81,7 @@ const DEFAULT_RESPONSES: TauriResultMap = {
     release_notes_url: "", release_notes_body: "",
   },
   read_usage_stats: { entries: [] },
-  has_secure_storage: false,
+  has_secure_storage: true,
   store_secret: { stored: true, backend: "windows-credential-manager", migratedLegacy: false },
   get_secret: null,
   delete_secret: true,
