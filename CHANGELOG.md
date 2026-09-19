@@ -10,6 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > entries (15.x through 22.7) are kept below as-is, as a historical
 > record — they were not translated.
 
+## [22.8.0] — 2026-09-19 — Cross-Platform Support, Hardened Core & Public Quality Gates
+
+The multi-platform release: AI Launcher now builds and ships on Windows, macOS and Linux with native secure storage per OS, the Rust core is hardened against command-injection paths, and a 9-job quality gate matrix runs on every push.
+
+### Multiplatform
+- **Native Secure Storage per OS:** credential storage now uses the platform-native backend — Windows Credential Manager (existing), macOS Keychain and Linux Secret Service via the `keyring` crate — with fail-closed availability: when no secure backend is present, credential features report unavailable instead of silently degrading.
+- **Conditional Rust Core:** platform-specific process, terminal and doctor paths are conditionalized per OS, so the same core compiles cleanly on Windows, macOS and Linux with Windows-only code gated behind `cfg`.
+- **Fail-Closed UI:** credential features are gated in the interface when secure storage is unavailable, with explicit states instead of broken actions.
+- **Six Bundles, Three OSes:** the release pipeline produces and attaches msi + nsis (Windows), dmg ×2 (macOS, Apple silicon and Intel) and AppImage + deb (Linux) to every GitHub release.
+
+### Security
+- **Command Injection Hardening:** `cmd.exe` fallback metacharacters are escaped and custom command tokens are gated, closing the `cmd /K` injection gaps surfaced by the safety audit.
+
+### Performance
+- **Non-Blocking Scans:** blocking network and filesystem scans moved off the command thread via `tokio::task::spawn_blocking`, keeping the UI responsive during MCP and update checks.
+- **Real MCP HTTP Probe:** the MCP health check now performs an actual HTTP reachability probe against declared servers instead of relying on file-existence heuristics.
+
+### Quality
+- **~110 New Tests:** 127 Rust unit tests (`cargo test`), 239 Vitest unit tests and 62 Playwright e2e specs, all green.
+- **9/9 CI Quality Matrix:** tsc, Vitest, npm audit, Rust fmt/clippy/test on Windows and Ubuntu, cargo-audit, Playwright e2e, build metrics and release readiness — all passing on the release commit.
+- **Typed Command Layer:** all Tauri invocations routed through a typed command layer with `AppError` adopted across commands; WorkspacePage decomposed into section components and dedicated stores.
+
+### Packaging
+- **Winget, Scoop & Chocolatey:** official manifests for the three Windows package managers, with a generator script to keep them in sync with each release.
+
+### Docs
+- **Public Showcase:** new public ROADMAP (EN + pt-BR), Code of Conduct, version and quality-gates badges, multi-platform install instructions and a demo GIF recorded from the canonical workflow.
+
 ## [22.7.0] — 2026-08-16 — Ollama Local LLM Support, Doctor Cache Cleaner & Unified MCP Backup Bundle
 
 Release com suporte de primeira classe para execução de modelos locais com Ollama, botão de limpeza profunda de cache e restauração de stubs no Doctor, e ferramenta unificada de exportação e restauração de bundle de servidores MCP.
