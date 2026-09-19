@@ -25,15 +25,17 @@ Fill them with the values of a real release:
 
 ```bash
 node scripts/gen-package-manifests.mjs \
-  --version v22.7.0 \
-  --installer-url "https://github.com/HelbertMoura/ai_launcher/releases/download/v22.7.0/AI.Launcher_22.7.0_x64-setup.exe" \
+  --version v22.8.0 \
+  --installer-url "https://github.com/HelbertMoura/ai_launcher/releases/download/v22.8.0/AI.Launcher_22.8.0_x64-setup.exe" \
   --sha256 <sha256 of the -setup.exe> \
   [--release-date YYYY-MM-DD] \
   [--out <dir>]   # default: packaging/dist
 ```
 
 The SHA-256 is the hash of the exact `-setup.exe` asset attached to that
-release (PowerShell: `Get-FileHash .\AI.Launcher_22.7.0_x64-setup.exe`).
+release (PowerShell: `Get-FileHash .\AI.Launcher_22.8.0_x64-setup.exe`).
+For v22.8.0 the published hash is `595967727d92f86f7bb6cbf9420ecbd2e7d54e2e29289a23761baafba85204e7`
+(also pinned in `bucket/ai-launcher.json`).
 
 ## winget (DevManiacs.AILauncher)
 
@@ -45,7 +47,7 @@ community repository. Submission is a pull request:
 2. Generate the three manifests with the script above.
 3. Fork `microsoft/winget-pkgs`, create a branch, and copy the three files to
    `manifests/d/DevManiacs/AILauncher/<version>/` (one commit).
-4. Open the PR (title convention: `Add: DevManiacs.AILauncher version 22.7.0`).
+4. Open the PR (title convention: `Add: DevManiacs.AILauncher version 22.8.0`).
    The `winget-pkgs-automation` bot runs schema/validation checks; fix any
    reported issue and wait for a maintainer review.
 5. Local sanity check before the PR: `winget install --manifest packaging/dist/winget`.
