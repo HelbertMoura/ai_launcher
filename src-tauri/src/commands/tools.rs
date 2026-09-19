@@ -1,12 +1,14 @@
-use std::os::windows::process::CommandExt;
-
 use crate::errors::AppError;
 use crate::safety::reject_shell_metacharacters;
+#[cfg(not(windows))]
+use crate::util::build_unix_session_script;
 use crate::util::{
-    command_exists, encode_powershell_command, extract_version, find_tool_path,
-    find_windows_terminal, get_tool_definitions, read_exe_product_version, resolve_windows_cmd,
-    run_silent, user_home_dir_string, validate_directory, CheckResult, ToolInfo, CREATE_NO_WINDOW,
+    command_exists, extract_version, find_tool_path, get_tool_definitions,
+    read_exe_product_version, resolve_windows_cmd, run_silent, spawn_ok, user_home_dir_string,
+    validate_directory, CheckResult, ToolInfo,
 };
+#[cfg(windows)]
+use crate::util::{encode_powershell_command, find_windows_terminal};
 
 #[tauri::command]
 pub fn get_all_tools() -> Vec<ToolInfo> {
@@ -104,23 +106,17 @@ pub fn launch_tool(tool_key: String, directory: Option<String>) -> Result<String
     };
 
     if let Some(path) = find_tool_path(&tool.key) {
-        if std::process::Command::new(&path)
-            .current_dir(&work_dir)
-            .creation_flags(CREATE_NO_WINDOW)
-            .spawn()
-            .is_ok()
-        {
+        let mut cmd = std::process::Command::new(&path);
+        cmd.current_dir(&work_dir);
+        if spawn_ok(&mut cmd) {
             return Ok(format!("Iniciando: {}", tool.name));
         }
     }
     let cmd_resolved = resolve_windows_cmd(&tool.command);
-    if std::process::Command::new(&cmd_resolved)
-        .arg(".")
-        .current_dir(&work_dir)
-        .creation_flags(CREATE_NO_WINDOW)
-        .spawn()
-        .is_ok()
-    {
+    let mut cmd = std::process::Command::new(&cmd_resolved);
+    cmd.arg(".");
+    cmd.current_dir(&work_dir);
+    if spawn_ok(&mut cmd) {
         return Ok(format!("Iniciando: {}", tool.name));
     }
     Err(format!(
@@ -140,62 +136,73 @@ pub fn launch_custom_ide(
     }
     let work_dir = validate_directory(directory.as_deref().unwrap_or(""))?;
     let resolved = launch_cmd.replace("<dir>", &work_dir);
-    // SEC: `resolved` is interpolated verbatim into a PowerShell script and
-    // into the cmd.exe fallback. The `<dir>` placeholder (which carries `<`/`>`)
-    // is substituted above, so any remaining metacharacter is user-supplied.
-    // Paths with spaces keep using the current quoting path unchanged.
+    // SEC: `resolved` is interpolated verbatim into a PowerShell script (or a
+    // POSIX shell script on macOS/Linux) and into the cmd.exe fallback. The
+    // `<dir>` placeholder (which carries `<`/`>`) is substituted above, so any
+    // remaining metacharacter is user-supplied. Paths with spaces keep using
+    // the current quoting path unchanged.
     reject_shell_metacharacters(&resolved, "launch_cmd")?;
 
-    let mut ps_script =
-        String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
-    ps_script.push_str(&resolved);
-    ps_script.push('\n');
-    let encoded = encode_powershell_command(&ps_script);
+    #[cfg(windows)]
+    {
+        let mut ps_script =
+            String::from("$env:Path = \"$env:APPDATA\\npm;$env:LOCALAPPDATA\\npm;\" + $env:Path\n");
+        ps_script.push_str(&resolved);
+        ps_script.push('\n');
+        let encoded = encode_powershell_command(&ps_script);
 
-    let mut launched = false;
-    if let Some(wt) = find_windows_terminal() {
-        if std::process::Command::new(&wt)
-            .args([
-                "new-tab",
-                "-d",
-                &work_dir,
-                "pwsh",
-                "-NoExit",
-                "-EncodedCommand",
-                &encoded,
-            ])
-            .spawn()
-            .is_ok()
+        let mut launched = false;
+        if let Some(wt) = find_windows_terminal() {
+            if std::process::Command::new(&wt)
+                .args([
+                    "new-tab",
+                    "-d",
+                    &work_dir,
+                    "pwsh",
+                    "-NoExit",
+                    "-EncodedCommand",
+                    &encoded,
+                ])
+                .spawn()
+                .is_ok()
+            {
+                launched = true;
+            }
+        }
+        if !launched
+            && std::process::Command::new("pwsh")
+                .args(["-NoExit", "-EncodedCommand", &encoded])
+                .current_dir(&work_dir)
+                .spawn()
+                .is_ok()
         {
             launched = true;
         }
+        if !launched
+            && std::process::Command::new("powershell")
+                .args(["-NoExit", "-EncodedCommand", &encoded])
+                .current_dir(&work_dir)
+                .spawn()
+                .is_ok()
+        {
+            launched = true;
+        }
+        if !launched {
+            // SEC: same cmd.exe `^`/`%VAR%` gap as the launcher fallback — escape
+            // before the line reaches cmd.exe.
+            let escaped = crate::safety::escape_cmd_fallback(&resolved);
+            std::process::Command::new("cmd")
+                .args(["/K", &escaped])
+                .current_dir(&work_dir)
+                .spawn()
+                .map_err(|e| format!("Erro ao iniciar: {}", e))?;
+        }
     }
-    if !launched
-        && std::process::Command::new("pwsh")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
+
+    #[cfg(not(windows))]
     {
-        launched = true;
-    }
-    if !launched
-        && std::process::Command::new("powershell")
-            .args(["-NoExit", "-EncodedCommand", &encoded])
-            .current_dir(&work_dir)
-            .spawn()
-            .is_ok()
-    {
-        launched = true;
-    }
-    if !launched {
-        // SEC: same cmd.exe `^`/`%VAR%` gap as the launcher fallback — escape
-        // before the line reaches cmd.exe.
-        let escaped = crate::safety::escape_cmd_fallback(&resolved);
-        std::process::Command::new("cmd")
-            .args(["/K", &escaped])
-            .current_dir(&work_dir)
-            .spawn()
+        let script = build_unix_session_script(&work_dir, false, None, &resolved);
+        crate::util::spawn_unix_terminal_session(&script)
             .map_err(|e| format!("Erro ao iniciar: {}", e))?;
     }
 

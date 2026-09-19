@@ -28,6 +28,14 @@ pub struct ToolInfo {
     pub install_url: Option<String>,
 }
 
+/// Ollama download page for the current OS (doctor + tool definitions).
+#[cfg(windows)]
+pub const OLLAMA_DOWNLOAD_URL: &str = "https://ollama.com/download/windows";
+#[cfg(target_os = "macos")]
+pub const OLLAMA_DOWNLOAD_URL: &str = "https://ollama.com/download/mac";
+#[cfg(target_os = "linux")]
+pub const OLLAMA_DOWNLOAD_URL: &str = "https://ollama.com/download/linux";
+
 pub fn get_cli_definitions() -> Vec<CliInfo> {
     vec![
         CliInfo {
@@ -291,8 +299,8 @@ pub fn get_tool_definitions() -> Vec<ToolInfo> {
             name: "Ollama (Local LLM)".into(),
             command: "ollama".into(),
             version_cmd: "ollama --version".into(),
-            install_hint: "Download de https://ollama.com/download/windows".into(),
-            install_url: Some("https://ollama.com/download/windows".into()),
+            install_hint: format!("Download de {OLLAMA_DOWNLOAD_URL}"),
+            install_url: Some(OLLAMA_DOWNLOAD_URL.into()),
         },
     ]
 }

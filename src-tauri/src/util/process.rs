@@ -1,6 +1,10 @@
 use serde::Serialize;
-use std::os::windows::process::CommandExt;
 use std::process::Command;
+
+#[cfg(unix)]
+use std::os::unix::process::CommandExt as _;
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 pub const CREATE_NO_WINDOW: u32 = 0x08000000;
 pub const RUN_SILENT_TIMEOUT_SECS: u64 = 15;
@@ -13,12 +17,37 @@ pub struct ProgressEvent {
     pub line: String,
 }
 
+/// Hides the console window of a spawned child on Windows; no-op on other
+/// platforms (a GUI session has no console window to flash).
+pub fn apply_no_window(cmd: &mut Command) {
+    #[cfg(windows)]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    #[cfg(not(windows))]
+    let _ = cmd;
+}
+
+/// Spawns a fire-and-forget child with the platform window-hiding applied.
+/// Returns `true` when the spawn succeeded.
+pub fn spawn_ok(cmd: &mut Command) -> bool {
+    apply_no_window(cmd);
+    cmd.spawn().is_ok()
+}
+
+/// Maps npm-style commands to their Windows `.cmd` shims. Identity elsewhere:
+/// on macOS/Linux the command name reaches the PATH lookup unchanged.
 pub fn resolve_windows_cmd(cmd: &str) -> String {
-    match cmd {
-        "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" => {
-            format!("{}.cmd", cmd)
+    #[cfg(windows)]
+    {
+        match cmd {
+            "npm" | "pnpm" | "yarn" | "pip" | "tauri" | "bun" | "code" | "cursor" | "windsurf" => {
+                format!("{}.cmd", cmd)
+            }
+            _ => cmd.to_string(),
         }
-        _ => cmd.to_string(),
+    }
+    #[cfg(not(windows))]
+    {
+        cmd.to_string()
     }
 }
 
@@ -49,7 +78,10 @@ pub fn run_silent_with_timeout(
     command.args(args);
     command.stdout(std::process::Stdio::piped());
     command.stderr(std::process::Stdio::piped());
-    command.creation_flags(CREATE_NO_WINDOW);
+    apply_no_window(&mut command);
+    // Own process group on Unix so a timeout can kill the whole tree.
+    #[cfg(unix)]
+    command.process_group(0);
 
     let child = match command.spawn() {
         Ok(c) => c,
@@ -78,12 +110,7 @@ pub fn run_silent_with_timeout(
             (false, None)
         }
         _ => {
-            {
-                let mut kill = Command::new("taskkill");
-                kill.args(["/F", "/T", "/PID", &pid.to_string()]);
-                kill.creation_flags(CREATE_NO_WINDOW);
-                let _ = kill.output();
-            }
+            let _ = kill_tree(pid);
             log_event(
                 "timeout",
                 &format!("{} {} ({}s)", cmd, args.join(" "), timeout_secs),
@@ -98,39 +125,86 @@ pub fn run_silent(cmd: &str, args: &[&str]) -> (bool, Option<String>) {
 }
 
 pub fn command_exists(cmd: &str) -> bool {
-    let mut c = Command::new("where");
-    c.arg(cmd);
-    c.creation_flags(CREATE_NO_WINDOW);
-    if c.output().map(|o| o.status.success()).unwrap_or(false) {
-        return true;
-    }
-    if let Ok(appdata) = std::env::var("APPDATA") {
-        let npm_path = format!("{}\\npm", appdata);
-        for ext in &["cmd", "ps1", "exe", "bat", ""] {
-            let full = if ext.is_empty() {
-                format!("{}\\{}", npm_path, cmd)
-            } else {
-                format!("{}\\{}.{}", npm_path, cmd, ext)
-            };
-            if std::path::Path::new(&full).exists() {
-                return true;
+    #[cfg(windows)]
+    {
+        let mut c = Command::new("where");
+        c.arg(cmd);
+        c.creation_flags(CREATE_NO_WINDOW);
+        if c.output().map(|o| o.status.success()).unwrap_or(false) {
+            return true;
+        }
+        if let Ok(appdata) = std::env::var("APPDATA") {
+            let npm_path = format!("{}\\npm", appdata);
+            for ext in &["cmd", "ps1", "exe", "bat", ""] {
+                let full = if ext.is_empty() {
+                    format!("{}\\{}", npm_path, cmd)
+                } else {
+                    format!("{}\\{}.{}", npm_path, cmd, ext)
+                };
+                if std::path::Path::new(&full).exists() {
+                    return true;
+                }
             }
         }
-    }
-    if let Ok(lad) = std::env::var("LOCALAPPDATA") {
-        let npm_path = format!("{}\\npm", lad);
-        for ext in &["cmd", "ps1", "exe", "bat", ""] {
-            let full = if ext.is_empty() {
-                format!("{}\\{}", npm_path, cmd)
-            } else {
-                format!("{}\\{}.{}", npm_path, cmd, ext)
-            };
-            if std::path::Path::new(&full).exists() {
-                return true;
+        if let Ok(lad) = std::env::var("LOCALAPPDATA") {
+            let npm_path = format!("{}\\npm", lad);
+            for ext in &["cmd", "ps1", "exe", "bat", ""] {
+                let full = if ext.is_empty() {
+                    format!("{}\\{}", npm_path, cmd)
+                } else {
+                    format!("{}\\{}.{}", npm_path, cmd, ext)
+                };
+                if std::path::Path::new(&full).exists() {
+                    return true;
+                }
             }
         }
+        false
     }
-    false
+    #[cfg(not(windows))]
+    {
+        Command::new("which")
+            .arg(cmd)
+            .output()
+            .map(|o| o.status.success())
+            .unwrap_or(false)
+    }
+}
+
+/// Terminates a whole process tree by pid.
+///
+/// - Windows: `taskkill /F /T /PID` (unchanged behavior).
+/// - Unix: `kill(-pgid, SIGKILL)` against the process group led by `pid`.
+///   Spawn sites must put the child in its own group (`process_group(0)`) for
+///   the group kill to reach the shell + CLI + descendants.
+pub fn kill_tree(pid: u32) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        let status = Command::new("taskkill")
+            .args(["/F", "/T", "/PID", &pid.to_string()])
+            .creation_flags(CREATE_NO_WINDOW)
+            .status()
+            .map_err(|e| e.to_string())?;
+        if status.success() {
+            Ok(())
+        } else {
+            Err(format!("taskkill exit code {:?}", status.code()))
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        // SAFETY: `kill` is a plain syscall wrapper; a negative pid targets the
+        // process group led by `pid`.
+        let rc = unsafe { libc::kill(-(pid as libc::pid_t), libc::SIGKILL) };
+        if rc == 0 {
+            Ok(())
+        } else {
+            Err(format!(
+                "kill do grupo do pid {pid} falhou: {}",
+                std::io::Error::last_os_error()
+            ))
+        }
+    }
 }
 
 pub fn encode_powershell_command(script: &str) -> String {
@@ -143,7 +217,16 @@ pub fn encode_powershell_command(script: &str) -> String {
 }
 
 pub fn user_home_dir_string() -> String {
-    std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\".to_string())
+    #[cfg(windows)]
+    {
+        std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\".to_string())
+    }
+    #[cfg(not(windows))]
+    {
+        dirs::home_dir()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "/".to_string())
+    }
 }
 
 pub fn validate_directory(dir: &str) -> Result<String, String> {
@@ -228,7 +311,11 @@ pub async fn stream_install(
     cmd.args(&args);
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
+    #[cfg(windows)]
     cmd.creation_flags(CREATE_NO_WINDOW);
+    // Own process group on Unix so a timeout kill reaches the whole tree.
+    #[cfg(unix)]
+    cmd.process_group(0);
     cmd.kill_on_drop(true);
 
     let _ = app.emit(
@@ -284,6 +371,14 @@ pub async fn stream_install(
         {
             Ok(res) => res.map_err(|e| format!("Erro aguardando processo: {}", e))?,
             Err(_) => {
+                // Terminate the whole tree (process group on Unix — the child
+                // was spawned with process_group(0); taskkill semantics on
+                // Windows are covered by the direct kill below matching the
+                // legacy single-child behavior of stream_install).
+                #[cfg(unix)]
+                if let Some(pid) = child.id() {
+                    let _ = kill_tree(pid);
+                }
                 let _ = child.kill().await;
                 let _ = app.emit(
                     "install-progress",

@@ -194,7 +194,7 @@ mod tests {
         let mut f = std::fs::File::create(&exe).expect("criar fake exe");
         let _ = f.write_all(b"fake");
         let extras = vec![exe.to_string_lossy().to_string()];
-        let resolved = resolve_cli_path_win("nonexistent-cmd-xyz-aabbcc", &extras);
+        let resolved = resolve_cli_path("nonexistent-cmd-xyz-aabbcc", &extras);
         assert_eq!(resolved.as_deref(), Some(exe.to_string_lossy().as_ref()));
         let _ = std::fs::remove_file(&exe);
     }

@@ -3,16 +3,19 @@
 // A runbook step may carry a shell command that the user wants to run as part
 // of a sequence (install / configure / launch / check). This module exposes a
 // single Tauri command, `run_runbook_step`, that executes one command in a
-// PowerShell child process with a bounded timeout and returns a structured
-// result (exit code + captured stdout/stderr, ANSI-stripped).
+// shell child process with a bounded timeout and returns a structured
+// result (exit code + captured stdout/stderr, ANSI-stripped). The shell is
+// PowerShell on Windows and bash on macOS/Linux.
 //
 // Security: the command string is sanitized with the same `sanitize_args`
 // gate used by the launcher (rejects shell metacharacters), and the working
 // directory is validated with `validate_directory`. We never interpolate the
-// command into a larger PowerShell statement — it is passed as a single
-// argument to `-Command`, and shell metacharacters are already rejected.
+// command into a larger shell statement — it is passed as a single
+// argument to `-Command` (PowerShell) / `-c` (bash), and shell metacharacters
+// are already rejected.
 
 use std::collections::HashMap;
+#[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::path::{Component, Path};
 use std::process::Command;
@@ -25,7 +28,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::AppError;
 use crate::safety::{is_valid_env_key, sanitize_args};
-use crate::util::{command_exists, strip_ansi, validate_directory, CREATE_NO_WINDOW};
+use crate::util::{command_exists, strip_ansi, validate_directory};
 
 /// Default timeout for a single runbook step, in seconds.
 pub const DEFAULT_STEP_TIMEOUT_SECS: u64 = 120;
@@ -84,21 +87,12 @@ fn validate_execution_id(value: &str) -> Result<&str, String> {
     Ok(value)
 }
 
+/// Terminates the whole process tree of a runbook step. Windows keeps
+/// `taskkill /F /T`; Unix kills the process group (steps are spawned with
+/// `process_group(0)`).
 fn kill_process_tree(pid: u32) -> Result<(), String> {
-    let mut kill = Command::new("taskkill");
-    kill.args(["/F", "/T", "/PID", &pid.to_string()]);
-    kill.creation_flags(CREATE_NO_WINDOW);
-    let output = kill
-        .output()
-        .map_err(|error| format!("Falha ao interromper o processo: {}", error))?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(format!(
-            "Falha ao interromper o processo: {}",
-            cap_output(&output.stderr)
-        ))
-    }
+    crate::util::kill_tree(pid)
+        .map_err(|error| format!("Falha ao interromper o processo: {}", error))
 }
 
 fn cap_output(raw: &[u8]) -> String {
@@ -232,12 +226,31 @@ fn run_runbook_step_blocking(
         .transpose()?
         .map(str::to_owned);
 
-    let mut cmd = Command::new("powershell");
-    cmd.args(["-NoProfile", "-NonInteractive", "-Command", &safe_command]);
+    // Windows runs the step in PowerShell (unchanged); macOS/Linux run it in
+    // bash. The command is sanitized by `sanitize_args` on both platforms.
+    #[cfg(windows)]
+    let mut cmd = {
+        let mut c = Command::new("powershell");
+        c.args(["-NoProfile", "-NonInteractive", "-Command", &safe_command]);
+        c
+    };
+    #[cfg(not(windows))]
+    let mut cmd = {
+        let mut c = Command::new("bash");
+        c.args(["-c", &safe_command]);
+        c
+    };
     cmd.current_dir(&dir);
     cmd.stdout(std::process::Stdio::piped());
     cmd.stderr(std::process::Stdio::piped());
-    cmd.creation_flags(CREATE_NO_WINDOW);
+    #[cfg(windows)]
+    cmd.creation_flags(crate::util::CREATE_NO_WINDOW);
+    // Own process group on Unix so a timeout/stop kills the whole tree.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt as _;
+        cmd.process_group(0);
+    }
 
     let child = cmd
         .spawn()
@@ -437,14 +450,13 @@ mod tests {
 
     #[test]
     fn active_runbook_process_can_be_stopped() {
+        #[cfg(windows)]
+        let sleep_command = "Start-Sleep -Seconds 10".to_string();
+        #[cfg(not(windows))]
+        let sleep_command = "sleep 10".to_string();
         let started = std::time::Instant::now();
-        let worker = thread::spawn(|| {
-            run_runbook_step_blocking(
-                "Start-Sleep -Seconds 10".into(),
-                None,
-                Some(20),
-                Some("run-stop-test".into()),
-            )
+        let worker = thread::spawn(move || {
+            run_runbook_step_blocking(sleep_command, None, Some(20), Some("run-stop-test".into()))
         });
         for _ in 0..100 {
             if active_processes()
