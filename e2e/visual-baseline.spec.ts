@@ -286,6 +286,7 @@ test.describe("v21 visual baseline", () => {
         },
       },
     });
+    await freezeVisualClock(page);
     await page.addInitScript(({ selectedTheme }) => {
       const now = "2026-07-13T12:00:00.000Z";
       localStorage.setItem("ai-launcher:theme", selectedTheme);
@@ -339,10 +340,33 @@ test.describe("v21 visual baseline", () => {
         await expect(page.getByRole("heading", { name: target.heading }).first()).toBeVisible();
         await settleVisualLayers(page);
 
+        // The chrome (StatusBar cells, inbox badge) is fed by async stores
+        // (CLI checks, update scan); hold the capture until every seeded
+        // payload has painted, otherwise the frame depends on runner load.
+        await expect(page.locator(".cd-status__cell--online")).toHaveText(/2\/3/);
+        await expect(page.locator(".cd-status__cell--warn")).toHaveText(/3/);
+        await expect(page.locator(".cd-inbox__badge")).toHaveText("3");
+        if (target.name === "admin-security") {
+          await expect(page.locator(".cd-security__events li")).toHaveCount(2);
+        }
+
+        // Under load, boot-time scroll anchoring can leave a residual offset
+        // in the main scroller, shifting the entire captured frame. Pin every
+        // scroller to the top (the canonical baseline state) right before the
+        // capture, after all waits, so nothing can scroll in between.
+        await page.evaluate(() => {
+          window.scrollTo(0, 0);
+          document.documentElement.scrollTop = 0;
+          document.querySelector(".cd-app__main")?.scrollTo(0, 0);
+        });
+
         await expect(page).toHaveScreenshot(`wave-b-${target.name}-${theme}.png`, {
           animations: "disabled",
           caret: "hide",
           maxDiffPixelRatio: 0.005,
+          // The live clock is the only frame region that changes between
+          // runs; mask it so captures stay comparable across time.
+          mask: [page.locator(".cd-status__cell--clock")],
         });
 
         const results = await new AxeBuilder({ page })
