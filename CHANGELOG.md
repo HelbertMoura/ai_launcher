@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> **Language note:** starting with the next release, new changelog entries are
+> written in English, the repository's primary language. The existing pt-BR
+> entries for versions 22.5 through 22.7 are kept below as-is, as a historical
+> record — they were not translated.
+
 ## [22.7.0] — 2026-08-16 — Ollama Local LLM Support, Doctor Cache Cleaner & Unified MCP Backup Bundle
 
 Release com suporte de primeira classe para execução de modelos locais com Ollama, botão de limpeza profunda de cache e restauração de stubs no Doctor, e ferramenta unificada de exportação e restauração de bundle de servidores MCP.
