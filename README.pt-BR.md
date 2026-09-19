@@ -134,6 +134,13 @@ Baixe o instalador no [último release do GitHub](https://github.com/HelbertMour
 
 > O SmartScreen pode alertar em builds sem assinatura — clique em **Mais informações → Executar mesmo assim**.
 
+Ou instale via **Scoop**:
+
+```powershell
+scoop bucket add ai-launcher https://github.com/HelbertMoura/ai_launcher
+scoop install ai-launcher/ai-launcher
+```
+
 ### Download (macOS)
 
 Baixe o `.dmg` correspondente ao seu Mac no [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/releases/latest):
@@ -160,7 +167,7 @@ Pelo [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/rel
   sudo apt install ./ai-launcher_<versão>_amd64.deb
   ```
 
-> **Gerenciadores de pacote (winget, Scoop, Chocolatey):** os manifestos estão prontos em [`packaging/README.md`](packaging/README.md) — a submissão a cada loja acontece depois que existir um release real com URLs estáveis de download; os comandos de instalação vão falhar até que os pacotes sejam publicados.
+> **Gerenciadores de pacote:** o **Scoop já está disponível** pelo bucket do próprio repositório (veja a seção do Windows acima) e se atualiza automaticamente a cada novo release. Os manifestos do **winget** e do **Chocolatey** estão prontos em [`packaging/README.md`](packaging/README.md) e seguem para suas lojas como submissão do mantenedor; os comandos vão falhar até que esses pacotes sejam publicados.
 
 ### Build a Partir do Código
 

@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > entries (15.x through 22.7) are kept below as-is, as a historical
 > record — they were not translated.
 
+## [Unreleased]
+
+### Repository Infrastructure
+- **Fixed SBOM generation:** the backend SBOM workflow called cargo-cyclonedx with `--override-filename-root`, a flag that does not exist in any released version, so the Rust SBOM job had failed on every run since its introduction. The workflow now uses supported flags and uploads the generated artifact with a fail-hard check.
+- **Sponsor button:** `.github/FUNDING.yml` now enables Ko-fi (ko-fi.com/helbertmoura); GitHub Sponsors stays available for future activation.
+- **Scoop bucket:** the repository doubles as its own Scoop bucket (`bucket/ai-launcher.json`) with a v22.8.0 manifest pinned to the published installer hash and GitHub-based autoupdate — `scoop bucket add ai-launcher https://github.com/HelbertMoura/ai_launcher`.
+
 ## [22.8.0] — 2026-09-19 — Cross-Platform Support, Hardened Core & Public Quality Gates
 
 The multi-platform release: AI Launcher now builds and ships on Windows, macOS and Linux with native secure storage per OS, the Rust core is hardened against command-injection paths, and a 9-job quality gate matrix runs on every push.

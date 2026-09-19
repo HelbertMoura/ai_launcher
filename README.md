@@ -136,6 +136,13 @@ Download the installer from the [latest GitHub release](https://github.com/Helbe
 
 > SmartScreen may warn on unsigned builds -- click **More info, then Run anyway**.
 
+Or install via **Scoop**:
+
+```powershell
+scoop bucket add ai-launcher https://github.com/HelbertMoura/ai_launcher
+scoop install ai-launcher/ai-launcher
+```
+
 ### Install (macOS)
 
 Download the `.dmg` for your Mac from the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/releases/latest):
@@ -162,7 +169,7 @@ From the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/rel
   sudo apt install ./ai-launcher_<version>_amd64.deb
   ```
 
-> **Package managers (winget, Scoop, Chocolatey):** the manifests are prepared in [`packaging/README.md`](packaging/README.md) — submission to each store happens after a real release with stable download URLs exists; installation commands will fail until the packages are published.
+> **Package managers:** **Scoop is live** via the repository's own bucket (see the Windows section above) and updates automatically on each new release. **winget** and **Chocolatey** manifests are ready in [`packaging/README.md`](packaging/README.md) and go to their stores as maintainer submissions; installation commands will fail until those are published.
 
 ### Build from Source
 
