@@ -24,6 +24,9 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Install Playwright browsers
         run: npx playwright install chromium
+      - name: Install ffmpeg (not preinstalled on windows runners)
+        shell: pwsh
+        run: choco install ffmpeg --yes --no-progress
       - name: Record demo and encode GIF
         run: node scripts/record-demo.mjs
       - name: Upload demo GIF
