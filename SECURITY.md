@@ -38,7 +38,7 @@ These are the controls that limit blast radius if a vulnerability is found:
   The signature is verified before any binary is run. See
   `src-tauri/src/commands/updater.rs` and `.github/workflows/release.yml`.
 - **Path validation**: `validate_directory` rejects UNC paths and non-existent
-  directories. See `src-tauri/src/util.rs`.
+  directories. See `src-tauri/src/util/process.rs`.
 - **Shell escaping**: `safety.rs` centralises the rules for sanitising CLI
   arguments and environment keys.
 - **Tauri capabilities**: the capability manifest (`src-tauri/capabilities/default.json`)

@@ -174,7 +174,7 @@ Open lanes for the next milestones:
 - **More providers.** New `ProviderKind` entries with seeds and storage support.
   See `src/providers/types.ts`, `src/providers/seeds.ts` and `src/providers/storage.ts`.
 - **More CLIs / tools.** Registered in `get_cli_definitions()` /
-  `get_tool_definitions()` in `src-tauri/src/util.rs`.
+  `get_tool_definitions()` in `src-tauri/src/util/definitions.rs`.
 - **Theme work.** Alternative variants or focused accessibility improvements —
   current tokens live under `src/theme/`.
 - **Tests.** Add focused Vitest tests next to new pure helpers/stores and keep
@@ -182,7 +182,7 @@ Open lanes for the next milestones:
 - **Accessibility audit.** Keyboard traps, focus order on modals, screen-reader
   landmarks. Automation via Playwright + `@axe-core/playwright` is welcome.
 - **Rust module split.** Keep command handlers small and move reusable logic to
-  `src-tauri/src/util.rs` or a dedicated module when it grows.
+  `src-tauri/src/util/` or a dedicated module when it grows.
 
 Before starting a non-trivial contribution, open an issue or a draft PR so we
 can align on direction.
