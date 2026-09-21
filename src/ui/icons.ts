@@ -29,6 +29,7 @@ export {
   Key,
   ShieldCheck,
   TestTube,
+  Coffee,
   Clock,
   Palette,
   Bell,
