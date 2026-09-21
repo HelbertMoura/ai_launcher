@@ -22,6 +22,9 @@ import "../page.css";
 import "./HistoryPage.css";
 import { buildHistoryOverview, sortSessionsByPriority } from "./historyPageModel";
 
+/** Rows rendered per batch in the session list (see `visibleCount`). */
+const HISTORY_PAGE_SIZE = 60;
+
 function truncateDir(dir: string, max = 48): string {
   if (dir.length <= max) return dir;
   const head = Math.ceil(max / 2) - 1;
@@ -324,6 +327,10 @@ export function HistoryPage() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(savedFilters.timelineOpen);
   const [timelineRange, setTimelineRange] = useState<TimelineRange>(savedFilters.timelineRange);
+  // Render rows in batches: history is capped at 200 entries and each row is
+  // heavy (status, provider actions, inline editors). Showing the first batch
+  // keeps the first paint of this tab cheap; "show more" grows the window.
+  const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
 
   useEffect(() => {
     saveHistoryFilters({
@@ -367,6 +374,12 @@ export function HistoryPage() {
       return true;
     }));
   }, [items, filterCli, filterProvider, filterRange]);
+
+  const visibleItems = useMemo(
+    () => filtered.slice(0, visibleCount),
+    [filtered, visibleCount],
+  );
+  const hiddenCount = filtered.length - visibleItems.length;
 
   const hasActiveFilters =
     filterCli !== "all" || filterProvider !== "all" || filterRange !== "all";
@@ -557,7 +570,7 @@ export function HistoryPage() {
           </section>
 
           <ul className="cd-history__list">
-            {filtered.map((item, idx) => (
+            {visibleItems.map((item, idx) => (
               <HistoryRow
                 key={`${item.timestamp}-${idx}`}
                 item={item}
@@ -570,6 +583,18 @@ export function HistoryPage() {
               />
             ))}
           </ul>
+
+          {hiddenCount > 0 && (
+            <div className="cd-history__more">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setVisibleCount((c) => c + HISTORY_PAGE_SIZE)}
+              >
+                {t("history.showMore", { count: hiddenCount })}
+              </Button>
+            </div>
+          )}
         </>
       )}
 
