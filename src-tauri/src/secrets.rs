@@ -218,7 +218,7 @@ const KEYRING_SERVICE: &str = "DevManiacs.AILauncher";
 #[cfg(not(windows))]
 fn keyring_entry(key: &str) -> Result<keyring::Entry, String> {
     validate_key(key)?;
-    keyring::Entry::new(KEYRING_SERVICE, key).map_err(|e| format!("Keyring unavailable: {e}"))
+    keyring::Entry::new(KEYRING_SERVICE, key).map_err(|e| format!("Keyring indisponível: {e}"))
 }
 
 #[cfg(not(windows))]
@@ -226,7 +226,7 @@ fn credential_write(key: &str, value: &str) -> Result<(), String> {
     let entry = keyring_entry(key)?;
     entry
         .set_password(value)
-        .map_err(|e| format!("Keyring write failed: {e}"))
+        .map_err(|e| format!("Falha na gravação do keyring: {e}"))
 }
 
 #[cfg(not(windows))]
