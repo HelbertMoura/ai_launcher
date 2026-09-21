@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { installPrerequisite } from "../../lib/tauri";
 import type { PrereqCheck } from "./usePrerequisites";
@@ -11,7 +11,11 @@ interface PrereqCardProps {
   onInstalled?: () => void;
 }
 
-export function PrereqCard({ item, onInstalled }: PrereqCardProps) {
+/**
+ * Memoized: during a recheck the store streams one result at a time and
+ * unchanged items keep object identity, so only the updated card re-renders.
+ */
+function PrereqCardImpl({ item, onInstalled }: PrereqCardProps) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,3 +109,5 @@ export function PrereqCard({ item, onInstalled }: PrereqCardProps) {
     </>
   );
 }
+
+export const PrereqCard = memo(PrereqCardImpl);
