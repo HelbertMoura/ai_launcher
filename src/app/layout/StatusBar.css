@@ -6,9 +6,9 @@
   gap: var(--s-3);
   padding: 0 var(--s-4);
   border-top: 1px solid var(--border);
-  background: var(--surface-1-alpha, var(--surface-1));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Solid surface: backdrop-filter here forced a full re-blur on every
+     repaint beneath the always-visible bar (visible jank on tab switches). */
+  background: var(--surface-1);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.5px;
