@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
-  "version": "22.8.0",
+  "version": "22.9.0",
   "description": "Desktop cockpit to detect, install and launch AI coding CLIs and IDEs.",
   "homepage": "https://github.com/HelbertMoura/ai_launcher",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/HelbertMoura/ai_launcher/releases/download/v22.8.0/AI.Launcher_22.8.0_x64-setup.exe#/ai-launcher-setup.exe",
-      "hash": "595967727d92f86f7bb6cbf9420ecbd2e7d54e2e29289a23761baafba85204e7"
+      "url": "https://github.com/HelbertMoura/ai_launcher/releases/download/v22.9.0/AI.Launcher_22.9.0_x64-setup.exe#/ai-launcher-setup.exe",
+      "hash": "332a79b66a6457d94502f7a87d78963e23f6f95b70c7d6fcdbb43cf267920a3b"
     }
   },
   "installer": {
