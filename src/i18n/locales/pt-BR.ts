@@ -337,6 +337,7 @@ export const ptBR = {
     emptyHint: "As sessões iniciadas pelo launcher aparecerão aqui com status e duração.",
     count_one: "{{count}} lançamento",
     count_other: "{{count}} lançamentos",
+    showMore: "Mostrar mais (restam {{count}})",
     clear: "Limpar histórico",
     clearConfirm: "Limpar todo o histórico? Não dá pra desfazer.",
     cliColumn: "CLI",

@@ -339,6 +339,7 @@ export const en: Dictionary = {
     emptyHint: "Sessions started by the launcher will appear here with status and duration.",
     count_one: "{{count}} launch",
     count_other: "{{count}} launches",
+    showMore: "Show more ({{count}} remaining)",
     clear: "Clear history",
     clearConfirm: "Clear all launch history? This cannot be undone.",
     cliColumn: "CLI",
