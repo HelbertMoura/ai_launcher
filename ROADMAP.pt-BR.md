@@ -30,6 +30,19 @@ Ondas recentes de engenharia (higiene → rede de proteção → plataforma), at
 - [x] Manifestos de empacotamento — winget, Scoop e Chocolatey com script gerador (submissão às lojas pendente do 1º release estável)
 - [x] Guia público de instalação multiplataforma — instruções NSIS/MSI, dmg e AppImage/deb para usuários finais
 
+## v23.0.0 — "Fleet Command" (planejado — explorando)
+
+A próxima onda maior, aprovada como direção: executar e observar vários
+agentes ao mesmo tempo, com salvaguardas de custo e segurança. Sem datas,
+de propósito.
+
+- [ ] **Multi-agente paralelo com isolamento por git worktree** — rode vários agentes no mesmo projeto em worktrees isolados, além do Race Mode: diffs lado a lado em que você adota o melhor resultado
+- [ ] **Diff & Review Cockpit** — superfície de revisão por sessão do que cada agente mudou antes do merge
+- [ ] **Cost Governance 3.0** — orçamento por projeto, projeção de gastos e custo por sessão
+- [ ] **Registry de Runbooks assinado** — distribuição de runbooks verificada com minisign
+- [ ] **Agendador local de runbooks** — execute runbooks em horários programados, totalmente offline
+- [ ] **Reagrupamento da sidebar** — grupos Executar / Observar / Conectar-Sistema com atalhos fixados
+
 ## Próximo
 
 Em ordem de prioridade. Sem datas, de propósito.

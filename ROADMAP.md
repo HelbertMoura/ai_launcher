@@ -30,6 +30,18 @@ Recent engineering waves (hygiene → safety net → platform), as of v22.9.0:
 - [x] Packaging manifests — winget, Scoop, and Chocolatey with a generator script (store submissions pending the first stable release)
 - [x] Public multi-platform install guide — NSIS/MSI, dmg, and AppImage/deb instructions for end users
 
+## v23.0.0 — "Fleet Command" (planned — exploring)
+
+The next major wave, approved as a direction: running and observing many
+agents at once, with cost and safety guardrails. No dates on purpose.
+
+- [ ] **Parallel multi-agent with git worktree isolation** — run several agents on the same project in isolated worktrees, plus Race Mode: side-by-side diffs where you adopt the best result
+- [ ] **Diff & Review Cockpit** — per-session review surface for what each agent changed before you merge
+- [ ] **Cost Governance 3.0** — per-project budgets, spend projection, and per-session cost tracking
+- [ ] **Signed Runbook Registry** — minisign-verified runbook distribution
+- [ ] **Local runbook scheduler** — run runbooks on a schedule, fully offline
+- [ ] **Sidebar regrouping** — Execute / Observe / Connect-System groups with pinned shortcuts
+
 ## Next
 
 In priority order. No dates on purpose.
