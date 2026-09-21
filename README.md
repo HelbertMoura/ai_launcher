@@ -33,7 +33,7 @@ Developing with AI today is fragmented: 10 different CLIs, conflicting API keys,
 
 **AI Launcher brings peace, speed, and focus back to your workflow:**
 
-- 🚀 **One Unified Hub:** Launch Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code, and Cursor in 1 click.
+- 🚀 **One Unified Hub:** Launch Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code, Cursor, and Windsurf in 1 click.
 - 🧩 **Project-Aware MCP Hub:** Automatically detects your project stack and provisions validated Model Context Protocol servers per repository.
 - 💰 **Budget Guard & Cost Analytics:** Real-time token spend tracking with configurable alerts before unexpected monthly invoices.
 - ⚡ **Local-First & Blazing Fast:** Built with **Tauri v2 + Rust**, cold booting in <300ms, using less than 40MB RAM, with zero telemetry and 100% local encrypted storage.
