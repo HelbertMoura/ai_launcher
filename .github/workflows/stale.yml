@@ -21,7 +21,7 @@ jobs:
           stale-issue-message: |
             Essa issue ficou sem atividade por 60 dias. Ela será fechada em 14 dias se não houver novas interações. Comente se ainda for relevante.
           close-issue-message: |
-            Fechada automaticamente por inatividade. Sinta-se livre pra reabrir se o problema persistir.
+            Fechada automaticamente por inatividade. Sinta-se livre para reabrir se o problema persistir.
           exempt-issue-labels: 'pinned,security,roadmap,help-wanted'
 
           days-before-pr-stale: 30
