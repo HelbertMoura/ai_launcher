@@ -35,8 +35,9 @@
 }
 
 .cd-tab-panel--active {
+  /* No `will-change`: it would keep a compositor layer alive per visited tab.
+     The 160ms fade is opacity/transform only and promotes temporarily. */
   animation: cd-tab-fade-in 160ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: opacity, transform;
 }
 
 .cd-tab-panel--hidden {
@@ -57,7 +58,6 @@
 @media (prefers-reduced-motion: reduce) {
   .cd-tab-panel--active {
     animation: none;
-    will-change: auto;
   }
 }
 
