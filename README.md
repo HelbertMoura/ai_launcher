@@ -318,7 +318,7 @@ The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prere
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React 19 + TypeScript + Vite |
+| **Frontend** | React 19 + TypeScript 7 + Vite |
 | **Backend** | Rust (Tauri v2) with the native OS keyring (Windows Credential Manager / macOS Keychain / Linux Secret Service) |
 | **Styling** | CSS Custom Properties (token system · 7 themes: dark, light, amber, glacier, phosphor, midnight, high-contrast) |
 | **Typography** | JetBrains Mono · Inter · Space Grotesk (display) |
