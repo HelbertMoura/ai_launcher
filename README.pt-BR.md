@@ -33,7 +33,7 @@ Desenvolver com IA hoje se tornou um desafio de organização: múltiplos CLIs e
 
 **O AI Launcher devolve o controle, a fluidez e o foco para o seu ambiente de desenvolvimento:**
 
-- 🚀 **Hub Único & Centralizado:** Execute Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code e Cursor em 1 clique.
+- 🚀 **Hub Único & Centralizado:** Execute Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code, Cursor e Windsurf em 1 clique.
 - 🧩 **Hub MCP por Projeto:** Detecta automaticamente a stack do repositório e configura servidores MCP validados sem esforço manual.
 - 💰 **Budget Guard & Gestão de Custos:** Acompanhe gastos com tokens em tempo real com alertas proativos antes de estourar seu teto de gastos.
 - ⚡ **Local-First & Alta Performance:** Desenvolvido em **Tauri v2 + Rust**, inicializa em <300ms, consome menos de 40MB de RAM, sem telemetria e com armazenamento criptografado no seu próprio computador.
