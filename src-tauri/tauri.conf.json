@@ -68,7 +68,7 @@
       "endpoints": [
         "https://github.com/HelbertMoura/ai_launcher/releases/latest/download/latest.json"
       ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJBRjQwMjU3RENEQjc5RUUKUldUdWVkdmNWd0wwdWpONlpGd0pWbjBVRDB4WDZiVG5qN3FRcVhFZHhmSklIbkNTRzQzTUI0bEkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYxMkJGNzk0RTdCRjUxOEEKUldTS1ViL25sUGNyWVhjckZZYVk5MEREWEJOSW4rRzRDeVFQOHF5Z3M3UUFIWkpJRXZQSm1qcGYK",
       "windows": {
         "installMode": "passive"
       }
