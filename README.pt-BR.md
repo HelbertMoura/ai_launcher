@@ -21,7 +21,7 @@
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
 ![Memória <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
 
-[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Instalação Rápida](#instalação-rápida) · [🗺️ Roadmap](./ROADMAP.pt-BR.md) · [🤝 Código de Conduta](./CODE_OF_CONDUCT.md)
+[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Instalação Rápida](#-instalação-rápida) · [🗺️ Roadmap](./ROADMAP.pt-BR.md) · [🤝 Código de Conduta](./CODE_OF_CONDUCT.md)
 
 </div>
 
@@ -123,7 +123,9 @@ Desenvolver com IA hoje se tornou um desafio de organização: múltiplos CLIs e
 
 </div>
 
-## Instalação Rápida
+---
+
+## ⚡ Instalação Rápida
 
 ### Download (Windows)
 
@@ -185,7 +187,9 @@ Os instaladores são gerados em:
 - MSI: `src-tauri/target/release/bundle/msi/`
 - EXE (NSIS): `src-tauri/target/release/bundle/nsis/`
 
-## Atalhos de Teclado
+---
+
+## ⌨️ Atalhos de Teclado
 
 | Atalho | Ação |
 |--------|------|
@@ -204,7 +208,9 @@ Os instaladores são gerados em:
 | `?` | Aba Ajuda |
 | `Esc` | Fechar diálogo |
 
-## Superfícies
+---
+
+## 🧭 Superfícies
 
 O app tem 11 superfícies principais acessíveis pela sidebar:
 
@@ -219,9 +225,11 @@ O app tem 11 superfícies principais acessíveis pela sidebar:
 | **Workspaces** | Profiles, Agent Profiles, Budget, resumo do Doctor, Runbooks e Sessões Recentes |
 | **Doctor** | Health check do ambiente com severidade (crítico/aviso/info) + fixes guiados |
 | **Atualizações** | Hub centralizado para updates de CLIs, ferramentas e pré-requisitos |
-| **Pré-reqs** | Health check do sistema — Node, npm, Bun, Python, Rust, Git, Docker, Terminal |
+| **Pré-reqs** | Health check do sistema — Node, npm, Bun, Python, Rust, Cargo, Git, Docker e PowerShell |
 | **Admin** | Providers (com teste de API), perfis, aparência, overrides de CLIs, IDEs customizadas |
 | **Ajuda** | Atalhos, FAQ, terminal animado demo, replay do tour de boas-vindas |
+
+---
 
 ## 🚀 Novidades da v22 — Ecossistema Multi-Agente & Núcleo Modular
 
@@ -304,7 +312,9 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 
 </details>
 
-## Stack Técnica
+---
+
+## 🛠️ Stack Técnica
 
 | Camada | Tecnologia |
 |--------|-----------|
@@ -318,15 +328,21 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
 | Distribuição | GitHub Releases · Scoop (disponível) · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
 
-## Contribuindo
+---
+
+## 🤝 Contribuindo
 
 Faça fork do repositório, crie uma branch de feature e abra um PR contra `main`. Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para setup, convenções e checklist de PR.
 
-## Licença
+---
+
+## 📄 Licença
 
 MIT — veja [LICENSE](./LICENSE).
 
-## Créditos & Suporte
+---
+
+## ☕ Créditos & Suporte
 
 - **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura)
 - **Autor:** Helbert Moura — [DevManiac's](https://devmaniacs.com.br/)
