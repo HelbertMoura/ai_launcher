@@ -166,9 +166,26 @@ pub fn check_latest_release() -> Result<serde_json::Value, AppError> {
     Ok(json)
 }
 
+/// Runs one blocking environment check and streams the result to the
+/// frontend the moment it is ready (`env-check-result` event), so the
+/// Doctor/Prerequisites tables fill in progressively instead of only after
+/// the whole batch (~15 subprocess probes) finishes. The final return value
+/// stays authoritative and idempotent for callers that ignore the events.
+fn spawn_env_check(
+    app: &tauri::AppHandle,
+    check: impl FnOnce() -> CheckResult + Send + 'static,
+) -> tokio::task::JoinHandle<CheckResult> {
+    let app = app.clone();
+    tokio::task::spawn_blocking(move || {
+        let result = check();
+        let _ = app.emit("env-check-result", &result);
+        result
+    })
+}
+
 #[tauri::command]
-pub async fn check_environment() -> Vec<CheckResult> {
-    let t_node = tokio::task::spawn_blocking(|| {
+pub async fn check_environment(app: tauri::AppHandle) -> Vec<CheckResult> {
+    let t_node = spawn_env_check(&app, || {
         let (npm_ok, npm_ver) = run_silent("npm", &["--version"]);
         let (_, node_ver) = run_silent("node", &["--version"]);
         CheckResult {
@@ -184,7 +201,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_py = tokio::task::spawn_blocking(|| {
+    let t_py = spawn_env_check(&app, || {
         let (py_ok, py_ver) = detect_python();
         let (pip_ok, _) = run_silent("pip", &["--version"]);
         CheckResult {
@@ -196,7 +213,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_git = tokio::task::spawn_blocking(|| {
+    let t_git = spawn_env_check(&app, || {
         let (git_ok, git_ver) = run_silent("git", &["--version"]);
         CheckResult {
             key: "git".into(),
@@ -207,7 +224,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_rust = tokio::task::spawn_blocking(|| {
+    let t_rust = spawn_env_check(&app, || {
         let (rust_ok, rust_ver) = run_silent("rustc", &["--version"]);
         CheckResult {
             key: "rust".into(),
@@ -218,22 +235,27 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_cargo = tokio::task::spawn_blocking(|| {
+    // Cargo is special: its result is OPTIONAL (omitted entirely when cargo is
+    // absent), so it cannot go through `spawn_env_check` — emit only on Some.
+    let app_cargo = app.clone();
+    let t_cargo = tokio::task::spawn_blocking(move || {
         let (cargo_ok, cargo_ver) = run_silent("cargo", &["--version"]);
         if cargo_ok {
-            Some(CheckResult {
+            let result = CheckResult {
                 key: "cargo".into(),
                 name: "Cargo".into(),
                 installed: true,
                 version: cargo_ver,
                 install_command: Some("Instalado com Rust".into()),
-            })
+            };
+            let _ = app_cargo.emit("env-check-result", &result);
+            Some(result)
         } else {
             None
         }
     });
 
-    let t_pnpm = tokio::task::spawn_blocking(|| {
+    let t_pnpm = spawn_env_check(&app, || {
         let (pnpm_ok, pnpm_ver) = run_silent("pnpm", &["--version"]);
         CheckResult {
             key: "pnpm".into(),
@@ -244,7 +266,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_yarn = tokio::task::spawn_blocking(|| {
+    let t_yarn = spawn_env_check(&app, || {
         let (yarn_ok, yarn_ver) = run_silent("yarn", &["--version"]);
         CheckResult {
             key: "yarn".into(),
@@ -255,7 +277,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_bun = tokio::task::spawn_blocking(|| {
+    let t_bun = spawn_env_check(&app, || {
         let (bun_ok, bun_ver) = run_silent("bun", &["--version"]);
         CheckResult {
             key: "bun".into(),
@@ -268,7 +290,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
 
     // Terminal check: Windows Terminal on Windows; on macOS/Linux the
     // platform terminal emulator (Terminal.app is always present on macOS).
-    let t_wt = tokio::task::spawn_blocking(|| {
+    let t_wt = spawn_env_check(&app, || {
         #[cfg(windows)]
         {
             let wt_found = find_windows_terminal().is_some();
@@ -305,7 +327,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_pwsh = tokio::task::spawn_blocking(|| {
+    let t_pwsh = spawn_env_check(&app, || {
         let (pwsh_ok, pwsh_ver) = run_silent("pwsh", &["--version"]);
         CheckResult {
             key: "powershell".into(),
@@ -316,7 +338,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_gitlfs = tokio::task::spawn_blocking(|| {
+    let t_gitlfs = spawn_env_check(&app, || {
         let (gitlfs_ok, gitlfs_ver) = run_silent("git", &["lfs", "version"]);
         CheckResult {
             key: "git-lfs".into(),
@@ -327,7 +349,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_docker = tokio::task::spawn_blocking(|| {
+    let t_docker = spawn_env_check(&app, || {
         let (docker_ok, docker_ver) = run_silent("docker", &["--version"]);
         CheckResult {
             key: "docker".into(),
@@ -338,7 +360,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_vscode = tokio::task::spawn_blocking(|| {
+    let t_vscode = spawn_env_check(&app, || {
         let (vscode_ok, vscode_ver) = run_silent("code", &["--version"]);
         CheckResult {
             key: "vscode".into(),
@@ -349,7 +371,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_tauri = tokio::task::spawn_blocking(|| {
+    let t_tauri = spawn_env_check(&app, || {
         let (tauri_ok, _) = run_silent("npm", &["list", "-g", "@tauri-apps/cli", "--depth=0"]);
         let (_, tauri_ver) = run_silent("tauri", &["--version"]);
         CheckResult {
@@ -361,7 +383,7 @@ pub async fn check_environment() -> Vec<CheckResult> {
         }
     });
 
-    let t_ollama = tokio::task::spawn_blocking(|| {
+    let t_ollama = spawn_env_check(&app, || {
         let (ollama_ok, ollama_ver) = run_silent("ollama", &["--version"]);
         CheckResult {
             key: "ollama".into(),

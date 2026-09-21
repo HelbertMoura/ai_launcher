@@ -1,8 +1,21 @@
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { z } from "zod";
 import type { PrereqCheck } from "./usePrerequisites";
-import { invokeOrFallback } from "../../lib/tauri";
+import { invokeOrFallback, isTauriRuntime } from "../../lib/tauri";
 
 const CACHE_KEY = "ai-launcher:environment-cache";
 const TTL_MS = 10 * 60 * 1000; // 10 min
+
+/** Event emitted by `check_environment` as each individual check finishes. */
+const ENV_CHECK_RESULT_EVENT = "env-check-result";
+
+const envCheckResultSchema = z.object({
+  key: z.string().min(1),
+  name: z.string(),
+  installed: z.boolean(),
+  version: z.string().nullable().optional(),
+  install_command: z.string().nullable().optional(),
+});
 
 interface CachedPayload {
   items: PrereqCheck[];
@@ -65,6 +78,47 @@ function setState(partial: Partial<Snapshot>): void {
   emit();
 }
 
+/**
+ * Merges a single streamed check result into the snapshot. Unchanged items
+ * keep their object identity so memoized rows skip re-render.
+ */
+function upsertItem(item: PrereqCheck): void {
+  const idx = state.items.findIndex((it) => it.key === item.key);
+  const items = state.items.slice();
+  if (idx === -1) items.push(item);
+  else items[idx] = item;
+  state = { ...state, items };
+  emit();
+}
+
+/**
+ * Subscribes to per-check results while a (re)check is in flight so the UI
+ * fills in progressively. Returns an unlisten no-op outside the Tauri
+ * runtime. The final `check_environment` resolve remains authoritative.
+ */
+async function streamResults(): Promise<() => void> {
+  if (!isTauriRuntime()) return () => {};
+  try {
+    const unlisten: UnlistenFn = await listen<unknown>(
+      ENV_CHECK_RESULT_EVENT,
+      (event) => {
+        const parsed = envCheckResultSchema.safeParse(event.payload);
+        if (!parsed.success) return;
+        upsertItem({
+          key: parsed.data.key,
+          name: parsed.data.name,
+          installed: parsed.data.installed,
+          version: parsed.data.version ?? null,
+          install_command: parsed.data.install_command ?? null,
+        });
+      },
+    );
+    return unlisten;
+  } catch {
+    return () => {};
+  }
+}
+
 async function load(force = false): Promise<void> {
   if (inflight) return inflight;
   if (!force) {
@@ -78,6 +132,8 @@ async function load(force = false): Promise<void> {
   }
   setState({ loading: state.items.length === 0, error: null });
   inflight = (async () => {
+    // Register the listener BEFORE invoking so no streamed result is missed.
+    const unlisten = await streamResults();
     try {
       const items = await invokeOrFallback<PrereqCheck[]>("check_environment", undefined, []);
       state = { items, loading: false, error: null };
@@ -88,6 +144,7 @@ async function load(force = false): Promise<void> {
       const message = e instanceof Error ? e.message : String(e);
       setState({ loading: false, error: message });
     } finally {
+      unlisten();
       inflight = null;
     }
   })();
