@@ -164,7 +164,6 @@ jobs:
             src-tauri/target/release/bundle/msi/*.msi
             src-tauri/target/release/bundle/nsis/*-setup.exe
           fail_on_unmatched_files: true
-          overwrite_files: true
           generate_release_notes: true
 
       - name: Generate SHA-256 checksums
@@ -193,12 +192,12 @@ jobs:
           if ($nsis) {
             $signature = npx tauri signer sign $nsis.FullName 2>&1 | Out-String
             Write-Host "Signature generated for $($nsis.Name):`n$signature"
-            # tauri signer prints "<base64>" on the last line.
-            $sigBytes = ($signature -split "`n" | Where-Object { $_ -match '^[A-Za-z0-9+/=]{20,}$' } | Select-Object -Last 1)
-            if ($sigBytes) {
-              $sigBytes | Out-File -FilePath "$($nsis.FullName).sig" -Encoding ascii -NoNewline
-            } else {
-              Write-Error "Could not extract signature from tauri signer output"
+            # tauri signer writes <installer>.sig itself; parsing stdout with a
+            # regex broke on CRLF line endings (each split line kept a trailing
+            # CR that the base64 pattern rejected). Validate the file directly.
+            $sigFile = "$($nsis.FullName).sig"
+            if (-not (Test-Path $sigFile) -or ((Get-Item $sigFile).Length -eq 0)) {
+              Write-Error "tauri signer did not produce a signature file at $sigFile"
               exit 1
             }
           }
@@ -259,7 +258,6 @@ jobs:
             src-tauri/target/release/bundle/msi/*.sha256
             src-tauri/target/release/bundle/nsis/*.sha256
             latest.json
-          overwrite_files: true
 
       - name: Audit release assets
         shell: bash
@@ -338,7 +336,6 @@ jobs:
             src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
             src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg.sha256
           fail_on_unmatched_files: true
-          overwrite_files: true
 
   # Linux: AppImage + deb, checksums sha256 por bundle. Sem latest.json —
   # o updater in-app é Windows-only (tauri-plugin-updater).
@@ -422,4 +419,3 @@ jobs:
             src-tauri/target/release/bundle/appimage/*.AppImage.sha256
             src-tauri/target/release/bundle/deb/*.deb.sha256
           fail_on_unmatched_files: true
-          overwrite_files: true
