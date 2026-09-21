@@ -56,7 +56,7 @@ export const ptBR = {
     credentialMigrationFailed: "Não foi possível migrar suas credenciais com segurança. Os dados originais foram preservados; revise os Providers no Admin.",
   },
   commandCenter: {
-    eyebrow: "COMMAND DECK · V21",
+    eyebrow: "COMMAND DECK",
     title: "COMMAND CENTER",
     subtitle: "Contexto, próxima ação e atividade do seu projeto.",
     states: {

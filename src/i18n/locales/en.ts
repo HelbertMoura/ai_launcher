@@ -58,7 +58,7 @@ export const en: Dictionary = {
     credentialMigrationFailed: "Your credentials could not be migrated securely. Original data was preserved; review Providers in Admin.",
   },
   commandCenter: {
-    eyebrow: "COMMAND DECK · V21",
+    eyebrow: "COMMAND DECK",
     title: "COMMAND CENTER",
     subtitle: "Project context, next action, and live activity.",
     states: {
