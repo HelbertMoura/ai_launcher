@@ -21,10 +21,10 @@ pub enum AppError {
     /// commands must never fall back to plaintext, so a missing platform vault
     /// (e.g. Linux without Secret Service) surfaces as an explicit error.
     /// Still serializes as a plain string for the frontend contract.
-    #[error("secure storage: {0}")]
+    #[error("armazenamento seguro: {0}")]
     SecureStorage(String),
     /// Filesystem / process-spawn I/O failure.
-    #[error("io error: {0}")]
+    #[error("erro de E/S: {0}")]
     Io(#[from] std::io::Error),
 }
 
@@ -80,17 +80,17 @@ mod tests {
     fn from_io_error_prefixes_context() {
         let io_err = std::io::Error::new(std::io::ErrorKind::NotFound, "no such file");
         let err: AppError = io_err.into();
-        assert_eq!(err.to_string(), "io error: no such file");
+        assert_eq!(err.to_string(), "erro de E/S: no such file");
     }
 
     #[test]
     fn secure_storage_variant_prefixes_context_and_stays_a_string() {
-        let err = AppError::SecureStorage("vault indisponível".into());
-        assert_eq!(err.to_string(), "secure storage: vault indisponível");
+        let err = AppError::SecureStorage("cofre indisponível".into());
+        assert_eq!(err.to_string(), "armazenamento seguro: cofre indisponível");
         let json = serde_json::to_value(&err).expect("serialize AppError");
         assert_eq!(
             json,
-            serde_json::Value::String("secure storage: vault indisponível".into())
+            serde_json::Value::String("armazenamento seguro: cofre indisponível".into())
         );
     }
 }

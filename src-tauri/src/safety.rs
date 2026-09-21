@@ -29,7 +29,7 @@ pub const SHELL_METACHARACTERS: &[char] = &[
 pub fn sanitize_args(args: &str) -> Result<String, String> {
     if args.chars().any(|c| SHELL_METACHARACTERS.contains(&c)) {
         return Err(
-            "Argumentos contêm caracteres proibidos (; & | ` $ > < newline ( ) { })".into(),
+            "Argumentos contêm caracteres proibidos (; & | ` $ > < quebra de linha ( ) { })".into(),
         );
     }
     Ok(args.trim().to_string())
@@ -44,7 +44,7 @@ pub fn sanitize_args(args: &str) -> Result<String, String> {
 pub fn reject_shell_metacharacters(value: &str, what: &str) -> Result<(), String> {
     if value.chars().any(|c| SHELL_METACHARACTERS.contains(&c)) {
         return Err(format!(
-            "{} contains forbidden characters: ; & | ` $ > < newline ( ) {{ }} — value: {:?}",
+            "{} contém caracteres proibidos: ; & | ` $ > < quebra de linha ( ) {{ }} — valor: {:?}",
             what, value
         ));
     }

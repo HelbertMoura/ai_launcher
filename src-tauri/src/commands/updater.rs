@@ -57,12 +57,14 @@ pub struct VerifiedUpdateResult {
 #[tauri::command]
 pub async fn check_app_update(app: AppHandle) -> Result<AppUpdateInfo, AppError> {
     let current = env!("CARGO_PKG_VERSION");
-    let updater = app.updater().map_err(|e| format!("updater init: {e}"))?;
+    let updater = app
+        .updater()
+        .map_err(|e| format!("Falha ao inicializar o atualizador: {e}"))?;
 
     let result = updater
         .check()
         .await
-        .map_err(|e| format!("update check: {e}"))?;
+        .map_err(|e| format!("Falha ao verificar atualizações: {e}"))?;
 
     let Some(update) = result else {
         return Ok(AppUpdateInfo {
@@ -118,12 +120,14 @@ pub async fn download_verified_app_update(
         .into());
     }
 
-    let updater = app.updater().map_err(|e| format!("updater init: {e}"))?;
+    let updater = app
+        .updater()
+        .map_err(|e| format!("Falha ao inicializar o atualizador: {e}"))?;
 
     let update = updater
         .check()
         .await
-        .map_err(|e| format!("update check: {e}"))?
+        .map_err(|e| format!("Falha ao verificar atualizações: {e}"))?
         .ok_or_else(|| "Nenhuma atualização disponível".to_string())?;
 
     // The plugin's `Update::version` is a `semver::Version`. Without the
@@ -161,7 +165,7 @@ pub async fn download_verified_app_update(
     update
         .download_and_install(|_downloaded, _total| {}, || {})
         .await
-        .map_err(|e| format!("download/install failed: {e}"))?;
+        .map_err(|e| format!("Falha ao baixar/instalar: {e}"))?;
 
     Ok(VerifiedUpdateResult {
         version,
