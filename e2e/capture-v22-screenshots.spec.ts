@@ -2,24 +2,51 @@ import { test, expect } from "@playwright/test";
 import { installTauriStub } from "./tauriStub";
 import * as path from "path";
 
+// Public screenshot suite for the README surfaces.
+//
+// Navigation is REAL UI navigation: App.tsx keeps the active tab in component
+// state (useState<TabId>) and ignores location.hash, so driving the app via
+// page.goto("/#…") silently captured the same surface eight times. Every
+// surface is reached by clicking its sidebar item and the capture only happens
+// after the target surface's own heading is visible — no blind timeouts.
+//
+// Determinism follows the visual-baseline convention: disable animations, hide
+// the caret, reset scroll, and mask the live status-bar clock so the only
+// pixels that change between runs are the surface itself.
+//
+// Locale is pinned to English on purpose (headless Chromium's navigator is
+// en-US and the detector would pick that up nondeterministically anyway); the
+// READMEs currently showcase the EN UI.
+
+const SURFACES = [
+  { file: "01-command-center.png", nav: "Command Center", heading: /command center/i },
+  { file: "07-launcher-multi-agent.png", nav: "Launch", heading: /launch/i },
+  { file: "02-runbooks-command-deck.png", nav: "Workspaces", heading: /workspaces/i },
+  { file: "03-mcp-hub.png", nav: "MCP", heading: /mcp servers/i },
+  { file: "04-history-timeline.png", nav: "History", heading: /history/i },
+  { file: "08-costs-analytics.png", nav: "Analytics", heading: /costs/i },
+  { file: "05-doctor-readiness.png", nav: "Doctor", heading: /environment doctor/i },
+  { file: "06-help-support.png", nav: "Help", heading: /help/i },
+];
+
+const CLIS_STUB = [
+  { key: "claude", name: "Claude Code", command: "claude", installed: true, version: "0.8.2" },
+  { key: "codex", name: "Codex CLI", command: "codex", installed: true, version: "1.2.0" },
+  { key: "antigravity", name: "Antigravity", command: "agy", installed: true, version: "2.0.1" },
+  { key: "aider", name: "Aider AI", command: "aider", installed: true, version: "0.72.0" },
+  { key: "goose", name: "Goose (Block)", command: "goose", installed: true, version: "1.0.4" },
+  { key: "cline", name: "Cline CLI", command: "cline", installed: true, version: "3.2.0" },
+  { key: "roocode", name: "Roo Code", command: "roocode", installed: true, version: "3.8.1" },
+  { key: "qwen", name: "Qwen Code", command: "qwen", installed: false, version: null },
+  { key: "crush", name: "Crush", command: "crush", installed: false, version: null },
+  { key: "droid", name: "Factory Droid", command: "droid", installed: false, version: null },
+];
+
 test.describe("v22 public screenshots capture", () => {
   const screenshotsDir = path.resolve(process.cwd(), "docs/screenshots/v22");
 
-  const CLIS_STUB = [
-    { key: "claude", name: "Claude Code", command: "claude", installed: true, version: "0.8.2" },
-    { key: "codex", name: "Codex CLI", command: "codex", installed: true, version: "1.2.0" },
-    { key: "antigravity", name: "Antigravity", command: "agy", installed: true, version: "2.0.1" },
-    { key: "aider", name: "Aider AI", command: "aider", installed: true, version: "0.72.0" },
-    { key: "goose", name: "Goose (Block)", command: "goose", installed: true, version: "1.0.4" },
-    { key: "cline", name: "Cline CLI", command: "cline", installed: true, version: "3.2.0" },
-    { key: "roocode", name: "Roo Code", command: "roocode", installed: true, version: "3.8.1" },
-    { key: "qwen", name: "Qwen Code", command: "qwen", installed: false, version: null },
-    { key: "crush", name: "Crush", command: "crush", installed: false, version: null },
-    { key: "droid", name: "Factory Droid", command: "droid", installed: false, version: null },
-  ];
-
   test("capture all v22 screenshots suite", async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     await page.setViewportSize({ width: 1280, height: 860 });
 
     await installTauriStub(page, {
@@ -48,15 +75,17 @@ test.describe("v22 public screenshots capture", () => {
           },
         ],
         list_mcp_servers: [
-          { name: "github", command: "npx", args: ["-y", "@modelcontextprotocol/server-github"], status: "healthy" },
-          { name: "postgres", command: "npx", args: ["-y", "@modelcontextprotocol/server-postgres"], status: "healthy" },
-          { name: "filesystem", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"], status: "healthy" },
+          { name: "github", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
+          { name: "postgres", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-postgres"] },
+          { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"] },
         ],
       },
     });
 
-    // Populate realistic local storage
+    // Populate deterministic state before the app boots. The locale key matches
+    // LOCALE_STORAGE_KEY in src/i18n/index.ts.
     await page.addInitScript(() => {
+      localStorage.setItem("ai-launcher:locale", "en");
       const now = new Date().toISOString();
       localStorage.setItem("ai-launcher:v15:active-workspace", "ws-ai-launcher");
       localStorage.setItem(
@@ -114,68 +143,33 @@ test.describe("v22 public screenshots capture", () => {
       );
     });
 
-    // 1. Command Center
-    await page.goto("/#command-center");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "01-command-center.png"),
-      fullPage: false,
-    });
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", { name: /command center/i }).first()
+    ).toBeVisible();
 
-    // 2. Launcher Grid with new official icons
-    await page.goto("/#launcher");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "07-launcher-multi-agent.png"),
-      fullPage: false,
-    });
+    for (const surface of SURFACES) {
+      await page.locator(".cd-side__nav").getByRole("button", { name: surface.nav }).click();
+      await expect(
+        page.getByRole("heading", { name: surface.heading }).first()
+      ).toBeVisible();
 
-    // 3. Runbooks Command Deck / Workspaces
-    await page.goto("/#workspaces");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "02-runbooks-command-deck.png"),
-      fullPage: false,
-    });
+      // Let async stub-driven content settle after the heading marks the
+      // surface as mounted; the heading wait above remains the real gate.
+      await page.waitForTimeout(300);
+      await page.evaluate(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.querySelector(".cd-app__main")?.scrollTo(0, 0);
+      });
 
-    // 4. MCP Hub
-    await page.goto("/#mcp");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "03-mcp-hub.png"),
-      fullPage: false,
-    });
-
-    // 5. History Timeline
-    await page.goto("/#history");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "04-history-timeline.png"),
-      fullPage: false,
-    });
-
-    // 6. Analytics & Costs 2.0 with dynamic time ranges
-    await page.goto("/#analytics");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "08-costs-analytics.png"),
-      fullPage: false,
-    });
-
-    // 7. Doctor Readiness
-    await page.goto("/#doctor");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "05-doctor-readiness.png"),
-      fullPage: false,
-    });
-
-    // 8. Help & Credits with Dev Maniac's Official Footer
-    await page.goto("/#help");
-    await page.waitForTimeout(1000);
-    await page.screenshot({
-      path: path.join(screenshotsDir, "06-help-support.png"),
-      fullPage: false,
-    });
+      await page.screenshot({
+        path: path.join(screenshotsDir, surface.file),
+        fullPage: false,
+        animations: "disabled",
+        caret: "hide",
+        mask: [page.locator(".cd-status__cell--clock")],
+      });
+    }
   });
 });
