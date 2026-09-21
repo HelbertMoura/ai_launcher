@@ -1,4 +1,9 @@
-import { McpServerListSchema, type McpServer } from "./types";
+import {
+  McpListResultSchema,
+  McpServerSchema,
+  type McpConfigWarning,
+  type McpServer,
+} from "./types";
 import { invokeOrFallback } from "../../lib/tauri";
 
 /**
@@ -12,6 +17,8 @@ import { invokeOrFallback } from "../../lib/tauri";
  */
 export interface McpSnapshot {
   servers: McpServer[];
+  /** Non-fatal per-CLI config read/parse failures (surfaced as a banner). */
+  warnings: McpConfigWarning[];
   loading: boolean;
   error: string | null;
 }
@@ -20,6 +27,7 @@ type Listener = (snap: McpSnapshot) => void;
 
 let state: McpSnapshot = {
   servers: [],
+  warnings: [],
   loading: true,
   error: null,
 };
@@ -37,15 +45,43 @@ function setState(partial: Partial<McpSnapshot>): void {
   emit();
 }
 
+/**
+ * Validates one server descriptor. A single malformed entry degrades to
+ * being skipped instead of failing the whole list.
+ */
+function parseServer(raw: unknown): McpServer | null {
+  const parsed = McpServerSchema.safeParse(raw);
+  if (parsed.success) return parsed.data;
+  console.warn("[mcp] skipped an invalid server entry", parsed.error);
+  return null;
+}
+
 async function load(): Promise<void> {
   // De-dupe concurrent loads: callers share the single inflight promise.
   if (inflight) return inflight;
   setState({ loading: true, error: null });
   inflight = (async () => {
     try {
-      const raw = await invokeOrFallback<unknown>("list_mcp_servers", undefined, []);
-      const servers = McpServerListSchema.parse(raw);
-      state = { servers, loading: false, error: null };
+      const raw = await invokeOrFallback<unknown>("list_mcp_servers", undefined, {
+        servers: [],
+        warnings: [],
+      });
+      const parsed = McpListResultSchema.safeParse(raw);
+      if (!parsed.success) {
+        // Contract drift between frontend and backend: keep the page alive
+        // with a clear error state instead of throwing.
+        setState({ loading: false, error: parsed.error.message });
+        return;
+      }
+      const servers = parsed.data.servers
+        .map(parseServer)
+        .filter((s): s is McpServer => s !== null);
+      state = {
+        servers,
+        warnings: parsed.data.warnings,
+        loading: false,
+        error: null,
+      };
       hydrated = true;
       emit();
     } catch (e: unknown) {

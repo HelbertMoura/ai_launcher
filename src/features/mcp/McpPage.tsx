@@ -36,6 +36,7 @@ export function McpPage() {
   const { t } = useTranslation();
   const {
     servers,
+    warnings,
     loading,
     error,
     refresh,
@@ -63,21 +64,21 @@ export function McpPage() {
   );
 
   // Run a lightweight health check for every listed server whenever the list
-  // changes. Failures degrade gracefully (no entry => "unknown" pill).
+  // changes. Results merge one-by-one as each probe resolves (HTTP probes can
+  // take seconds each), so pills/metrics fill in progressively instead of
+  // waiting for the whole batch. Failures degrade gracefully ("unknown" pill).
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const next: Record<string, McpHealth> = {};
       for (const s of servers) {
         try {
           const h = await healthCheck(serverToHealthInput(s));
           if (cancelled) return;
-          next[`${s.cli}:${s.name}`] = h;
+          setHealth((prev) => ({ ...prev, [`${s.cli}:${s.name}`]: h }));
         } catch {
           /* leave unknown */
         }
       }
-      if (!cancelled) setHealth(next);
     })();
     return () => {
       cancelled = true;
@@ -194,6 +195,16 @@ export function McpPage() {
       </section>
 
       {error && <Banner variant="err">{error}</Banner>}
+
+      {warnings.map((w) => (
+        <Banner key={`${w.cli}:${w.path}`} variant="warn">
+          {t("mcp.configWarning", {
+            cli: CLI_LABELS[w.cli],
+            path: w.path,
+            message: w.message,
+          })}
+        </Banner>
+      ))}
 
       {loading && (
         <div className="cd-page__grid">
