@@ -161,7 +161,7 @@ pub fn check_latest_release() -> Result<serde_json::Value, AppError> {
             &format!("ai-launcher/{}", env!("CARGO_PKG_VERSION")),
         )
         .call()
-        .map_err(|e| format!("fetch error: {e}"))?;
+        .map_err(|e| format!("Falha na requisição: {e}"))?;
     let json: serde_json::Value = resp.into_json().map_err(|e| e.to_string())?;
     Ok(json)
 }

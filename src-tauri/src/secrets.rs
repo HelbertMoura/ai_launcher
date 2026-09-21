@@ -50,16 +50,16 @@ pub struct SecretStoreResult {
 
 fn validate_key(key: &str) -> Result<(), String> {
     if key.is_empty() {
-        return Err("Secret key cannot be empty".to_string());
+        return Err("A chave do segredo não pode estar vazia".to_string());
     }
     if key.len() > MAX_SECRET_KEY_LEN {
-        return Err("Secret key is too long".to_string());
+        return Err("A chave do segredo é longa demais".to_string());
     }
     if !key
         .chars()
         .all(|c| c.is_ascii_alphanumeric() || matches!(c, ':' | '.' | '_' | '-'))
     {
-        return Err("Secret key contains unsupported characters".to_string());
+        return Err("A chave do segredo contém caracteres não suportados".to_string());
     }
     Ok(())
 }
@@ -112,7 +112,7 @@ fn credential_write(key: &str, value: &str) -> Result<(), String> {
     let bytes = value.as_bytes();
     if bytes.len() > CRED_MAX_CREDENTIAL_BLOB_SIZE as usize {
         return Err(format!(
-            "Secret exceeds Windows Credential Manager limit of {CRED_MAX_CREDENTIAL_BLOB_SIZE} bytes"
+            "O segredo excede o limite de {CRED_MAX_CREDENTIAL_BLOB_SIZE} bytes do Windows Credential Manager"
         ));
     }
 
@@ -131,7 +131,7 @@ fn credential_write(key: &str, value: &str) -> Result<(), String> {
     let ok = unsafe { CredWriteW(&credential, 0) };
     if ok == 0 {
         return Err(format!(
-            "Windows Credential Manager write failed: {}",
+            "Falha na gravação no Windows Credential Manager: {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -155,12 +155,12 @@ fn credential_read(key: &str) -> Result<Option<String>, String> {
             return Ok(None);
         }
         return Err(format!(
-            "Windows Credential Manager read failed: {}",
+            "Falha na leitura do Windows Credential Manager: {}",
             std::io::Error::from_raw_os_error(error as i32)
         ));
     }
     if raw.is_null() {
-        return Err("Windows Credential Manager returned an empty record".to_string());
+        return Err("O Windows Credential Manager retornou um registro vazio".to_string());
     }
 
     let credential = unsafe { &*raw };
@@ -195,7 +195,7 @@ fn credential_delete(key: &str) -> Result<bool, String> {
         return Ok(false);
     }
     Err(format!(
-        "Windows Credential Manager delete failed: {}",
+        "Falha na exclusão no Windows Credential Manager: {}",
         std::io::Error::from_raw_os_error(error as i32)
     ))
 }
@@ -235,7 +235,7 @@ fn credential_read(key: &str) -> Result<Option<String>, String> {
     match entry.get_password() {
         Ok(value) => Ok(Some(value)),
         Err(keyring::Error::NoEntry) => Ok(None),
-        Err(e) => Err(format!("Keyring read failed: {e}")),
+        Err(e) => Err(format!("Falha na leitura do keyring: {e}")),
     }
 }
 
@@ -245,7 +245,7 @@ fn credential_delete(key: &str) -> Result<bool, String> {
     match entry.delete_credential() {
         Ok(()) => Ok(true),
         Err(keyring::Error::NoEntry) => Ok(false),
-        Err(e) => Err(format!("Keyring delete failed: {e}")),
+        Err(e) => Err(format!("Falha na exclusão do keyring: {e}")),
     }
 }
 
@@ -304,7 +304,8 @@ use std::path::PathBuf;
 
 #[cfg(windows)]
 fn legacy_file() -> Result<PathBuf, String> {
-    let base = dirs::data_dir().ok_or("Cannot determine app data directory")?;
+    let base =
+        dirs::data_dir().ok_or("Não foi possível determinar o diretório de dados do aplicativo")?;
     Ok(base
         .join("ai-launcher")
         .join("secrets")
@@ -318,9 +319,9 @@ fn load_legacy_store() -> Result<Option<LegacySecretStore>, String> {
         return Ok(None);
     }
     let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read legacy secret store: {e}"))?;
+        .map_err(|e| format!("Falha ao ler o cofre legado de segredos: {e}"))?;
     let store = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse legacy secret store: {e}"))?;
+        .map_err(|e| format!("Falha ao interpretar o cofre legado de segredos: {e}"))?;
     Ok(Some(store))
 }
 
@@ -330,7 +331,7 @@ fn save_legacy_store(store: &LegacySecretStore) -> Result<(), String> {
     if store.entries.is_empty() {
         if path.exists() {
             fs::remove_file(path)
-                .map_err(|e| format!("Failed to remove migrated legacy secret store: {e}"))?;
+                .map_err(|e| format!("Falha ao remover o cofre legado já migrado: {e}"))?;
         }
         return Ok(());
     }
@@ -342,20 +343,20 @@ fn save_legacy_store(store: &LegacySecretStore) -> Result<(), String> {
     fs::write(
         path,
         serde_json::to_vec_pretty(&content)
-            .map_err(|e| format!("Failed to serialize legacy secret store: {e}"))?,
+            .map_err(|e| format!("Falha ao serializar o cofre legado de segredos: {e}"))?,
     )
-    .map_err(|e| format!("Failed to update legacy secret store: {e}"))
+    .map_err(|e| format!("Falha ao atualizar o cofre legado de segredos: {e}"))
 }
 
 #[cfg(windows)]
 fn decode_legacy_value(value: &str, encrypted: bool) -> Result<String, String> {
     let bytes = B64
         .decode(value)
-        .map_err(|e| format!("Failed to decode legacy secret: {e}"))?;
+        .map_err(|e| format!("Falha ao decodificar o segredo legado: {e}"))?;
     if encrypted {
         return legacy_dpapi_decrypt(bytes);
     }
-    String::from_utf8(bytes).map_err(|e| format!("Legacy secret is not valid UTF-8: {e}"))
+    String::from_utf8(bytes).map_err(|e| format!("O segredo legado não é UTF-8 válido: {e}"))
 }
 
 #[cfg(windows)]
@@ -369,11 +370,11 @@ fn migrate_legacy_secret(key: &str) -> Result<Option<String>, String> {
 
     let plain = decode_legacy_value(&encoded, store.encrypted)?;
     credential_write(key, &plain)?;
-    let verified =
-        credential_read(key)?.ok_or("Credential migration verification returned no value")?;
+    let verified = credential_read(key)?
+        .ok_or("A verificação da migração de credenciais não retornou valor")?;
     if verified != plain {
         let _ = credential_delete(key);
-        return Err("Credential migration verification failed".to_string());
+        return Err("Falha na verificação da migração de credenciais".to_string());
     }
 
     store.entries.remove(key);
@@ -419,14 +420,14 @@ fn legacy_dpapi_decrypt(mut cipher: Vec<u8>) -> Result<String, String> {
     };
     if ok == 0 {
         return Err(format!(
-            "Legacy DPAPI decrypt failed: {}",
+            "Falha ao descriptografar o segredo legado com DPAPI: {}",
             std::io::Error::last_os_error()
         ));
     }
 
     let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) };
     let value = String::from_utf8(bytes.to_vec())
-        .map_err(|e| format!("Legacy DPAPI value is not valid UTF-8: {e}"));
+        .map_err(|e| format!("O valor legado DPAPI não é UTF-8 válido: {e}"));
     unsafe {
         LocalFree(output.pbData.cast());
     }
@@ -457,12 +458,14 @@ pub fn store_secret(key: String, value: String) -> Result<SecretStoreResult, App
     let verified = credential_read(&key)
         .map_err(secure_storage_error)?
         .ok_or_else(|| {
-            secure_storage_error("Credential write verification returned no value".into())
+            secure_storage_error(
+                "A verificação da gravação da credencial não retornou valor".into(),
+            )
         })?;
     if verified != value {
         let _ = credential_delete(&key);
         return Err(secure_storage_error(
-            "Credential write verification failed".into(),
+            "Falha na verificação da gravação da credencial".into(),
         ));
     }
     Ok(SecretStoreResult {
