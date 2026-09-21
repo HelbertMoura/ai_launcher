@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # CodeQL's autobuild handles JS/TS out of the box; for Rust we
       # need a small hint because the workspace lives under src-tauri.
@@ -55,13 +55,13 @@ jobs:
           Write-Host "Rust sources live under src-tauri/; CodeQL will pick them up via the working-directory override below."
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@3ea06614dafe36dec890db3446326e0d40ce53d4 # v3
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@3ea06614dafe36dec890db3446326e0d40ce53d4 # v3
         with:
           # Keep results grouped per language so the security tab is
           # easy to read; do not upload as a separate artifact — the
