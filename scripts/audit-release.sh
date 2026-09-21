@@ -197,6 +197,12 @@ has_notes = any(
 if not has_notes:
     errors.append("notes/releaseNotes/releaseNotesUrl all missing")
 
+# 4) updater signature (fail-closed: tauri-plugin-updater refuses manifests
+#    without a valid signature, so an empty one bricks in-app updates)
+signature = data.get("signature")
+if not isinstance(signature, str) or not signature.strip():
+    errors.append("signature missing or empty (unsigned latest.json breaks the in-app updater)")
+
 if errors:
     for error in errors:
         print(f"ERROR: latest.json {error}")

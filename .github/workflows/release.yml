@@ -121,10 +121,10 @@ jobs:
 
       # Sign the NSIS installer with the tauri updater key. The signature is
       # required by tauri-plugin-updater; without it the updater refuses the
-      # payload. Skipped silently if the private key is not configured so
-      # the release still ships a working installer (the legacy updater path
-      # was deleted in FEAT-002 step 3/3, so a missing signature now means
-      # the in-app updater is broken but the manual download still works).
+      # payload. The step itself is skipped when the private key is not
+      # configured, but that is NOT a silent path anymore: the latest.json
+      # step below hard-fails without a key/signature (fail-closed), so an
+      # unsigned release can never ship.
       - name: Sign NSIS installer (opt-in)
         if: env.TAURI_SIGNING_PRIVATE_KEY != ''
         env:
@@ -146,26 +146,41 @@ jobs:
             }
           }
 
+      # Fail-closed: the in-app updater refuses latest.json without a valid
+      # signature, so publishing an unsigned manifest would brick updates.
+      # Without the private key (or without the .sig produced above) this
+      # step intentionally fails the release.
       - name: Generate latest.json (tauri-plugin-updater schema)
         shell: pwsh
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           $tag = "${{ github.event.inputs.tag || github.ref_name }}"
           $version = $tag.TrimStart('v')
           $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
+          if ([string]::IsNullOrWhiteSpace($env:TAURI_SIGNING_PRIVATE_KEY)) {
+            Write-Error "TAURI_SIGNING_PRIVATE_KEY secret is not configured — refusing to publish an unsigned latest.json (fail-closed). Configure the Tauri updater signing key under Settings > Secrets and variables > Actions."
+            exit 1
+          }
+
           $nsis = (Get-ChildItem -Path src-tauri/target/release/bundle/nsis -Filter *-setup.exe -ErrorAction SilentlyContinue | Select-Object -First 1)
           $nsisAssetName = if ($nsis) { $nsis.Name.Replace(' ', '.') } else { "" }
           $downloadUrl = if ($nsis) { "https://github.com/HelbertMoura/ai_launcher/releases/download/$tag/$nsisAssetName" } else { "" }
 
-          # Plugin expects the signature as a base64 string. If the .sig
-          # file is missing the in-app updater will reject this manifest —
-          # we still emit latest.json so the build script never breaks.
+          # Plugin expects the signature as a base64 string, produced by the
+          # "Sign NSIS installer" step above. A missing .sig here means the
+          # updater would reject this manifest — fail the release instead.
           $signature = ""
           if ($nsis) {
             $sigPath = "$($nsis.FullName).sig"
             if (Test-Path $sigPath) {
               $signature = (Get-Content $sigPath -Raw).Trim()
             }
+          }
+          if ([string]::IsNullOrWhiteSpace($signature)) {
+            Write-Error "Updater signature (.sig) is missing for the NSIS installer — refusing to publish latest.json without a valid signature (the in-app updater would reject it)."
+            exit 1
           }
 
           $manifest = @{
