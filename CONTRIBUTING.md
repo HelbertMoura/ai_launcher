@@ -15,8 +15,10 @@ every change has to clear.
 | Rust        | 1.75+   | Via [`rustup`](https://rustup.rs). Needs the MSVC toolchain on Windows. |
 | Tauri CLI   | v2      | Installed via `npm install` (`@tauri-apps/cli`).          |
 
-Windows is the primary development platform; the bundler targets an `.msi`/`.exe`
-installer. Cross-platform support is tracked but not guaranteed on every release.
+Windows, macOS, and Linux are all supported development platforms. The bundler
+produces six targets across the three OSes — `.msi` and `.exe` (NSIS) on
+Windows, `.dmg` for Apple Silicon and Intel Macs, plus AppImage and `.deb` on
+Linux.
 
 ---
 
@@ -41,7 +43,7 @@ minutes on a cold cache.
 # Frontend-only (Vite) bundle
 npm run build
 
-# Full app installer (Windows .msi/.exe)
+# Full app bundles (Windows .msi/.exe, macOS .dmg, Linux AppImage/.deb)
 npm run tauri build
 ```
 
@@ -136,7 +138,7 @@ Merge strategy: rebase-merge preferred, to keep `main` linear.
 
 ## 7. Pre-commit checks
 
-Every PR must pass these four gates locally before requesting review:
+Every PR must pass these five gates locally before requesting review:
 
 ```bash
 # 1. TypeScript — strict, no errors

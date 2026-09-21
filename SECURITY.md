@@ -32,8 +32,10 @@ and publicly acknowledge your contribution (unless you prefer to remain anonymou
 
 These are the controls that limit blast radius if a vulnerability is found:
 
-- **Secrets**: API keys live in Windows Credential Manager, never plaintext
-  on disk. See `src-tauri/src/secrets.rs`.
+- **Secrets**: API keys live in the native OS credential vault — Windows
+  Credential Manager, macOS Keychain, or the Linux Secret Service — never
+  plaintext on disk. When no vault is available the app fails closed instead
+  of falling back to plaintext. See `src-tauri/src/secrets.rs`.
 - **Updater**: payloads are signed against a public key baked into the build.
   The signature is verified before any binary is run. See
   `src-tauri/src/commands/updater.rs` and `.github/workflows/release.yml`.
