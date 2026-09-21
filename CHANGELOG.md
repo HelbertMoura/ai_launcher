@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Windows:** guard the legacy DPAPI decryption path against a null/empty payload pointer before `from_raw_parts` (CodeQL `rust/access-invalid-pointer`), and harden the Credential Manager blob read the same way.
+
 ## [22.9.0] — 2026-09-21 — Hardened Trust & Release Pipeline
 
 The trust-hardening release: the release pipeline now fails closed on missing updater signatures, the webview runs under a restrictive CSP, every GitHub Actions step is pinned by commit SHA, cargo audit denies warnings, and the full quality gate matrix runs before any bundle is built — plus the repository's own Scoop bucket and 27 pt-BR string fixes.

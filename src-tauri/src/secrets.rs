@@ -164,7 +164,7 @@ fn credential_read(key: &str) -> Result<Option<String>, String> {
     }
 
     let credential = unsafe { &*raw };
-    let value = if credential.CredentialBlobSize == 0 {
+    let value = if credential.CredentialBlobSize == 0 || credential.CredentialBlob.is_null() {
         String::new()
     } else {
         let bytes = unsafe {
@@ -423,6 +423,11 @@ fn legacy_dpapi_decrypt(mut cipher: Vec<u8>) -> Result<String, String> {
             "Falha ao descriptografar o segredo legado com DPAPI: {}",
             std::io::Error::last_os_error()
         ));
+    }
+    // CryptUnprotectData pode devolver pbData nulo com cbData 0 (payload
+    // vazio); from_raw_parts exige ponteiro não nulo mesmo para len 0.
+    if output.cbData == 0 || output.pbData.is_null() {
+        return Ok(String::new());
     }
 
     let bytes = unsafe { std::slice::from_raw_parts(output.pbData, output.cbData as usize) };
