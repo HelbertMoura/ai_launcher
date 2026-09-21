@@ -14,7 +14,7 @@
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
 [![Versão 22.8.0](https://img.shields.io/badge/vers%C3%A3o-22.8.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
-[![Plataforma: Windows](https://img.shields.io/badge/plataforma-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Plataforma: Windows | macOS | Linux](https://img.shields.io/badge/plataforma-Windows%20%7C%20macOS%20%7C%20Linux-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Quality Gates](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml/badge.svg)](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -33,7 +33,7 @@ Desenvolver com IA hoje se tornou um desafio de organização: múltiplos CLIs e
 
 **O AI Launcher devolve o controle, a fluidez e o foco para o seu ambiente de desenvolvimento:**
 
-- 🚀 **Hub Único & Centralizado:** Execute Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Continue, Cody, Copilot, VS Code e Cursor em 1 clique.
+- 🚀 **Hub Único & Centralizado:** Execute Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code e Cursor em 1 clique.
 - 🧩 **Hub MCP por Projeto:** Detecta automaticamente a stack do repositório e configura servidores MCP validados sem esforço manual.
 - 💰 **Budget Guard & Gestão de Custos:** Acompanhe gastos com tokens em tempo real com alertas proativos antes de estourar seu teto de gastos.
 - ⚡ **Local-First & Alta Performance:** Desenvolvido em **Tauri v2 + Rust**, inicializa em <300ms, consome menos de 40MB de RAM, sem telemetria e com armazenamento criptografado no seu próprio computador.
@@ -50,16 +50,16 @@ Desenvolver com IA hoje se tornou um desafio de organização: múltiplos CLIs e
 ### 2. 🧠 Inteligência de Projeto & Diagnóstico
 - **Detecção Automática de Stack:** Lê com segurança os arquivos de configuração do repositório (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Dockerfile`) sem acessar dados sensíveis.
 - **Gestão de Servidores MCP:** Vincula ferramentas MCP aos projetos ativos, monitora integridade e aplica templates testados pela comunidade.
-- **Environment Doctor:** Diagnósticos paralelos ultra rápidos com Tokio (`check_environment`) verificam 14 ferramentas e oferecem reparo guiado em 1 clique.
+- **Environment Doctor:** Diagnósticos paralelos ultra rápidos com Tokio (`check_environment`) verificam 15 ferramentas e oferecem reparo guiado em 1 clique.
 
 ### 3. 💰 Governança de Custos, Segurança & Privacidade
 - **Analytics de Custos 2.0:** Painel em tempo real por provedor (Anthropic, OpenRouter, MiniMax, Qwen, Moonshot) com filtros de 7d, 14d, 30d e 90d.
 - **Budget Guard:** Defina limites financeiros mensais e receba notificações imediatas antes de surpresas no faturamento.
-- **Cofre Local Seguro:** Sem telemetria, sem contas na nuvem. Todas as chaves e tokens de API são criptografados no Gerenciador de Credenciais nativo do Windows.
+- **Cofre Local Seguro:** Sem telemetria, sem contas na nuvem. Todas as chaves e tokens de API são criptografados no cofre nativo do sistema — Windows Credential Manager, macOS Keychain ou Secret Service do Linux — com comportamento fail-closed quando não há cofre disponível.
 
 ### 4. ⚡ Ergonomia para Desenvolvedores & Customização
 - **Keyboard-First:** Paleta global `Ctrl+K`, alternância de abas `Ctrl+1-9/0`, preferências `Ctrl+,` e ajuda rápida `?`.
-- **4 Temas de Alto Contraste:** Dark, Light, Amber CRT Retrô e Glacier Blue, com ajuste dinâmico de densidade (Compacto / Confortável).
+- **7 Temas:** Dark, Light, Amber, Glacier, Phosphor, Midnight e um High Contrast dedicado, com ajuste dinâmico de densidade (Compacto / Confortável).
 - **Atualização Criptografada (OTA):** Atualizações automáticas verificadas com assinatura digital minisign para upgrades silenciosos e seguros.
 
 ---
@@ -308,15 +308,15 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Frontend | React 19 + TypeScript 6 + Vite |
-| Backend | Rust (Tauri v2) com Windows Credential Manager para secrets |
-| Estilo | CSS Custom Properties (sistema de tokens · dark/light/high-contrast) |
+| Frontend | React 19 + TypeScript 7 + Vite |
+| Backend | Rust (Tauri v2) com o keyring nativo do sistema (Windows Credential Manager / macOS Keychain / Linux Secret Service) |
+| Estilo | CSS Custom Properties (sistema de tokens · 7 temas: dark, light, amber, glacier, phosphor, midnight, high-contrast) |
 | Typography | JetBrains Mono · Inter · Space Grotesk (display) |
 | Ícones | Logos oficiais (LobeHub Icons, devicons) + Phosphor Icons |
-| i18n | i18next 24 |
-| Testes | Vitest (217 testes), Playwright E2E/visual, cargo test (78 testes Rust) |
-| Build | Tauri CLI → `.msi` + `.exe` (NSIS) |
-| Distribuição | GitHub Releases · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
+| i18n | i18next 26 |
+| Testes | Vitest (239 testes), Playwright E2E/visual, cargo test (127 testes Rust) |
+| Build | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
+| Distribuição | GitHub Releases · Scoop (disponível) · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
 
 ## Contribuindo
 
