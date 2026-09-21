@@ -21,7 +21,7 @@
 ![Rust](https://img.shields.io/badge/Rust-stable-dea584?labelColor=1a1a1d)
 ![Memória <40MB](https://img.shields.io/badge/RAM-%3C40MB-success?labelColor=1a1a1d)
 
-[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Início Rápido](#-in%C3%ADcio-r%C3%A1pido) · [🗺️ Roadmap](./ROADMAP.pt-BR.md) · [🤝 Código de Conduta](./CODE_OF_CONDUCT.md)
+[📥 Baixar Instalador](https://github.com/HelbertMoura/ai_launcher/releases/latest) · [💡 Por que o AI Launcher?](#-por-que-o-ai-launcher) · [📸 Tour Visual](#-galeria--tour-visual) · [🌟 Os 4 Pilares](#-os-4-pilares-do-sistema) · [⚡ Instalação Rápida](#instalação-rápida) · [🗺️ Roadmap](./ROADMAP.pt-BR.md) · [🤝 Código de Conduta](./CODE_OF_CONDUCT.md)
 
 </div>
 
@@ -146,7 +146,7 @@ scoop install ai-launcher/ai-launcher
 Baixe o `.dmg` correspondente ao seu Mac no [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/releases/latest):
 
 - `*-aarch64.dmg` — Apple Silicon (M1/M2/M3/M4).
-- `*-x86_64.dmg` — Macs Intel.
+- `*_x64.dmg` — Macs Intel.
 
 Abra o `.dmg` e arraste o **AI Launcher** para **Aplicativos**. O app ainda não é notarizado, então o Gatekeeper alerta na primeira abertura: clique com o botão direito no app em Aplicativos e escolha **Abrir**, depois confirme — da segunda abertura em diante ele abre normalmente.
 
@@ -164,7 +164,7 @@ Pelo [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/rel
 - **Debian / Ubuntu (.deb)**:
 
   ```bash
-  sudo apt install ./ai-launcher_<versão>_amd64.deb
+  sudo apt install ./AI.Launcher_<versão>_amd64.deb
   ```
 
 > **Gerenciadores de pacote:** o **Scoop já está disponível** pelo bucket do próprio repositório (veja a seção do Windows acima) e se atualiza automaticamente a cada novo release. Os manifestos do **winget** e do **Chocolatey** estão prontos em [`packaging/README.md`](packaging/README.md) e seguem para suas lojas como submissão do mantenedor; os comandos vão falhar até que esses pacotes sejam publicados.

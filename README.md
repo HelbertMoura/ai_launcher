@@ -148,7 +148,7 @@ scoop install ai-launcher/ai-launcher
 Download the `.dmg` for your Mac from the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/releases/latest):
 
 - `*-aarch64.dmg` — Apple Silicon (M1/M2/M3/M4).
-- `*-x86_64.dmg` — Intel Macs.
+- `*_x64.dmg` — Intel Macs.
 
 Open the `.dmg` and drag **AI Launcher** into **Applications**. The app is not notarized yet, so Gatekeeper warns on the first launch: right-click the app in Applications and choose **Open**, then confirm — from the second launch on it opens normally.
 
@@ -166,7 +166,7 @@ From the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/rel
 - **Debian / Ubuntu (.deb)**:
 
   ```bash
-  sudo apt install ./ai-launcher_<version>_amd64.deb
+  sudo apt install ./AI.Launcher_<version>_amd64.deb
   ```
 
 > **Package managers:** **Scoop is live** via the repository's own bucket (see the Windows section above) and updates automatically on each new release. **winget** and **Chocolatey** manifests are ready in [`packaging/README.md`](packaging/README.md) and go to their stores as maintainer submissions; installation commands will fail until those are published.
