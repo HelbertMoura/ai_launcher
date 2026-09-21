@@ -14,7 +14,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 [![Version 22.8.0](https://img.shields.io/badge/version-22.8.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Quality Gates](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml/badge.svg)](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
 ![Tauri v2](https://img.shields.io/badge/Tauri-v2-ffc131?labelColor=1a1a1d)
@@ -33,7 +33,7 @@ Developing with AI today is fragmented: 10 different CLIs, conflicting API keys,
 
 **AI Launcher brings peace, speed, and focus back to your workflow:**
 
-- 🚀 **One Unified Hub:** Launch Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Continue, Cody, Copilot, VS Code, and Cursor in 1 click.
+- 🚀 **One Unified Hub:** Launch Claude Code, Antigravity, Codex, Aider, Goose, Cline, Roo Code, Qwen, Kilo Code, OpenCode, Crush, Factory Droid, Continue, Cody, Copilot, VS Code, and Cursor in 1 click.
 - 🧩 **Project-Aware MCP Hub:** Automatically detects your project stack and provisions validated Model Context Protocol servers per repository.
 - 💰 **Budget Guard & Cost Analytics:** Real-time token spend tracking with configurable alerts before unexpected monthly invoices.
 - ⚡ **Local-First & Blazing Fast:** Built with **Tauri v2 + Rust**, cold booting in <300ms, using less than 40MB RAM, with zero telemetry and 100% local encrypted storage.
@@ -50,16 +50,16 @@ Developing with AI today is fragmented: 10 different CLIs, conflicting API keys,
 ### 2. 🧠 Project Intelligence & System Doctor
 - **Automatic Stack Detection:** Scans manifest signals (`package.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`, `Dockerfile`) without reading sensitive files.
 - **MCP Server Management:** Relates required MCP tools to active projects, monitors connection health, and installs pre-tested tool configs.
-- **Environment Doctor:** Concurrent Tokio diagnostics (`check_environment`) verify 14 runtimes and offer guided one-click repairs.
+- **Environment Doctor:** Concurrent Tokio diagnostics (`check_environment`) verify 15 runtimes and offer guided one-click repairs.
 
 ### 3. 💰 Cost Tracking, Governance & Privacy
 - **Cost Analytics 2.0:** Multi-provider spend tracking (Anthropic, OpenRouter, MiniMax, Qwen, Moonshot) with dynamic 7d, 14d, 30d, 90d rollups.
 - **Budget Guard:** Set monthly dollar thresholds per provider and receive proactive notification alerts.
-- **Privacy & Security Vault:** Zero telemetry, no cloud accounts. All API keys are encrypted directly in the native Windows Credential Manager.
+- **Privacy & Security Vault:** Zero telemetry, no cloud accounts. All API keys are encrypted in the native OS vault — Windows Credential Manager, macOS Keychain, or Linux Secret Service — failing closed when no vault is available.
 
 ### 4. ⚡ Developer Ergonomics & Customization
 - **Keyboard-First:** `Ctrl+K` command palette, `Ctrl+1-9/0` tab switcher, `Ctrl+,` preferences, and `?` quick help.
-- **4 High-Contrast Themes:** Dark, Light, Amber CRT Retro, and Glacier Blue, with adjustable layout density (Compact / Comfortable).
+- **7 Themes:** Dark, Light, Amber, Glacier, Phosphor, Midnight, and a dedicated High Contrast, with adjustable layout density (Compact / Comfortable).
 - **Cryptographic OTA Updates:** Built-in self-updater verified with Minisign signatures for safe, background updates.
 
 ---
@@ -319,14 +319,14 @@ The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prere
 | Layer | Technology |
 |---|---|
 | **Frontend** | React 19 + TypeScript + Vite |
-| **Backend** | Rust (Tauri v2) with Windows Credential Manager for secrets |
-| **Styling** | CSS Custom Properties (token system · dark / light / amber / glacier) |
+| **Backend** | Rust (Tauri v2) with the native OS keyring (Windows Credential Manager / macOS Keychain / Linux Secret Service) |
+| **Styling** | CSS Custom Properties (token system · 7 themes: dark, light, amber, glacier, phosphor, midnight, high-contrast) |
 | **Typography** | JetBrains Mono · Inter · Space Grotesk (display) |
 | **Icons** | Official brand logos (LobeHub Icons, devicons) + Phosphor Icons |
-| **i18n** | i18next 24 (English & Portuguese - Brazil) |
-| **Testing** | Vitest (217 tests), Playwright E2E / visual, cargo test (86 Rust tests) |
-| **Build** | Tauri CLI → `.msi` + `.exe` (NSIS) |
-| **Distribution** | GitHub Releases · Winget (🚧 coming soon) · Chocolatey (🚧 coming soon) |
+| **i18n** | i18next 26 (English & Portuguese - Brazil) |
+| **Testing** | Vitest (239 tests), Playwright E2E / visual, cargo test (127 Rust tests) |
+| **Build** | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
+| **Distribution** | GitHub Releases · Scoop (live) · Winget (🚧 coming soon) · Chocolatey (🚧 coming soon) |
 
 ---
 
