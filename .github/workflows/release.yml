@@ -1,9 +1,10 @@
 name: release
 
-# Dispara quando uma tag `v*` é pushada. Três jobs em paralelo — Windows
-# (MSI + NSIS + latest.json do updater), macOS (DMG aarch64 + x86_64) e Linux
-# (AppImage + deb) — e todos anexam os bundles ao MESMO release da tag
-# (cria o release se ainda não existir).
+# Dispara quando uma tag `v*` é pushada. Um job de quality gates roda primeiro
+# (tsc + vitest + fmt/clippy/test do Rust no Ubuntu) e só depois três jobs em
+# paralelo — Windows (MSI + NSIS + latest.json do updater), macOS (DMG aarch64
+# + x86_64) e Linux (AppImage + deb) — anexam os bundles ao MESMO release da
+# tag (cria o release se ainda não existir).
 #
 # Signing opcional: configure os secrets `SIGNING_CERT_BASE64` e
 # `SIGNING_CERT_PASSWORD` em Settings → Secrets and variables → Actions pra
@@ -22,7 +23,63 @@ permissions:
   contents: write
 
 jobs:
+  quality:
+    name: Quality gates (tsc + vitest + Rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Cache Cargo build
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install Tauri Linux prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             libwebkit2gtk-4.1-dev             build-essential             curl             wget             file             libxdo-dev             libssl-dev             libayatana-appindicator3-dev             librsvg2-dev             libdbus-1-dev
+
+      - name: Install npm dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Frontend tests (Vitest)
+        run: npm test
+
+      - name: Build frontend (required by tauri::generate_context!)
+        run: npm run build
+
+      - name: Format check
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Clippy (deny warnings)
+        working-directory: src-tauri
+        run: cargo clippy --no-deps -- -D warnings
+
+      - name: Unit tests
+        working-directory: src-tauri
+        run: cargo test
+
   build-and-release:
+    needs: quality
     runs-on: windows-latest
     timeout-minutes: 30
 
@@ -215,6 +272,7 @@ jobs:
   # macOS: dois DMGs (Apple Silicon e Intel), checksums sha256 por bundle.
   # Sem latest.json — o updater in-app é Windows-only (tauri-plugin-updater).
   build-macos:
+    needs: quality
     runs-on: macos-latest
     timeout-minutes: 60
 
@@ -285,6 +343,7 @@ jobs:
   # Linux: AppImage + deb, checksums sha256 por bundle. Sem latest.json —
   # o updater in-app é Windows-only (tauri-plugin-updater).
   build-linux:
+    needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
