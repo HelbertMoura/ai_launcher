@@ -519,6 +519,7 @@ export const ptBR = {
     shortcuts: "// atalhos de teclado",
     troubleshooting: "// solução de problemas",
     links: "// links",
+    supportKofi: "Apoie o projeto no Ko-fi",
     tour: "// tour",
     tourBody:
       "Quer rever a tela de boas-vindas e reescanear CLIs? Reinicie o tour.",

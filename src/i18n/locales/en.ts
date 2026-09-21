@@ -521,6 +521,7 @@ export const en: Dictionary = {
     shortcuts: "// keyboard shortcuts",
     troubleshooting: "// troubleshooting",
     links: "// links",
+    supportKofi: "Support the project on Ko-fi",
     tour: "// tour",
     tourBody: "Want to replay the welcome screen and rescan CLIs? Restart the tour.",
     tourButton: "Replay welcome tour",

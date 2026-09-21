@@ -139,6 +139,20 @@
   text-align: center;
 }
 
+/* Ko-fi support row: CTA on the left, author credit beside it. */
+.cd-help__support {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-2);
+}
+
+.cd-help__support .cd-help__body {
+  margin-bottom: 0;
+}
+
 .cd-help__about .cd-help__body {
   margin-bottom: var(--s-2);
 }

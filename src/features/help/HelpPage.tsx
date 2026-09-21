@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Dialog } from "../../ui/Dialog";
+import { Icon } from "../../ui/Icon";
+import { Coffee } from "../../ui/icons";
 import { TAB_KEYS } from "../../app/layout/TabId";
 import { openExternalUrlCommand } from "../../lib/tauri";
 import { removeKey } from "../../lib/storage";
@@ -145,24 +147,34 @@ export function HelpPage() {
           <p className="cd-help__body">
             AI Launcher Pro — Desktop launcher for AI coding CLIs.
           </p>
-          <p className="cd-help__body">
-            Desenvolvido à base de ☕ e ⚡ por{" "}
-            <button
-              type="button"
-              className="cd-help__author-link"
-              onClick={() => void openLink("https://devmaniacs.com.br/")}
+          <div className="cd-help__support">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Icon icon={Coffee} size={14} weight="bold" />}
+              onClick={() => void openLink("https://ko-fi.com/helbertmoura")}
             >
-              <strong>Dev Maniac&apos;s</strong>
-            </button>{" "}
-            ·{" "}
-            <button
-              type="button"
-              className="cd-help__author-link"
-              onClick={() => void openLink("https://linktr.ee/helbertmoura")}
-            >
-              <strong>Redes e contatos</strong>
-            </button>
-          </p>
+              {t("help.supportKofi")}
+            </Button>
+            <p className="cd-help__body cd-help__credit">
+              Desenvolvido à base de ☕ e ⚡ por{" "}
+              <button
+                type="button"
+                className="cd-help__author-link"
+                onClick={() => void openLink("https://devmaniacs.com.br/")}
+              >
+                <strong>Dev Maniac&apos;s</strong>
+              </button>{" "}
+              ·{" "}
+              <button
+                type="button"
+                className="cd-help__author-link"
+                onClick={() => void openLink("https://linktr.ee/helbertmoura")}
+              >
+                <strong>Redes e contatos</strong>
+              </button>
+            </p>
+          </div>
           <p className="cd-help__version">v{pkg.version} · MIT License</p>
         </Card>
       </div>
