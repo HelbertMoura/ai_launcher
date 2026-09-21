@@ -156,7 +156,7 @@ jobs:
           }
 
       - name: Attach binaries to release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           body_path: release-body.md
@@ -252,7 +252,7 @@ jobs:
           Write-Host "Generated latest.json for $tag (signature: $($signature.Length) chars)"
 
       - name: Attach checksums and latest.json to release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
@@ -329,7 +329,7 @@ jobs:
           done
 
       - name: Attach macOS DMGs to release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
@@ -413,7 +413,7 @@ jobs:
           done
 
       - name: Attach Linux bundles to release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
