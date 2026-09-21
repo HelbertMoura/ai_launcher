@@ -546,19 +546,23 @@ where
 // READ HELPERS
 // ============================================================
 
-fn read_cli_servers(cli: McpCli) -> Result<Vec<McpServer>, String> {
-    let Some(path) = cli.config_path() else {
-        return Ok(vec![]);
-    };
-    if !path.exists() {
-        return Ok(vec![]);
-    }
-    let contents = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Falha ao ler {}: {}", path.display(), e))?;
-    match cli {
-        McpCli::Claude | McpCli::Gemini => parse_json_servers(&contents, cli),
-        McpCli::Codex => parse_codex_servers(&contents),
-    }
+/// A non-fatal failure while reading ONE CLI's MCP config (missing home dir,
+/// unreadable file, malformed JSON/TOML). The other CLIs still list normally;
+/// the frontend surfaces these as a clear warning banner instead of silently
+/// hiding servers.
+#[derive(Debug, Clone, Serialize)]
+pub struct McpConfigWarning {
+    pub cli: McpCli,
+    pub path: String,
+    pub message: String,
+}
+
+/// Payload of [`list_mcp_servers`]: the merged server list plus per-CLI
+/// read/parse warnings.
+#[derive(Debug, Clone, Serialize)]
+pub struct McpListResult {
+    pub servers: Vec<McpServer>,
+    pub warnings: Vec<McpConfigWarning>,
 }
 
 // ============================================================
@@ -567,23 +571,48 @@ fn read_cli_servers(cli: McpCli) -> Result<Vec<McpServer>, String> {
 
 /// Lists all MCP servers across Claude, Codex and Gemini.
 ///
-/// A missing or malformed file for one CLI does not fail the whole call: that
-/// CLI simply contributes no servers. Secret values are never returned.
+/// A missing file simply contributes no servers; a file that exists but
+/// cannot be read or parsed becomes a warning in the payload (and a log
+/// entry) so the UI can show exactly which config is malformed. Secret
+/// values are never returned. Runs on the blocking thread pool: config
+/// files may live on slow storage and this command is called from the UI.
 #[tauri::command]
-pub fn list_mcp_servers() -> Result<Vec<McpServer>, AppError> {
-    let mut all = Vec::new();
-    for cli in [McpCli::Claude, McpCli::Codex, McpCli::Gemini] {
-        match read_cli_servers(cli) {
-            Ok(mut servers) => all.append(&mut servers),
-            Err(e) => {
-                crate::util::log_event(
-                    "mcp",
-                    &format!("falha ao ler servers de {}: {}", cli.as_str(), e),
-                );
+pub async fn list_mcp_servers() -> Result<McpListResult, AppError> {
+    tokio::task::spawn_blocking(|| {
+        let mut servers = Vec::new();
+        let mut warnings = Vec::new();
+        for cli in [McpCli::Claude, McpCli::Codex, McpCli::Gemini] {
+            let Some(path) = cli.config_path() else {
+                continue;
+            };
+            if !path.exists() {
+                continue;
+            }
+            let read = std::fs::read_to_string(&path)
+                .map_err(|e| format!("Falha ao ler {}: {}", path.display(), e))
+                .and_then(|contents| match cli {
+                    McpCli::Claude | McpCli::Gemini => parse_json_servers(&contents, cli),
+                    McpCli::Codex => parse_codex_servers(&contents),
+                });
+            match read {
+                Ok(mut list) => servers.append(&mut list),
+                Err(message) => {
+                    crate::util::log_event(
+                        "mcp",
+                        &format!("falha ao ler servers de {}: {}", cli.as_str(), message),
+                    );
+                    warnings.push(McpConfigWarning {
+                        cli,
+                        path: path.display().to_string(),
+                        message,
+                    });
+                }
             }
         }
-    }
-    Ok(all)
+        Ok(McpListResult { servers, warnings })
+    })
+    .await
+    .map_err(|e| AppError::new(format!("background MCP list failed: {e}")))?
 }
 
 /// Adds a new MCP server to the given CLI's config file.

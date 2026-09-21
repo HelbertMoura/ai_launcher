@@ -31,6 +31,21 @@ export type McpServer = z.infer<typeof McpServerSchema>;
 
 export const McpServerListSchema = z.array(McpServerSchema);
 
+/** A non-fatal read/parse failure for one CLI's MCP config file. */
+export const McpConfigWarningSchema = z.object({
+  cli: McpCliSchema,
+  path: z.string(),
+  message: z.string(),
+});
+export type McpConfigWarning = z.infer<typeof McpConfigWarningSchema>;
+
+/** Payload of `list_mcp_servers`: merged servers plus per-CLI warnings. */
+export const McpListResultSchema = z.object({
+  servers: z.array(McpServerSchema),
+  warnings: z.array(McpConfigWarningSchema).default([]),
+});
+export type McpListResult = z.infer<typeof McpListResultSchema>;
+
 /**
  * Input payload for `add_mcp_server` / `update_mcp_server`. Carries the full
  * (secret-bearing) values written to disk. Never serialized back from the

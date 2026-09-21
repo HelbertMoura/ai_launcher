@@ -456,6 +456,7 @@ export const ptBR = {
     toastAdded: "Servidor \"{{name}}\" adicionado",
     toastUpdated: "Servidor \"{{name}}\" atualizado",
     toastRemoved: "Servidor \"{{name}}\" removido",
+    configWarning: "Não foi possível ler a config MCP do {{cli}} ({{path}}): {{message}}",
   },
   costs: {
     title: "CUSTOS",

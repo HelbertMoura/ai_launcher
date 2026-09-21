@@ -458,6 +458,7 @@ export const en: Dictionary = {
     toastAdded: "Server \"{{name}}\" added",
     toastUpdated: "Server \"{{name}}\" updated",
     toastRemoved: "Server \"{{name}}\" removed",
+    configWarning: "Could not read the {{cli}} MCP config ({{path}}): {{message}}",
   },
   costs: {
     title: "COSTS",
