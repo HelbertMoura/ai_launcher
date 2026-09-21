@@ -12,10 +12,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [22.9.0] — 2026-09-21 — Hardened Trust & Release Pipeline
+
+The trust-hardening release: the release pipeline now fails closed on missing updater signatures, the webview runs under a restrictive CSP, every GitHub Actions step is pinned by commit SHA, cargo audit denies warnings, and the full quality gate matrix runs before any bundle is built — plus the repository's own Scoop bucket and 27 pt-BR string fixes.
+
 ### Repository Infrastructure
 - **Fixed SBOM generation:** the backend SBOM workflow called cargo-cyclonedx with `--override-filename-root`, a flag that does not exist in any released version, so the Rust SBOM job had failed on every run since its introduction. The workflow now uses supported flags and uploads the generated artifact with a fail-hard check.
 - **Sponsor button:** `.github/FUNDING.yml` now enables Ko-fi (ko-fi.com/helbertmoura); GitHub Sponsors stays available for future activation.
 - **Scoop bucket:** the repository doubles as its own Scoop bucket (`bucket/ai-launcher.json`) with a v22.8.0 manifest pinned to the published installer hash and GitHub-based autoupdate — `scoop bucket add ai-launcher https://github.com/HelbertMoura/ai_launcher`.
+
+### Security
+- **Fail-Closed Release Pipeline:** the `latest.json` updater step now hard-fails when `TAURI_SIGNING_PRIVATE_KEY` is not configured or when the NSIS `.sig` is absent, instead of silently publishing an unsigned manifest that the in-app updater would reject; `scripts/audit-release.sh` also verifies that `latest.json` carries a non-empty signature.
+- **Restrictive CSP:** the Tauri app config now ships a restrictive Content Security Policy — production locks everything to `'self'` plus the Tauri IPC bridge, and the dev variant only additionally allows the Vite HMR endpoints on localhost.
+- **Pinned CI:** every GitHub Actions workflow step is pinned to a full commit SHA, eliminating tag-repoint supply-chain risk on third-party actions.
+- **cargo audit denies warnings:** the Rust dependency audit now runs with `--deny warnings`, with every ignored advisory explicitly documented in `.cargo/audit.toml`.
+- **Quality before artifacts:** the release workflow runs the full quality gates before building any bundle, so a red gate can no longer produce installers.
+
+### Fixed
+- **27 pt-BR UI strings** were missing accents (e.g. `{{cli}} relancado` → `{{cli}} relançado`); all fixed in the pt-BR locale.
+- **README install commands** no longer reference nonexistent `.deb`/`.dmg` asset names.
+- **Broken navigation anchor** in the pt-BR README.
+- **Governance docs** (CONTRIBUTING, SECURITY) no longer reference the removed `util.rs` and reflect the multi-platform bundles.
+
+### Changed
+- **README claims synced with the code:** 7 themes, 239 Vitest / 127 Rust test counts, 15 runtime checks, the full CLI list (including Windsurf and 5 new CLIs), 3-platform positioning, and the EN tech stack table pinned to TypeScript 7.
+- **Backend user-facing error messages standardized to pt-BR**, including the remaining keyring errors.
+- **Command deck label** no longer carries a hardcoded version suffix.
+- **Automation texts** (issue templates, workflow comments) rephrased from colloquial to neutral wording.
+- **Bug report template** example app version updated.
 
 ## [22.8.0] — 2026-09-19 — Cross-Platform Support, Hardened Core & Public Quality Gates
 
