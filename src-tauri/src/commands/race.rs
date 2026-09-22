@@ -346,20 +346,94 @@ fn prune_race_worktree_metadata(main_repo: &Path, root: &Path, race_id: &str) ->
         let Ok(gitdir_text) = fs::read_to_string(entry.path().join("gitdir")) else {
             continue;
         };
-        // `gitdir` records the path of the worktree's `.git` file; the
-        // worktree root is its parent directory. Matching by the `race-id`
-        // path component is separator/case resilient on Windows, where git
-        // writes forward slashes into `gitdir`.
-        let wt_root = PathBuf::from(gitdir_text.trim());
-        // Canonical scoping: the recorded worktree must live under THIS
-        // race's directory (`<races-root>/<race-id>/...`). `starts_with` is
-        // component-wise, so git's forward slashes never break the match.
-        let scoped = wt_root.starts_with(&race_dir);
+        // `gitdir` records the path of the worktree's `.git` file. Git 2.46+
+        // (useRelativePaths) may write it RELATIVE to this metadata
+        // directory, so resolution happens in [`gitdir_points_into_race`].
+        let scoped = gitdir_points_into_race(&gitdir_text, &entry.path(), &race_dir);
         if scoped && fs::remove_dir_all(entry.path()).is_err() {
             swept = false;
         }
     }
     swept
+}
+
+/// Reports whether the content of a worktree metadata `gitdir` file points
+/// into `race_dir`. The resolution is pure so the relative/absolute and
+/// separator/case matrix can be tested without depending on the installed
+/// git version:
+///
+/// - relative content (git 2.46+ `useRelativePaths`) is resolved against
+///   `metadata_dir`, the directory that contains the `gitdir` file;
+/// - separators (`/` or platform) and `.`/`..` are normalized per
+///   component — never by string prefix, so `race-11` never matches
+///   `race-1`;
+/// - the comparison is case-insensitive on Windows (case-insensitive
+///   filesystem) and exact elsewhere.
+fn gitdir_points_into_race(
+    gitdir_file_content: &str,
+    metadata_dir: &Path,
+    race_dir: &Path,
+) -> bool {
+    let content = gitdir_file_content.trim();
+    if content.is_empty() {
+        return false;
+    }
+    let raw = PathBuf::from(content);
+    let joined = if raw.is_absolute() {
+        raw
+    } else {
+        metadata_dir.join(raw)
+    };
+    let target = normalized_path_components(&joined);
+    let scope = normalized_path_components(race_dir);
+    if scope.is_empty() || target.len() < scope.len() {
+        return false;
+    }
+    target
+        .iter()
+        .zip(scope.iter())
+        .all(|(target, scope)| target == scope)
+}
+
+/// Component-wise path normalization: `.` dropped, `..` popped (popping
+/// past the root is a no-op), separators unified by the `components` parser
+/// and — on Windows only — lowercased, since the filesystem is
+/// case-insensitive there. Prefix/RootDir collapse into a single canonical
+/// anchor token so absolute and relative spellings of the same path always
+/// normalize to the same component list.
+fn normalized_path_components(path: &Path) -> Vec<String> {
+    const ABSOLUTE_ANCHOR: &str = "\u{0}absolute";
+    let lowercase = cfg!(windows);
+    let mut out: Vec<String> = Vec::new();
+    for component in path.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::Prefix(_) | std::path::Component::RootDir => {
+                // The absolute anchor (re)starts the path: Prefix followed by
+                // RootDir collapses into one token, never two.
+                if out.first().map(String::as_str) != Some(ABSOLUTE_ANCHOR) {
+                    out.clear();
+                    out.push(ABSOLUTE_ANCHOR.to_string());
+                }
+            }
+            std::path::Component::ParentDir => {
+                // Popping past the anchor/root is a no-op (`C:\..` == `C:\`).
+                let anchored = out.first().map(String::as_str) == Some(ABSOLUTE_ANCHOR);
+                if out.len() > usize::from(anchored) {
+                    out.pop();
+                }
+            }
+            std::path::Component::Normal(text) => {
+                let text = text.to_string_lossy();
+                if lowercase {
+                    out.push(text.to_lowercase());
+                } else {
+                    out.push(text.into_owned());
+                }
+            }
+        }
+    }
+    out
 }
 
 // ---------------------------------------------------------------------------
@@ -3068,6 +3142,133 @@ mod tests {
                 .is_empty(),
             "branch da corrida removida"
         );
+    }
+
+    // --- gitdir resolution (git 2.46+ relative paths) --------------------------
+
+    #[test]
+    fn gitdir_relative_content_resolves_into_the_race_scope() {
+        // Metadata at <repo>/.git/worktrees/claude; the race worktree lives in
+        // a sibling tree — git 2.46+ (useRelativePaths) records `gitdir` as a
+        // RELATIVE path in exactly this shape.
+        let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/claude");
+        let race_dir = Path::new("C:/dados/races/race-1");
+        assert!(gitdir_points_into_race(
+            "../../../../races/race-1/claude/.git\n",
+            metadata_dir,
+            race_dir
+        ));
+    }
+
+    #[test]
+    fn gitdir_absolute_forward_slashes_match_on_both_platforms() {
+        // git writes forward slashes regardless of platform; on Windows the
+        // filesystem (and therefore the match) is case-insensitive.
+        let content = if cfg!(windows) {
+            "c:/dados/races/race-1/claude/.git"
+        } else {
+            "C:/dados/races/race-1/claude/.git"
+        };
+        let race_dir = if cfg!(windows) {
+            PathBuf::from("C:\\Dados\\Races\\race-1")
+        } else {
+            PathBuf::from("C:/dados/races/race-1")
+        };
+        let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/claude");
+        assert!(gitdir_points_into_race(content, metadata_dir, &race_dir));
+    }
+
+    #[test]
+    fn gitdir_outside_the_race_scope_is_never_matched() {
+        let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/user-wt");
+        let race_dir = Path::new("C:/dados/races/race-1");
+
+        // Absolute path outside the races root…
+        assert!(!gitdir_points_into_race(
+            "C:/outros/projeto/.git",
+            metadata_dir,
+            race_dir
+        ));
+        // …a relative path escaping to a sibling tree…
+        assert!(!gitdir_points_into_race(
+            "../../../../outros/projeto/.git",
+            metadata_dir,
+            race_dir
+        ));
+        // …component-wise comparison: race-11 is NOT race-1 (no string
+        // prefix matching)…
+        assert!(!gitdir_points_into_race(
+            "../../../../races/race-11/claude/.git",
+            metadata_dir,
+            race_dir
+        ));
+        // …and empty/whitespace content is never a match.
+        assert!(!gitdir_points_into_race("   \n", metadata_dir, race_dir));
+    }
+
+    #[test]
+    fn prune_resolves_relative_gitdir_written_by_newer_git() {
+        // Builds the RELATIVE path from `from` to `to` the way git 2.46+
+        // (useRelativePaths) does: through the closest common ancestor.
+        fn relative_gitdir(from: &Path, to: &Path) -> String {
+            let from: Vec<_> = from.components().collect();
+            let to: Vec<_> = to.components().collect();
+            let common = from
+                .iter()
+                .zip(to.iter())
+                .take_while(|(a, b)| a == b)
+                .count();
+            let mut parts: Vec<String> = vec!["..".to_string(); from.len() - common];
+            parts.extend(
+                to[common..]
+                    .iter()
+                    .map(|c| c.as_os_str().to_string_lossy().into_owned()),
+            );
+            parts.join("/")
+        }
+
+        let (_tmp, repo) = temp_repo("prune-relative");
+        let root = temp_race_root();
+        let mut record = manual_race(root.path(), &repo, &["claude"]);
+        record.status = "completed".to_string();
+        record.finished_at = Some((chrono::Local::now() - chrono::Duration::days(8)).to_rfc3339());
+        upsert_race(root.path(), &record).expect("atualizar registro");
+
+        // The worktree directory is removed externally; only the metadata in
+        // the user's repository survives — as after any crash/hand cleanup.
+        fs::remove_dir_all(worktree_of(&record, 0)).expect("remover worktree da corrida");
+        let metadata_dir = repo.join(".git").join("worktrees").join("claude");
+        let gitdir_file = metadata_dir.join("gitdir");
+        assert!(gitdir_file.is_file(), "metadado órfão presente");
+
+        // Rewrite the gitdir the way git 2.46+ (useRelativePaths) can: a
+        // RELATIVE path through the common ancestor. The sweep must resolve
+        // it back into the race scope.
+        let worktree_git = worktree_of(&record, 0).join(".git");
+        let relative = relative_gitdir(&metadata_dir, &worktree_git);
+        assert!(
+            relative.starts_with("../"),
+            "o gitdir reescrito deve ser relativo: {relative}"
+        );
+        fs::write(&gitdir_file, format!("{relative}\n")).expect("reescrever gitdir relativo");
+
+        let report =
+            race_cleanup_blocking_in(root.path(), handle_of(&record), Some(0)).expect("cleanup");
+        assert!(report.pruned, "o prune escopado deve rodar");
+        assert!(
+            !metadata_dir.exists(),
+            "metadado da corrida removido mesmo com gitdir relativo"
+        );
+        // With the stale metadata gone, the branch is no longer "checked
+        // out" and the deletion succeeds — no partial cleanup for the user.
+        assert!(
+            run_git(&repo, &["branch", "--list", &record.agents[0].branch])
+                .expect("branch list")
+                .trim()
+                .is_empty(),
+            "branch da corrida removida"
+        );
+        assert_eq!(report.removed_branches.len(), 1);
     }
 
     #[test]
