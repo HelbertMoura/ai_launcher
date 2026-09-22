@@ -1,6 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { TAB_I18N_KEYS, TAB_KEYS, type TabId } from "../../app/layout/TabId";
+import {
+  LEGACY_TAB_TARGETS,
+  MAINTENANCE_SECTION_I18N_KEYS,
+  TAB_I18N_KEYS,
+  TAB_KEYS,
+  type MaintenanceSection,
+  type TabId,
+} from "../../app/layout/TabId";
+import { PINNABLE_SURFACES, useSidebarNav } from "../../app/layout/sidebarNav";
 import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import { THEMES, type Theme } from "../../hooks/useTheme";
 import type { HistoryItem } from "../history/useHistory";
@@ -9,7 +17,7 @@ import "./CommandPalette.css";
 export interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
-  onNavigate: (tab: TabId) => void;
+  onNavigate: (tab: TabId, section?: MaintenanceSection) => void;
   theme: Theme;
   onToggleTheme: () => void;
   onSetTheme?: (theme: Theme) => void;
@@ -32,7 +40,7 @@ type CommandKind =
 
 interface CommandRow {
   id: string;
-  section: "navigate" | "actions" | "recent" | "theme";
+  section: string;
   icon: string;
   label: string;
   description?: string;
@@ -50,25 +58,44 @@ const TAB_ICONS: Record<TabId, string> = {
   history: "⟲",
   costs: "$",
   workspace: "⌂",
-  doctor: "✚",
-  updates: "↑",
-  prereqs: "◆",
+  maintenance: "✚",
   admin: "⚡",
   help: "?",
 };
 
+/** v22 palette skipped help ("?" shortcut exists) and prereqs (absorbed). */
 const NAV_TABS: TabId[] = [
   "command-center",
   "launcher",
   "tools",
+  "workspace",
   "mcp",
   "history",
   "costs",
-  "workspace",
-  "doctor",
-  "updates",
+  "maintenance",
   "admin",
 ];
+
+/** Palette section per surface, mirroring the sidebar groups. */
+const TAB_SECTIONS: Record<TabId, { key: string; titleKey: string }> = {
+  "command-center": { key: "home", titleKey: "nav.home" },
+  launcher: { key: "run", titleKey: "nav.groupRun" },
+  tools: { key: "run", titleKey: "nav.groupRun" },
+  workspace: { key: "run", titleKey: "nav.groupRun" },
+  history: { key: "observe", titleKey: "nav.groupObserve" },
+  costs: { key: "observe", titleKey: "nav.groupObserve" },
+  mcp: { key: "connect", titleKey: "nav.groupConnect" },
+  maintenance: { key: "system", titleKey: "nav.groupSystem" },
+  admin: { key: "system", titleKey: "nav.groupSystem" },
+  help: { key: "system", titleKey: "nav.groupSystem" },
+};
+
+/** Legacy surface labels (kept in locales for the alias rows). */
+const LEGACY_LABEL_KEYS: Record<string, string> = {
+  doctor: "nav.doctor",
+  prereqs: "nav.prereqs",
+  updates: "nav.updates",
+};
 
 const THEME_ICONS: Record<Theme, string> = {
   dark: "◐",
@@ -210,16 +237,18 @@ export function CommandPalette({
     close();
   };
 
+  const { pinned, togglePin } = useSidebarNav();
+
   const allRows: CommandRow[] = useMemo(() => {
     const rows: CommandRow[] = [];
 
-    // --- Navigate ---
+    // --- Navigate (grouped like the sidebar: Home, Executar, Observar, ...) ---
     for (const tab of NAV_TABS) {
       const label = t(TAB_I18N_KEYS[tab]);
       const shortcut = TAB_KEYS[tab];
       rows.push({
         id: `nav-${tab}`,
-        section: "navigate",
+        section: TAB_SECTIONS[tab].key,
         icon: TAB_ICONS[tab],
         label,
         shortcut,
@@ -227,6 +256,42 @@ export function CommandPalette({
         run: () => runAndClose(() => onNavigate(tab)),
         meta: { kind: "navigate", tab },
       });
+    }
+
+    // --- Pin/unpin actions (any surface except Home) ---
+    for (const tab of PINNABLE_SURFACES) {
+      const label = t(TAB_I18N_KEYS[tab]);
+      const isPinned = pinned.includes(tab);
+      rows.push({
+        id: `action-pin-${tab}`,
+        section: "actions",
+        icon: isPinned ? "★" : "☆",
+        label: t(isPinned ? "palette.actionUnpin" : "palette.actionPin", { target: label }),
+        searchText: `pin unpin ${label} ${t(isPinned ? "palette.actionUnpin" : "palette.actionPin", { target: label })}`,
+        run: () => runAndClose(() => togglePin(tab)),
+        meta: { kind: "action" },
+      });
+    }
+
+    // --- Legacy surface names (v22), only while searching, marked as such ---
+    const q = query.trim();
+    if (q) {
+      for (const [legacyId, target] of Object.entries(LEGACY_TAB_TARGETS)) {
+        const label = t(LEGACY_LABEL_KEYS[legacyId] ?? legacyId);
+        const destination = target.section
+          ? `${t("nav.maintenance")} · ${t(MAINTENANCE_SECTION_I18N_KEYS[target.section])}`
+          : t(TAB_I18N_KEYS[target.tab]);
+        rows.push({
+          id: `alias-${legacyId}`,
+          section: TAB_SECTIONS[target.tab].key,
+          icon: "→",
+          label,
+          description: t("palette.legacyAliasDesc", { target: destination }),
+          searchText: `${label} ${legacyId} legacy alias ${destination}`,
+          run: () => runAndClose(() => onNavigate(target.tab, target.section)),
+          meta: { kind: "navigate", tab: target.tab },
+        });
+      }
     }
 
     // --- Actions ---
@@ -344,6 +409,9 @@ export function CommandPalette({
     return rows;
   }, [
     t,
+    query,
+    pinned,
+    togglePin,
     onNavigate,
     onToggleTheme,
     onSetTheme,
@@ -391,24 +459,19 @@ export function CommandPalette({
   }, [allRows, query]);
 
   const groupedSections = useMemo(() => {
-    const sections: Array<{
-      key: CommandRow["section"];
-      titleKey: string;
-      rows: FilteredRow[];
-    }> = [
-      { key: "navigate", titleKey: "palette.groupNavigate", rows: [] },
+    const sections: Array<{ key: string; titleKey: string; rows: FilteredRow[] }> = [
+      { key: "home", titleKey: "nav.home", rows: [] },
+      { key: "run", titleKey: "nav.groupRun", rows: [] },
+      { key: "observe", titleKey: "nav.groupObserve", rows: [] },
+      { key: "connect", titleKey: "nav.groupConnect", rows: [] },
+      { key: "system", titleKey: "nav.groupSystem", rows: [] },
       { key: "actions", titleKey: "palette.groupActions", rows: [] },
       { key: "recent", titleKey: "palette.groupRecent", rows: [] },
       { key: "theme", titleKey: "palette.groupTheme", rows: [] },
     ];
-    const idx: Record<CommandRow["section"], number> = {
-      navigate: 0,
-      actions: 1,
-      recent: 2,
-      theme: 3,
-    };
+    const idx: Record<string, number> = Object.fromEntries(sections.map((s, i) => [s.key, i]));
     for (const row of filtered) {
-      sections[idx[row.section]].rows.push(row);
+      sections[idx[row.section] ?? idx.actions].rows.push(row);
     }
     return sections.filter((s) => s.rows.length > 0);
   }, [filtered]);
