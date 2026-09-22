@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { installTauriStub } from "./tauriStub";
+import { openMaintenanceSection, openSidebarSurface } from "./navigation";
 import * as path from "path";
 
 // Public screenshot suite for the README surfaces.
@@ -7,8 +8,11 @@ import * as path from "path";
 // Navigation is REAL UI navigation: App.tsx keeps the active tab in component
 // state (useState<TabId>) and ignores location.hash, so driving the app via
 // page.goto("/#…") silently captured the same surface eight times. Every
-// surface is reached by clicking its sidebar item and the capture only happens
-// after the target surface's own heading is visible — no blind timeouts.
+// surface is reached through the grouped sidebar (v23: the helper expands
+// collapsed groups automatically) and the capture only happens after the
+// target surface's own heading is visible — no blind timeouts.
+// Since the v23 Fleet Command regrouping, Doctor lives inside the fused
+// Maintenance surface (Diagnostics section).
 //
 // Determinism follows the visual-baseline convention: disable animations, hide
 // the caret, reset scroll, and mask the live status-bar clock so the only
@@ -19,15 +23,15 @@ import * as path from "path";
 // READMEs currently showcase the EN UI.
 
 const SURFACES = [
-  { file: "01-command-center.png", nav: "Command Center", heading: /command center/i },
+  { file: "01-command-center.png", nav: "Home", heading: /command center/i },
   { file: "07-launcher-multi-agent.png", nav: "Launch", heading: /launch/i },
   { file: "02-runbooks-command-deck.png", nav: "Workspaces", heading: /workspaces/i },
   { file: "03-mcp-hub.png", nav: "MCP", heading: /mcp servers/i },
   { file: "04-history-timeline.png", nav: "History", heading: /history/i },
   { file: "08-costs-analytics.png", nav: "Analytics", heading: /costs/i },
-  { file: "05-doctor-readiness.png", nav: "Doctor", heading: /environment doctor/i },
+  { file: "05-doctor-readiness.png", nav: "Maintenance", section: "Diagnostics", heading: /environment doctor/i },
   { file: "06-help-support.png", nav: "Help", heading: /help/i },
-];
+] as const;
 
 const CLIS_STUB = [
   { key: "claude", name: "Claude Code", command: "claude", installed: true, version: "0.8.2" },
@@ -149,7 +153,11 @@ test.describe("v22 public screenshots capture", () => {
     ).toBeVisible();
 
     for (const surface of SURFACES) {
-      await page.locator(".cd-side__nav").getByRole("button", { name: surface.nav }).click();
+      if ("section" in surface) {
+        await openMaintenanceSection(page, surface.section);
+      } else {
+        await openSidebarSurface(page, surface.nav);
+      }
       await expect(
         page.getByRole("heading", { name: surface.heading }).first()
       ).toBeVisible();

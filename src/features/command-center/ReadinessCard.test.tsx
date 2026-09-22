@@ -63,6 +63,6 @@ describe("ReadinessCard", () => {
     render(<ReadinessCard card={makeCard()} onNavigate={onNavigate} />);
     fireEvent.click(screen.getByText("CLIs"));
     expect(onNavigate).toHaveBeenCalledTimes(1);
-    expect(onNavigate).toHaveBeenCalledWith("launcher");
+    expect(onNavigate).toHaveBeenCalledWith("launcher", undefined);
   });
 });
