@@ -631,6 +631,7 @@ export const en: Dictionary = {
     cleanupReportTitle: "Cleanup report",
     cleanupSummary: "Worktrees removed: {{worktrees}} · Branches removed: {{branches}}",
     cleanupErrorTitle: "The cleanup failed",
+    recoverUnverified: "Processes not killed (unverified identity):",
     orphansTitle: "{{count}} orphaned race(s) — worktrees are taking up space",
     orphansHint:
       "The app was closed while races were running. Clear them to kill the leftover processes and remove the worktrees.",

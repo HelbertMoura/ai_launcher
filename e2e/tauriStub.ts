@@ -86,6 +86,7 @@ type TauriResultMap = {
     removed_branches: string[];
     pruned: boolean;
     skipped_reason: string | null;
+    unverified_processes: string[];
   };
   race_scan_orphans: {
     orphans: Array<{
@@ -105,6 +106,7 @@ type TauriResultMap = {
     removed_branches: string[];
     pruned: boolean;
     skipped_reason: string | null;
+    unverified_processes: string[];
   };
   race_list_history: Array<{
     race_id: string;
@@ -345,6 +347,7 @@ export async function installTauriStub(
             removed_branches: raceAgentKeys.map((a) => `race/${RACE_ID}/${a}`),
             pruned: true,
             skipped_reason: null,
+            unverified_processes: [],
           };
         }
         racePollCount += 1;

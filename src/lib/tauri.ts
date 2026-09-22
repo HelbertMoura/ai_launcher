@@ -263,6 +263,8 @@ export interface RaceCleanupReport {
   removed_branches: string[];
   pruned: boolean;
   skipped_reason: string | null;
+  /** Recover only: persisted pids NOT killed (identity unverified). */
+  unverified_processes: string[];
 }
 
 /** One orphaned race found by the boot-time scan (wired in 23.2d). */

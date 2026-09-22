@@ -733,7 +733,11 @@ export function RacePage() {
           )}
 
           {race.historyReport && (
-            <Banner variant="info">
+            <Banner
+              variant={
+                race.historyReport.unverified_processes.length > 0 ? "warn" : "info"
+              }
+            >
               <strong>{t("race.cleanupReportTitle")}</strong>
               <span>
                 {race.historyReport.skipped_reason
@@ -743,6 +747,16 @@ export function RacePage() {
                       branches: race.historyReport.removed_branches.length,
                     })}
               </span>
+              {race.historyReport.unverified_processes.length > 0 && (
+                <>
+                  <span>{t("race.recoverUnverified")}</span>
+                  <ul className="cd-race__banner-list">
+                    {race.historyReport.unverified_processes.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </Banner>
           )}
 
