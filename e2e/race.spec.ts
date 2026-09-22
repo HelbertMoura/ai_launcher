@@ -123,3 +123,42 @@ test("cancels a running race after confirmation", async ({ page }) => {
 
   await expectNoUnknownTauriCommands(page);
 });
+
+test("views the diff cockpit and adopts the winner with branch mode", async ({ page }) => {
+  // Flip on the 2nd poll so the Cockpit opens quickly.
+  await preparePage(page, {
+    seed: `localStorage.setItem("ai-launcher:e2e-race-flip-after", "2");`,
+  });
+  await gotoApp(page);
+
+  await startRace(page);
+
+  // Once an agent completes, the Cockpit auto-opens with its diff.
+  await expect(page.getByText("Race completed")).toBeVisible({ timeout: 20_000 });
+  const cockpit = page.locator(".cd-race__cockpit");
+  await expect(cockpit).toBeVisible();
+  await expect(cockpit.locator(".cd-race__files")).toContainText("src/parser.ts");
+
+  // Per-agent "View diff" switches the cockpit to that agent's patch.
+  await page
+    .locator(".cd-race__column", { hasText: "codex" })
+    .getByRole("button", { name: "View diff" })
+    .click();
+  await expect(cockpit.locator(".cd-race__patch")).toContainText("updated by codex");
+
+  // The unified patch is colorized per line kind with pure CSS classes.
+  await expect(cockpit.locator(".cd-race__line--add").first()).toContainText("+const next = 2;");
+  await expect(cockpit.locator(".cd-race__line--del").first()).toContainText("-const old = 2;");
+  await expect(cockpit.locator(".cd-race__line--hunk").first()).toBeVisible();
+  await expect(cockpit.locator(".cd-race__line--meta").first()).toBeVisible();
+
+  // Adopt the winner with the default safe mode; the report names the branch.
+  await cockpit.getByRole("button", { name: "Adopt (branch)" }).click();
+  await expect(
+    page.getByText("Adoption branch created for codex").first(),
+  ).toBeVisible();
+  await expect(page.getByText("Result adopted", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Clear worktrees" })).toBeVisible();
+
+  await expectNoUnknownTauriCommands(page);
+});
