@@ -61,6 +61,9 @@ const CostsPage = lazy(() =>
 const WorkspacePage = lazy(() =>
   import("../features/workspace/WorkspacePage").then((m) => ({ default: m.WorkspacePage })),
 );
+const RacePage = lazy(() =>
+  import("../features/race/RacePage").then((m) => ({ default: m.RacePage })),
+);
 const MaintenancePage = lazy(() =>
   import("../features/maintenance/MaintenancePage").then((m) => ({ default: m.MaintenancePage })),
 );
@@ -205,6 +208,7 @@ export function App() {
       void import("../features/history/HistoryPage");
       void import("../features/costs/CostsPage");
       void import("../features/workspace/WorkspacePage");
+      void import("../features/race/RacePage");
       void import("../features/maintenance/MaintenancePage");
       void import("../features/help/HelpPage");
       void import("../features/admin/AdminPage");
@@ -271,6 +275,7 @@ export function App() {
                   {tab === "workspace" && (
                     <WorkspacePage historyItems={history.items} onNavigate={setActive} />
                   )}
+                  {tab === "race" && <RacePage />}
                   {tab === "maintenance" && (
                     <MaintenancePage
                       section={maintenanceSection}
