@@ -36,7 +36,8 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 20
+          # Node 24: jsdom 30.1 exige "^22.22.2 || ^24.15.0 || >=26" (mesmo motivo do quality.yml).
+          node-version: 24
           cache: npm
 
       - name: Set up Rust
