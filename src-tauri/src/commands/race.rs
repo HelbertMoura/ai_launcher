@@ -1543,6 +1543,10 @@ mod tests {
         let repo = tmp.path().join(name);
         fs::create_dir_all(&repo).expect("criar repositório");
         git(&repo, &["init"]);
+        // Determinismo de plataforma: herdar core.autocrlf do ambiente (true no
+        // Git for Windows) faria o apply --3way devolver CRLF e quebrar os
+        // asserts de conteúdo. O teste de autocrlf sobrescreve depois.
+        git(&repo, &["config", "core.autocrlf", "false"]);
         git(&repo, &["config", "user.email", "race-test@example.com"]);
         git(&repo, &["config", "user.name", "Race Test"]);
         fs::write(repo.join("file.txt"), "linha1\nlinha2\n").expect("arquivo base");
@@ -2158,6 +2162,10 @@ mod tests {
         let repo = tmp.path().join("crlf-repo");
         fs::create_dir_all(&repo).expect("mkdir");
         git(&repo, &["init"]);
+        // Determinismo de plataforma: herdar core.autocrlf do ambiente (true no
+        // Git for Windows) faria o apply --3way devolver CRLF e quebrar os
+        // asserts de conteúdo. O teste de autocrlf sobrescreve depois.
+        git(&repo, &["config", "core.autocrlf", "false"]);
         git(&repo, &["config", "user.email", "race-test@example.com"]);
         git(&repo, &["config", "user.name", "Race Test"]);
         git(&repo, &["config", "core.autocrlf", "true"]);
