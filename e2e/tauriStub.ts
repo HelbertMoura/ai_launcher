@@ -87,6 +87,37 @@ type TauriResultMap = {
     pruned: boolean;
     skipped_reason: string | null;
   };
+  race_scan_orphans: {
+    orphans: Array<{
+      race_id: string;
+      directory: string;
+      started_at: string;
+      agents: string[];
+      worktree_root: string;
+      base_sha: string;
+      branches: string[];
+      worktrees: string[];
+    }>;
+  };
+  race_recover: {
+    race_id: string;
+    removed_worktrees: string[];
+    removed_branches: string[];
+    pruned: boolean;
+    skipped_reason: string | null;
+  };
+  race_list_history: Array<{
+    race_id: string;
+    directory: string;
+    base_sha: string;
+    status: string;
+    started_at: string;
+    finished_at: string | null;
+    agents: string[];
+    branches: string[];
+    worktrees: string[];
+    worktrees_present: boolean;
+  }>;
   add_mcp_server: null;
   update_mcp_server: null;
   remove_mcp_server: null;
@@ -143,7 +174,10 @@ const DEFAULT_RESPONSES: TauriResultMap = {
   kill_session: true,
   // race_start/race_status/race_cancel/race_diff/race_adopt/race_cleanup stay
   // out of the defaults on purpose: a present key would bypass the
-  // deterministic fake race below.
+  // deterministic fake race below. The 23.2d boot-time reads default to
+  // empty so surfaces that only scan on mount stay deterministic.
+  race_scan_orphans: { orphans: [] },
+  race_list_history: [],
   add_mcp_server: null,
   update_mcp_server: null,
   remove_mcp_server: null,

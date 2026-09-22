@@ -46,9 +46,12 @@ const DETECTED_RESPONSES: TauriStubOverrides = {
 
 async function preparePage(
   page: Page,
-  options: { seed?: string } = {},
+  options: { seed?: string; responses?: TauriStubOverrides } = {},
 ): Promise<void> {
-  await installTauriStub(page, { onboardingDone: true, responses: DETECTED_RESPONSES });
+  await installTauriStub(page, {
+    onboardingDone: true,
+    responses: { ...DETECTED_RESPONSES, ...options.responses },
+  });
   await page.addInitScript((seed) => {
     localStorage.setItem("ai-launcher:locale", "en");
     localStorage.setItem("ai-launcher:theme", "dark");
@@ -159,6 +162,101 @@ test("views the diff cockpit and adopts the winner with branch mode", async ({ p
   ).toBeVisible();
   await expect(page.getByText("Result adopted", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Clear worktrees" })).toBeVisible();
+
+  await expectNoUnknownTauriCommands(page);
+});
+
+// --- 23.2d: crash recovery banner + graveyard --------------------------------
+
+const ORPHAN_SCAN: NonNullable<TauriStubOverrides["race_scan_orphans"]> = {
+  orphans: [
+    {
+      race_id: "race-orphan-1",
+      directory: "C:/projeto-orfao",
+      started_at: "2020-01-01T08:00:00.000Z",
+      agents: ["claude", "codex"],
+      worktree_root: "C:/races/race-orphan-1",
+      base_sha: "orphanbase0000000000000000000000000000000",
+      branches: ["race/race-orphan-1/claude", "race/race-orphan-1/codex"],
+      worktrees: ["C:/races/race-orphan-1/claude", "C:/races/race-orphan-1/codex"],
+    },
+  ],
+};
+
+const RECOVER_REPORT: NonNullable<TauriStubOverrides["race_recover"]> = {
+  race_id: "race-orphan-1",
+  removed_worktrees: ["C:/races/race-orphan-1/claude", "C:/races/race-orphan-1/codex"],
+  removed_branches: ["race/race-orphan-1/claude", "race/race-orphan-1/codex"],
+  pruned: true,
+  skipped_reason: null,
+};
+
+const HISTORY_ARCHIVED: NonNullable<TauriStubOverrides["race_list_history"]> = [
+  {
+    race_id: "race-old-1",
+    directory: "C:/projeto-antigo",
+    base_sha: "oldbase0000000000000000000000000000000000",
+    status: "cleaned",
+    started_at: "2020-01-01T10:00:00.000Z",
+    finished_at: "2020-01-01T10:05:00.000Z",
+    agents: ["claude", "codex"],
+    branches: [],
+    worktrees: [],
+    worktrees_present: false,
+  },
+];
+
+test("recovers an orphaned race from the boot banner", async ({ page }) => {
+  await preparePage(page, {
+    responses: {
+      race_scan_orphans: ORPHAN_SCAN,
+      race_recover: RECOVER_REPORT,
+    },
+  });
+  await gotoApp(page);
+  await openSidebarSurface(page, "Race");
+
+  const banner = page.locator(".cd-race__orphans");
+  await expect(banner).toContainText("orphaned race(s)");
+  await expect(banner).toContainText("C:/projeto-orfao");
+
+  // Inspect expands the inline details (directory, agents, worktree root).
+  await banner.getByRole("button", { name: "Inspect" }).click();
+  await expect(banner.locator(".cd-race__orphan-details")).toContainText("claude, codex");
+
+  // Clear kills the leftover processes and removes the worktrees (confirm first).
+  await banner.getByRole("button", { name: "Clear", exact: true }).click();
+  const dialog = page.getByRole("alertdialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Clear", exact: true }).click();
+
+  // The orphan leaves the banner right away — the scan is a boot snapshot,
+  // not a polled live view.
+  await expect(banner).toHaveCount(0);
+
+  await expectNoUnknownTauriCommands(page);
+});
+
+test("lists previous races and restores an archived record read-only", async ({ page }) => {
+  await preparePage(page, {
+    responses: { race_list_history: HISTORY_ARCHIVED },
+  });
+  await gotoApp(page);
+  await openSidebarSurface(page, "Race");
+
+  const graveyard = page.locator(".cd-race__graveyard");
+  await expect(graveyard).toContainText("Previous races");
+  await expect(graveyard).toContainText("C:/projeto-antigo");
+  await expect(graveyard).toContainText("archived");
+  // Long-expired record shows the automatic-cleanup eligibility notice.
+  await expect(graveyard).toContainText("Eligible for automatic cleanup");
+
+  // Restoring a cleaned race opens the read-only record, never the cockpit.
+  await graveyard.getByRole("button", { name: /Restore/ }).click();
+  const archived = page.locator(".cd-race__archived");
+  await expect(archived).toContainText("Archived race");
+  await expect(archived).toContainText("C:/projeto-antigo");
+  await expect(page.getByRole("button", { name: "View diff" })).toHaveCount(0);
 
   await expectNoUnknownTauriCommands(page);
 });

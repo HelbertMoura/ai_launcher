@@ -393,3 +393,132 @@
   text-transform: none;
   letter-spacing: normal;
 }
+
+/* --- Crash recovery banner + graveyard (v23.2d) -------------------------- */
+
+.cd-race__orphans,
+.cd-race__graveyard,
+.cd-race__archived {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+
+.cd-race__orphan-list,
+.cd-race__history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cd-race__orphan,
+.cd-race__history-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.cd-race__orphan:last-child,
+.cd-race__history-row:last-child {
+  border-bottom: 0;
+}
+
+/* Expandable rows align the inspection panel below the row content. */
+.cd-race__orphan {
+  flex-wrap: nowrap;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.cd-race__orphan-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.cd-race__orphan-details,
+.cd-race__history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cd-race__orphan-details {
+  margin: var(--s-1) 0 0;
+  padding: var(--s-2);
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  grid-template-columns: none;
+}
+
+.cd-race__orphan-details div {
+  display: flex;
+  gap: var(--s-2);
+  align-items: baseline;
+}
+
+.cd-race__orphan-details dt {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 88px;
+}
+
+.cd-race__orphan-details dd {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.cd-race__history-dir {
+  font-size: var(--text-sm);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.cd-race__orphan-row .cd-race__history-dir {
+  flex: 1;
+}
+
+.cd-race__history-meta {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-race__history-tag {
+  padding: 1px var(--s-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cd-race__history-retention {
+  color: var(--warn, var(--text-muted));
+  font-size: var(--text-sm);
+}
+
+.cd-race__history-actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-left: auto;
+}
