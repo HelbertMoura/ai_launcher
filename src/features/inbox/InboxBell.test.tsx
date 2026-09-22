@@ -69,10 +69,19 @@ describe("InboxBell", () => {
     render(<InboxBell onNavigate={onNavigate} />);
     fireEvent.click(screen.getByRole("button", { name: "Abrir inbox (2 não lidas)" }));
     fireEvent.click(screen.getByText("Sessão de Claude concluída"));
-    expect(onNavigate).toHaveBeenCalledWith("history");
+    expect(onNavigate).toHaveBeenCalledWith("history", undefined);
     // Panel closes and the badge drops to the remaining unread event.
     expect(screen.queryByRole("dialog", { name: "Inbox" })).not.toBeInTheDocument();
     expect(document.querySelector(".cd-inbox__badge")).toHaveTextContent("1");
+  });
+
+  it("resolve alvo legado (doctor) para Manutenção · Diagnóstico", () => {
+    const onNavigate = vi.fn();
+    seedInbox();
+    render(<InboxBell onNavigate={onNavigate} />);
+    fireEvent.click(screen.getByRole("button", { name: "Abrir inbox (2 não lidas)" }));
+    fireEvent.click(screen.getByText("Doctor: Git com problema"));
+    expect(onNavigate).toHaveBeenCalledWith("maintenance", "diagnostics");
   });
 
   it("fecha o painel com Escape", () => {

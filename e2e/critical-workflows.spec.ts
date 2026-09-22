@@ -4,6 +4,7 @@ import {
   installTauriStub,
   type TauriStubOverrides,
 } from "./tauriStub";
+import { openSidebarSurface, sidebarRow } from "./navigation";
 
 const NOW = "2026-07-13T12:00:00.000Z";
 
@@ -414,8 +415,13 @@ test.describe("v21 critical workflows", () => {
       { shortcut: "Control+2", heading: /launch/i },
       { shortcut: "Control+4", heading: /mcp servers/i },
       { shortcut: "Control+7", heading: /workspaces/i },
+      // v23: Ctrl+8/9/0 open the fused Maintenance surface on the section the
+      // old Doctor/Updates/Prereqs tabs used to cover (stable mapping).
+      { shortcut: "Control+8", heading: /maintenance/i },
       { shortcut: "Control+8", heading: /environment doctor/i },
+      { shortcut: "Control+9", heading: /maintenance/i },
       { shortcut: "Control+9", heading: /updates/i },
+      { shortcut: "Control+0", heading: /maintenance/i },
       { shortcut: "Control+0", heading: /prerequisites/i },
     ]) {
       await page.locator("body").click();
@@ -425,6 +431,49 @@ test.describe("v21 critical workflows", () => {
 
     await page.keyboard.press("Control+Comma");
     await expect(page.getByRole("heading", { name: /admin/i }).first()).toBeVisible();
+    await expectNoUnknownTauriCommands(page);
+  });
+
+  test("navigates the grouped sidebar with collapse memory and pinned surfaces", async ({ page }) => {
+    await preparePage(page);
+    await gotoApp(page);
+
+    const nav = page.locator(".cd-side__nav");
+    const observeHead = nav.locator(".cd-side__group-head", { hasText: "Observe" });
+
+    // Default layout: every group starts expanded (nothing persisted yet).
+    await expect(observeHead).toHaveAttribute("aria-expanded", "true");
+    await expect(nav.getByRole("button", { name: /^History/ })).toBeVisible();
+
+    // Collapse "Observe": its items hide, the state persists across a reload.
+    await observeHead.click();
+    await expect(observeHead).toHaveAttribute("aria-expanded", "false");
+    await expect(nav.getByRole("button", { name: /^History/ })).toBeHidden();
+    await page.reload();
+    await expect(nav.locator(".cd-side__group-head", { hasText: "Observe" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+
+    // The navigation helper re-expands collapsed groups before clicking.
+    await openSidebarSurface(page, "History");
+    await expect(page.getByRole("heading", { name: /history/i }).first()).toBeVisible();
+
+    // Pin History from its star: it moves to the Pinned section, out of the
+    // group; unpinning restores it to its group.
+    const row = sidebarRow(page, "History");
+    await row.hover();
+    await row.getByRole("button", { name: /^pin history/i }).click();
+    await expect(nav.getByText("Pinned", { exact: true })).toBeVisible();
+    await expect(nav.locator(".cd-side__group-head", { hasText: "Observe" })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    await expect(sidebarRow(page, "History").locator(".cd-side__pin--on")).toHaveCount(1);
+
+    await sidebarRow(page, "History").getByRole("button", { name: /unpin history/i }).click();
+    await expect(nav.getByText("Pinned", { exact: true })).toHaveCount(0);
+    await expect(sidebarRow(page, "History")).toHaveCount(1);
     await expectNoUnknownTauriCommands(page);
   });
 });
