@@ -24,7 +24,7 @@ Recent engineering waves (hygiene → safety net → platform), as of v23.0.0:
 
 - [x] Core hygiene pass — deduplicated safety helpers, typed `AppError` layer across Rust commands, blocking network/filesystem scans moved off the command thread
 - [x] Shell safety — escaped `cmd /K` fallback metacharacters, gated custom command tokens, real HTTP reachability probe for MCP health checks
-- [x] Safety net — first React component tests, Playwright E2E and visual regression running in CI, new Rust unit tests for pure helpers (366 automated tests: 239 Vitest + 127 Rust)
+- [x] Safety net — first React component tests, Playwright E2E and visual regression running in CI, new Rust unit tests for pure helpers (462 automated tests: 280 Vitest + 182 Rust)
 - [x] Quality gates at 9/9 across Windows and Ubuntu — tsc, Vitest, clippy, cargo audit, Playwright E2E, build metrics, release readiness
 - [x] Cross-platform core — secrets via Windows Credential Manager, macOS Keychain, and Linux Secret Service, with fail-closed credential UI when no vault is available
 - [x] macOS and Linux bundles — dmg (Apple Silicon + Intel), AppImage, and deb built in CI and attached to releases

@@ -24,7 +24,7 @@ Ondas recentes de engenharia (higiene → rede de proteção → plataforma), at
 
 - [x] Higiene do núcleo — helpers de segurança deduplicados, camada de erro tipada (`AppError`) nos commands Rust, varreduras de rede/arquivo tiradas da thread de comandos
 - [x] Segurança de shell — escaping de metacaracteres no fallback `cmd /K`, tokens de comando custom sob guarda, probe HTTP real para o health check de MCP
-- [x] Rede de proteção — primeiros testes de componente React, Playwright E2E e regressão visual rodando no CI, novos testes Rust para helpers puros (366 testes automatizados: 239 Vitest + 127 Rust)
+- [x] Rede de proteção — primeiros testes de componente React, Playwright E2E e regressão visual rodando no CI, novos testes Rust para helpers puros (462 testes automatizados: 280 Vitest + 182 Rust)
 - [x] Quality gates em 9/9 entre Windows e Ubuntu — tsc, Vitest, clippy, cargo audit, Playwright E2E, métricas de build, readiness
 - [x] Núcleo multiplataforma — secrets no Windows Credential Manager, Keychain no macOS e Secret Service no Linux, com UI de credenciais fail-closed quando não há vault
 - [x] Bundles macOS e Linux — dmg (Apple Silicon + Intel), AppImage e deb gerados no CI e anexados aos releases
