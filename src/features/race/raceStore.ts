@@ -1,8 +1,11 @@
+import { z } from "zod";
 import {
   AdoptReportSchema,
   DiffReportSchema,
+  OrphanScanReportSchema,
   RaceCleanupReportSchema,
   RaceHandleSchema,
+  RaceHistoryEntrySchema,
   RaceSnapshotSchema,
   isTerminalSnapshotStatus,
   type AdoptReport,
@@ -10,6 +13,8 @@ import {
   type RaceAdoptMode,
   type RaceCleanupReport,
   type RaceHandle,
+  type RaceHistoryEntry,
+  type RaceOrphan,
   type RaceSnapshot,
 } from "./types";
 import {
@@ -17,6 +22,9 @@ import {
   raceCancel,
   raceCleanup,
   raceDiff,
+  raceListHistory,
+  raceRecover,
+  raceScanOrphans,
   raceStart,
   raceStatus,
 } from "../../lib/tauri";
@@ -38,6 +46,11 @@ import {
 // v23.2c adds the endgame actions: `loadDiff` (Diff Cockpit), `adopt`
 // (branch/apply with conflict report) and `cleanup` (worktree removal after
 // the retention window), each with its own in-flight/error/report slots.
+// v23.2d adds the graveyard ("Corridas anteriores") and crash recovery:
+// `loadHistory` lists terminal races, `restoreFromHistory` reopens one
+// (live cockpit while the worktrees exist, read-only archived record
+// otherwise), `cleanupFromHistory` removes one immediately, and the
+// boot-time `scanOrphans`/`recoverOrphan` pair drives the orphan banner.
 // ==============================================================================
 
 export type RacePhase =
@@ -75,6 +88,26 @@ export interface RaceState {
   /** Last cleanup report (removals or skipped retention window). */
   cleanupReport: RaceCleanupReport | null;
   cleanupError: string | null;
+  // --- Graveyard + crash recovery (23.2d) ----------------------------------
+  /** Terminal race records ("Corridas anteriores"), newest first. */
+  history: RaceHistoryEntry[];
+  historyLoading: boolean;
+  /** History/restore/cleanup-from-graveyard error message. */
+  historyError: string | null;
+  /** Race id whose graveyard cleanup ("Limpar agora") is in flight. */
+  historyBusy: string | null;
+  /** Last graveyard cleanup/recover report, shown inside the section. */
+  historyReport: RaceCleanupReport | null;
+  /** Terminal record reopened read-only (worktrees already removed). */
+  archivedEntry: RaceHistoryEntry | null;
+  /** Orphaned races from the boot-time scan (app died mid-race). */
+  orphans: RaceOrphan[];
+  orphanScanning: boolean;
+  orphanError: string | null;
+  /** Orphan race id whose recover (kill + cleanup) is in flight. */
+  recovering: string | null;
+  /** Orphan race id currently expanded for inspection; null = collapsed. */
+  inspectedOrphan: string | null;
 }
 
 export interface RaceStartInput {
@@ -86,6 +119,9 @@ export interface RaceStartInput {
 /** Backend poll cadence for the live columns (kept light on purpose). */
 export const RACE_POLL_INTERVAL_MS = 2000;
 
+/** Retention window (days) mirrored from the backend `DEFAULT_KEEP_DAYS`. */
+export const RACE_RETENTION_DAYS = 7;
+
 /** Snapshot status → UI phase once the race is over. */
 const TERMINAL_PHASES: Record<string, "finished" | "failed" | "cancelled" | "adopted"> = {
   completed: "finished",
@@ -94,6 +130,17 @@ const TERMINAL_PHASES: Record<string, "finished" | "failed" | "cancelled" | "ado
   failed: "failed",
   cancelled: "cancelled",
 };
+
+/** True when the race ended more than the retention window ago. */
+export function isRetentionExpired(
+  entry: Pick<RaceHistoryEntry, "started_at" | "finished_at">,
+  now: number = Date.now(),
+): boolean {
+  const end = entry.finished_at ?? entry.started_at;
+  const endMs = Date.parse(end);
+  if (Number.isNaN(endMs)) return false;
+  return now - endMs >= RACE_RETENTION_DAYS * 86_400_000;
+}
 
 type Listener = (state: RaceState) => void;
 
@@ -112,6 +159,17 @@ const INITIAL_STATE: RaceState = {
   cleanupRunning: false,
   cleanupReport: null,
   cleanupError: null,
+  history: [],
+  historyLoading: false,
+  historyError: null,
+  historyBusy: null,
+  historyReport: null,
+  archivedEntry: null,
+  orphans: [],
+  orphanScanning: false,
+  orphanError: null,
+  recovering: null,
+  inspectedOrphan: null,
 };
 
 let state: RaceState = INITIAL_STATE;
@@ -130,6 +188,29 @@ function setState(partial: Partial<RaceState>): void {
 
 function toMessage(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
+}
+
+/**
+ * Rebuilds a full wire handle from a persisted record (history entry or
+ * orphan scan hit). The backend resolves everything else from `races.json`;
+ * only `race_id` is strictly validated there.
+ */
+function handleFromRecord(
+  record: Pick<
+    RaceHistoryEntry,
+    "race_id" | "directory" | "base_sha" | "agents" | "branches" | "worktrees" | "started_at"
+  >,
+): RaceHandle {
+  return {
+    race_id: record.race_id,
+    directory: record.directory,
+    base_sha: record.base_sha,
+    agents: record.agents,
+    branches: record.branches,
+    worktrees: record.worktrees,
+    warnings: [],
+    started_at: record.started_at,
+  };
 }
 
 function stopPolling(): void {
@@ -424,5 +505,148 @@ export const raceStore = {
    */
   dispose(): void {
     stopPolling();
+  },
+
+  // --- Graveyard + crash recovery (23.2d) ----------------------------------
+
+  /**
+   * Loads the terminal race records for the "Corridas anteriores" section.
+   * Contract drift degrades to `historyError` instead of rendering
+   * unvalidated records.
+   */
+  async loadHistory(): Promise<void> {
+    setState({ historyLoading: true, historyError: null });
+    try {
+      const raw = await raceListHistory();
+      const parsed = z.array(RaceHistoryEntrySchema).safeParse(raw);
+      if (!parsed.success) {
+        // Contract drift: nothing from this response is rendered, not even
+        // the previously loaded records.
+        setState({ history: [], historyLoading: false, historyError: parsed.error.message });
+        return;
+      }
+      setState({ history: parsed.data, historyLoading: false });
+    } catch (e: unknown) {
+      setState({ historyLoading: false, historyError: toMessage(e) });
+    }
+  },
+
+  /**
+   * Reopens a graveyard race. With the worktrees still on disk the full
+   * cockpit is restored: the handle is rebuilt from the record and a fresh
+   * `race_status` snapshot feeds the columns (diffs remain consultable).
+   * Otherwise the race is archived: only the read-only record view opens —
+   * no handle, no diffs, nothing invented. No-op while a race is starting or
+   * running.
+   */
+  async restoreFromHistory(entry: RaceHistoryEntry): Promise<void> {
+    if (state.phase === "starting" || state.phase === "running") return;
+    const archived = entry.status === "cleaned" || !entry.worktrees_present;
+    if (archived) {
+      generation += 1;
+      stopPolling();
+      setState({
+        ...INITIAL_STATE,
+        phase: TERMINAL_PHASES[entry.status] ?? "finished",
+        archivedEntry: entry,
+      });
+      return;
+    }
+    const handle = handleFromRecord(entry);
+    setState({ historyError: null });
+    try {
+      const raw = await raceStatus(handle);
+      const parsed = RaceSnapshotSchema.safeParse(raw);
+      if (!parsed.success) {
+        setState({ historyError: parsed.error.message });
+        return;
+      }
+      generation += 1;
+      stopPolling();
+      setState({
+        ...INITIAL_STATE,
+        phase: TERMINAL_PHASES[parsed.data.status] ?? "finished",
+        handle,
+        snapshot: parsed.data,
+      });
+    } catch (e: unknown) {
+      setState({ historyError: toMessage(e) });
+    }
+  },
+
+  /**
+   * "Limpar agora" on a graveyard race: `race_cleanup` with `keepDays = 0`
+   * removes the worktrees and branches immediately. The report lands in
+   * `historyReport` and the section reloads afterwards.
+   */
+  async cleanupFromHistory(entry: RaceHistoryEntry): Promise<void> {
+    if (state.historyBusy) return;
+    setState({ historyBusy: entry.race_id, historyError: null, historyReport: null });
+    try {
+      const raw = await raceCleanup(handleFromRecord(entry), 0);
+      const parsed = RaceCleanupReportSchema.safeParse(raw);
+      if (!parsed.success) {
+        setState({ historyBusy: null, historyError: parsed.error.message });
+        return;
+      }
+      setState({ historyBusy: null, historyReport: parsed.data });
+      await raceStore.loadHistory();
+    } catch (e: unknown) {
+      setState({ historyBusy: null, historyError: toMessage(e) });
+    }
+  },
+
+  /**
+   * Boot-time orphan scan: races recorded as "running" whose runtime died
+   * with a previous app session. Cheap (one local JSON read), so the Race
+   * surface runs it on every mount.
+   */
+  async scanOrphans(): Promise<void> {
+    if (state.orphanScanning) return;
+    setState({ orphanScanning: true, orphanError: null });
+    try {
+      const raw = await raceScanOrphans();
+      const parsed = OrphanScanReportSchema.safeParse(raw);
+      if (!parsed.success) {
+        setState({ orphanScanning: false, orphanError: parsed.error.message });
+        return;
+      }
+      setState({ orphans: parsed.data.orphans, orphanScanning: false });
+    } catch (e: unknown) {
+      setState({ orphanScanning: false, orphanError: toMessage(e) });
+    }
+  },
+
+  /**
+   * Recovers one orphaned race: the backend kills the persisted agent pids
+   * and immediately cleans the worktrees/branches up. The orphan leaves the
+   * banner right away (the scan is a boot-time snapshot, not polled) and the
+   * graveyard reloads with the new "cleaned" record.
+   */
+  async recoverOrphan(orphan: RaceOrphan): Promise<void> {
+    if (state.recovering) return;
+    setState({ recovering: orphan.race_id, orphanError: null, historyReport: null });
+    try {
+      const raw = await raceRecover(handleFromRecord(orphan));
+      const parsed = RaceCleanupReportSchema.safeParse(raw);
+      if (!parsed.success) {
+        setState({ recovering: null, orphanError: parsed.error.message });
+        return;
+      }
+      setState({
+        recovering: null,
+        historyReport: parsed.data,
+        inspectedOrphan: null,
+        orphans: state.orphans.filter((o) => o.race_id !== orphan.race_id),
+      });
+      await raceStore.loadHistory();
+    } catch (e: unknown) {
+      setState({ recovering: null, orphanError: toMessage(e) });
+    }
+  },
+
+  /** Expands/collapses the inline orphan details ("Inspecionar"). */
+  inspectOrphan(raceId: string | null): void {
+    setState({ inspectedOrphan: raceId });
   },
 };

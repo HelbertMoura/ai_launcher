@@ -6,6 +6,9 @@ const raceCancelMock = vi.hoisted(() => vi.fn());
 const raceDiffMock = vi.hoisted(() => vi.fn());
 const raceAdoptMock = vi.hoisted(() => vi.fn());
 const raceCleanupMock = vi.hoisted(() => vi.fn());
+const raceScanOrphansMock = vi.hoisted(() => vi.fn());
+const raceRecoverMock = vi.hoisted(() => vi.fn());
+const raceListHistoryMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../lib/tauri", () => ({
   raceStart: raceStartMock,
@@ -14,10 +17,25 @@ vi.mock("../../lib/tauri", () => ({
   raceDiff: raceDiffMock,
   raceAdopt: raceAdoptMock,
   raceCleanup: raceCleanupMock,
+  raceScanOrphans: raceScanOrphansMock,
+  raceRecover: raceRecoverMock,
+  raceListHistory: raceListHistoryMock,
 }));
 
-import { RACE_POLL_INTERVAL_MS, raceStore } from "./raceStore";
-import type { AdoptReport, DiffReport, RaceCleanupReport, RaceHandle, RaceSnapshot } from "./types";
+import {
+  RACE_POLL_INTERVAL_MS,
+  isRetentionExpired,
+  raceStore,
+} from "./raceStore";
+import type {
+  AdoptReport,
+  DiffReport,
+  RaceCleanupReport,
+  RaceHandle,
+  RaceHistoryEntry,
+  RaceOrphan,
+  RaceSnapshot,
+} from "./types";
 
 const HANDLE: RaceHandle = {
   race_id: "race-1",
@@ -109,6 +127,47 @@ async function startFinishedRace(): Promise<void> {
   await raceStore.start({ directory: "C:/proj", taskPrompt: "x", agents: ["claude", "codex"] });
 }
 
+// --- v23.2d fixtures: graveyard + crash recovery -----------------------------
+
+const HISTORY_RESTOREABLE: RaceHistoryEntry = {
+  race_id: "race-old-1",
+  directory: "C:/proj-antiga",
+  base_sha: "old1base",
+  status: "completed",
+  started_at: "2026-09-20T10:00:00.000Z",
+  finished_at: "2026-09-20T10:05:00.000Z",
+  agents: ["claude", "codex"],
+  branches: ["race/race-old-1/claude", "race/race-old-1/codex"],
+  worktrees: ["C:/races/race-old-1/claude", "C:/races/race-old-1/codex"],
+  worktrees_present: true,
+};
+
+const HISTORY_ARCHIVED: RaceHistoryEntry = {
+  ...HISTORY_RESTOREABLE,
+  race_id: "race-old-2",
+  status: "cleaned",
+  worktrees_present: false,
+};
+
+const ORPHAN: RaceOrphan = {
+  race_id: "race-orfa-1",
+  directory: "C:/proj-orfa",
+  started_at: "2026-09-22T08:00:00.000Z",
+  agents: ["claude", "codex"],
+  worktree_root: "C:/races/race-orfa-1",
+  base_sha: "orfa1base",
+  branches: ["race/race-orfa-1/claude", "race/race-orfa-1/codex"],
+  worktrees: ["C:/races/race-orfa-1/claude", "C:/races/race-orfa-1/codex"],
+};
+
+const RECOVER_REPORT: RaceCleanupReport = {
+  race_id: ORPHAN.race_id,
+  removed_worktrees: ORPHAN.worktrees,
+  removed_branches: ORPHAN.branches,
+  pruned: true,
+  skipped_reason: null,
+};
+
 beforeEach(() => {
   vi.useFakeTimers();
   raceStartMock.mockReset();
@@ -117,6 +176,9 @@ beforeEach(() => {
   raceDiffMock.mockReset();
   raceAdoptMock.mockReset();
   raceCleanupMock.mockReset();
+  raceScanOrphansMock.mockReset();
+  raceRecoverMock.mockReset();
+  raceListHistoryMock.mockReset();
   raceStore.reset();
 });
 
@@ -541,5 +603,185 @@ describe("raceStore", () => {
 
     expect(raceDiffMock).not.toHaveBeenCalled();
     expect(raceAdoptMock).not.toHaveBeenCalled();
+  });
+
+  // --- v23.2d: graveyard + crash recovery ----------------------------------
+
+  it("loadHistory stores validated terminal records; drift degrades to an error", async () => {
+    raceListHistoryMock.mockResolvedValue([HISTORY_RESTOREABLE, HISTORY_ARCHIVED]);
+    await raceStore.loadHistory();
+
+    expect(raceListHistoryMock).toHaveBeenCalledTimes(1);
+    const s = raceStore.getSnapshot();
+    expect(s.historyLoading).toBe(false);
+    expect(s.historyError).toBeNull();
+    expect(s.history).toEqual([HISTORY_RESTOREABLE, HISTORY_ARCHIVED]);
+
+    raceListHistoryMock.mockResolvedValue([{ race_id: "quebrado" }]);
+    await raceStore.loadHistory();
+    expect(raceStore.getSnapshot().historyError).toContain("base_sha");
+    expect(raceStore.getSnapshot().history).toEqual([]); // nothing rendered unvalidated
+  });
+
+  it("restoreFromHistory with live worktrees reopens the cockpit via race_status", async () => {
+    raceListHistoryMock.mockResolvedValue([HISTORY_RESTOREABLE]);
+    raceStatusMock.mockResolvedValue(
+      snapshot({
+        race_id: HISTORY_RESTOREABLE.race_id,
+        directory: HISTORY_RESTOREABLE.directory,
+        base_sha: HISTORY_RESTOREABLE.base_sha,
+        started_at: HISTORY_RESTOREABLE.started_at,
+        status: "completed",
+      }),
+    );
+    await raceStore.loadHistory();
+    await raceStore.restoreFromHistory(HISTORY_RESTOREABLE);
+
+    expect(raceStatusMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        race_id: HISTORY_RESTOREABLE.race_id,
+        base_sha: HISTORY_RESTOREABLE.base_sha,
+        agents: HISTORY_RESTOREABLE.agents,
+        branches: HISTORY_RESTOREABLE.branches,
+        worktrees: HISTORY_RESTOREABLE.worktrees,
+      }),
+    );
+    const s = raceStore.getSnapshot();
+    expect(s.phase).toBe("finished");
+    expect(s.handle?.race_id).toBe(HISTORY_RESTOREABLE.race_id);
+    expect(s.snapshot?.status).toBe("completed");
+    expect(s.archivedEntry).toBeNull();
+
+    // Restored cockpit keeps loading real diffs from the live worktrees.
+    raceDiffMock.mockResolvedValue(DIFF);
+    await raceStore.loadDiff("claude");
+    expect(raceStore.getSnapshot().diffs.claude).toEqual(DIFF);
+  });
+
+  it("restoreFromHistory of a cleaned race is read-only and never calls race_status", async () => {
+    raceListHistoryMock.mockResolvedValue([HISTORY_ARCHIVED]);
+    await raceStore.loadHistory();
+    await raceStore.restoreFromHistory(HISTORY_ARCHIVED);
+
+    expect(raceStatusMock).not.toHaveBeenCalled();
+    const s = raceStore.getSnapshot();
+    expect(s.phase).toBe("finished");
+    expect(s.archivedEntry?.race_id).toBe(HISTORY_ARCHIVED.race_id);
+    expect(s.handle).toBeNull();
+    expect(s.snapshot).toBeNull();
+  });
+
+  it("restoreFromHistory of a race with missing worktrees is archived even when not cleaned", async () => {
+    const broken: RaceHistoryEntry = { ...HISTORY_RESTOREABLE, worktrees_present: false };
+    raceListHistoryMock.mockResolvedValue([broken]);
+    await raceStore.loadHistory();
+    await raceStore.restoreFromHistory(broken);
+
+    expect(raceStatusMock).not.toHaveBeenCalled();
+    expect(raceStore.getSnapshot().archivedEntry?.race_id).toBe(broken.race_id);
+  });
+
+  it("restoreFromHistory is a no-op while a race is starting or running", async () => {
+    raceStartMock.mockResolvedValue(HANDLE);
+    raceStatusMock.mockResolvedValue(snapshot());
+    const startPromise = raceStore.start({ directory: "C:/proj", taskPrompt: "x", agents: ["claude"] });
+    await flush();
+
+    await raceStore.restoreFromHistory(HISTORY_RESTOREABLE);
+    expect(raceStatusMock).toHaveBeenCalledTimes(1); // only the live poll, no restore status
+    expect(raceStore.getSnapshot().archivedEntry).toBeNull();
+    await startPromise;
+
+    // Same guard while running.
+    raceStatusMock.mockClear();
+    await raceStore.restoreFromHistory(HISTORY_RESTOREABLE);
+    expect(raceStatusMock).not.toHaveBeenCalled();
+  });
+
+  it("cleanupFromHistory clears a graveyard race immediately (keepDays = 0)", async () => {
+    raceListHistoryMock.mockResolvedValue([HISTORY_RESTOREABLE]);
+    raceCleanupMock.mockResolvedValue({ ...CLEANUP, race_id: HISTORY_RESTOREABLE.race_id });
+    await raceStore.loadHistory();
+
+    await raceStore.cleanupFromHistory(HISTORY_RESTOREABLE);
+
+    expect(raceCleanupMock).toHaveBeenCalledWith(
+      expect.objectContaining({ race_id: HISTORY_RESTOREABLE.race_id }),
+      0,
+    );
+    expect(raceStore.getSnapshot().historyReport?.removed_worktrees.length).toBe(2);
+    // The section reloads after the removal.
+    expect(raceListHistoryMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("cleanupFromHistory surfaces backend errors and releases the busy flag", async () => {
+    raceListHistoryMock.mockResolvedValue([HISTORY_RESTOREABLE]);
+    raceCleanupMock.mockRejectedValue(new Error("git falhou"));
+    await raceStore.loadHistory();
+
+    await raceStore.cleanupFromHistory(HISTORY_RESTOREABLE);
+
+    const s = raceStore.getSnapshot();
+    expect(s.historyBusy).toBeNull();
+    expect(s.historyError).toBe("git falhou");
+  });
+
+  it("scanOrphans validates the report and recoverOrphan clears the banner", async () => {
+    raceScanOrphansMock.mockResolvedValue({ orphans: [ORPHAN] });
+    await raceStore.scanOrphans();
+    expect(raceStore.getSnapshot().orphans).toEqual([ORPHAN]);
+
+    raceRecoverMock.mockResolvedValue(RECOVER_REPORT);
+    await raceStore.recoverOrphan(ORPHAN);
+
+    expect(raceRecoverMock).toHaveBeenCalledWith(
+      expect.objectContaining({ race_id: ORPHAN.race_id, base_sha: ORPHAN.base_sha }),
+    );
+    const s = raceStore.getSnapshot();
+    expect(s.recovering).toBeNull();
+    expect(s.orphans).toEqual([]); // banner empties without a rescan
+    expect(s.historyReport).toEqual(RECOVER_REPORT);
+    // The graveyard reloads with the recovered record.
+    expect(raceListHistoryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("scanOrphans surfaces backend failures; recover errors keep the banner", async () => {
+    raceScanOrphansMock.mockRejectedValue(new Error("varredura falhou"));
+    await raceStore.scanOrphans();
+    expect(raceStore.getSnapshot().orphanError).toBe("varredura falhou");
+
+    raceScanOrphansMock.mockResolvedValue({ orphans: [ORPHAN] });
+    await raceStore.scanOrphans();
+    raceRecoverMock.mockRejectedValue(new Error("pid inatingível"));
+    await raceStore.recoverOrphan(ORPHAN);
+
+    const s = raceStore.getSnapshot();
+    expect(s.recovering).toBeNull();
+    expect(s.orphans).toEqual([ORPHAN]);
+    expect(s.orphanError).toBe("pid inatingível");
+  });
+
+  it("inspectOrphan toggles the expanded orphan details", async () => {
+    raceStore.inspectOrphan(ORPHAN.race_id);
+    expect(raceStore.getSnapshot().inspectedOrphan).toBe(ORPHAN.race_id);
+    raceStore.inspectOrphan(null);
+    expect(raceStore.getSnapshot().inspectedOrphan).toBeNull();
+  });
+
+  it("isRetentionExpired flags only races past the 7-day window", () => {
+    const now = Date.parse("2026-09-22T12:00:00.000Z");
+    const fresh: Pick<RaceHistoryEntry, "started_at" | "finished_at"> = {
+      started_at: "2026-09-22T10:00:00.000Z",
+      finished_at: "2026-09-22T11:00:00.000Z",
+    };
+    const stale: Pick<RaceHistoryEntry, "started_at" | "finished_at"> = {
+      started_at: "2026-09-14T10:00:00.000Z",
+      finished_at: "2026-09-14T11:00:00.000Z",
+    };
+    expect(isRetentionExpired(fresh, now)).toBe(false);
+    expect(isRetentionExpired(stale, now)).toBe(true);
+    // Falls back to started_at without finished_at; invalid dates never expire.
+    expect(isRetentionExpired({ started_at: "2026-09-14T10:00:00.000Z", finished_at: null }, now)).toBe(true);
+    expect(isRetentionExpired({ started_at: "não é data", finished_at: null }, now)).toBe(false);
   });
 });
