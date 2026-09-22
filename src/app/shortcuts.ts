@@ -87,7 +87,9 @@ export function useGlobalShortcuts(
       if (
         (IS_MAC ? e.metaKey : e.ctrlKey) &&
         e.altKey &&
-        e.key.toLowerCase() === "r"
+        // Match by physical key code: with Option held, macOS layouts emit
+        // composed characters (e.g. "®" on US), so e.key never equals "r".
+        e.code === "KeyR"
       ) {
         e.preventDefault();
         onNavigate(RACE_TARGET.tab, RACE_TARGET.section);
