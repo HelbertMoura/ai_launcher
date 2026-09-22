@@ -8,10 +8,12 @@ import { Chip } from "../../ui/Chip";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { Icon } from "../../ui/Icon";
 import { Input } from "../../ui/Input";
+import { Tooltip } from "../../ui/Tooltip";
 import { Warning } from "../../ui/icons";
 import { useClis } from "../launcher/useClis";
 import { raceStore } from "./raceStore";
 import { useRace } from "./useRace";
+import type { RaceAdoptMode } from "./types";
 import "../page.css";
 import "./RacePage.css";
 
@@ -46,10 +48,30 @@ function formatDuration(secs: number | null): string {
 }
 
 /**
- * Race Mode MVP (v23.2b): start form (directory, prompt, up to 3 detected
- * agent CLIs) plus the live race columns fed by `race_status` polling.
- * Diff inspection and result adoption land in 23.2c — the terminal banners
- * and the cost placeholder make that explicit instead of faking data.
+ * Classifies one unified-patch line for pure-CSS coloring: hunk headers,
+ * file metadata, added/removed lines and context. Prefix-based on purpose —
+ * no diff dependency in the MVP (design §4).
+ */
+function patchLineClass(line: string): "hunk" | "meta" | "add" | "del" | "ctx" {
+  if (line.startsWith("@@")) return "hunk";
+  if (
+    line.startsWith("diff --git ") ||
+    line.startsWith("index ") ||
+    line.startsWith("+++ ") ||
+    line.startsWith("--- ")
+  ) {
+    return "meta";
+  }
+  if (line.startsWith("+")) return "add";
+  if (line.startsWith("-")) return "del";
+  return "ctx";
+}
+
+/**
+ * Race Mode (v23.2b/c): start form (directory, prompt, up to 3 detected
+ * agent CLIs), the live race columns fed by `race_status` polling, and the
+ * endgame (23.2c): Diff Cockpit per agent, result adoption (branch/apply
+ * with conflict report) and worktree cleanup after the retention window.
  */
 export function RacePage() {
   const { t } = useTranslation();
@@ -60,10 +82,14 @@ export function RacePage() {
   const [taskPrompt, setTaskPrompt] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
+  /** Agent explicitly picked for the Cockpit ("Ver diff"); null = auto. */
+  const [cockpitAgent, setCockpitAgent] = useState<string | null>(null);
 
   const { phase, handle, snapshot, error, cancelling } = race;
   const isStarting = phase === "starting";
-  const isTerminal = phase === "finished" || phase === "failed" || phase === "cancelled";
+  const isTerminal =
+    phase === "finished" || phase === "failed" || phase === "cancelled" || phase === "adopted";
 
   // The surface opens ready to configure; remounting mid-race (e.g. after
   // navigating away and back) resumes the live poll cadence; after a race,
@@ -119,6 +145,35 @@ export function RacePage() {
     }
   };
 
+  // --- Diff Cockpit (v23.2c) ------------------------------------------------
+  const agents = snapshot?.agents ?? [];
+  const firstCompleted = agents.find((a) => a.status === "completed");
+  const cockpitOpen = cockpitAgent !== null || firstCompleted !== undefined;
+  const selectedAgent =
+    cockpitAgent ?? firstCompleted?.agent ?? (agents.length > 0 ? agents[0].agent : null);
+  const selectedStatus =
+    agents.find((a) => a.agent === selectedAgent)?.status ?? null;
+  const selectedDiff = selectedAgent ? (race.diffs[selectedAgent] ?? null) : null;
+  const canAdopt = selectedStatus === "completed" && race.adopting === null;
+
+  const openDiff = (agent: string): void => {
+    setCockpitAgent(agent);
+    void race.loadDiff(agent);
+  };
+
+  // Prefetch the selected agent's diff when the cockpit opens or the
+  // selection changes; a previous failure is not retried automatically.
+  useEffect(() => {
+    if (!selectedAgent) return;
+    if (race.diffs[selectedAgent]) return;
+    if (race.diffLoading === selectedAgent) return;
+    if (race.diffError?.agent === selectedAgent) return;
+    void race.loadDiff(selectedAgent);
+  }, [selectedAgent, race.diffs, race.diffLoading, race.diffError, race.loadDiff]);
+
+  const isAdopting = (mode: RaceAdoptMode): boolean =>
+    race.adopting?.agent === selectedAgent && race.adopting.mode === mode;
+
   const terminalBanner =
     phase === "finished"
       ? { variant: "info" as const, text: t("race.finished") }
@@ -126,7 +181,12 @@ export function RacePage() {
         ? { variant: "err" as const, text: t("race.failed") }
         : phase === "cancelled"
           ? { variant: "warn" as const, text: t("race.cancelled") }
-          : null;
+          : phase === "adopted"
+            ? {
+                variant: "info" as const,
+                text: race.adoptReport?.message ?? t("race.adopted"),
+              }
+            : null;
 
   return (
     <section className="cd-page cd-race">
@@ -300,9 +360,182 @@ export function RacePage() {
                       <p className="cd-race__hint">{t("race.logsEmpty")}</p>
                     )}
                   </div>
+                  <div className="cd-race__column-actions">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openDiff(agent.agent)}
+                      aria-pressed={selectedAgent === agent.agent && cockpitOpen}
+                    >
+                      {t("race.viewDiff")}
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>
+          )}
+
+          {cockpitOpen && selectedAgent && (
+            <Card className="cd-race__cockpit">
+              <div className="cd-race__cockpit-head">
+                <h2 className="cd-race__kicker">{t("race.diffTitle")}</h2>
+                {agents.length > 1 && (
+                  <div
+                    className="cd-race__picker"
+                    role="group"
+                    aria-label={t("race.agentPicker")}
+                  >
+                    {agents.map((a) => (
+                      <button
+                        key={a.agent}
+                        type="button"
+                        className={`cd-race__pick${a.agent === selectedAgent ? " cd-race__pick--on" : ""}`}
+                        aria-pressed={a.agent === selectedAgent}
+                        onClick={() => openDiff(a.agent)}
+                      >
+                        {a.agent}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {race.diffError?.agent === selectedAgent && (
+                <Banner variant="err">
+                  <strong>{t("race.diffErrorTitle")}</strong>
+                  <span>{race.diffError.message}</span>
+                </Banner>
+              )}
+
+              {!selectedDiff && race.diffError?.agent !== selectedAgent && (
+                <p className="cd-race__waiting" role="status">
+                  {race.diffLoading === selectedAgent
+                    ? t("race.diffLoading")
+                    : t("race.diffEmpty")}
+                </p>
+              )}
+
+              {selectedDiff && selectedDiff.files.length > 0 && (
+                <>
+                  {selectedDiff.truncated && (
+                    <Banner variant="warn">{t("race.diffTruncated")}</Banner>
+                  )}
+                  <div className="cd-race__cockpit-body">
+                    <table className="cd-race__files">
+                      <thead>
+                        <tr>
+                          <th scope="col">{t("race.fileCol")}</th>
+                          <th scope="col" className="cd-race__num cd-race__num--add" aria-label="+">
+                            +
+                          </th>
+                          <th scope="col" className="cd-race__num cd-race__num--del" aria-label="−">
+                            −
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedDiff.files.map((file) => (
+                          <tr key={file.path}>
+                            <td className="cd-race__file-path">{file.path}</td>
+                            <td className="cd-race__num cd-race__num--add">
+                              {file.adds ?? t("race.binary")}
+                            </td>
+                            <td className="cd-race__num cd-race__num--del">
+                              {file.dels ?? "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <pre className="cd-race__patch" aria-label={t("race.patchLabel")}>
+                      {selectedDiff.patch.split("\n").map((line, index) => (
+                        <span
+                          key={index}
+                          className={`cd-race__line cd-race__line--${patchLineClass(line)}`}
+                        >
+                          {line}
+                          {"\n"}
+                        </span>
+                      ))}
+                    </pre>
+                  </div>
+                </>
+              )}
+
+              <div className="cd-race__adopt">
+                <Tooltip content={t("race.adoptBranchTip")} side="top">
+                  <Button
+                    size="sm"
+                    disabled={!canAdopt}
+                    loading={isAdopting("branch")}
+                    onClick={() => selectedAgent && void race.adopt(selectedAgent, "branch")}
+                  >
+                    {t("race.adoptBranch")}
+                  </Button>
+                </Tooltip>
+                <Tooltip content={t("race.adoptApplyTip")} side="top">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={!canAdopt}
+                    loading={isAdopting("apply")}
+                    onClick={() => selectedAgent && void race.adopt(selectedAgent, "apply")}
+                  >
+                    {t("race.adoptApply")}
+                  </Button>
+                </Tooltip>
+              </div>
+            </Card>
+          )}
+
+          {race.adoptReport && (
+            <Banner variant={race.adoptReport.ok ? "info" : "warn"}>
+              <strong>
+                {race.adoptReport.ok
+                  ? t("race.adoptOkTitle")
+                  : t("race.adoptBlockedTitle")}
+              </strong>
+              <span>{race.adoptReport.message}</span>
+              {race.adoptReport.conflicts.length > 0 && (
+                <ul className="cd-race__banner-list">
+                  {race.adoptReport.conflicts.map((conflict) => (
+                    <li key={conflict.path}>
+                      <span className="cd-race__file-path">{conflict.path}</span>
+                      {": "}
+                      {conflict.reason}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Banner>
+          )}
+
+          {race.adoptError && (
+            <Banner variant="err">
+              <strong>{t("race.adoptErrorTitle")}</strong>
+              <span>{race.adoptError}</span>
+            </Banner>
+          )}
+
+          {race.cleanupReport && (
+            <Banner variant="info">
+              <strong>{t("race.cleanupReportTitle")}</strong>
+              <span>
+                {race.cleanupReport.skipped_reason
+                  ? race.cleanupReport.skipped_reason
+                  : t("race.cleanupSummary", {
+                      worktrees: race.cleanupReport.removed_worktrees.length,
+                      branches: race.cleanupReport.removed_branches.length,
+                    })}
+              </span>
+            </Banner>
+          )}
+
+          {race.cleanupError && (
+            <Banner variant="err">
+              <strong>{t("race.cleanupErrorTitle")}</strong>
+              <span>{race.cleanupError}</span>
+            </Banner>
           )}
 
           <div className="cd-race__actions">
@@ -316,9 +549,18 @@ export function RacePage() {
               </Button>
             )}
             {isTerminal && (
-              <Button variant="ghost" onClick={race.beginConfiguration}>
-                {t("race.newRace")}
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCleanupConfirmOpen(true)}
+                  loading={race.cleanupRunning}
+                >
+                  {t("race.cleanup")}
+                </Button>
+                <Button variant="ghost" onClick={race.beginConfiguration}>
+                  {t("race.newRace")}
+                </Button>
+              </>
             )}
           </div>
         </>
@@ -340,6 +582,20 @@ export function RacePage() {
           void race.cancel();
         }}
         onCancel={() => setConfirmOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={cleanupConfirmOpen}
+        title={t("race.cleanupConfirmTitle")}
+        message={t("race.cleanupConfirmBody")}
+        confirmLabel={t("race.cleanup")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={() => {
+          setCleanupConfirmOpen(false);
+          void race.cleanup();
+        }}
+        onCancel={() => setCleanupConfirmOpen(false)}
       />
     </section>
   );

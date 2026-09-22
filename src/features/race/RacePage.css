@@ -227,3 +227,169 @@
   word-break: break-word;
   font-variant-numeric: tabular-nums;
 }
+
+.cd-race__column-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* --- Diff Cockpit (v23.2c) ---------------------------------------------- */
+
+.cd-race__cockpit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+
+.cd-race__cockpit .cd-banner {
+  margin-bottom: 0;
+}
+
+.cd-race__cockpit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.cd-race__picker {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+
+.cd-race__pick {
+  min-height: 32px;
+  padding: 0 var(--s-3);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.cd-race__pick:hover {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  color: var(--text);
+}
+
+.cd-race__pick--on {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 12%, transparent);
+  color: var(--text);
+}
+
+.cd-race__pick:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cd-race__cockpit-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.cd-race__files {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.cd-race__files th {
+  text-align: left;
+  padding: var(--s-1) var(--s-2);
+  border-bottom: 1px solid var(--border-strong, var(--border));
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cd-race__files td {
+  padding: var(--s-1) var(--s-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.cd-race__file-path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.cd-race__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 72px;
+  white-space: nowrap;
+}
+
+.cd-race__num--add {
+  color: var(--ok);
+}
+
+.cd-race__num--del {
+  color: var(--err);
+}
+
+.cd-race__patch {
+  margin: 0;
+  padding: var(--s-2);
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 360px;
+  overflow: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd-race__line {
+  display: block;
+  white-space: pre;
+}
+
+.cd-race__line--add {
+  background: color-mix(in oklch, var(--ok) 14%, transparent);
+  color: var(--text);
+}
+
+.cd-race__line--del {
+  background: color-mix(in oklch, var(--err) 14%, transparent);
+  color: var(--text);
+}
+
+.cd-race__line--hunk {
+  color: var(--accent);
+}
+
+.cd-race__line--meta {
+  color: var(--text-muted);
+}
+
+/* Adopt actions with explanatory tooltips (branch = default safe). */
+.cd-race__adopt {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* Tooltip texts here are sentences: allow wrapping instead of the global
+   single-line tooltip. */
+.cd-race .cd-tip__content {
+  white-space: normal;
+  width: max-content;
+  max-width: 280px;
+  text-transform: none;
+  letter-spacing: normal;
+}
