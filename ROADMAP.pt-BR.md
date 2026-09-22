@@ -2,13 +2,14 @@
 
 Para onde o projeto está indo. Prioridades, não promessas: este roadmap não carrega datas de propósito — cada item sai quando estiver pronto.
 
-## Onde estamos — v22.9.0
+## Onde estamos — v23.0.0
 
 O AI Launcher é um command deck desktop nativo (Tauri v2 + React 19 + Rust) para descobrir, lançar e monitorar agentes CLI de IA, IDEs e servidores MCP — local-first, zero telemetria, licença MIT.
 
 Pilares já entregues:
 
 - **Launcher Multi-Agente** — execução em 1 clique para Claude Code, Codex, Antigravity, Aider, Goose, Cline, Roo Code, Continue, Cody, Copilot, VS Code e Cursor
+- **Race Mode** — corridas multiagente paralelas em worktrees git isolados, com Diff & Review Cockpit e adoção atômica
 - **Hub MCP por Projeto** — detecção automática de stack, presets validados e monitoramento de saúde
 - **Analytics de Custos & Budget Guard** — rastreio de gasto por provedor em tempo real, com tetos mensais configuráveis e alertas
 - **Environment Doctor** — diagnóstico concorrente de runtimes (Node, Python, Rust, Docker e mais) com reparo guiado em 1 clique
@@ -19,7 +20,7 @@ Pilares já entregues:
 
 ## Entregas recentes
 
-Ondas recentes de engenharia (higiene → rede de proteção → plataforma), até a v22.9.0:
+Ondas recentes de engenharia (higiene → rede de proteção → plataforma), até a v23.0.0:
 
 - [x] Higiene do núcleo — helpers de segurança deduplicados, camada de erro tipada (`AppError`) nos commands Rust, varreduras de rede/arquivo tiradas da thread de comandos
 - [x] Segurança de shell — escaping de metacaracteres no fallback `cmd /K`, tokens de comando custom sob guarda, probe HTTP real para o health check de MCP
@@ -30,14 +31,14 @@ Ondas recentes de engenharia (higiene → rede de proteção → plataforma), at
 - [x] Manifestos de empacotamento — winget, Scoop e Chocolatey com script gerador (submissão às lojas pendente do 1º release estável)
 - [x] Guia público de instalação multiplataforma — instruções NSIS/MSI, dmg e AppImage/deb para usuários finais
 
-## v23.0.0 — "Fleet Command" (planejado — explorando)
+## v23.0.0 — "Fleet Command" (entregue)
 
-A próxima onda maior, aprovada como direção: executar e observar vários
-agentes ao mesmo tempo, com salvaguardas de custo e segurança. Sem datas,
-de propósito.
+A onda Fleet Command: executar e observar vários agentes ao mesmo tempo,
+com salvaguardas de custo e segurança. As metades de Race Mode e navegação
+saíram na v23.0.0; os demais itens seguem nesta lista até ficarem prontos.
 
-- [ ] **Multi-agente paralelo com isolamento por git worktree** — rode vários agentes no mesmo projeto em worktrees isolados, além do Race Mode: diffs lado a lado em que você adota o melhor resultado
-- [ ] **Diff & Review Cockpit** — superfície de revisão por sessão do que cada agente mudou antes do merge
+- [x] **Multi-agente paralelo com isolamento por git worktree** — Race Mode entregue na v23.0.0: até 3 agentes no mesmo prompt, cada um em seu worktree isolado, com colunas de status ao vivo, auto-commit do trabalho não commitado, cemitério de corridas com retenção de 7 dias e recuperação de crash
+- [x] **Diff & Review Cockpit** — entregue na v23.0.0: arquivos alterados por agente e diff unificado colorido, com adoção atômica (branch como padrão, ou apply com relatório de conflitos por arquivo — nunca parcial)
 - [ ] **Cost Governance 3.0** — orçamento por projeto, projeção de gastos e custo por sessão
 - [ ] **Registry de Runbooks assinado** — distribuição de runbooks verificada com minisign
 - [ ] **Agendador local de runbooks** — execute runbooks em horários programados, totalmente offline
