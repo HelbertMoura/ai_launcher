@@ -164,6 +164,14 @@ fn main() {
             commands::runbook::run_runbook_step,
             commands::runbook::stop_runbook_execution,
             commands::runbook::evaluate_runbook_condition,
+            // commands::race
+            commands::race::race_start,
+            commands::race::race_status,
+            commands::race::race_diff,
+            commands::race::race_adopt,
+            commands::race::race_cancel,
+            commands::race::race_cleanup,
+            commands::race::race_scan_orphans,
             // secrets
             secrets::store_secret,
             secrets::get_secret,
