@@ -41,6 +41,7 @@ agents at once, with cost and safety guardrails. No dates on purpose.
 - [ ] **Signed Runbook Registry** — minisign-verified runbook distribution
 - [ ] **Local runbook scheduler** — run runbooks on a schedule, fully offline
 - [ ] **Sidebar regrouping** — Execute / Observe / Connect-System groups with pinned shortcuts
+- [ ] **Revisit distribution channels** — winget/Chocolatey manifests stay dormant in `packaging/`; revisit only if user demand shows up (GitHub Releases + Scoop cover the current needs)
 
 ## Next
 
