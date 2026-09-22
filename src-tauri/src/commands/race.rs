@@ -35,8 +35,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::AppError;
 use crate::util::{
-    apply_no_window, command_exists, get_cli_definitions, log_event, resolve_cli_path,
-    validate_directory,
+    apply_no_window, capture_process_identity, command_exists, get_cli_definitions, log_event,
+    process_identity_matches, resolve_cli_path, validate_directory, ProcessIdentity,
 };
 
 use super::race_state::{
@@ -166,6 +166,11 @@ pub struct RaceCleanupReport {
     pub pruned: bool,
     /// Present when the retention window has not elapsed yet.
     pub skipped_reason: Option<String>,
+    /// Per-agent reasons why a persisted process was NOT killed during
+    /// recovery (identity unverifiable, reused pid, or no signature).
+    /// Disk cleanup always proceeds regardless of these entries.
+    #[serde(default)]
+    pub unverified_processes: Vec<String>,
 }
 
 /// One orphaned race found by the boot-time scan primitive.
@@ -346,10 +351,10 @@ fn prune_race_worktree_metadata(main_repo: &Path, root: &Path, race_id: &str) ->
         // path component is separator/case resilient on Windows, where git
         // writes forward slashes into `gitdir`.
         let wt_root = PathBuf::from(gitdir_text.trim());
-        let scoped = wt_root == race_dir
-            || wt_root
-                .components()
-                .any(|c| c.as_os_str() == std::ffi::OsStr::new(race_id));
+        // Canonical scoping: the recorded worktree must live under THIS
+        // race's directory (`<races-root>/<race-id>/...`). `starts_with` is
+        // component-wise, so git's forward slashes never break the match.
+        let scoped = wt_root.starts_with(&race_dir);
         if scoped && fs::remove_dir_all(entry.path()).is_err() {
             swept = false;
         }
@@ -624,6 +629,7 @@ fn create_all_worktrees(
             branch: branch_name(race_id, key),
             worktree: worktree.to_string_lossy().into_owned(),
             pid: None,
+            identity: None,
         };
         if let Some(parent) = worktree.parent() {
             fs::create_dir_all(parent)
@@ -890,6 +896,7 @@ fn race_start_blocking_in(
     let warnings = detect_repo_warnings(&main_repo);
     let entries = create_all_worktrees(&main_repo, root, &race_id, &base_sha, &agent_keys)?;
     let mut spawned_pids: HashMap<String, u32> = HashMap::new();
+    let mut spawned_identities: HashMap<String, ProcessIdentity> = HashMap::new();
 
     // Placeholder runtime BEFORE the spawns, so waiter threads always find
     // their slot to record the exit code.
@@ -902,6 +909,12 @@ fn race_start_blocking_in(
         match spawn_agent(root, &race_id, entry, prompt) {
             Ok(proc) => {
                 spawned_pids.insert(entry.agent.clone(), proc.pid);
+                // Sign the process NOW (exe path + creation time): this is
+                // what lets race_recover tell the real agent apart from a
+                // pid the OS handed to an unrelated process after a reboot.
+                if let Some(identity) = capture_process_identity(proc.pid) {
+                    spawned_identities.insert(entry.agent.clone(), identity);
+                }
             }
             Err(error) => {
                 abort_start(&main_repo, root, &race_id, &entries);
@@ -914,12 +927,14 @@ fn race_start_blocking_in(
     }
 
     let started_at = chrono::Local::now().to_rfc3339();
-    // Persist every agent pid: after an app crash, `race_recover` uses these
-    // to terminate processes that outlived the session.
+    // Persist every agent pid + process signature: after an app crash,
+    // `race_recover` kills a pid only when the OS still reports the exact
+    // recorded identity; without a signature it never kills (fail-safe).
     let agents_with_pids: Vec<AgentRecord> = entries
         .iter()
         .map(|entry| AgentRecord {
             pid: spawned_pids.get(&entry.agent).copied(),
+            identity: spawned_identities.get(&entry.agent).cloned(),
             ..entry.clone()
         })
         .collect();
@@ -1461,6 +1476,7 @@ fn race_cleanup_blocking_in(
                 "Janela de retenção não expirada — faltam {} dia(s)",
                 remaining_days
             )),
+            unverified_processes: Vec::new(),
         });
     }
 
@@ -1497,6 +1513,7 @@ fn race_cleanup_blocking_in(
                 "O diretório do projeto não existe mais — apenas o registro e os logs foram removidos"
                     .to_string(),
             ),
+            unverified_processes: Vec::new(),
         });
     }
 
@@ -1548,6 +1565,7 @@ fn race_cleanup_blocking_in(
         removed_branches,
         pruned,
         skipped_reason: None,
+        unverified_processes: Vec::new(),
     })
 }
 
@@ -1576,14 +1594,24 @@ fn race_scan_orphans_blocking_in(root: &Path) -> OrphanScanReport {
     OrphanScanReport { orphans }
 }
 
-/// Crash recovery for one orphaned race: terminates the persisted agent pids
-/// (processes that outlived the dead app session), then runs an immediate
-/// cleanup (worktrees, branches, scoped prune, race dir) and leaves the
-/// record as "cleaned" history. Refuses races whose runtime is alive in THIS
-/// session — those are cancelled, not recovered.
+/// Crash recovery for one orphaned race: terminates the persisted agent
+/// pids — ONLY after re-reading their identity from the OS (executable path
+/// and creation timestamp) and matching it against the signature recorded
+/// at spawn, so a pid reused by an unrelated process after a reboot is
+/// never killed. Unverifiable processes are skipped, listed in the report's
+/// `unverified_processes`, and the disk cleanup still runs (worktrees,
+/// branches, scoped prune, race dir), leaving the record as "cleaned"
+/// history. Refuses races whose runtime is alive in THIS session — those
+/// are cancelled, not recovered — and races that are not orphaned at all.
 fn race_recover_blocking_in(root: &Path, handle: RaceHandle) -> Result<RaceCleanupReport, String> {
     let race_id = validate_race_id(&handle.race_id)?;
     let record = current_record(root, &race_id)?;
+    if record.status != "running" {
+        return Err(format!(
+            "A corrida {} não está órfã (status {}) — nada a recuperar",
+            race_id, record.status
+        ));
+    }
     {
         let guard = runtimes()
             .lock()
@@ -1596,11 +1624,28 @@ fn race_recover_blocking_in(root: &Path, handle: RaceHandle) -> Result<RaceClean
             }
         }
     }
+    let mut unverified: Vec<String> = Vec::new();
     for entry in &record.agents {
         let Some(pid) = entry.pid else { continue };
+        let Some(expected) = entry.identity.as_ref() else {
+            // Legacy record (or failed capture): never kill blind.
+            unverified.push(format!(
+                "{}: sem assinatura persistida — processo não verificado, não finalizado",
+                entry.agent
+            ));
+            continue;
+        };
+        if !process_identity_matches(pid, expected) {
+            // Signature mismatch (pid reused) or unreadable: spare it.
+            unverified.push(format!(
+                "{}: identidade do pid {} não confere — processo não verificado, não finalizado",
+                entry.agent, pid
+            ));
+            continue;
+        }
         if let Err(error) = crate::util::kill_tree(pid) {
-            // The pid may already be gone or be a stale record value; the
-            // cleanup below is still the source of truth for disk state.
+            // The process may have exited on its own between the check and
+            // the kill; the disk cleanup below is the source of truth.
             log_event(
                 "race_recover",
                 &format!("falha ao interromper o pid {}: {}", pid, error),
@@ -1619,7 +1664,9 @@ fn race_recover_blocking_in(root: &Path, handle: RaceHandle) -> Result<RaceClean
         }
     })
     .map_err(|e| e.to_string())?;
-    race_cleanup_blocking_in(root, handle, Some(0))
+    let mut report = race_cleanup_blocking_in(root, handle, Some(0))?;
+    report.unverified_processes = unverified;
+    Ok(report)
 }
 
 /// Graveyard listing: every terminal race record, newest first, with a flag
@@ -2920,6 +2967,19 @@ mod tests {
         }
     }
 
+    /// Polls the OS until the pid reaches the desired state (gone when
+    /// `true`, alive when `false`); returns whether the state was reached
+    /// within the deadline.
+    fn wait_process_state(pid: u32, gone: bool) -> bool {
+        for _ in 0..150 {
+            if process_is_gone(pid) == gone {
+                return true;
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        process_is_gone(pid) == gone
+    }
+
     /// Test-as-child helper: the parent re-executes THIS test binary with
     /// `--ignored --exact` so it gets a real, long-lived process to kill.
     /// `#[ignore]` keeps it out of the normal suite.
@@ -2927,6 +2987,28 @@ mod tests {
     #[ignore]
     fn recover_sleep_child_stays_alive_until_killed() {
         thread::sleep(Duration::from_secs(30));
+    }
+
+    /// Spawns a real long-lived child (see `recover_sleep_child_*`) with a
+    /// NEUTRAL cwd (the races root): on Windows a live process would lock its
+    /// working directory, and the spare-process scenarios below must be able
+    /// to remove the worktree while the sleeper is still running.
+    fn spawn_sleeper(root: &Path, record: &RaceRecord) -> AgentProc {
+        let exe = std::env::current_exe().expect("binário de teste");
+        spawn_agent_process(
+            &record.race_id,
+            "claude",
+            exe.to_str().expect("caminho do binário"),
+            &[
+                "--exact".to_string(),
+                "commands::race::tests::recover_sleep_child_stays_alive_until_killed".to_string(),
+                "--ignored".to_string(),
+                "--test-threads=1".to_string(),
+            ],
+            root,
+            &agent_log_path(root, &record.race_id, "claude"),
+        )
+        .expect("spawn do filho dormente")
     }
 
     #[test]
@@ -3027,39 +3109,22 @@ mod tests {
         let wt = worktree_of(&record, 0);
 
         // A real live "agent": this test binary re-executed as a sleeper.
-        // `--exact` matches the FULL test path, `--ignored` un-ignores it.
-        let exe = std::env::current_exe().expect("binário de teste");
-        let proc = spawn_agent_process(
-            &record.race_id,
-            "claude",
-            exe.to_str().expect("caminho do binário"),
-            &[
-                "--exact".to_string(),
-                "commands::race::tests::recover_sleep_child_stays_alive_until_killed".to_string(),
-                "--ignored".to_string(),
-                "--test-threads=1".to_string(),
-            ],
-            &wt,
-            &agent_log_path(root.path(), &record.race_id, "claude"),
-        )
-        .expect("spawn do filho dormente");
-        let mut alive = false;
-        for _ in 0..100 {
-            if !process_is_gone(proc.pid) {
-                alive = true;
-                break;
-            }
-            thread::sleep(Duration::from_millis(20));
-        }
-        assert!(alive, "o filho dormente deveria estar vivo");
+        let proc = spawn_sleeper(root.path(), &record);
+        assert!(
+            wait_process_state(proc.pid, false),
+            "o filho dormente deveria estar vivo"
+        );
 
-        // Persist the pid like race_start does, then simulate the app crash.
+        // Persist pid + the REAL signature like race_start does, then
+        // simulate the app crash.
+        let identity = capture_process_identity(proc.pid).expect("assinatura do processo vivo");
         update_race(root.path(), &record.race_id, |r| {
             if let Some(agent) = r.agents.first_mut() {
                 agent.pid = Some(proc.pid);
+                agent.identity = Some(identity);
             }
         })
-        .expect("persistir pid");
+        .expect("persistir pid e assinatura");
         drop_runtime(&record.race_id);
 
         let report = race_recover_blocking_in(root.path(), handle_of(&record)).expect("recover");
@@ -3068,20 +3133,20 @@ mod tests {
             "{:?}",
             report.skipped_reason
         );
+        assert!(
+            report.unverified_processes.is_empty(),
+            "identidade deve bater: {:?}",
+            report.unverified_processes
+        );
         assert_eq!(
             report.removed_worktrees,
             vec![record.agents[0].worktree.clone()]
         );
 
-        let mut gone = false;
-        for _ in 0..150 {
-            if process_is_gone(proc.pid) {
-                gone = true;
-                break;
-            }
-            thread::sleep(Duration::from_millis(50));
-        }
-        assert!(gone, "o pid persistido deveria ter sido encerrado");
+        assert!(
+            wait_process_state(proc.pid, true),
+            "o pid assinado deveria ter sido encerrado"
+        );
         assert!(!wt.exists(), "worktree removido");
         assert!(
             run_git(&repo, &["branch", "--list", &record.agents[0].branch])
@@ -3093,6 +3158,112 @@ mod tests {
         let stored = get_race(root.path(), &record.race_id).expect("registro");
         assert_eq!(stored.status, "cleaned");
         assert!(stored.finished_at.is_some());
+    }
+
+    #[test]
+    fn recover_spares_reused_pid_of_a_different_executable() {
+        let (_tmp, repo) = temp_repo("recover-reused");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let wt = worktree_of(&record, 0);
+
+        let proc = spawn_sleeper(root.path(), &record);
+        assert!(
+            wait_process_state(proc.pid, false),
+            "o filho dormente deveria estar vivo"
+        );
+
+        // Simulate a reboot where the OS handed the recorded pid to another
+        // executable: the persisted signature can no longer match.
+        let reused = ProcessIdentity {
+            exe: if cfg!(windows) {
+                r"C:\Windows\System32\notepad.exe".to_string()
+            } else {
+                "/usr/bin/yes".to_string()
+            },
+            creation_time: 42,
+        };
+        update_race(root.path(), &record.race_id, |r| {
+            if let Some(agent) = r.agents.first_mut() {
+                agent.pid = Some(proc.pid);
+                agent.identity = Some(reused);
+            }
+        })
+        .expect("persistir pid reaproveitado");
+        drop_runtime(&record.race_id);
+
+        let report = race_recover_blocking_in(root.path(), handle_of(&record)).expect("recover");
+        assert_eq!(report.unverified_processes.len(), 1, "{report:?}");
+        assert!(
+            report.unverified_processes[0].contains("não verificado"),
+            "{:?}",
+            report.unverified_processes
+        );
+        // The innocent process SURVIVES the recovery…
+        assert!(
+            wait_process_state(proc.pid, false),
+            "o processo inocente não pode ser morto"
+        );
+        // …while the disk cleanup still ran.
+        assert!(!wt.exists(), "worktree removido mesmo sem kill");
+        assert_eq!(
+            get_race(root.path(), &record.race_id)
+                .expect("registro")
+                .status,
+            "cleaned"
+        );
+
+        // Test hygiene: kill the survivor spawned for this test.
+        crate::util::kill_tree(proc.pid).expect("encerrar o filho do teste");
+        assert!(wait_process_state(proc.pid, true));
+    }
+
+    #[test]
+    fn recover_with_legacy_record_without_signature_spares_process() {
+        let (_tmp, repo) = temp_repo("recover-legacy");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let wt = worktree_of(&record, 0);
+
+        let proc = spawn_sleeper(root.path(), &record);
+        assert!(
+            wait_process_state(proc.pid, false),
+            "o filho dormente deveria estar vivo"
+        );
+
+        // Legacy record shape: pid present, no persisted identity at all.
+        update_race(root.path(), &record.race_id, |r| {
+            if let Some(agent) = r.agents.first_mut() {
+                agent.pid = Some(proc.pid);
+                agent.identity = None;
+            }
+        })
+        .expect("persistir pid sem assinatura");
+        drop_runtime(&record.race_id);
+
+        let report = race_recover_blocking_in(root.path(), handle_of(&record)).expect("recover");
+        assert_eq!(report.unverified_processes.len(), 1, "{report:?}");
+        assert!(
+            report.unverified_processes[0].contains("sem assinatura"),
+            "{:?}",
+            report.unverified_processes
+        );
+        // Fail-safe: no signature, no kill — the process survives.
+        assert!(
+            wait_process_state(proc.pid, false),
+            "sem assinatura o processo não pode ser morto"
+        );
+        // Disk cleanup still proceeded.
+        assert!(!wt.exists(), "worktree removido");
+        assert_eq!(
+            get_race(root.path(), &record.race_id)
+                .expect("registro")
+                .status,
+            "cleaned"
+        );
+
+        crate::util::kill_tree(proc.pid).expect("encerrar o filho do teste");
+        assert!(wait_process_state(proc.pid, true));
     }
 
     #[test]
