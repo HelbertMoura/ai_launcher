@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::AppError;
 use crate::util::log_event;
+use crate::util::process::ProcessIdentity;
 
 pub const STATE_FILE_NAME: &str = "races.json";
 pub const STATE_VERSION: u32 = 1;
@@ -39,6 +40,12 @@ pub struct AgentRecord {
     /// Records written before 23.2d deserialize as `None`.
     #[serde(default)]
     pub pid: Option<u32>,
+    /// Executable path + creation timestamp captured at spawn. `race_recover`
+    /// only kills a persisted pid when the OS still reports this exact
+    /// identity — a pid reused by another process after a reboot is spared.
+    /// Records without it (legacy or failed capture) are never killed.
+    #[serde(default)]
+    pub identity: Option<ProcessIdentity>,
 }
 
 /// A recorded race, persisted while it runs and kept afterwards as history.
@@ -224,6 +231,7 @@ mod tests {
                 branch: format!("race/{}/claude", race_id),
                 worktree: format!(r"C:\dados\races\{}\claude", race_id),
                 pid: Some(4242),
+                identity: None,
             }],
         }
     }

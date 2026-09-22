@@ -208,6 +208,115 @@ pub fn kill_tree(pid: u32) -> Result<(), String> {
     }
 }
 
+/// OS-level identity of a process at a point in time: executable path plus
+/// creation timestamp. Captured right after spawning an agent and persisted
+/// in the race record, so `race_recover` re-reads the identity from the OS
+/// before killing a pid — a pid reused by an unrelated process after a
+/// reboot can never be killed by mistake.
+#[derive(Debug, Serialize, Clone, PartialEq, Eq, serde::Deserialize)]
+pub struct ProcessIdentity {
+    pub exe: String,
+    /// Windows: FILETIME (100 ns units since 1601-01-01).
+    /// Unix (Linux /proc): process start time, nanoseconds since the epoch.
+    pub creation_time: u64,
+}
+
+/// Reads the current identity of `pid` from the OS. Returns `None` when the
+/// identity cannot be established (process gone, access denied, or a
+/// platform without the needed introspection) — callers must treat `None`
+/// as "not verifiable" and never kill.
+#[cfg(windows)]
+pub fn capture_process_identity(pid: u32) -> Option<ProcessIdentity> {
+    use std::ffi::OsString;
+    use std::os::windows::ffi::OsStringExt;
+
+    use windows_sys::Win32::Foundation::{CloseHandle, FILETIME};
+    use windows_sys::Win32::System::Threading::{
+        GetProcessTimes, OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
+        PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+
+    // SAFETY: plain process-introspection syscalls; the handle is opened with
+    // QUERY_LIMITED_INFORMATION only and always closed on every exit path.
+    unsafe {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+        if handle.is_null() {
+            return None;
+        }
+
+        let mut creation = FILETIME {
+            dwLowDateTime: 0,
+            dwHighDateTime: 0,
+        };
+        let mut exit = FILETIME {
+            dwLowDateTime: 0,
+            dwHighDateTime: 0,
+        };
+        let mut kernel = FILETIME {
+            dwLowDateTime: 0,
+            dwHighDateTime: 0,
+        };
+        let mut user = FILETIME {
+            dwLowDateTime: 0,
+            dwHighDateTime: 0,
+        };
+        if GetProcessTimes(handle, &mut creation, &mut exit, &mut kernel, &mut user) == 0 {
+            let _ = CloseHandle(handle);
+            return None;
+        }
+        let creation_time =
+            ((creation.dwHighDateTime as u64) << 32) | creation.dwLowDateTime as u64;
+
+        let mut buf = [0u16; 1024];
+        let mut len = buf.len() as u32;
+        if QueryFullProcessImageNameW(handle, PROCESS_NAME_WIN32, buf.as_mut_ptr(), &mut len) == 0 {
+            let _ = CloseHandle(handle);
+            return None;
+        }
+        let _ = CloseHandle(handle);
+        let exe = OsString::from_wide(&buf[..len as usize])
+            .to_string_lossy()
+            .into_owned();
+        Some(ProcessIdentity { exe, creation_time })
+    }
+}
+
+/// Non-Windows capture: Linux exposes `/proc/<pid>/exe` (readlink) and the
+/// start time as the `/proc/<pid>` entry timestamp. Where `/proc` does not
+/// exist (macOS), capture fails and recovery stays on the safe path — an
+/// unverifiable process is never killed.
+#[cfg(not(windows))]
+pub fn capture_process_identity(pid: u32) -> Option<ProcessIdentity> {
+    let exe = std::fs::read_link(format!("/proc/{pid}/exe")).ok()?;
+    let creation_time = std::fs::metadata(format!("/proc/{pid}"))
+        .ok()?
+        .modified()
+        .ok()?
+        .duration_since(std::time::UNIX_EPOCH)
+        .ok()?
+        .as_nanos() as u64;
+    Some(ProcessIdentity {
+        exe: exe.to_string_lossy().into_owned(),
+        creation_time,
+    })
+}
+
+/// True only when `pid` currently runs the exact recorded process: same
+/// executable AND same creation timestamp (exe paths are case-insensitive on
+/// Windows). `false` — including when the identity cannot be re-read — means
+/// "do not kill".
+pub fn process_identity_matches(pid: u32, expected: &ProcessIdentity) -> bool {
+    let Some(current) = capture_process_identity(pid) else {
+        return false;
+    };
+    let same_exe = if cfg!(windows) {
+        current.exe.eq_ignore_ascii_case(&expected.exe)
+    } else {
+        current.exe == expected.exe
+    };
+    same_exe && current.creation_time == expected.creation_time
+}
+
 #[cfg(windows)]
 pub fn encode_powershell_command(script: &str) -> String {
     use base64::{engine::general_purpose::STANDARD, Engine};
