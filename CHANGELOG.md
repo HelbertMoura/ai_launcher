@@ -12,8 +12,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [23.0.0] — 2026-09-22 — Fleet Command
+
+The fleet-command release: Race Mode puts up to three agents on the same task in parallel, each in its own isolated git worktree, and closes the loop with a Diff & Review Cockpit whose adoption is always atomic — a race lands as a branch or as an apply report, never partially. Navigation is regrouped around it (collapsible Run / Observe / Connect / System groups, a fused Maintenance surface) and the whole app got a fluidity pass (tab-switch jank, progressive rechecks, batched history).
+
+### Added
+- **Race Mode:** parallel multi-agent races — up to 3 agents tackle the same prompt simultaneously, each in an isolated git worktree branched from the repository's base SHA. The Race surface shows live per-agent columns (status polling with zod-validated contracts), the backend engine handles worktree lifecycle, guards, diff and adoption, and all commands go through the typed TS contract layer.
+- **Diff & Review Cockpit:** a cockpit section below the agent columns lists each agent's changed files (tabular +adds/−dels) and renders the unified patch colorized by line kind with pure CSS (2 MB cap with an explicit truncation warning). Adoption is atomic: the safe default **Adopt (branch)** checks out the race branch, while **Adopt (apply)** applies changes with a per-file conflict report — a race is never landed partially, and apply-mode fails closed on rename entries.
+- **Auto-commit of uncommitted agent work:** agents that edit files without committing are now visible to the three-dot diff — `race_diff` and `race_adopt` snapshot an unclean worktree (`git add -A` + a single commit on the race branch) first. A scope guard refuses any recorded worktree path outside the managed races root, so the auto-commit can never reach the user's own repository even with a tampered state file.
+- **Race history, graveyard and crash recovery:** finished races persist newest-first with a `worktrees_present` flag separating restorable races from archived ones; a **7-day retention window** gates cleanup (worktrees + branches + a race-scoped metadata sweep that never reaps the user's own orphaned worktrees). Races within the window can be restored; when the app dies mid-race, a boot-time orphan scan detects the race, and recovery verifies the persisted process identity before killing anything — unverified PIDs are surfaced in the report instead of being killed blindly.
+- **Regrouped navigation:** the sidebar now has Home fixed on top, a pinned-surfaces section and four collapsible groups — **Run / Observe / Connect / System** — with persisted collapse state and hover pin actions. Doctor + Prereqs + Updates are fused into a single **Maintenance** surface with three embedded sections (Diagnostics / Checks / Updates) and stable `Ctrl+8/9/0` shortcuts; legacy surface ids keep resolving. The command palette groups results like the sidebar, offers pin actions, and surfaces v22 names (Doctor / Prereqs / Updates) as marked legacy aliases.
+- **Ko-fi support button** in Help's About card ("Support the project on Ko-fi", opening ko-fi.com/helbertmoura) beside the Dev Maniac's author credit.
+
+### Performance
+- **Tab-switch jank eliminated:** `backdrop-filter` removed from five surfaces (status bar, dialogs, command palette, launcher dropdown) that forced a GPU re-blur on every repaint beneath them; toggle thumbs now animate via `transform` instead of layout properties, and persistent `will-change` layers were dropped from tab panels.
+- **Progressive environment recheck:** each check result streams to the UI via an `env-check-result` event as soon as its blocking probe finishes (zod-validated, memoized cards) — results appear one by one instead of all at once after ~15 subprocess probes.
+- **Boot update scan deferred and deduped:** the automatic `check_all_updates` now waits for browser idle (4 s timeout) and is rate-limited module-wide; it used to fire immediately on mount and once per `useUpdates` mount (App + StatusBar), doubling ~15 subprocess probes plus npm/GitHub network calls during first paint. Explicit refreshes remain immediate.
+- **History rendered in batches of 60** with a centered "show more" control, keeping the tab's first paint cheap (up to 200 stored rows were rendered at once).
+- **MCP health checks merge progressively:** status pills and overview metrics fill in as each probe resolves instead of waiting for every 3 s-timeout HTTP probe; `list_mcp_servers` moved to the blocking thread pool.
+
 ### Fixed
-- **Windows:** guard the legacy DPAPI decryption path against a null/empty payload pointer before `from_raw_parts` (CodeQL `rust/access-invalid-pointer`), and harden the Credential Manager blob read the same way.
+- **WCAG AA contrast for the missing-status chip:** the 0.7 opacity blended `--text-dim` down to an effective 3.52:1 on dark surfaces; mixing toward `--text` measures 7.77:1 dark, 6.28:1 light and 11.17:1 high-contrast.
+- **MCP tolerant to malformed configs:** unreadable or malformed per-CLI config files now surface a per-CLI warning and a page banner instead of being silently swallowed; the store validates leniently, so a single malformed server entry is skipped — never breaking the whole page.
+- **CodeQL pointer guards in the Windows secrets path:** the DPAPI decryption output pointer is checked before `from_raw_parts`, and the Credential Manager blob read goes through a pointer `as_ref` (both flagged by CodeQL `rust/access-invalid-pointer`).
+- **Race correctness:** the merge simulation takes "ours" from HEAD's blob instead of disk; live status polling resumes its cadence when the Race surface remounts mid-race; the Race keyboard shortcut is matched by key code so the macOS Option binding fires.
+
+### CI and Dependencies
+- The Vitest CI job runs on **Node 24** to satisfy the jsdom 30.1 engines requirement.
+- Dependabot: `frontend-dev` group bumped across 10 dev dependencies.
+- Playwright e2e coverage expanded: the race flow and the diff cockpit + branch adoption are covered with deterministic race stubs, plus grouped-sidebar layout contracts and run-button click scoping past sidebar group headers.
+- Roadmap scopes distribution to GitHub Releases + the repository's Scoop bucket; winget and Chocolatey are explicitly deferred.
 
 ## [22.9.0] — 2026-09-21 — Hardened Trust & Release Pipeline
 
