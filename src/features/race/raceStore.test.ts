@@ -106,6 +106,7 @@ const CLEANUP: RaceCleanupReport = {
   removed_branches: ["race/race-1/claude", "race/race-1/codex"],
   pruned: true,
   skipped_reason: null,
+  unverified_processes: [],
 };
 
 /** Starts a race and drives it to the terminal "completed" state. */
@@ -166,6 +167,7 @@ const RECOVER_REPORT: RaceCleanupReport = {
   removed_branches: ORPHAN.branches,
   pruned: true,
   skipped_reason: null,
+  unverified_processes: [],
 };
 
 beforeEach(() => {
@@ -742,6 +744,25 @@ describe("raceStore", () => {
     expect(s.orphans).toEqual([]); // banner empties without a rescan
     expect(s.historyReport).toEqual(RECOVER_REPORT);
     // The graveyard reloads with the recovered record.
+    expect(raceListHistoryMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("recoverOrphan surfaces unverified (spared) processes in the report", async () => {
+    raceScanOrphansMock.mockResolvedValue({ orphans: [ORPHAN] });
+    await raceStore.scanOrphans();
+    raceRecoverMock.mockResolvedValue({
+      ...RECOVER_REPORT,
+      unverified_processes: [
+        "claude: identidade do pid 4200 não confere — processo não verificado, não finalizado",
+      ],
+    });
+    await raceStore.recoverOrphan(ORPHAN);
+
+    const s = raceStore.getSnapshot();
+    expect(s.recovering).toBeNull();
+    expect(s.orphans).toEqual([]);
+    expect(s.historyReport?.unverified_processes).toHaveLength(1);
+    expect(s.historyReport?.unverified_processes[0]).toContain("não verificado");
     expect(raceListHistoryMock).toHaveBeenCalledTimes(1);
   });
 

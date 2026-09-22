@@ -631,6 +631,7 @@ export const ptBR = {
     cleanupReportTitle: "Relatório da limpeza",
     cleanupSummary: "Worktrees removidos: {{worktrees}} · Branches removidas: {{branches}}",
     cleanupErrorTitle: "A limpeza falhou",
+    recoverUnverified: "Processos não finalizados (identidade não verificada):",
     orphansTitle: "{{count}} corrida(s) órfã(s) — worktrees ocupando espaço",
     orphansHint:
       "O app foi encerrado com corridas em execução. Limpe para encerrar os processos restantes e remover os worktrees.",

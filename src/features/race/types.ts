@@ -110,6 +110,12 @@ export const RaceCleanupReportSchema = z.object({
   pruned: z.boolean(),
   /** Present when the retention window has not elapsed yet. */
   skipped_reason: z.string().nullable(),
+  /**
+   * Recover only: persisted pids NOT killed because the OS identity no
+   * longer matches the recorded signature (or there is none). Disk cleanup
+   * proceeds regardless; the UI lists these verbatim.
+   */
+  unverified_processes: z.array(z.string()).default([]),
 });
 export type RaceCleanupReport = z.infer<typeof RaceCleanupReportSchema>;
 

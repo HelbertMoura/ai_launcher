@@ -189,6 +189,9 @@ const RECOVER_REPORT: NonNullable<TauriStubOverrides["race_recover"]> = {
   removed_branches: ["race/race-orphan-1/claude", "race/race-orphan-1/codex"],
   pruned: true,
   skipped_reason: null,
+  unverified_processes: [
+    "claude: identidade do pid 4200 não confere — processo não verificado, não finalizado",
+  ],
 };
 
 const HISTORY_ARCHIVED: NonNullable<TauriStubOverrides["race_list_history"]> = [
@@ -211,6 +214,22 @@ test("recovers an orphaned race from the boot banner", async ({ page }) => {
     responses: {
       race_scan_orphans: ORPHAN_SCAN,
       race_recover: RECOVER_REPORT,
+      // The recovered race lands in the graveyard, which then shows the
+      // cleanup report with the spared (unverified) process listed.
+      race_list_history: [
+        {
+          race_id: "race-orphan-1",
+          directory: "C:/projeto-orfao",
+          base_sha: "orphanbase0000000000000000000000000000000",
+          status: "cleaned",
+          started_at: "2020-01-01T08:00:00.000Z",
+          finished_at: "2020-01-01T08:05:00.000Z",
+          agents: ["claude", "codex"],
+          branches: [],
+          worktrees: [],
+          worktrees_present: false,
+        },
+      ],
     },
   });
   await gotoApp(page);
@@ -233,6 +252,12 @@ test("recovers an orphaned race from the boot banner", async ({ page }) => {
   // The orphan leaves the banner right away — the scan is a boot snapshot,
   // not a polled live view.
   await expect(banner).toHaveCount(0);
+
+  // The graveyard reloads and lists the spared process from the recover
+  // report verbatim (identity could not be verified, so it was not killed).
+  const graveyard = page.locator(".cd-race__graveyard");
+  await expect(graveyard).toContainText("Processes not killed");
+  await expect(graveyard).toContainText("não verificado, não finalizado");
 
   await expectNoUnknownTauriCommands(page);
 });
