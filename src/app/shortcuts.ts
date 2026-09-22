@@ -38,6 +38,14 @@ export const DIGIT_TABS: Record<string, NavigateTarget> = {
   "0": { tab: "maintenance", section: "verifications" },
 };
 
+/**
+ * Non-digit navigation shortcut: `Ctrl+Alt+R` opens the v23.2 Race surface.
+ * Every digit 1..0 is already bound, and plain `Ctrl+R` is avoided for its
+ * reload semantics — the extra Alt modifier keeps the binding collision-free
+ * (see the shortcut map in `TabId.ts` and the Help page).
+ */
+export const RACE_TARGET: NavigateTarget = { tab: "race" };
+
 /** Selector that returns true when the event target is a text input. */
 function isTypingTarget(target: EventTarget | null): boolean {
   const tag = (target as HTMLElement | null)?.tagName;
@@ -73,6 +81,16 @@ export function useGlobalShortcuts(
       if (target) {
         e.preventDefault();
         onNavigate(target.tab, target.section);
+        return;
+      }
+
+      if (
+        (IS_MAC ? e.metaKey : e.ctrlKey) &&
+        e.altKey &&
+        e.key.toLowerCase() === "r"
+      ) {
+        e.preventDefault();
+        onNavigate(RACE_TARGET.tab, RACE_TARGET.section);
       }
     };
     window.addEventListener("keydown", handler);

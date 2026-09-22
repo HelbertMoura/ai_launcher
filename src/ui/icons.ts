@@ -63,4 +63,5 @@ export {
   Faders,
   CaretDown,
   CaretRight,
+  FlagCheckered,
 } from "@phosphor-icons/react";
