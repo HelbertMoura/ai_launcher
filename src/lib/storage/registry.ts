@@ -507,6 +507,17 @@ export const REGISTRY = {
     })),
     default: [], version: 1,
   }),
+
+  // --- Sidebar layout (v23) — string arrays sanitized by app/layout/sidebarNav.ts ---
+  sidebarPinned: entry({
+    id: 'sidebarPinned', key: STORAGE_KEYS.sidebarPinned,
+    schema: z.array(z.string()), default: [] as string[], version: 1,
+  }),
+
+  sidebarGroups: entry({
+    id: 'sidebarGroups', key: STORAGE_KEYS.sidebarGroups,
+    schema: z.array(z.string()), default: [] as string[], version: 1,
+  }),
 } as const satisfies Record<StorageKeyId | string, RegistryEntry>;
 
 export type RegistryId = keyof typeof REGISTRY;

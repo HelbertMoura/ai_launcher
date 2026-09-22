@@ -1,7 +1,30 @@
 import { useTranslation } from "react-i18next";
 import { Icon, type IconProps } from "../../ui/Icon";
-import { ArrowUp, ChartBar, Check, Clock, FolderOpen, Gear, House, Key, Question, Rocket, ShieldCheck, Wrench } from "../../ui/icons";
-import { TAB_KEYS, TAB_I18N_KEYS, type TabId } from "./TabId";
+import {
+  CaretDown,
+  CaretRight,
+  ChartBar,
+  Clock,
+  Eye,
+  Faders,
+  FolderOpen,
+  Gear,
+  House,
+  Key,
+  Play,
+  PlugsConnected,
+  Question,
+  Rocket,
+  ShieldCheck,
+  Star,
+  Wrench,
+} from "../../ui/icons";
+import { TAB_KEYS, TAB_I18N_KEYS, type MaintenanceSection, type TabId } from "./TabId";
+import {
+  partitionSurfaces,
+  useSidebarNav,
+  type SidebarGroupId,
+} from "./sidebarNav";
 import "./Sidebar.css";
 import type { ExecutionMode } from "../../domain/executionMode";
 
@@ -16,7 +39,7 @@ export type SidebarIndicatorMap = Partial<Record<TabId, SidebarIndicator>>;
 
 interface SidebarProps {
   active: TabId;
-  onSelect: (id: TabId) => void;
+  onSelect: (id: TabId, section?: MaintenanceSection) => void;
   version: string;
   indicators?: SidebarIndicatorMap;
   collapsed?: boolean;
@@ -32,16 +55,38 @@ const TAB_ICONS: Record<TabId, IconProps["icon"]> = {
   history: Clock,
   costs: ChartBar,
   workspace: FolderOpen,
-  doctor: ShieldCheck,
-  updates: ArrowUp,
-  prereqs: Check,
+  maintenance: ShieldCheck,
   admin: Gear,
   help: Question,
+};
+
+const GROUP_ICONS: Record<SidebarGroupId, IconProps["icon"]> = {
+  run: Play,
+  observe: Eye,
+  connect: PlugsConnected,
+  system: Faders,
 };
 
 export function Sidebar({ active, onSelect, version, indicators, collapsed = false, onToggleCollapsed, executionMode }: SidebarProps) {
   const { t } = useTranslation();
   const ind = indicators ?? {};
+  const { pinned, collapsedGroups, togglePin, toggleGroup } = useSidebarNav();
+  const layout = partitionSurfaces({ pinned, collapsedGroups });
+
+  const renderItem = (id: TabId) => (
+    <Item
+      key={id}
+      id={id}
+      active={active}
+      onSelect={onSelect}
+      indicator={ind[id]}
+      compact={collapsed}
+      pinnable={id !== "command-center"}
+      pinned={pinned.includes(id)}
+      onTogglePin={togglePin}
+    />
+  );
+
   return (
     <aside className={`cd-side${collapsed ? " cd-side--collapsed" : ""}`}>
       <div className="cd-side__brand">
@@ -61,29 +106,43 @@ export function Sidebar({ active, onSelect, version, indicators, collapsed = fal
       </div>
 
       <nav className="cd-side__nav">
-        <div className="cd-side__group">
-          <div className="cd-side__label">{t("nav.groupWorkspace")}</div>
-          <Item id="command-center" active={active} onSelect={onSelect} indicator={ind["command-center"]} compact={collapsed} />
-          <Item id="launcher" active={active} onSelect={onSelect} indicator={ind.launcher} compact={collapsed} />
-          <Item id="tools" active={active} onSelect={onSelect} indicator={ind.tools} compact={collapsed} />
-          <Item id="mcp" active={active} onSelect={onSelect} indicator={ind.mcp} compact={collapsed} />
-          <Item id="history" active={active} onSelect={onSelect} indicator={ind.history} compact={collapsed} />
-          <Item id="costs" active={active} onSelect={onSelect} indicator={ind.costs} compact={collapsed} />
-          <Item id="workspace" active={active} onSelect={onSelect} indicator={ind.workspace} compact={collapsed} />
-          <Item id="doctor" active={active} onSelect={onSelect} indicator={ind.doctor} compact={collapsed} />
-          <Item id="updates" active={active} onSelect={onSelect} indicator={ind.updates} compact={collapsed} />
-          <Item id="prereqs" active={active} onSelect={onSelect} indicator={ind.prereqs} compact={collapsed} />
-        </div>
+        {renderItem("command-center")}
 
-        <div className="cd-side__group">
-          <div className="cd-side__label">{t("nav.groupSystem")}</div>
-          <Item id="admin" active={active} onSelect={onSelect} indicator={ind.admin} compact={collapsed} />
-        </div>
+        {layout.pinned.length > 0 && (
+          <div className="cd-side__group">
+            <div className="cd-side__label">{t("nav.groupPinned")}</div>
+            {layout.pinned.map(renderItem)}
+          </div>
+        )}
 
-        <div className="cd-side__group">
-          <div className="cd-side__label">{t("nav.groupSupport")}</div>
-          <Item id="help" active={active} onSelect={onSelect} indicator={ind.help} compact={collapsed} />
-        </div>
+        {layout.groups.map(({ group, surfaces }) => {
+          const isCollapsed = !collapsed && collapsedGroups.includes(group.id);
+          return (
+            <div className="cd-side__group" key={group.id}>
+              <button
+                type="button"
+                className="cd-side__group-head"
+                aria-expanded={!isCollapsed}
+                aria-controls={`cd-side-group-${group.id}`}
+                onClick={() => toggleGroup(group.id)}
+                title={t(group.labelKey)}
+              >
+                <Icon icon={GROUP_ICONS[group.id]} size={13} aria-hidden />
+                <span className="cd-side__label">{t(group.labelKey)}</span>
+                <span className="cd-side__chevron" aria-hidden>
+                  <Icon icon={isCollapsed ? CaretRight : CaretDown} size={11} />
+                </span>
+              </button>
+              <div
+                id={`cd-side-group-${group.id}`}
+                className="cd-side__group-body"
+                hidden={isCollapsed}
+              >
+                {surfaces.map(renderItem)}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="cd-side__foot">
@@ -102,41 +161,62 @@ function Item({
   onSelect,
   indicator,
   compact,
+  pinnable,
+  pinned,
+  onTogglePin,
 }: {
   id: TabId;
   active: TabId;
-  onSelect: (id: TabId) => void;
+  onSelect: (id: TabId, section?: MaintenanceSection) => void;
   indicator?: SidebarIndicator;
   compact: boolean;
+  pinnable: boolean;
+  pinned: boolean;
+  onTogglePin: (id: TabId) => void;
 }) {
   const { t } = useTranslation();
   const isOn = id === active;
   const indicatorValue = compact && indicator ? compactIndicatorValue(indicator.value) : indicator?.value;
+  const label = t(TAB_I18N_KEYS[id]);
   return (
-    <button
-      type="button"
-      aria-current={isOn ? "page" : undefined}
-      className={`cd-side__item${isOn ? " cd-side__item--on" : ""}`}
-      onClick={() => onSelect(id)}
-      title={t(TAB_I18N_KEYS[id])}
-    >
-      <span className="cd-side__item-main">
-        <Icon icon={TAB_ICONS[id]} size={18} weight={isOn ? "fill" : "regular"} />
-        <span className="cd-side__item-name">{t(TAB_I18N_KEYS[id])}</span>
-      </span>
-      <span className="cd-side__item-trail">
-        {indicator && (
-          <span
-            className={`cd-side__indicator cd-side__indicator--${indicator.tone}`}
-            aria-hidden
-            title={indicator.value}
-          >
-            {indicatorValue}
-          </span>
-        )}
-        <span className="cd-side__item-key">{TAB_KEYS[id]}</span>
-      </span>
-    </button>
+    <div className="cd-side__row">
+      <button
+        type="button"
+        aria-current={isOn ? "page" : undefined}
+        className={`cd-side__item${isOn ? " cd-side__item--on" : ""}`}
+        onClick={() => onSelect(id)}
+        title={label}
+      >
+        <span className="cd-side__item-main">
+          <Icon icon={TAB_ICONS[id]} size={18} weight={isOn ? "fill" : "regular"} />
+          <span className="cd-side__item-name">{label}</span>
+        </span>
+        <span className="cd-side__item-trail">
+          {indicator && (
+            <span
+              className={`cd-side__indicator cd-side__indicator--${indicator.tone}`}
+              aria-hidden
+              title={indicator.value}
+            >
+              {indicatorValue}
+            </span>
+          )}
+          <span className="cd-side__item-key">{TAB_KEYS[id]}</span>
+        </span>
+      </button>
+      {pinnable && (
+        <button
+          type="button"
+          className={`cd-side__pin${pinned ? " cd-side__pin--on" : ""}`}
+          aria-pressed={pinned}
+          aria-label={t(pinned ? "nav.unpin" : "nav.pin", { name: label })}
+          title={t(pinned ? "nav.unpin" : "nav.pin", { name: label })}
+          onClick={() => onTogglePin(id)}
+        >
+          <Icon icon={Star} size={12} weight={pinned ? "fill" : "regular"} />
+        </button>
+      )}
+    </div>
   );
 }
 

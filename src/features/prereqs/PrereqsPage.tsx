@@ -7,7 +7,7 @@ import { buildPrereqsPageSummary } from "./prereqsPageModel";
 import "../page.css";
 import "./PrereqsPage.css";
 
-export function PrereqsPage() {
+export function PrereqsPage({ embedded = false }: { embedded?: boolean }) {
   const { t } = useTranslation();
   const { items, loading, error, refresh } = usePrerequisites();
 
@@ -17,7 +17,11 @@ export function PrereqsPage() {
     <section className="cd-page cd-prereqs">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h1 className="cd-page__title">▎ {t("prereqs.title")}</h1>
+          {embedded ? (
+            <h2 className="cd-page__title cd-page__title--sub">▎ {t("prereqs.title")}</h2>
+          ) : (
+            <h1 className="cd-page__title">▎ {t("prereqs.title")}</h1>
+          )}
           <p className="cd-page__sub">
             {t("prereqs.subtitle")}
           </p>

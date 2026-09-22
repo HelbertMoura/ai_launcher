@@ -5,7 +5,6 @@
 // content re-marks unread.
 import { useSyncExternalStore } from "react";
 import { readKey, writeKey } from "../../lib/storage";
-import type { TabId } from "../../app/layout/TabId";
 
 export type InboxType = "session" | "budget" | "update" | "doctor";
 
@@ -18,7 +17,13 @@ export interface InboxEvent {
   bodyParams?: Record<string, string | number>;
   ts: number;
   read: boolean;
-  targetTab: TabId;
+  /**
+   * Persisted navigation reference. Plain string (NOT TabId) because events
+   * outlive releases: v22 ids like "doctor"/"updates" may still be on disk and
+   * fused ids may carry a section ("maintenance:updates"). Resolved at click
+   * time via resolveNavigationTarget.
+   */
+  targetTab: string;
 }
 
 export interface InboxState {
@@ -150,7 +155,7 @@ export function reportDoctorResults(results: DoctorResult[]): void {
       type: "doctor",
       titleKey: "inbox.doctorTitle",
       titleParams: { name: r.name },
-      targetTab: "doctor",
+      targetTab: "maintenance:diagnostics",
       forceUnread: true,
     });
   }

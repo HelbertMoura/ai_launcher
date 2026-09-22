@@ -14,24 +14,28 @@
 
 import { useEffect } from "react";
 
-import type { TabId } from "./layout/TabId";
+import type { NavigateTarget } from "./layout/TabId";
 
 const IS_MAC =
   typeof navigator !== "undefined" &&
   /Mac|iPhone|iPad/i.test(navigator.platform);
 
-/** Ctrl+1..9,0 -> canonical tab id, in declaration order. */
-export const DIGIT_TABS: Record<string, TabId> = {
-  "1": "command-center",
-  "2": "launcher",
-  "3": "tools",
-  "4": "mcp",
-  "5": "history",
-  "6": "costs",
-  "7": "workspace",
-  "8": "doctor",
-  "9": "updates",
-  "0": "prereqs",
+/**
+ * Ctrl+1..9,0 -> navigation target, in declaration order. Digits 1..7 keep
+ * their v22 meaning; 8/9/0 open the fused Maintenance surface on the section
+ * the old Doctor/Updates/Prereqs tabs used to cover (stable mapping, see Help).
+ */
+export const DIGIT_TABS: Record<string, NavigateTarget> = {
+  "1": { tab: "command-center" },
+  "2": { tab: "launcher" },
+  "3": { tab: "tools" },
+  "4": { tab: "mcp" },
+  "5": { tab: "history" },
+  "6": { tab: "costs" },
+  "7": { tab: "workspace" },
+  "8": { tab: "maintenance", section: "diagnostics" },
+  "9": { tab: "maintenance", section: "updates" },
+  "0": { tab: "maintenance", section: "verifications" },
 };
 
 /** Selector that returns true when the event target is a text input. */
@@ -46,7 +50,9 @@ function isTypingTarget(target: EventTarget | null): boolean {
  * unmount; the effect re-binds only when `onNavigate` identity changes
  * (callers should wrap in `useCallback` if the closure captures state).
  */
-export function useGlobalShortcuts(onNavigate: (tab: TabId) => void): void {
+export function useGlobalShortcuts(
+  onNavigate: (tab: NavigateTarget["tab"], section?: NavigateTarget["section"]) => void,
+): void {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target)) return;
@@ -63,9 +69,10 @@ export function useGlobalShortcuts(onNavigate: (tab: TabId) => void): void {
         return;
       }
 
-      if ((IS_MAC ? e.metaKey : e.ctrlKey) && DIGIT_TABS[e.key]) {
+      const target = (IS_MAC ? e.metaKey : e.ctrlKey) ? DIGIT_TABS[e.key] : undefined;
+      if (target) {
         e.preventDefault();
-        onNavigate(DIGIT_TABS[e.key]);
+        onNavigate(target.tab, target.section);
       }
     };
     window.addEventListener("keydown", handler);

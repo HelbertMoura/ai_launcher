@@ -37,13 +37,13 @@ import type { LaunchProfile } from "../../domain/types";
 import type { CustomCli } from "../../lib/customClis";
 import { launchCliSession, recordFailedLaunch, type LaunchableCli } from "./launchSession";
 import { showToast } from "../../ui/toastStore";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import { buildLauncherOverview } from "./launcherPageModel";
 import "../page.css";
 import "./LauncherPage.css";
 
 interface LauncherPageProps {
-  onNavigate?: (tab: TabId) => void;
+  onNavigate?: TabNavigator;
 }
 
 export function LauncherPage({ onNavigate }: LauncherPageProps) {
@@ -305,8 +305,8 @@ export function LauncherPage({ onNavigate }: LauncherPageProps) {
             onNavigate
               ? [
                   { label: t("launcher.emptyActionAdmin"), onClick: () => onNavigate("admin") },
-                  { label: t("launcher.emptyActionDoctor"), onClick: () => onNavigate("doctor") },
-                  { label: t("launcher.emptyActionPrereqs"), onClick: () => onNavigate("prereqs") },
+                  { label: t("launcher.emptyActionDoctor"), onClick: () => onNavigate("maintenance", "diagnostics") },
+                  { label: t("launcher.emptyActionPrereqs"), onClick: () => onNavigate("maintenance", "verifications") },
                 ]
               : undefined
           }

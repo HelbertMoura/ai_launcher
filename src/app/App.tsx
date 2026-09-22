@@ -12,7 +12,7 @@ import {
   type ProviderLatency,
 } from "./layout/StatusBar";
 import { TopBar } from "./layout/TopBar";
-import type { TabId } from "./layout/TabId";
+import type { MaintenanceSection, TabId } from "./layout/TabId";
 import { CommandPalette } from "../features/command-palette/CommandPalette";
 import { useCommandPalette } from "../features/command-palette/useCommandPalette";
 import { markOnboarded, readOnboarded } from "./onboarding";
@@ -61,17 +61,11 @@ const CostsPage = lazy(() =>
 const WorkspacePage = lazy(() =>
   import("../features/workspace/WorkspacePage").then((m) => ({ default: m.WorkspacePage })),
 );
-const DoctorPage = lazy(() =>
-  import("../features/workspace/DoctorPage").then((m) => ({ default: m.DoctorPage })),
-);
-const PrereqsPage = lazy(() =>
-  import("../features/prereqs/PrereqsPage").then((m) => ({ default: m.PrereqsPage })),
+const MaintenancePage = lazy(() =>
+  import("../features/maintenance/MaintenancePage").then((m) => ({ default: m.MaintenancePage })),
 );
 const HelpPage = lazy(() =>
   import("../features/help/HelpPage").then((m) => ({ default: m.HelpPage })),
-);
-const UpdatesPage = lazy(() =>
-  import("../features/updates/UpdatesPage").then((m) => ({ default: m.UpdatesPage })),
 );
 const AdminPage = lazy(() =>
   import("../features/admin/AdminPage").then((m) => ({ default: m.AdminPage })),
@@ -83,7 +77,11 @@ const OnboardingPage = lazy(() =>
 export function App() {
   const { t } = useTranslation();
   const [active, setActiveState] = useState<TabId>("command-center");
-  const setActive = useCallback((tab: TabId) => {
+  const [maintenanceSection, setMaintenanceSection] = useState<MaintenanceSection>("diagnostics");
+  const setActive = useCallback((tab: TabId, section?: MaintenanceSection) => {
+    if (section) {
+      setMaintenanceSection(section);
+    }
     startTransition(() => {
       setActiveState(tab);
     });
@@ -118,7 +116,7 @@ export function App() {
   }, [accent, setAccent]);
 
   const handleCheckUpdates = useCallback(() => {
-    setActive("updates");
+    setActive("maintenance", "updates");
     void refreshUpdates();
   }, [refreshUpdates]);
 
@@ -207,10 +205,8 @@ export function App() {
       void import("../features/history/HistoryPage");
       void import("../features/costs/CostsPage");
       void import("../features/workspace/WorkspacePage");
-      void import("../features/workspace/DoctorPage");
-      void import("../features/prereqs/PrereqsPage");
+      void import("../features/maintenance/MaintenancePage");
       void import("../features/help/HelpPage");
-      void import("../features/updates/UpdatesPage");
       void import("../features/admin/AdminPage");
     };
     if (typeof window !== "undefined") {
@@ -275,9 +271,12 @@ export function App() {
                   {tab === "workspace" && (
                     <WorkspacePage historyItems={history.items} onNavigate={setActive} />
                   )}
-                  {tab === "doctor" && <DoctorPage />}
-                  {tab === "updates" && <UpdatesPage />}
-                  {tab === "prereqs" && <PrereqsPage />}
+                  {tab === "maintenance" && (
+                    <MaintenancePage
+                      section={maintenanceSection}
+                      onSectionChange={setMaintenanceSection}
+                    />
+                  )}
                   {tab === "help" && <HelpPage />}
                   {tab === "admin" && <AdminPage />}
                 </div>
@@ -386,7 +385,7 @@ function ChromeConnector({
         type: "update",
         titleKey: "inbox.updateTitle",
         titleParams: { cli: u.cli, version: u.latest },
-        targetTab: "updates",
+        targetTab: "maintenance:updates",
       });
     }
   }, [updates]);
@@ -412,7 +411,7 @@ function ChromeConnector({
       };
     }
     if (updatesCount > 0) {
-      map.updates = { value: `● ${updatesCount}`, tone: "accent" };
+      map.maintenance = { value: `● ${updatesCount}`, tone: "accent" };
     }
     return map;
   }, [indicatorCounts, updatesCount]);

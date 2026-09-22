@@ -26,6 +26,11 @@
   align-items: center;
   gap: var(--s-2);
 }
+/* Section heading inside a fused surface (e.g. Maintenance sections). */
+.cd-page__title--sub {
+  font-size: 17px;
+  letter-spacing: 0;
+}
 .cd-page__sub {
   margin: 0;
   font-family: var(--font-sans);

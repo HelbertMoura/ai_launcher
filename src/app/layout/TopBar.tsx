@@ -4,7 +4,7 @@ import { ACCENTS, type Accent } from "../../hooks/useAccent";
 import type { Density } from "../../hooks/useDensity";
 import { nextTheme, type Theme } from "../../hooks/useTheme";
 import { getLocale, setLocale, type Locale } from "../../i18n";
-import type { TabId } from "./TabId";
+import type { TabNavigator } from "./TabId";
 import { Icon } from "../../ui/Icon";
 import { Gear, MagnifyingGlass, Palette } from "../../ui/icons";
 import "./TopBar.css";
@@ -16,7 +16,7 @@ const CMD_KEY_LABEL =
 
 interface TopBarProps {
   onCommand: () => void;
-  onNavigate: (tab: TabId) => void;
+  onNavigate: TabNavigator;
   theme: Theme;
   onToggleTheme: () => void;
   accent: Accent;

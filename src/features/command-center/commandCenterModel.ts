@@ -1,4 +1,4 @@
-import type { TabId } from "../../app/layout/TabId";
+import type { MaintenanceSection, TabId } from "../../app/layout/TabId";
 import type { WorkspaceProfile, Runbook } from "../../domain/types";
 import type { CheckResult, CliInfo } from "../launcher/useClis";
 import type { HistoryItem, SessionStatus } from "../history/useHistory";
@@ -10,6 +10,8 @@ export interface CommandCenterAction {
   labelKey: string;
   descriptionKey: string;
   targetTab: TabId;
+  /** Optional Maintenance section when targetTab is "maintenance". */
+  section?: MaintenanceSection;
   primary?: boolean;
   disabled?: boolean;
 }
@@ -22,6 +24,8 @@ export interface ReadinessCard {
   detailParams?: Record<string, string | number>;
   tone: ReadinessTone;
   targetTab: TabId;
+  /** Optional Maintenance section when targetTab is "maintenance". */
+  section?: MaintenanceSection;
 }
 
 export interface SessionSummary {
@@ -224,7 +228,8 @@ export function buildCommandCenterModel(input: CommandCenterInput): CommandCente
       id: "doctor",
       labelKey: "commandCenter.actionDoctor",
       descriptionKey: "commandCenter.actionDoctorDesc",
-      targetTab: "doctor",
+      targetTab: "maintenance",
+      section: "diagnostics",
     },
     {
       id: "mcp",
@@ -286,7 +291,8 @@ export function buildCommandCenterModel(input: CommandCenterInput): CommandCente
             : "commandCenter.cardDoctorMissing",
       detailParams: doctor ? { total: doctor.total, missing: doctor.missing, critical: doctor.critical } : undefined,
       tone: doctor?.error || (doctor && doctor.critical > 0) ? "warn" : doctor && doctor.missing === 0 ? "ok" : "neutral",
-      targetTab: "doctor",
+      targetTab: "maintenance",
+      section: "diagnostics",
     },
     {
       id: "mcp",

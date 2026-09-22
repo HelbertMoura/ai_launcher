@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { invokeOrFallback } from "../../lib/tauri";
 import type { PrereqCheck } from "../prereqs/usePrerequisites";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import { BentoCard } from "./BentoCard";
 import { summarizeDoctorSeverities } from "./doctorSummaryModel";
 
-export function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
+export function DoctorSummaryCard({ onNavigate }: { onNavigate?: TabNavigator }) {
   const { t } = useTranslation();
   const [items, setItems] = useState<PrereqCheck[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,7 @@ export function DoctorSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) =>
     ok: counts.total - counts.missing,
     total: counts.total,
   });
-  const handleActivate = onNavigate ? () => onNavigate("doctor") : undefined;
+  const handleActivate = onNavigate ? () => onNavigate("maintenance", "diagnostics") : undefined;
 
   return (
     <BentoCard

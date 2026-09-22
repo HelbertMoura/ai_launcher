@@ -46,9 +46,56 @@
   font-size: 10px;
   letter-spacing: 2px;
   color: var(--text-dim);
-  padding: 4px var(--s-3);
   text-transform: uppercase;
 }
+
+/* Collapsible group header: clickable row (icon + label + chevron). */
+.cd-side__group-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px var(--s-2) 4px var(--s-3);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+.cd-side__group-head:hover { color: var(--text-muted); background: var(--surface-hover); }
+.cd-side__group-head .cd-side__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; }
+.cd-side__group-head .cd-side__label::first-letter { letter-spacing: 2px; }
+.cd-side__chevron { display: inline-flex; color: var(--text-dim); }
+
+/* Row wrapper keeps the item button and its pin action siblings (a button may
+   not nest another button). The pin reveals on hover/focus of the row. */
+.cd-side__row { position: relative; display: flex; align-items: center; }
+.cd-side__row .cd-side__item { flex: 1; min-width: 0; }
+.cd-side__pin {
+  position: absolute;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text-dim);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.cd-side__row:hover .cd-side__pin,
+.cd-side__row:focus-within .cd-side__pin { opacity: 1; }
+.cd-side__pin:hover { color: var(--text); border-color: var(--border-strong); }
+.cd-side__pin--on { color: var(--accent); opacity: 1; }
+.cd-side__pin--on:hover { color: var(--accent); }
 
 .cd-side__item {
   position: relative;
@@ -152,6 +199,11 @@
 .cd-side--collapsed .cd-side__item-key,
 .cd-side--collapsed .cd-side__mode,
 .cd-side--collapsed .cd-side__ver { display: none; }
+/* Collapsed rail: groups always expanded (collapse state is unreachable),
+   headers shrink to their icon, pin actions hidden to avoid clutter. */
+.cd-side--collapsed .cd-side__group-head { justify-content: center; padding-inline: 0; }
+.cd-side--collapsed .cd-side__chevron { display: none; }
+.cd-side--collapsed .cd-side__pin { display: none; }
 .cd-side--collapsed .cd-side__collapse { position: absolute; left: 50px; margin: 0; background: var(--surface-1); }
 .cd-side--collapsed .cd-side__item {
   justify-content: center;
