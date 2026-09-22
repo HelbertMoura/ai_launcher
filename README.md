@@ -169,7 +169,7 @@ From the [latest GitHub release](https://github.com/HelbertMoura/ai_launcher/rel
   sudo apt install ./AI.Launcher_<version>_amd64.deb
   ```
 
-> **Package managers:** **Scoop is live** via the repository's own bucket (see the Windows section above) and updates automatically on each new release. **winget** and **Chocolatey** manifests are ready in [`packaging/README.md`](packaging/README.md) and go to their stores as maintainer submissions; installation commands will fail until those are published.
+> **Package managers:** **Scoop is live** via the repository's own bucket (see the Windows section above) and updates automatically on each new release.
 
 ### Build from Source
 
@@ -326,7 +326,7 @@ The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prere
 | **i18n** | i18next 26 (English & Portuguese - Brazil) |
 | **Testing** | Vitest (239 tests), Playwright E2E / visual, cargo test (127 Rust tests) |
 | **Build** | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
-| **Distribution** | GitHub Releases · Scoop (live) · Winget (🚧 coming soon) · Chocolatey (🚧 coming soon) |
+| **Distribution** | GitHub Releases · Scoop (auto-update on Windows) |
 
 ---
 

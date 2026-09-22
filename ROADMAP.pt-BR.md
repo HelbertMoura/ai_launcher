@@ -42,6 +42,7 @@ de propósito.
 - [ ] **Registry de Runbooks assinado** — distribuição de runbooks verificada com minisign
 - [ ] **Agendador local de runbooks** — execute runbooks em horários programados, totalmente offline
 - [ ] **Reagrupamento da sidebar** — grupos Executar / Observar / Conectar-Sistema com atalhos fixados
+- [ ] **Reavaliar canais de distribuição** — os manifestos de winget/Chocolatey seguem dormentes em `packaging/`; revisitamos só se surgir demanda de usuários (GitHub Releases + Scoop cobrem as necessidades atuais)
 
 ## Próximo
 

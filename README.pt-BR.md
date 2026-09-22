@@ -169,7 +169,7 @@ Pelo [último release do GitHub](https://github.com/HelbertMoura/ai_launcher/rel
   sudo apt install ./AI.Launcher_<versão>_amd64.deb
   ```
 
-> **Gerenciadores de pacote:** o **Scoop já está disponível** pelo bucket do próprio repositório (veja a seção do Windows acima) e se atualiza automaticamente a cada novo release. Os manifestos do **winget** e do **Chocolatey** estão prontos em [`packaging/README.md`](packaging/README.md) e seguem para suas lojas como submissão do mantenedor; os comandos vão falhar até que esses pacotes sejam publicados.
+> **Gerenciadores de pacote:** o **Scoop já está disponível** pelo bucket do próprio repositório (veja a seção do Windows acima) e se atualiza automaticamente a cada novo release.
 
 ### Build a Partir do Código
 
@@ -326,7 +326,7 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | i18n | i18next 26 |
 | Testes | Vitest (239 testes), Playwright E2E/visual, cargo test (127 testes Rust) |
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
-| Distribuição | GitHub Releases · Scoop (disponível) · Winget (🚧 em breve) · Chocolatey (🚧 em breve) |
+| Distribuição | GitHub Releases · Scoop (auto-update no Windows) |
 
 ---
 
