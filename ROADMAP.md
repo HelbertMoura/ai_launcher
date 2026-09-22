@@ -40,7 +40,7 @@ agents at once, with cost and safety guardrails. No dates on purpose.
 - [ ] **Cost Governance 3.0** — per-project budgets, spend projection, and per-session cost tracking
 - [ ] **Signed Runbook Registry** — minisign-verified runbook distribution
 - [ ] **Local runbook scheduler** — run runbooks on a schedule, fully offline
-- [ ] **Sidebar regrouping** — Execute / Observe / Connect-System groups with pinned shortcuts
+- [x] **Sidebar regrouping** — Execute / Observe / Connect-System groups with pinned shortcuts (shipped in the v23.1 wave: Home / Run / Observe / Connect / System groups, collapsible with memory, pinned surfaces, and Doctor + Prereqs + Updates fused into one Maintenance surface)
 - [ ] **Revisit distribution channels** — winget/Chocolatey manifests stay dormant in `packaging/`; revisit only if user demand shows up (GitHub Releases + Scoop cover the current needs)
 
 ## Next

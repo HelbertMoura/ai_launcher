@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useUsage } from "../costs/useUsage";
 import { getAllBudgetUsage, type BudgetUsage } from "../../providers/budget";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import { BentoCard } from "./BentoCard";
 
-export function BudgetSummaryCard({ onNavigate }: { onNavigate?: (tab: TabId) => void }) {
+export function BudgetSummaryCard({ onNavigate }: { onNavigate?: TabNavigator }) {
   const { t } = useTranslation();
   const { report } = useUsage();
   const entries = report?.entries ?? [];

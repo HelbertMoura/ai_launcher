@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { HistoryItem } from "../history/useHistory";
 import { useHistory } from "../history/useHistory";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import { Button } from "../../ui/Button";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
 import { useAgentProfiles } from "./useAgentProfiles";
@@ -22,7 +22,7 @@ import "./WorkspacePage.css";
 
 interface WorkspacePageProps {
   historyItems?: HistoryItem[];
-  onNavigate?: (tab: TabId) => void;
+  onNavigate?: TabNavigator;
 }
 
 export function WorkspacePage({ historyItems, onNavigate }: WorkspacePageProps) {

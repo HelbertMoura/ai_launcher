@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Card } from "../../ui/Card";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import type { ReadinessCard as ReadinessCardType } from "./commandCenterModel";
 
 export function ReadinessCard({
@@ -8,7 +8,7 @@ export function ReadinessCard({
   onNavigate,
 }: {
   card: ReadinessCardType;
-  onNavigate: (tab: TabId) => void;
+  onNavigate: TabNavigator;
 }) {
   const { t } = useTranslation();
   const value =
@@ -26,7 +26,7 @@ export function ReadinessCard({
     <Card
       interactive
       className={`cd-command__ready cd-command__ready--${card.tone}`}
-      onClick={() => onNavigate(card.targetTab)}
+      onClick={() => onNavigate(card.targetTab, card.section)}
     >
       <span className="cd-command__ready-label">{t(card.labelKey)}</span>
       <strong>{value}</strong>

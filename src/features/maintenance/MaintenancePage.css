@@ -1,0 +1,46 @@
+/* Maintenance surface (v23): Doctor + Prereqs + Updates fused behind a
+   segmented control. Sharp borders and surface tokens only — no gradients. */
+
+.cd-maint__tabs {
+  display: inline-flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+  padding: 2px;
+  margin-bottom: var(--s-4);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.cd-maint__tab {
+  min-height: 34px;
+  padding: 6px var(--s-4);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: calc(var(--r-md) - 2px);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+
+.cd-maint__tab:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cd-maint__tab--on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 36%, transparent);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.cd-maint__panel {
+  min-width: 0;
+}

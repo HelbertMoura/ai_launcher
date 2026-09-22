@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Bell } from "../../ui/icons";
-import type { TabId } from "../../app/layout/TabId";
+import { resolveNavigationTarget, type TabNavigator } from "../../app/layout/TabId";
 import {
   clearAll,
   markAllRead,
@@ -29,7 +29,7 @@ function relativeTime(ts: number, nowLabel: string): string {
 }
 
 interface InboxBellProps {
-  onNavigate: (tab: TabId) => void;
+  onNavigate: TabNavigator;
 }
 
 export function InboxBell({ onNavigate }: InboxBellProps) {
@@ -80,7 +80,10 @@ export function InboxBell({ onNavigate }: InboxBellProps) {
   const handleItemClick = (evt: InboxEvent): void => {
     markRead(evt.id);
     setOpen(false);
-    onNavigate(evt.targetTab);
+    // Legacy ids ("doctor", "updates") and fused ids ("maintenance:x") both
+    // resolve here, so events persisted by older versions stay clickable.
+    const target = resolveNavigationTarget(evt.targetTab);
+    onNavigate(target.tab, target.section);
   };
 
   itemRefs.current = new Array(sorted.length).fill(null);

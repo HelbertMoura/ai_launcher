@@ -20,7 +20,7 @@ import { buildUpdatesOverview } from "./updatesPageModel";
 import "../page.css";
 import "./UpdatesPage.css";
 
-export function UpdatesPage() {
+export function UpdatesPage({ embedded = false }: { embedded?: boolean }) {
   const { t, i18n } = useTranslation();
   const { clis, checks: cliChecks, refresh: refreshClis } = useClis();
   const { refresh: refreshTools } = useTools();
@@ -88,7 +88,11 @@ export function UpdatesPage() {
     <section className="cd-page cd-updates">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h1 className="cd-page__title">▎ {t("updates.title")}</h1>
+          {embedded ? (
+            <h2 className="cd-page__title cd-page__title--sub">▎ {t("updates.title")}</h2>
+          ) : (
+            <h1 className="cd-page__title">▎ {t("updates.title")}</h1>
+          )}
           <p className="cd-page__sub">
             {updatesLoading
               ? t("updates.refreshing")

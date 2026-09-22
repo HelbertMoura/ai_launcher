@@ -66,6 +66,10 @@ export const STORAGE_KEYS = {
   executionMode: 'ai-launcher:v21:execution-mode',
   temporaryAdminUntil: 'ai-launcher:v21:temporary-admin-until',
   auditLog: 'ai-launcher:v21:audit-log',
+
+  // --- Sidebar layout (v23 Fleet Command) ---
+  sidebarPinned: 'ai-launcher:v23:sidebar-pinned',
+  sidebarGroups: 'ai-launcher:v23:sidebar-groups',
 } as const;
 
 export type StorageKeyId = keyof typeof STORAGE_KEYS;

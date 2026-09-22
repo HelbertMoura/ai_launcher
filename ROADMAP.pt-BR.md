@@ -41,7 +41,7 @@ de propósito.
 - [ ] **Cost Governance 3.0** — orçamento por projeto, projeção de gastos e custo por sessão
 - [ ] **Registry de Runbooks assinado** — distribuição de runbooks verificada com minisign
 - [ ] **Agendador local de runbooks** — execute runbooks em horários programados, totalmente offline
-- [ ] **Reagrupamento da sidebar** — grupos Executar / Observar / Conectar-Sistema com atalhos fixados
+- [x] **Reagrupamento da sidebar** — grupos Executar / Observar / Conectar-Sistema com atalhos fixados (entregue na onda v23.1: grupos Início / Executar / Observar / Conectar / Sistema, colapsáveis com memória, superfícies fixáveis e Doctor + Pré-reqs + Atualizações fundidos na superfície Manutenção)
 - [ ] **Reavaliar canais de distribuição** — os manifestos de winget/Chocolatey seguem dormentes em `packaging/`; revisitamos só se surgir demanda de usuários (GitHub Releases + Scoop cobrem as necessidades atuais)
 
 ## Próximo

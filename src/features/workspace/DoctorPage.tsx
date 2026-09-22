@@ -19,9 +19,11 @@ import "./DoctorPage.css";
 interface DoctorPageProps {
   /** If true, shows what would be done without executing fixes. */
   dryRun?: boolean;
+  /** Embedded mode (Maintenance surface): demotes the section heading to h2. */
+  embedded?: boolean;
 }
 
-export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
+export function DoctorPage({ dryRun: dryRunProp = false, embedded = false }: DoctorPageProps) {
   const { t } = useTranslation();
   const { items: prereqItems, loading, error: storeError, refresh } = usePrerequisites();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -111,7 +113,11 @@ export function DoctorPage({ dryRun: dryRunProp = false }: DoctorPageProps) {
     <section className="cd-page cd-doc">
       <header className="cd-page__head">
         <div className="cd-page__heading">
-          <h1 className="cd-page__title">▎ {t("doctor.title")}</h1>
+          {embedded ? (
+            <h2 className="cd-page__title cd-page__title--sub">▎ {t("doctor.title")}</h2>
+          ) : (
+            <h1 className="cd-page__title">▎ {t("doctor.title")}</h1>
+          )}
           <p className="cd-page__sub">{t("doctor.subtitle")}</p>
         </div>
         <div className="cd-doc__actions">

@@ -59,4 +59,8 @@ export {
   PushPin,
   Eye,
   EyeSlash,
+  PlugsConnected,
+  Faders,
+  CaretDown,
+  CaretRight,
 } from "@phosphor-icons/react";

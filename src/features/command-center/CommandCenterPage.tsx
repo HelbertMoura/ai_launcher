@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { TabId } from "../../app/layout/TabId";
+import type { TabNavigator } from "../../app/layout/TabId";
 import { Button } from "../../ui/Button";
 import { EmptyState, ART_TERMINAL } from "../../ui/EmptyState";
 import { ConfirmDialog } from "../../ui/ConfirmDialog";
@@ -53,7 +53,7 @@ import { ProjectIntelligence } from "./ProjectIntelligence";
 import { ReadinessCard as Readiness, MetaItem as Meta } from "./ReadinessCard";
 
 interface CommandCenterPageProps {
-  onNavigate: (tab: TabId) => void;
+  onNavigate: TabNavigator;
 }
 
 export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
@@ -599,7 +599,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
         requestExecution("ide");
         return;
       }
-      onNavigate(action.targetTab);
+      onNavigate(action.targetTab, action.section);
     },
     [onNavigate, requestExecution, runbooks.length, suggestedRunbookIds.length],
   );
@@ -661,7 +661,7 @@ export function CommandCenterPage({ onNavigate }: CommandCenterPageProps) {
             description={t("commandCenter.emptyDesc")}
             actions={[
               { label: t("commandCenter.actionWorkspace"), onClick: () => onNavigate("workspace") },
-              { label: t("commandCenter.actionDoctor"), onClick: () => onNavigate("doctor") },
+              { label: t("commandCenter.actionDoctor"), onClick: () => onNavigate("maintenance", "diagnostics") },
             ]} />
           <ol className="cd-command__steps" aria-label={t("commandCenter.onboardingSteps")}>
             <li><span>01</span><strong>{t("commandCenter.stepChoose")}</strong></li>

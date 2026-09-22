@@ -5,7 +5,8 @@ import { Card } from "../../ui/Card";
 import { Dialog } from "../../ui/Dialog";
 import { Icon } from "../../ui/Icon";
 import { Coffee } from "../../ui/icons";
-import { TAB_KEYS } from "../../app/layout/TabId";
+import { DIGIT_TABS } from "../../app/shortcuts";
+import type { NavigateTarget } from "../../app/layout/TabId";
 import { openExternalUrlCommand } from "../../lib/tauri";
 import { removeKey } from "../../lib/storage";
 import { AnimatedTerminal } from "./AnimatedTerminal";
@@ -33,16 +34,36 @@ export function HelpPage() {
   const { t } = useTranslation();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // One help-table row per digit shortcut, derived from the canonical map so
+  // the table can never drift from the real bindings (v23: 8/9/0 open the
+  // fused Maintenance surface on a specific section).
+  const DIGIT_ACTION_KEYS: Record<string, string> = {
+    "command-center:": "help.actionGoHome",
+    "launcher:": "help.actionGoLaunch",
+    "tools:": "help.actionGoTools",
+    "mcp:": "help.actionGoMcp",
+    "history:": "help.actionGoHistory",
+    "costs:": "help.actionGoCosts",
+    "workspace:": "help.actionGoWorkspaces",
+    "maintenance:diagnostics": "help.actionGoMaintenanceDiagnostics",
+    "maintenance:updates": "help.actionGoMaintenanceUpdates",
+    "maintenance:verifications": "help.actionGoMaintenanceVerifications",
+  };
   const shortcuts: Array<{ keys: string; actionKey: string }> = [
-    { keys: TAB_KEYS.launcher, actionKey: "help.actionGoLaunch" },
-    { keys: TAB_KEYS.tools, actionKey: "help.actionGoTools" },
-    { keys: TAB_KEYS.history, actionKey: "help.actionGoHistory" },
-    { keys: TAB_KEYS.costs, actionKey: "help.actionGoCosts" },
-    { keys: TAB_KEYS.admin, actionKey: "help.actionGoAdmin" },
-    { keys: TAB_KEYS.help, actionKey: "help.actionShowHelp" },
+    ...Object.entries(DIGIT_TABS).map(([digit, target]) => ({
+      keys: `${IS_MAC ? "⌘" : "Ctrl"}+${digit}`,
+      actionKey: digitActionKey(target),
+    })),
+    { keys: IS_MAC ? "⌘," : "Ctrl+,", actionKey: "help.actionGoAdmin" },
+    { keys: "?", actionKey: "help.actionShowHelp" },
     { keys: PALETTE_KEY, actionKey: "help.actionOpenPalette" },
     { keys: "Esc", actionKey: "help.actionCloseDialog" },
   ];
+
+  function digitActionKey(target: NavigateTarget): string {
+    const key = `${target.tab}:${target.section ?? ""}`;
+    return DIGIT_ACTION_KEYS[key] ?? "help.actionGoHome";
+  }
 
   const faqs: Array<{ qKey: string; aKey: string }> = [
     { qKey: "help.faqInstalledMissingQ", aKey: "help.faqInstalledMissingA" },
