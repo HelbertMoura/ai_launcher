@@ -34,6 +34,11 @@ pub struct AgentRecord {
     pub branch: String,
     /// Absolute path of the agent's worktree (outside the user's repository).
     pub worktree: String,
+    /// OS pid captured at spawn, so a crash-recovery pass (`race_recover`)
+    /// can terminate processes left behind by a dead app session.
+    /// Records written before 23.2d deserialize as `None`.
+    #[serde(default)]
+    pub pid: Option<u32>,
 }
 
 /// A recorded race, persisted while it runs and kept afterwards as history.
@@ -218,6 +223,7 @@ mod tests {
                 agent: "claude".to_string(),
                 branch: format!("race/{}/claude", race_id),
                 worktree: format!(r"C:\dados\races\{}\claude", race_id),
+                pid: Some(4242),
             }],
         }
     }
@@ -327,5 +333,28 @@ mod tests {
         // A live runtime (same process) disqualifies the race.
         let orphans = scan_orphans(root.path(), &["race-orphan".to_string()]);
         assert!(orphans.is_empty());
+    }
+
+    #[test]
+    fn legacy_records_without_pid_deserialize_with_none() {
+        let root = temp_root();
+        let record = sample_record("race-legacy", "running");
+        let mut agent = serde_json::to_value(&record).expect("serializar registro");
+        agent["agents"][0]
+            .as_object_mut()
+            .expect("agente é objeto")
+            .remove("pid");
+        let payload = serde_json::json!({ "version": STATE_VERSION, "races": [agent] });
+        fs::create_dir_all(root.path()).unwrap();
+        fs::write(
+            state_path(root.path()),
+            serde_json::to_string(&payload).unwrap(),
+        )
+        .unwrap();
+        let loaded = get_race(root.path(), "race-legacy").expect("registro persistido");
+        assert_eq!(
+            loaded.agents[0].pid, None,
+            "registro pré-23.2d: pid ausente"
+        );
     }
 }
