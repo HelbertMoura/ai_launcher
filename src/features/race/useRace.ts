@@ -10,6 +10,7 @@ export function useRace(): RaceState & {
   beginConfiguration: () => void;
   start: (input: RaceStartInput) => Promise<void>;
   cancel: () => Promise<void>;
+  resumePolling: () => void;
   reset: () => void;
 } {
   const state = useSyncExternalStore(
@@ -21,7 +22,8 @@ export function useRace(): RaceState & {
   const beginConfiguration = useCallback(() => raceStore.beginConfiguration(), []);
   const start = useCallback((input: RaceStartInput) => raceStore.start(input), []);
   const cancel = useCallback(() => raceStore.cancel(), []);
+  const resumePolling = useCallback(() => raceStore.resumePolling(), []);
   const reset = useCallback(() => raceStore.reset(), []);
 
-  return { ...state, beginConfiguration, start, cancel, reset };
+  return { ...state, beginConfiguration, start, cancel, resumePolling, reset };
 }

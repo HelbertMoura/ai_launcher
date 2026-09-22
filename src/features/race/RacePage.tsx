@@ -65,9 +65,16 @@ export function RacePage() {
   const isStarting = phase === "starting";
   const isTerminal = phase === "finished" || phase === "failed" || phase === "cancelled";
 
-  // The surface opens ready to configure; after a race, "New race" returns here.
+  // The surface opens ready to configure; remounting mid-race (e.g. after
+  // navigating away and back) resumes the live poll cadence; after a race,
+  // "New race" returns to the form.
   useEffect(() => {
-    if (raceStore.getSnapshot().phase === "idle") raceStore.beginConfiguration();
+    const current = raceStore.getSnapshot();
+    if (current.phase === "running" && current.handle) {
+      raceStore.resumePolling();
+    } else if (current.phase === "idle") {
+      raceStore.beginConfiguration();
+    }
     // Clear the poll interval if this surface ever unmounts.
     return () => raceStore.dispose();
   }, []);
