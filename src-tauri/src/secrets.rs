@@ -163,7 +163,12 @@ fn credential_read(key: &str) -> Result<Option<String>, String> {
         return Err("O Windows Credential Manager retornou um registro vazio".to_string());
     }
 
-    let credential = unsafe { &*raw };
+    // Ponteiro vindo de FFI: as_ref() dá uma referência verificada (None =
+    // nulo) em vez de desreferenciar diretamente (CodeQL access-invalid-pointer).
+    let credential = match unsafe { raw.as_ref() } {
+        Some(c) => c,
+        None => return Err("O Windows Credential Manager retornou um registro vazio".to_string()),
+    };
     let value = if credential.CredentialBlobSize == 0 || credential.CredentialBlob.is_null() {
         String::new()
     } else {
