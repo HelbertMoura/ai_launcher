@@ -1037,8 +1037,15 @@ fn check_three_way_file(
         (Some(_), Some(_), None) => {
             Err("o arquivo não existe mais na árvore principal".to_string())
         }
-        // Not present anywhere (defensive): nothing to apply.
-        (None, None, _) => Ok(()),
+        // Present in the diff but resolvable at neither revision: a parse or
+        // quoting artifact (composite rename path, escaped/quoted path…).
+        // FAIL-CLOSED (auditor P0): approving an unvalidatable entry here let
+        // the real `git apply --3way` touch the tree unchecked.
+        (None, None, _) => Err(
+            "arquivo não validável no patch (caminho composto ou escapado) — \
+             adote o resultado com o modo branch"
+                .to_string(),
+        ),
     }
 }
 
@@ -1111,6 +1118,20 @@ fn adopt_via_apply(
     }
     let mut conflicts = Vec::new();
     for file in &files {
+        // Rename entries arrive from `--numstat` as a composite path
+        // (`old.txt => new.txt`), which cannot be validated file-by-file.
+        // FAIL-CLOSED (auditor P0): without this gate the entry sailed
+        // through validation and the real `git apply --3way` could write
+        // conflict markers into the user's tree. Never attempt to apply.
+        if file.path.contains(" => ") {
+            conflicts.push(AdoptConflict {
+                path: file.path.clone(),
+                reason: "renomeação no patch não é validável pelo modo apply desta versão — \
+                         adote o resultado com o modo branch"
+                    .to_string(),
+            });
+            continue;
+        }
         if let Err(reason) = check_three_way_file(main_repo, &base, &branch, file) {
             conflicts.push(AdoptConflict {
                 path: file.path.clone(),
@@ -2013,6 +2034,98 @@ mod tests {
             .expect("status")
             .trim()
             .is_empty());
+    }
+
+    /// Auditor P0 regression: `--numstat` emits `old.txt => new.txt` for
+    /// renames; the composite path used to slip through validation via the
+    /// defensive arm and the real `git apply --3way` wrote conflict markers
+    /// (UU) and deleted the original in the user's tree. Must be refused.
+    #[test]
+    fn apply_mode_blocks_rename_patch_and_leaves_tree_untouched() {
+        let (_tmp, repo) = temp_repo("apply-rename");
+        // Enough unchanged lines for git's rename detection (similarity ≥ 50%).
+        let body = "linha1\nlinha2\nlinha3\nlinha4\nlinha5\nlinha6\nlinha7\nlinha8\n";
+        fs::write(repo.join("file.txt"), body).expect("arquivo com contexto");
+        commit_all(&repo, "arquivo maior para similaridade de rename");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let worktree = worktree_of(&record, 0);
+        // The agent renames AND edits the renamed line.
+        git(&worktree, &["mv", "file.txt", "new.txt"]);
+        fs::write(
+            worktree.join("new.txt"),
+            "agente mudou a linha 1\nlinha2\nlinha3\nlinha4\nlinha5\nlinha6\nlinha7\nlinha8\n",
+        )
+        .expect("mudança do agente");
+        commit_all(&worktree, "agente renomeia e edita");
+        // The main tree edits the SAME line, divergently.
+        fs::write(
+            repo.join("file.txt"),
+            "main mudou a linha 1\nlinha2\nlinha3\nlinha4\nlinha5\nlinha6\nlinha7\nlinha8\n",
+        )
+        .expect("divergência");
+        commit_all(&repo, "main edita a mesma linha");
+        let before = fs::read_to_string(repo.join("file.txt")).expect("conteúdo antes");
+
+        // Sanity: the diff really does carry a composite rename path.
+        let range = format!("{}...{}", record.base_sha, record.agents[0].branch);
+        let numstat = run_git(
+            &repo,
+            &["-c", "core.quotepath=false", "diff", "--numstat", &range],
+        )
+        .expect("numstat");
+        assert!(numstat.contains(" => "), "rename não detectado: {numstat}");
+
+        let report = race_adopt_blocking_in(
+            root.path(),
+            handle_of(&record),
+            "claude".to_string(),
+            AdoptMode::Apply,
+        )
+        .expect("o adopt não falha como comando — o rename vira recusa orientada");
+        assert!(
+            !report.ok,
+            "patch com rename não pode ser aplicado: {report:?}"
+        );
+        assert!(
+            report
+                .conflicts
+                .iter()
+                .any(|c| c.path.contains(" => ") && c.path.contains("file.txt")),
+            "entrada de rename esperada no relatório: {:?}",
+            report.conflicts
+        );
+        assert!(
+            report.conflicts.iter().any(|c| c.reason.contains("branch")),
+            "a recusa deve orientar o modo branch: {:?}",
+            report.conflicts
+        );
+
+        // The user's working tree is untouched: no UU markers, no deletion,
+        // no renamed file, git-clean.
+        assert_eq!(
+            fs::read_to_string(repo.join("file.txt")).expect("depois"),
+            before
+        );
+        assert!(
+            !repo.join("new.txt").exists(),
+            "rename não pode ser aplicado"
+        );
+        assert!(run_git(&repo, &["status", "--porcelain"])
+            .expect("status")
+            .trim()
+            .is_empty());
+
+        // Defense in depth: the unvalidatable entry itself is refused.
+        let bogus = RaceFileStat {
+            path: "file.txt => new.txt".to_string(),
+            adds: Some(1),
+            dels: Some(1),
+        };
+        assert!(
+            check_three_way_file(&repo, &record.base_sha, &record.agents[0].branch, &bogus)
+                .is_err()
+        );
     }
 
     #[test]
