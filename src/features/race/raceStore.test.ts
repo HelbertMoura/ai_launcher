@@ -3,15 +3,21 @@ import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 const raceStartMock = vi.hoisted(() => vi.fn());
 const raceStatusMock = vi.hoisted(() => vi.fn());
 const raceCancelMock = vi.hoisted(() => vi.fn());
+const raceDiffMock = vi.hoisted(() => vi.fn());
+const raceAdoptMock = vi.hoisted(() => vi.fn());
+const raceCleanupMock = vi.hoisted(() => vi.fn());
 
 vi.mock("../../lib/tauri", () => ({
   raceStart: raceStartMock,
   raceStatus: raceStatusMock,
   raceCancel: raceCancelMock,
+  raceDiff: raceDiffMock,
+  raceAdopt: raceAdoptMock,
+  raceCleanup: raceCleanupMock,
 }));
 
 import { RACE_POLL_INTERVAL_MS, raceStore } from "./raceStore";
-import type { RaceHandle, RaceSnapshot } from "./types";
+import type { AdoptReport, DiffReport, RaceCleanupReport, RaceHandle, RaceSnapshot } from "./types";
 
 const HANDLE: RaceHandle = {
   race_id: "race-1",
@@ -48,11 +54,69 @@ async function flush(): Promise<void> {
   await vi.advanceTimersByTimeAsync(0);
 }
 
+const DIFF: DiffReport = {
+  agent: "claude",
+  files: [
+    { path: "src/parser.ts", adds: 12, dels: 3 },
+    { path: "assets/logo.png", adds: null, dels: null },
+  ],
+  total_adds: 12,
+  total_dels: 3,
+  patch: "diff --git a/src/parser.ts b/src/parser.ts\n@@ -1,2 +1,3 @@\n-old\n+new\n ctx\n",
+  truncated: false,
+};
+
+const ADOPT_OK: AdoptReport = {
+  mode: "branch",
+  ok: true,
+  branch: "race-adopted/claude-race-1",
+  conflicts: [],
+  message: "Branch criada com o resultado do agente claude.",
+};
+
+const ADOPT_CONFLICT: AdoptReport = {
+  mode: "apply",
+  ok: false,
+  branch: null,
+  conflicts: [{ path: "src/parser.ts", reason: "o arquivo já existe na árvore principal" }],
+  message: "Aplicação bloqueada: o patch conflita com o estado atual do repositório.",
+};
+
+const CLEANUP: RaceCleanupReport = {
+  race_id: "race-1",
+  removed_worktrees: ["C:/races/race-1/claude", "C:/races/race-1/codex"],
+  removed_branches: ["race/race-1/claude", "race/race-1/codex"],
+  pruned: true,
+  skipped_reason: null,
+};
+
+/** Starts a race and drives it to the terminal "completed" state. */
+async function startFinishedRace(): Promise<void> {
+  raceStartMock.mockResolvedValue(HANDLE);
+  raceStatusMock.mockResolvedValue(
+    snapshot({
+      status: "completed",
+      agents: HANDLE.agents.map((agent) => ({
+        agent,
+        status: "completed",
+        pid: null,
+        exit_code: 0,
+        duration_secs: 12,
+        last_log_lines: [],
+      })),
+    }),
+  );
+  await raceStore.start({ directory: "C:/proj", taskPrompt: "x", agents: ["claude", "codex"] });
+}
+
 beforeEach(() => {
   vi.useFakeTimers();
   raceStartMock.mockReset();
   raceStatusMock.mockReset();
   raceCancelMock.mockReset();
+  raceDiffMock.mockReset();
+  raceAdoptMock.mockReset();
+  raceCleanupMock.mockReset();
   raceStore.reset();
 });
 
@@ -296,5 +360,186 @@ describe("raceStore", () => {
     unsubscribe();
 
     expect(seen).toEqual(["configuring", "starting", "running", "finished"]);
+  });
+
+  // --- v23.2c: diff / adopt / cleanup --------------------------------------
+
+  it("loadDiff caches the validated report per agent and clears the error", async () => {
+    await startFinishedRace();
+    raceDiffMock.mockResolvedValue(DIFF);
+
+    await raceStore.loadDiff("claude");
+
+    expect(raceDiffMock).toHaveBeenCalledWith(HANDLE, "claude");
+    const s = raceStore.getSnapshot();
+    expect(s.diffError).toBeNull();
+    expect(s.diffs.claude).toEqual(DIFF);
+
+    // Concurrent requests for the same agent are deduplicated in flight…
+    let resolveDiff!: (value: DiffReport) => void;
+    raceDiffMock.mockReturnValue(
+      new Promise<DiffReport>((resolve) => {
+        resolveDiff = resolve;
+      }),
+    );
+    const first = raceStore.loadDiff("claude");
+    await raceStore.loadDiff("claude");
+    resolveDiff(DIFF);
+    await first;
+    await flush();
+    expect(raceDiffMock).toHaveBeenCalledTimes(2);
+
+    // …while settled calls fetch fresh data (the agent may still be working).
+    raceDiffMock.mockResolvedValue(DIFF);
+    await raceStore.loadDiff("claude");
+    expect(raceDiffMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("loadDiff surfaces backend failures as a per-agent error", async () => {
+    await startFinishedRace();
+    raceDiffMock.mockRejectedValue(new Error("worktree sumiu"));
+
+    await raceStore.loadDiff("claude");
+
+    const s = raceStore.getSnapshot();
+    expect(s.diffLoading).toBeNull();
+    expect(s.diffError).toEqual({ agent: "claude", message: "worktree sumiu" });
+    expect(s.diffs.claude).toBeUndefined();
+  });
+
+  it("loadDiff fails with the zod message when the report breaks the contract", async () => {
+    await startFinishedRace();
+    raceDiffMock.mockResolvedValue({ agent: "claude" }); // missing fields
+
+    await raceStore.loadDiff("claude");
+
+    const s = raceStore.getSnapshot();
+    expect(s.diffError?.agent).toBe("claude");
+    expect(s.diffError?.message).toContain("files");
+  });
+
+  it("adopt(branch) lands the race on the adopted phase and stops polling", async () => {
+    await startFinishedRace();
+    raceAdoptMock.mockResolvedValue(ADOPT_OK);
+    raceStatusMock.mockClear();
+
+    await raceStore.adopt("claude", "branch");
+
+    expect(raceAdoptMock).toHaveBeenCalledWith(HANDLE, "claude", "branch");
+    const s = raceStore.getSnapshot();
+    expect(s.phase).toBe("adopted");
+    expect(s.adopting).toBeNull();
+    expect(s.adoptReport).toEqual(ADOPT_OK);
+    expect(s.snapshot?.status).toBe("adopted");
+
+    // Terminal after adopt: no poll resumes.
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS * 2);
+    expect(raceStatusMock).not.toHaveBeenCalled();
+  });
+
+  it("adopt(apply) keeps the race running when the report lists conflicts", async () => {
+    await startFinishedRace();
+    raceAdoptMock.mockResolvedValue(ADOPT_CONFLICT);
+
+    await raceStore.adopt("claude", "apply");
+
+    const s = raceStore.getSnapshot();
+    expect(s.phase).toBe("finished"); // conflict report ≠ race failure
+    expect(s.adoptReport?.ok).toBe(false);
+    expect(s.adoptReport?.conflicts[0]).toEqual({
+      path: "src/parser.ts",
+      reason: "o arquivo já existe na árvore principal",
+    });
+    expect(s.adoptError).toBeNull();
+  });
+
+  it("adopt surfaces thrown backend errors and allows a retry", async () => {
+    await startFinishedRace();
+    raceAdoptMock.mockRejectedValue(new Error("árvore suja"));
+
+    await raceStore.adopt("claude", "branch");
+    expect(raceStore.getSnapshot()).toMatchObject({
+      adopting: null,
+      adoptError: "árvore suja",
+      phase: "finished",
+    });
+
+    raceAdoptMock.mockResolvedValue(ADOPT_OK);
+    await raceStore.adopt("claude", "branch");
+    const s = raceStore.getSnapshot();
+    expect(s.adoptError).toBeNull();
+    expect(s.adoptReport).toEqual(ADOPT_OK);
+    expect(s.phase).toBe("adopted");
+  });
+
+  it("cleanup stores the report and flips the snapshot to cleaned", async () => {
+    await startFinishedRace();
+    raceCleanupMock.mockResolvedValue(CLEANUP);
+
+    await raceStore.cleanup(); // default keepDays = 7
+
+    expect(raceCleanupMock).toHaveBeenCalledWith(HANDLE, 7);
+    const s = raceStore.getSnapshot();
+    expect(s.cleanupRunning).toBe(false);
+    expect(s.cleanupReport).toEqual(CLEANUP);
+    expect(s.snapshot?.status).toBe("cleaned");
+  });
+
+  it("cleanup keeps the snapshot when the retention window skips the removal", async () => {
+    await startFinishedRace();
+    raceCleanupMock.mockResolvedValue({
+      ...CLEANUP,
+      removed_worktrees: [],
+      removed_branches: [],
+      pruned: false,
+      skipped_reason: "Janela de retenção não expirada — faltam 7 dia(s)",
+    });
+
+    await raceStore.cleanup();
+
+    const s = raceStore.getSnapshot();
+    expect(s.cleanupReport?.skipped_reason).toContain("retenção");
+    expect(s.snapshot?.status).toBe("completed");
+  });
+
+  it("cleanup surfaces backend errors", async () => {
+    await startFinishedRace();
+    raceCleanupMock.mockRejectedValue(new Error("git falhou"));
+
+    await raceStore.cleanup();
+
+    const s = raceStore.getSnapshot();
+    expect(s.cleanupRunning).toBe(false);
+    expect(s.cleanupError).toBe("git falhou");
+  });
+
+  it("reset and a new start clear the diff/adopt/cleanup state", async () => {
+    await startFinishedRace();
+    raceDiffMock.mockResolvedValue(DIFF);
+    raceAdoptMock.mockResolvedValue(ADOPT_OK);
+    await raceStore.loadDiff("claude");
+    await raceStore.adopt("claude", "branch");
+
+    raceStore.beginConfiguration();
+
+    expect(raceStore.getSnapshot()).toMatchObject({
+      diffs: {},
+      diffLoading: null,
+      diffError: null,
+      adopting: null,
+      adoptReport: null,
+      adoptError: null,
+      cleanupReport: null,
+      cleanupError: null,
+    });
+  });
+
+  it("ignores diff/adopt calls outside a race", async () => {
+    raceStore.beginConfiguration();
+    await raceStore.loadDiff("claude");
+    await raceStore.adopt("claude", "branch");
+
+    expect(raceDiffMock).not.toHaveBeenCalled();
+    expect(raceAdoptMock).not.toHaveBeenCalled();
   });
 });
