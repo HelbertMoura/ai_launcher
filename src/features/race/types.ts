@@ -112,3 +112,45 @@ export const RaceCleanupReportSchema = z.object({
   skipped_reason: z.string().nullable(),
 });
 export type RaceCleanupReport = z.infer<typeof RaceCleanupReportSchema>;
+
+/**
+ * One orphaned race from the boot-time scan (23.2d): a race recorded as
+ * "running" with no live runtime — the app died mid-race. The record fields
+ * (base SHA, branches, worktrees) allow the UI to rebuild a valid handle for
+ * `race_recover`.
+ */
+export const RaceOrphanSchema = z.object({
+  race_id: z.string().min(1),
+  directory: z.string(),
+  started_at: z.string().min(1),
+  agents: z.array(z.string().min(1)).min(1),
+  worktree_root: z.string(),
+  base_sha: z.string().min(1),
+  branches: z.array(z.string()).default([]),
+  worktrees: z.array(z.string()).default([]),
+});
+export type RaceOrphan = z.infer<typeof RaceOrphanSchema>;
+
+/** Result of `race_scan_orphans`. */
+export const OrphanScanReportSchema = z.object({
+  orphans: z.array(RaceOrphanSchema).default([]),
+});
+
+/**
+ * One terminal race record of the graveyard section (23.2d). When
+ * `worktrees_present` is false — or the status is "cleaned" — a restore can
+ * only reopen the read-only archived record, never the live diffs.
+ */
+export const RaceHistoryEntrySchema = z.object({
+  race_id: z.string().min(1),
+  directory: z.string(),
+  base_sha: z.string().min(1),
+  status: z.string(),
+  started_at: z.string().min(1),
+  finished_at: z.string().nullable(),
+  agents: z.array(z.string().min(1)).min(1),
+  branches: z.array(z.string()).default([]),
+  worktrees: z.array(z.string()).default([]),
+  worktrees_present: z.boolean(),
+});
+export type RaceHistoryEntry = z.infer<typeof RaceHistoryEntrySchema>;

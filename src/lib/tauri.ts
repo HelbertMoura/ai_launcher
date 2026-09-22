@@ -272,10 +272,30 @@ export interface RaceOrphan {
   started_at: string;
   agents: string[];
   worktree_root: string;
+  /** Frozen base SHA + branches/worktrees, enough to rebuild a handle. */
+  base_sha: string;
+  branches: string[];
+  worktrees: string[];
 }
 
 export interface OrphanScanReport {
   orphans: RaceOrphan[];
+}
+
+/** One terminal race record for the "Corridas anteriores" section (23.2d). */
+export interface RaceHistoryEntry {
+  race_id: string;
+  directory: string;
+  base_sha: string;
+  /** completed | failed | cancelled | adopted | cleaned */
+  status: string;
+  started_at: string;
+  finished_at: string | null;
+  agents: string[];
+  branches: string[];
+  worktrees: string[];
+  /** All worktrees still on disk → restore reopens the live cockpit. */
+  worktrees_present: boolean;
 }
 
 export function raceStart(
@@ -312,5 +332,15 @@ export function raceCleanup(handle: RaceHandle, keepDays?: number): Promise<Race
 
 export function raceScanOrphans(): Promise<OrphanScanReport> {
   return invoke<OrphanScanReport>("race_scan_orphans");
+}
+
+/** Kills the persisted agent pids of an orphaned race and cleans it up now. */
+export function raceRecover(handle: RaceHandle): Promise<RaceCleanupReport> {
+  return invoke<RaceCleanupReport>("race_recover", { handle });
+}
+
+/** Graveyard listing: terminal race records, newest first. */
+export function raceListHistory(): Promise<RaceHistoryEntry[]> {
+  return invoke<RaceHistoryEntry[]>("race_list_history");
 }
 
