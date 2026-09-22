@@ -40,7 +40,8 @@ use crate::util::{
 };
 
 use super::race_state::{
-    get_race, races_root, scan_orphans, update_race, upsert_race, AgentRecord, RaceRecord,
+    get_race, load_state, races_root, scan_orphans, update_race, upsert_race, AgentRecord,
+    RaceRecord,
 };
 
 /// Maximum number of agents in a single race.
@@ -161,7 +162,7 @@ pub struct RaceCleanupReport {
     pub race_id: String,
     pub removed_worktrees: Vec<String>,
     pub removed_branches: Vec<String>,
-    /// Whether `git worktree prune` ran.
+    /// Whether the race-scoped worktree metadata prune ran.
     pub pruned: bool,
     /// Present when the retention window has not elapsed yet.
     pub skipped_reason: Option<String>,
@@ -175,11 +176,35 @@ pub struct OrphanRace {
     pub started_at: String,
     pub agents: Vec<String>,
     pub worktree_root: String,
+    /// Frozen base SHA + per-agent branches/worktrees from the persisted
+    /// record, so the UI can rebuild a valid handle for `race_recover`.
+    pub base_sha: String,
+    pub branches: Vec<String>,
+    pub worktrees: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
 pub struct OrphanScanReport {
     pub orphans: Vec<OrphanRace>,
+}
+
+/// One terminal race record surfaced by the graveyard section ("Corridas
+/// anteriores"). `worktrees_present` tells the UI whether a restore can
+/// reopen the live cockpit (worktrees on disk) or only the read-only,
+/// archived record view.
+#[derive(Debug, Clone, Serialize)]
+pub struct RaceHistoryEntry {
+    pub race_id: String,
+    pub directory: String,
+    pub base_sha: String,
+    /// "completed" | "failed" | "cancelled" | "adopted" | "cleaned".
+    pub status: String,
+    pub started_at: String,
+    pub finished_at: Option<String>,
+    pub agents: Vec<String>,
+    pub branches: Vec<String>,
+    pub worktrees: Vec<String>,
+    pub worktrees_present: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -289,6 +314,47 @@ fn agent_worktree(root: &Path, race_id: &str, agent: &str) -> PathBuf {
 
 fn agent_log_path(root: &Path, race_id: &str, agent: &str) -> PathBuf {
     race_dir(root, race_id).join(format!("{}.log", agent))
+}
+
+/// Race-scoped replacement for the global `git worktree prune` (re-gate
+/// condition): stale metadata directories under the user's
+/// `<repo>/.git/worktrees/` are removed ONLY when their recorded `gitdir`
+/// points into this race's directory (`<races-root>/<race-id>/...`). The
+/// user's own orphaned worktrees are never reaped. Returns whether the
+/// scoped sweep ran to completion.
+fn prune_race_worktree_metadata(main_repo: &Path, root: &Path, race_id: &str) -> bool {
+    let git_dir = main_repo.join(".git");
+    // `.git` can be a plain file when the repository itself is a linked
+    // worktree; the shared metadata then lives elsewhere and a scoped sweep
+    // would be guesswork — skip instead of risking the user's entries.
+    if !git_dir.is_dir() {
+        return false;
+    }
+    let metadata_root = git_dir.join("worktrees");
+    let Ok(entries) = fs::read_dir(&metadata_root) else {
+        // No metadata directory at all: nothing to prune, sweep trivially done.
+        return !metadata_root.exists();
+    };
+    let race_dir = race_dir(root, race_id);
+    let mut swept = true;
+    for entry in entries.filter_map(Result::ok) {
+        let Ok(gitdir_text) = fs::read_to_string(entry.path().join("gitdir")) else {
+            continue;
+        };
+        // `gitdir` records the path of the worktree's `.git` file; the
+        // worktree root is its parent directory. Matching by the `race-id`
+        // path component is separator/case resilient on Windows, where git
+        // writes forward slashes into `gitdir`.
+        let wt_root = PathBuf::from(gitdir_text.trim());
+        let scoped = wt_root == race_dir
+            || wt_root
+                .components()
+                .any(|c| c.as_os_str() == std::ffi::OsStr::new(race_id));
+        if scoped && fs::remove_dir_all(entry.path()).is_err() {
+            swept = false;
+        }
+    }
+    swept
 }
 
 // ---------------------------------------------------------------------------
@@ -557,6 +623,7 @@ fn create_all_worktrees(
             agent: key.clone(),
             branch: branch_name(race_id, key),
             worktree: worktree.to_string_lossy().into_owned(),
+            pid: None,
         };
         if let Some(parent) = worktree.parent() {
             fs::create_dir_all(parent)
@@ -577,9 +644,9 @@ fn create_all_worktrees(
         ) {
             // `git worktree add -b` creates the branch ref BEFORE it fails on
             // the path, so the failed entry's branch must be deleted too.
-            rollback_worktrees(main_repo, &created);
+            rollback_worktrees(main_repo, root, race_id, &created);
             let _ = run_git(main_repo, &["branch", "-D", &entry.branch]);
-            let _ = run_git(main_repo, &["worktree", "prune"]);
+            let _ = prune_race_worktree_metadata(main_repo, root, race_id);
             return Err(format!(
                 "Falha ao criar o worktree do agente {}: {}",
                 entry.agent, error
@@ -590,7 +657,7 @@ fn create_all_worktrees(
     Ok(created)
 }
 
-fn rollback_worktrees(main_repo: &Path, entries: &[AgentRecord]) {
+fn rollback_worktrees(main_repo: &Path, root: &Path, race_id: &str, entries: &[AgentRecord]) {
     for entry in entries {
         let _ = run_git(
             main_repo,
@@ -598,7 +665,7 @@ fn rollback_worktrees(main_repo: &Path, entries: &[AgentRecord]) {
         );
         let _ = run_git(main_repo, &["branch", "-D", &entry.branch]);
     }
-    let _ = run_git(main_repo, &["worktree", "prune"]);
+    let _ = prune_race_worktree_metadata(main_repo, root, race_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -775,7 +842,7 @@ fn abort_start(main_repo: &Path, root: &Path, race_id: &str, entries: &[AgentRec
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
         .remove(race_id);
-    rollback_worktrees(main_repo, entries);
+    rollback_worktrees(main_repo, root, race_id, entries);
     let _ = fs::remove_dir_all(race_dir(root, race_id));
 }
 
@@ -822,6 +889,7 @@ fn race_start_blocking_in(
     let race_id = uuid::Uuid::new_v4().to_string();
     let warnings = detect_repo_warnings(&main_repo);
     let entries = create_all_worktrees(&main_repo, root, &race_id, &base_sha, &agent_keys)?;
+    let mut spawned_pids: HashMap<String, u32> = HashMap::new();
 
     // Placeholder runtime BEFORE the spawns, so waiter threads always find
     // their slot to record the exit code.
@@ -831,16 +899,30 @@ fn race_start_blocking_in(
         .insert(race_id.clone(), RaceRuntime::default());
 
     for entry in &entries {
-        if let Err(error) = spawn_agent(root, &race_id, entry, prompt) {
-            abort_start(&main_repo, root, &race_id, &entries);
-            return Err(format!(
-                "Falha ao iniciar o agente {}: {}",
-                entry.agent, error
-            ));
+        match spawn_agent(root, &race_id, entry, prompt) {
+            Ok(proc) => {
+                spawned_pids.insert(entry.agent.clone(), proc.pid);
+            }
+            Err(error) => {
+                abort_start(&main_repo, root, &race_id, &entries);
+                return Err(format!(
+                    "Falha ao iniciar o agente {}: {}",
+                    entry.agent, error
+                ));
+            }
         }
     }
 
     let started_at = chrono::Local::now().to_rfc3339();
+    // Persist every agent pid: after an app crash, `race_recover` uses these
+    // to terminate processes that outlived the session.
+    let agents_with_pids: Vec<AgentRecord> = entries
+        .iter()
+        .map(|entry| AgentRecord {
+            pid: spawned_pids.get(&entry.agent).copied(),
+            ..entry.clone()
+        })
+        .collect();
     let record = RaceRecord {
         race_id: race_id.clone(),
         directory: dir_str.clone(),
@@ -849,7 +931,7 @@ fn race_start_blocking_in(
         started_at: started_at.clone(),
         finished_at: None,
         warnings: warnings.clone(),
-        agents: entries.clone(),
+        agents: agents_with_pids,
     };
     if let Err(error) = upsert_race(root, &record) {
         abort_start(&main_repo, root, &race_id, &entries);
@@ -1382,6 +1464,42 @@ fn race_cleanup_blocking_in(
         });
     }
 
+    // The user's project directory can disappear between the race and the
+    // graveyard cleanup (moved/deleted project). With no repository left there
+    // is nothing to detach: the worktree files under the races root are removed
+    // directly, the record becomes "cleaned" history and the report explains
+    // what happened instead of failing with a path error.
+    if !Path::new(&record.directory).is_dir() {
+        let mut removed = Vec::new();
+        for entry in &record.agents {
+            if Path::new(&entry.worktree).exists() && fs::remove_dir_all(&entry.worktree).is_ok() {
+                removed.push(entry.worktree.clone());
+            }
+        }
+        let _ = fs::remove_dir_all(race_dir(root, &race_id));
+        runtimes()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(&race_id);
+        update_race(root, &race_id, |r| {
+            r.status = "cleaned".to_string();
+            if r.finished_at.is_none() {
+                r.finished_at = Some(chrono::Local::now().to_rfc3339());
+            }
+        })
+        .map_err(|e| e.to_string())?;
+        return Ok(RaceCleanupReport {
+            race_id,
+            removed_worktrees: removed,
+            removed_branches: Vec::new(),
+            pruned: false,
+            skipped_reason: Some(
+                "O diretório do projeto não existe mais — apenas o registro e os logs foram removidos"
+                    .to_string(),
+            ),
+        });
+    }
+
     let main_repo = PathBuf::from(validate_directory(&record.directory)?);
     let mut removed_worktrees = Vec::new();
     let mut removed_branches = Vec::new();
@@ -1400,11 +1518,18 @@ fn race_cleanup_blocking_in(
                 &format!("worktree não removido: {}", entry.worktree),
             );
         }
+    }
+    // Re-gate condition: the prune is scoped to this race's worktree metadata
+    // only — a global `git worktree prune` would also reap the user's own
+    // orphaned worktrees. It runs BEFORE the branch deletions: stale metadata
+    // of an externally deleted worktree still marks the race branch as
+    // checked out, which would make `git branch -D` refuse.
+    let pruned = prune_race_worktree_metadata(&main_repo, root, &race_id);
+    for entry in &record.agents {
         if run_git(&main_repo, &["branch", "-D", &entry.branch]).is_ok() {
             removed_branches.push(entry.branch.clone());
         }
     }
-    let pruned = run_git(&main_repo, &["worktree", "prune"]).is_ok();
     let _ = fs::remove_dir_all(race_dir(root, &race_id));
     runtimes()
         .lock()
@@ -1443,9 +1568,84 @@ fn race_scan_orphans_blocking_in(root: &Path) -> OrphanScanReport {
             worktree_root: race_dir(root, &record.race_id)
                 .to_string_lossy()
                 .into_owned(),
+            base_sha: record.base_sha.clone(),
+            branches: record.agents.iter().map(|a| a.branch.clone()).collect(),
+            worktrees: record.agents.iter().map(|a| a.worktree.clone()).collect(),
         })
         .collect();
     OrphanScanReport { orphans }
+}
+
+/// Crash recovery for one orphaned race: terminates the persisted agent pids
+/// (processes that outlived the dead app session), then runs an immediate
+/// cleanup (worktrees, branches, scoped prune, race dir) and leaves the
+/// record as "cleaned" history. Refuses races whose runtime is alive in THIS
+/// session — those are cancelled, not recovered.
+fn race_recover_blocking_in(root: &Path, handle: RaceHandle) -> Result<RaceCleanupReport, String> {
+    let race_id = validate_race_id(&handle.race_id)?;
+    let record = current_record(root, &race_id)?;
+    {
+        let guard = runtimes()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if let Some(runtime) = guard.get(&race_id) {
+            if runtime.agents.values().any(|p| !p.finished) {
+                return Err(
+                    "A corrida está ativa nesta sessão — cancele-a em vez de recuperar".to_string(),
+                );
+            }
+        }
+    }
+    for entry in &record.agents {
+        let Some(pid) = entry.pid else { continue };
+        if let Err(error) = crate::util::kill_tree(pid) {
+            // The pid may already be gone or be a stale record value; the
+            // cleanup below is still the source of truth for disk state.
+            log_event(
+                "race_recover",
+                &format!("falha ao interromper o pid {}: {}", pid, error),
+            );
+        }
+    }
+    runtimes()
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .remove(&race_id);
+    // The race ended when the app died: stamp the end time so the retention
+    // clock starts from the crash, then clean up immediately (keep_days = 0).
+    update_race(root, &race_id, |r| {
+        if r.finished_at.is_none() {
+            r.finished_at = Some(chrono::Local::now().to_rfc3339());
+        }
+    })
+    .map_err(|e| e.to_string())?;
+    race_cleanup_blocking_in(root, handle, Some(0))
+}
+
+/// Graveyard listing: every terminal race record, newest first, with a flag
+/// telling whether the worktrees are still on disk (restore with live diffs)
+/// or the race is archived (read-only record view).
+fn race_list_history_blocking_in(root: &Path) -> Vec<RaceHistoryEntry> {
+    let mut entries: Vec<RaceHistoryEntry> = load_state(root)
+        .races
+        .into_iter()
+        .filter(|r| r.status != "running")
+        .map(|r| RaceHistoryEntry {
+            worktrees_present: !r.agents.is_empty()
+                && r.agents.iter().all(|a| Path::new(&a.worktree).exists()),
+            race_id: r.race_id.clone(),
+            directory: r.directory.clone(),
+            base_sha: r.base_sha.clone(),
+            status: r.status.clone(),
+            started_at: r.started_at.clone(),
+            finished_at: r.finished_at.clone(),
+            agents: r.agents.iter().map(|a| a.agent.clone()).collect(),
+            branches: r.agents.iter().map(|a| a.branch.clone()).collect(),
+            worktrees: r.agents.iter().map(|a| a.worktree.clone()).collect(),
+        })
+        .collect();
+    entries.sort_by(|a, b| b.started_at.cmp(&a.started_at));
+    entries
 }
 
 // ---------------------------------------------------------------------------
@@ -1548,7 +1748,8 @@ pub async fn race_cancel(handle: RaceHandle) -> Result<(), AppError> {
 }
 
 /// Removes the race worktrees and branches after the retention window
-/// (`keep_days`, default 7; 0 = immediate), runs `git worktree prune` and
+/// (`keep_days`, default 7; 0 = immediate), prunes the race's stale worktree
+/// metadata (scoped — never a global prune of the user's repository) and
 /// drops the per-race directory (logs included). The `races.json` index is
 /// never removed — the record is kept as history with status "cleaned".
 #[tauri::command]
@@ -1576,6 +1777,35 @@ pub async fn race_scan_orphans() -> Result<OrphanScanReport, AppError> {
             Ok(race_scan_orphans_blocking_in(&root))
         },
         "varrer corridas órfãs",
+    )
+    .await
+}
+
+/// Crash recovery (23.2d): kills the persisted agent pids of an orphaned
+/// race and immediately cleans up its worktrees, branches and race
+/// directory. The record stays as "cleaned" history.
+#[tauri::command]
+pub async fn race_recover(handle: RaceHandle) -> Result<RaceCleanupReport, AppError> {
+    run_blocking(
+        move || {
+            let root = races_root().map_err(|e| e.to_string())?;
+            race_recover_blocking_in(&root, handle)
+        },
+        "recuperar a corrida órfã",
+    )
+    .await
+}
+
+/// Graveyard listing (23.2d): terminal race records for the "Corridas
+/// anteriores" section, newest first.
+#[tauri::command]
+pub async fn race_list_history() -> Result<Vec<RaceHistoryEntry>, AppError> {
+    run_blocking(
+        move || {
+            let root = races_root().map_err(|e| e.to_string())?;
+            Ok(race_list_history_blocking_in(&root))
+        },
+        "listar as corridas anteriores",
     )
     .await
 }
@@ -2664,5 +2894,278 @@ mod tests {
         assert!(error.contains("não encontrada"), "mensagem: {error}");
         let error = race_cancel_blocking_in(root.path(), handle).expect_err("corrida ausente");
         assert!(error.contains("não encontrada"), "mensagem: {error}");
+    }
+
+    // --- Graveyard / crash recovery (23.2d) ------------------------------------
+
+    /// OS-level liveness probe used by the recover tests (tasklist on Windows,
+    /// `kill -0` elsewhere). Returns true when the pid is no longer running.
+    fn process_is_gone(pid: u32) -> bool {
+        #[cfg(windows)]
+        {
+            Command::new("tasklist")
+                .args(["/FI", &format!("PID eq {}", pid), "/NH"])
+                .output()
+                .map(|out| !String::from_utf8_lossy(&out.stdout).contains(&pid.to_string()))
+                .unwrap_or(false)
+        }
+        #[cfg(not(windows))]
+        {
+            Command::new("kill")
+                .arg("-0")
+                .arg(pid.to_string())
+                .status()
+                .map(|s| !s.success())
+                .unwrap_or(false)
+        }
+    }
+
+    /// Test-as-child helper: the parent re-executes THIS test binary with
+    /// `--ignored --exact` so it gets a real, long-lived process to kill.
+    /// `#[ignore]` keeps it out of the normal suite.
+    #[test]
+    #[ignore]
+    fn recover_sleep_child_stays_alive_until_killed() {
+        thread::sleep(Duration::from_secs(30));
+    }
+
+    #[test]
+    fn prune_is_scoped_to_race_metadata_and_spares_user_worktrees() {
+        let (tmp, repo) = temp_repo("prune-scoped");
+        let root = temp_race_root();
+        let mut record = manual_race(root.path(), &repo, &["claude"]);
+
+        // The user's own worktree in the same repository, then both worktree
+        // directories removed externally — exactly the orphaned-metadata case.
+        let user_wt = tmp.path().join("user-worktree");
+        git(
+            &repo,
+            &[
+                "worktree",
+                "add",
+                "-b",
+                "user/feature",
+                user_wt.to_str().expect("caminho do worktree do usuário"),
+                "HEAD",
+            ],
+        );
+        fs::remove_dir_all(worktree_of(&record, 0)).expect("remover worktree da corrida");
+        fs::remove_dir_all(&user_wt).expect("remover worktree do usuário");
+
+        record.status = "completed".to_string();
+        record.finished_at = Some((chrono::Local::now() - chrono::Duration::days(8)).to_rfc3339());
+        upsert_race(root.path(), &record).expect("atualizar registro");
+
+        let report =
+            race_cleanup_blocking_in(root.path(), handle_of(&record), Some(0)).expect("cleanup");
+        assert!(report.pruned, "o prune escopado deve rodar");
+        // The race's stale metadata is gone from the user's repository...
+        assert!(
+            !repo.join(".git").join("worktrees").join("claude").exists(),
+            "metadado da corrida removido"
+        );
+        // ...while the user's own orphaned worktree metadata survives intact.
+        assert!(
+            repo.join(".git")
+                .join("worktrees")
+                .join("user-worktree")
+                .exists(),
+            "metadado do worktree do usuário deve permanecer"
+        );
+        assert!(
+            !run_git(&repo, &["branch", "--list", "user/feature"])
+                .expect("branch list")
+                .trim()
+                .is_empty(),
+            "branch do usuário preservada"
+        );
+        assert!(
+            run_git(&repo, &["branch", "--list", &record.agents[0].branch])
+                .expect("branch list")
+                .trim()
+                .is_empty(),
+            "branch da corrida removida"
+        );
+    }
+
+    #[test]
+    fn cleanup_with_missing_project_dir_still_cleans_history() {
+        let (_tmp, repo) = temp_repo("cleanup-gone-dir");
+        let root = temp_race_root();
+        let mut record = manual_race(root.path(), &repo, &["claude"]);
+        record.status = "failed".to_string();
+        record.finished_at = Some(chrono::Local::now().to_rfc3339());
+        upsert_race(root.path(), &record).expect("atualizar registro");
+
+        // The user deleted or moved the project after the race ended.
+        fs::remove_dir_all(&repo).expect("remover o diretório do projeto");
+
+        let report =
+            race_cleanup_blocking_in(root.path(), handle_of(&record), Some(0)).expect("cleanup");
+        assert!(
+            report
+                .skipped_reason
+                .as_deref()
+                .unwrap_or_default()
+                .contains("não existe mais"),
+            "motivo: {:?}",
+            report.skipped_reason
+        );
+        assert!(
+            !Path::new(&record.agents[0].worktree).exists(),
+            "worktree removido diretamente da raiz de corridas"
+        );
+        let stored = get_race(root.path(), &record.race_id).expect("registro");
+        assert_eq!(stored.status, "cleaned");
+    }
+
+    #[test]
+    fn recover_kills_live_persisted_pids_and_cleans_up() {
+        let (_tmp, repo) = temp_repo("recover-kill");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let wt = worktree_of(&record, 0);
+
+        // A real live "agent": this test binary re-executed as a sleeper.
+        // `--exact` matches the FULL test path, `--ignored` un-ignores it.
+        let exe = std::env::current_exe().expect("binário de teste");
+        let proc = spawn_agent_process(
+            &record.race_id,
+            "claude",
+            exe.to_str().expect("caminho do binário"),
+            &[
+                "--exact".to_string(),
+                "commands::race::tests::recover_sleep_child_stays_alive_until_killed".to_string(),
+                "--ignored".to_string(),
+                "--test-threads=1".to_string(),
+            ],
+            &wt,
+            &agent_log_path(root.path(), &record.race_id, "claude"),
+        )
+        .expect("spawn do filho dormente");
+        let mut alive = false;
+        for _ in 0..100 {
+            if !process_is_gone(proc.pid) {
+                alive = true;
+                break;
+            }
+            thread::sleep(Duration::from_millis(20));
+        }
+        assert!(alive, "o filho dormente deveria estar vivo");
+
+        // Persist the pid like race_start does, then simulate the app crash.
+        update_race(root.path(), &record.race_id, |r| {
+            if let Some(agent) = r.agents.first_mut() {
+                agent.pid = Some(proc.pid);
+            }
+        })
+        .expect("persistir pid");
+        drop_runtime(&record.race_id);
+
+        let report = race_recover_blocking_in(root.path(), handle_of(&record)).expect("recover");
+        assert!(
+            report.skipped_reason.is_none(),
+            "{:?}",
+            report.skipped_reason
+        );
+        assert_eq!(
+            report.removed_worktrees,
+            vec![record.agents[0].worktree.clone()]
+        );
+
+        let mut gone = false;
+        for _ in 0..150 {
+            if process_is_gone(proc.pid) {
+                gone = true;
+                break;
+            }
+            thread::sleep(Duration::from_millis(50));
+        }
+        assert!(gone, "o pid persistido deveria ter sido encerrado");
+        assert!(!wt.exists(), "worktree removido");
+        assert!(
+            run_git(&repo, &["branch", "--list", &record.agents[0].branch])
+                .expect("branch list")
+                .trim()
+                .is_empty(),
+            "branch removida"
+        );
+        let stored = get_race(root.path(), &record.race_id).expect("registro");
+        assert_eq!(stored.status, "cleaned");
+        assert!(stored.finished_at.is_some());
+    }
+
+    #[test]
+    fn recover_refuses_race_with_live_runtime_in_this_session() {
+        let (_tmp, repo) = temp_repo("recover-live");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        {
+            let mut guard = runtimes()
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
+            guard.insert(
+                record.race_id.clone(),
+                RaceRuntime {
+                    cancelled: false,
+                    agents: HashMap::from([(
+                        "claude".to_string(),
+                        AgentProc {
+                            pid: u32::MAX,
+                            started_at: Instant::now(),
+                            finished: false,
+                            exit_code: None,
+                            log_path: PathBuf::new(),
+                        },
+                    )]),
+                },
+            );
+        }
+        let error = race_recover_blocking_in(root.path(), handle_of(&record))
+            .expect_err("corrida viva nesta sessão deve ser recusada");
+        assert!(error.contains("cancele"), "mensagem: {error}");
+        assert!(
+            worktree_of(&record, 0).exists(),
+            "nada é removido quando a corrida está ativa"
+        );
+        drop_runtime(&record.race_id);
+    }
+
+    #[test]
+    fn history_lists_only_terminal_records_with_worktree_presence() {
+        let (_tmp, repo) = temp_repo("history");
+        let root = temp_race_root();
+
+        let mut done = manual_race(root.path(), &repo, &["claude"]);
+        done.status = "completed".to_string();
+        done.started_at = "2026-09-01T10:00:00-03:00".to_string();
+        upsert_race(root.path(), &done).expect("atualizar registro");
+
+        let mut gone = manual_race(root.path(), &repo, &["codex"]);
+        gone.status = "cleaned".to_string();
+        gone.started_at = "2026-09-02T10:00:00-03:00".to_string();
+        fs::remove_dir_all(worktree_of(&gone, 0)).expect("remover worktree limpo");
+        upsert_race(root.path(), &gone).expect("atualizar registro");
+
+        let running = manual_race(root.path(), &repo, &["goose"]);
+
+        let history = race_list_history_blocking_in(root.path());
+        let ids: Vec<&str> = history.iter().map(|e| e.race_id.as_str()).collect();
+        assert_eq!(
+            ids,
+            vec![gone.race_id.as_str(), done.race_id.as_str()],
+            "somente registros terminais, mais recentes primeiro"
+        );
+        assert!(
+            !history[0].worktrees_present,
+            "worktrees limpos → arquivada"
+        );
+        assert!(
+            history[1].worktrees_present,
+            "worktrees vivos → restaurável"
+        );
+        assert_eq!(history[1].agents, vec!["claude".to_string()]);
+        assert_eq!(history[1].base_sha, done.base_sha);
+        drop_runtime(&running.race_id);
     }
 }

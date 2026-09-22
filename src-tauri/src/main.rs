@@ -172,6 +172,8 @@ fn main() {
             commands::race::race_cancel,
             commands::race::race_cleanup,
             commands::race::race_scan_orphans,
+            commands::race::race_recover,
+            commands::race::race_list_history,
             // secrets
             secrets::store_secret,
             secrets::get_secret,
