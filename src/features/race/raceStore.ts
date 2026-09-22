@@ -243,6 +243,17 @@ export const raceStore = {
     }
   },
 
+  /**
+   * Restarts the poll cadence for a race that is already running — e.g. the
+   * surface remounted after an unmount mid-race. No-op outside a running
+   * race. Reuses the current generation and clears any existing timer first,
+   * so a repeated call never duplicates the interval.
+   */
+  resumePolling(): void {
+    if (state.phase !== "running" || !state.handle) return;
+    startPolling(state.handle);
+  },
+
   /** Full teardown back to idle ("New race" / tests). */
   reset(): void {
     generation += 1;

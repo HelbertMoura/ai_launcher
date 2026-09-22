@@ -230,6 +230,45 @@ describe("raceStore", () => {
     expect(s.error).toBe("cancel refused");
   });
 
+  it("resumePolling restarts the cadence after a mid-race dispose", async () => {
+    raceStartMock.mockResolvedValue(HANDLE);
+    raceStatusMock.mockResolvedValue(snapshot());
+
+    await raceStore.start({ directory: "C:/proj", taskPrompt: "x", agents: ["claude"] });
+
+    // Surface unmounts mid-race: interval cleared, state kept intact.
+    raceStore.dispose();
+    expect(raceStore.getSnapshot().phase).toBe("running");
+    raceStatusMock.mockClear();
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS * 2);
+    expect(raceStatusMock).not.toHaveBeenCalled(); // frozen while disposed
+
+    // Remount resumes the cadence with the same generation counter.
+    raceStore.resumePolling();
+    expect(raceStatusMock.mock.calls.length).toBe(1); // immediate poll on resume
+    raceStore.resumePolling(); // idempotent: must not duplicate the timer
+    expect(raceStatusMock.mock.calls.length).toBe(2); // resume re-polls immediately
+    const before = raceStatusMock.mock.calls.length;
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS);
+    // Exactly one tick in the window — a duplicated timer would tick twice.
+    expect(raceStatusMock.mock.calls.length - before).toBe(1);
+
+    // The resumed race still reaches its terminal state and stops polling.
+    raceStatusMock.mockResolvedValue(snapshot({ status: "completed" }));
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS);
+    expect(raceStore.getSnapshot().phase).toBe("finished");
+    raceStatusMock.mockClear();
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS * 2);
+    expect(raceStatusMock).not.toHaveBeenCalled();
+
+    // No-op outside a running race.
+    raceStore.reset();
+    raceStatusMock.mockClear();
+    raceStore.resumePolling();
+    await vi.advanceTimersByTimeAsync(RACE_POLL_INTERVAL_MS);
+    expect(raceStatusMock).not.toHaveBeenCalled();
+  });
+
   it("reset tears the store down to idle and clears the interval", async () => {
     raceStartMock.mockResolvedValue(HANDLE);
     raceStatusMock.mockResolvedValue(snapshot());
