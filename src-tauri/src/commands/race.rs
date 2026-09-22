@@ -992,16 +992,22 @@ fn blob_content(repo: &Path, revision: &str, path: &str) -> Option<Vec<u8>> {
 /// sails through the check and only explodes on the real apply, touching the
 /// tree. `git merge-file` runs the same internal merge algorithm with zero
 /// side effects, so a clean simulation guarantees the real apply is clean.
+///
+/// "ours" comes from the main repository's HEAD BLOB, never from `fs::read`
+/// (auditor P1): with `core.autocrlf=true` (and any other smudge filter) the
+/// on-disk copy holds CRLF while the blobs hold LF, so a disk-based merge
+/// flags the whole file as conflicted even though the real apply is clean.
+/// The adopt-time clean-tree guard guarantees worktree == index == HEAD, and
+/// HEAD's blob is exactly what `git apply --3way` merges against.
 fn check_three_way_file(
     repo: &Path,
     base_sha: &str,
+    ours_sha: &str,
     branch: &str,
     file: &RaceFileStat,
 ) -> Result<(), String> {
     let path = file.path.as_str();
-    // Clean-tree guard (revalidated by the caller) means the worktree copy is
-    // exactly what `git apply --3way` would merge against.
-    let ours = fs::read(repo.join(path)).ok();
+    let ours = blob_content(repo, ours_sha, path);
     let base = blob_content(repo, base_sha, path);
     let theirs = blob_content(repo, branch, path);
     match (base.as_ref(), theirs.as_ref(), ours.as_ref()) {
@@ -1116,6 +1122,10 @@ fn adopt_via_apply(
             message: format!("O agente {} não produziu mudanças para aplicar", agent_key),
         });
     }
+    // The current main-repository HEAD is "ours" for the merge simulation —
+    // the same side `git apply --3way` uses. The clean-tree guard revalidated
+    // above guarantees worktree == index == HEAD.
+    let ours_sha = head_sha(main_repo)?;
     let mut conflicts = Vec::new();
     for file in &files {
         // Rename entries arrive from `--numstat` as a composite path
@@ -1132,7 +1142,7 @@ fn adopt_via_apply(
             });
             continue;
         }
-        if let Err(reason) = check_three_way_file(main_repo, &base, &branch, file) {
+        if let Err(reason) = check_three_way_file(main_repo, &base, &ours_sha, &branch, file) {
             conflicts.push(AdoptConflict {
                 path: file.path.clone(),
                 reason,
@@ -2122,9 +2132,67 @@ mod tests {
             adds: Some(1),
             dels: Some(1),
         };
+        let head = head_sha(&repo).expect("HEAD");
+        assert!(check_three_way_file(
+            &repo,
+            &record.base_sha,
+            &head,
+            &record.agents[0].branch,
+            &bogus
+        )
+        .is_err());
+    }
+
+    /// Auditor P1 regression: with `core.autocrlf=true` the on-disk working
+    /// copy holds CRLF while the blobs hold LF. Taking "ours" from disk made
+    /// the whole file conflict and blocked a clean apply; ours now comes from
+    /// HEAD's blob, exactly what `git apply --3way` merges against.
+    #[test]
+    fn apply_mode_merges_cleanly_with_autocrlf_working_tree() {
+        let tmp = tempfile::tempdir().expect("repositório autocrlf temporário");
+        let repo = tmp.path().join("crlf-repo");
+        fs::create_dir_all(&repo).expect("mkdir");
+        git(&repo, &["init"]);
+        git(&repo, &["config", "user.email", "race-test@example.com"]);
+        git(&repo, &["config", "user.name", "Race Test"]);
+        git(&repo, &["config", "core.autocrlf", "true"]);
+        fs::write(repo.join("file.txt"), "linha1\nlinha2\nlinha3\n").expect("arquivo base");
+        commit_all(&repo, "base");
+        // Real checkout so the working copy is CRLF-smudged on disk.
+        fs::remove_file(repo.join("file.txt")).expect("remover para re-checkout");
+        git(&repo, &["checkout", "--", "file.txt"]);
+        let disk = fs::read_to_string(repo.join("file.txt")).expect("cópia de trabalho");
         assert!(
-            check_three_way_file(&repo, &record.base_sha, &record.agents[0].branch, &bogus)
-                .is_err()
+            disk.contains("\r\n"),
+            "checkout deveria smudgar CRLF: {disk:?}"
+        );
+
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let worktree = worktree_of(&record, 0);
+        // The worktree checks out CRLF too (config is shared); the agent edits
+        // there and commits — autocrlf normalizes the blob back to LF.
+        let agent_disk = fs::read_to_string(worktree.join("file.txt")).expect("cópia do agente");
+        let agent_edited = agent_disk.replacen("linha1", "agente mudou a linha 1", 1);
+        fs::write(worktree.join("file.txt"), agent_edited).expect("edição do agente");
+        commit_all(&worktree, "agente edita com CRLF em disco");
+
+        let report = race_adopt_blocking_in(
+            root.path(),
+            handle_of(&record),
+            "claude".to_string(),
+            AdoptMode::Apply,
+        )
+        .expect("adopt apply");
+        assert!(
+            report.ok,
+            "apply limpo não pode ser bloqueado por CRLF: {report:?}"
+        );
+        assert!(report.conflicts.is_empty());
+        let applied = fs::read_to_string(repo.join("file.txt")).expect("conteúdo aplicado");
+        assert!(
+            applied.contains("agente mudou a linha 1"),
+            "conteúdo aplicado: {applied:?}"
         );
     }
 
