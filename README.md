@@ -324,7 +324,7 @@ The **Install** button in Prereqs, **Fix** button in Doctor, and **Install prere
 | **Typography** | JetBrains Mono · Inter · Space Grotesk (display) |
 | **Icons** | Official brand logos (LobeHub Icons, devicons) + Phosphor Icons |
 | **i18n** | i18next 26 (English & Portuguese - Brazil) |
-| **Testing** | Vitest (239 tests), Playwright E2E / visual, cargo test (127 Rust tests) |
+| **Testing** | Vitest (280 tests), Playwright E2E / visual, cargo test (182 Rust tests) |
 | **Build** | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
 | **Distribution** | GitHub Releases · Scoop (auto-update on Windows) |
 

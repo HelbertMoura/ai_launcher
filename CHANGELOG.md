@@ -36,6 +36,7 @@ The fleet-command release: Race Mode puts up to three agents on the same task in
 - **MCP tolerant to malformed configs:** unreadable or malformed per-CLI config files now surface a per-CLI warning and a page banner instead of being silently swallowed; the store validates leniently, so a single malformed server entry is skipped — never breaking the whole page.
 - **CodeQL pointer guards in the Windows secrets path:** the DPAPI decryption output pointer is checked before `from_raw_parts`, and the Credential Manager blob read goes through a pointer `as_ref` (both flagged by CodeQL `rust/access-invalid-pointer`).
 - **Race correctness:** the merge simulation takes "ours" from HEAD's blob instead of disk; live status polling resumes its cadence when the Race surface remounts mid-race; the Race keyboard shortcut is matched by key code so the macOS Option binding fires.
+- **Scoped worktree prune resolves relative `gitdir` paths:** git ≥ 2.46 (`useRelativePaths`) can write the worktree metadata `gitdir` as a path relative to the metadata directory; the race-scoped sweep now resolves it (plus separator and case differences) so cleanup never stays partial on newer git, and out-of-scope or cross-drive entries are never reaped.
 
 ### CI and Dependencies
 - The Vitest CI job runs on **Node 24** to satisfy the jsdom 30.1 engines requirement.
