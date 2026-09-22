@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod config;
 pub mod mcp;
+pub mod race_state;
 pub mod runbook;
 pub mod session;
 pub mod system;
