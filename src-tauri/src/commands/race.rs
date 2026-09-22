@@ -408,6 +408,61 @@ fn detect_repo_warnings(dir: &Path) -> Vec<String> {
 // Diff plumbing
 // ---------------------------------------------------------------------------
 
+/// Commit message of the automatic agent snapshot created by
+/// [`auto_commit_worktree`].
+const AUTO_COMMIT_MESSAGE: &str = "race: snapshot do agente (auto)";
+
+/// Auto-commit guard (v23.2c): agents like Claude Code edit files without ever
+/// running `git commit`, and the three-dot diff (`base_sha...race-branch`) can
+/// only see commits — uncommitted work was invisible to the Diff Cockpit. So
+/// BEFORE any diff/adopt, an unclean agent worktree gets `git add -A` plus a
+/// single snapshot commit on the race branch.
+///
+/// Guarantees:
+/// - This NEVER runs on the user's main directory. Callers must pass the
+///   worktree through [`validate_worktree_scoped`], which refuses any path
+///   outside this race's managed directory under the races root.
+/// - A failed commit fails the whole diff/adopt with a clear message:
+///   silently proceeding would show a stale diff that lies about the agent's
+///   work (or adopt an empty patch).
+///
+/// Returns whether a snapshot commit was created.
+fn auto_commit_worktree(worktree: &Path, agent: &str) -> Result<bool, String> {
+    let status = run_git(worktree, &["status", "--porcelain"])?;
+    if status.trim().is_empty() {
+        return Ok(false);
+    }
+    run_git(worktree, &["add", "--all"])?;
+    run_git(worktree, &["commit", "-m", AUTO_COMMIT_MESSAGE]).map_err(|e| {
+        format!(
+            "Falha ao consolidar as mudanças não commitadas do agente {} no worktree da \
+             corrida: {}",
+            agent, e
+        )
+    })?;
+    Ok(true)
+}
+
+/// Scope guard for any git mutation on an agent worktree: the recorded path
+/// must live inside THIS race's managed directory under the races root, so
+/// the auto-commit can never reach the user's main repository even if the
+/// persisted state file is tampered with.
+fn validate_worktree_scoped(
+    root: &Path,
+    race_id: &str,
+    entry: &AgentRecord,
+) -> Result<PathBuf, String> {
+    let worktree = PathBuf::from(&entry.worktree);
+    if !worktree.starts_with(race_dir(root, race_id)) {
+        return Err(format!(
+            "O worktree do agente {} está fora do diretório gerenciado da corrida — \
+             operação recusada por segurança",
+            entry.agent
+        ));
+    }
+    Ok(worktree)
+}
+
 /// Parses `git diff --numstat` output: `adds<TAB>dels<TAB>path`, where `-`
 /// marks binary files. Unparseable lines are skipped, never fatal.
 fn parse_numstat(output: &str) -> Vec<RaceFileStat> {
@@ -901,13 +956,16 @@ fn race_diff_blocking_in(
         .iter()
         .find(|a| a.agent == agent_key)
         .ok_or_else(|| format!("Agente ausente na corrida: {}", agent_key))?;
-    let worktree = PathBuf::from(&entry.worktree);
+    let worktree = validate_worktree_scoped(root, &race_id, entry)?;
     if !worktree.is_dir() {
         return Err(format!(
             "O worktree do agente {} não existe mais (a corrida foi limpa ou o diretório foi removido)",
             agent_key
         ));
     }
+    // The Cockpit must show the agent's real work: consolidate uncommitted
+    // edits into the race branch BEFORE diffing (see `auto_commit_worktree`).
+    auto_commit_worktree(&worktree, &agent_key)?;
     let base = record.base_sha.clone();
     let branch = entry.branch.clone();
     let range = format!("{}...{}", base, branch);
@@ -1208,6 +1266,13 @@ fn race_adopt_blocking_in(
         .iter()
         .find(|a| a.agent == agent_key)
         .ok_or_else(|| format!("Agente ausente na corrida: {}", agent_key))?;
+    // Adoption diffs `base_sha...race-branch`, so uncommitted agent work would
+    // be silently dropped. Snapshot it first (same guard as race_diff; a
+    // missing worktree means the race was already cleaned — nothing to save).
+    let worktree = validate_worktree_scoped(root, &race_id, entry)?;
+    if worktree.is_dir() {
+        auto_commit_worktree(&worktree, &agent_key)?;
+    }
     let main_repo = PathBuf::from(validate_directory(&record.directory)?);
     ensure_git_repo(&main_repo)?;
     // Guarda do design: a árvore limpa vale no start E é revalidada AGORA,
@@ -1433,6 +1498,8 @@ pub async fn race_status(handle: RaceHandle) -> Result<RaceSnapshot, AppError> {
 
 /// Diff of one agent against the frozen base: `base_sha...race-branch`
 /// (three-dot), file stats via `--numstat` plus a patch capped at 2 MB.
+/// Uncommitted work in the agent worktree is auto-committed on the race
+/// branch first, so agents that edit without committing still show up here.
 #[tauri::command]
 pub async fn race_diff(handle: RaceHandle, agent: String) -> Result<DiffReport, AppError> {
     run_blocking(
@@ -1888,6 +1955,139 @@ mod tests {
         .expect("adopt");
         assert!(adoption.ok);
         assert!(adoption.branch.is_some());
+    }
+
+    // --- Auto-commit of uncommitted agent work (v23.2c) ------------------------
+
+    #[test]
+    fn race_diff_auto_commits_uncommitted_agent_work() {
+        let (_tmp, repo) = temp_repo("autocommit-diff");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let worktree = worktree_of(&record, 0);
+        // The Claude Code pattern: real edits, never a `git commit`.
+        fs::write(worktree.join("agente.txt"), "trabalho não commitado\n").expect("novo arquivo");
+        fs::write(worktree.join("file.txt"), "linha1 editada\nlinha2\n").expect("edição");
+
+        let report = race_diff_blocking_in(root.path(), handle_of(&record), "claude".to_string())
+            .expect("diff deve incluir o trabalho não commitado");
+        let paths: Vec<&str> = report.files.iter().map(|f| f.path.as_str()).collect();
+        assert!(
+            paths.contains(&"agente.txt") && paths.contains(&"file.txt"),
+            "mudanças não commitadas ausentes do diff: {paths:?}"
+        );
+        assert!(report.patch.contains("agente.txt"));
+
+        // The snapshot commit exists on the race branch and the tree is clean.
+        assert!(
+            run_git(&worktree, &["status", "--porcelain"])
+                .expect("status")
+                .trim()
+                .is_empty(),
+            "worktree deveria ter ficado limpo após o snapshot"
+        );
+        let last = run_git(&worktree, &["log", "--format=%s", "-n", "1"]).expect("log");
+        assert!(
+            last.contains("snapshot do agente"),
+            "commit automático ausente: {last}"
+        );
+        let ahead = run_git(
+            &worktree,
+            &[
+                "rev-list",
+                "--count",
+                &format!("{}..{}", record.base_sha, record.agents[0].branch),
+            ],
+        )
+        .expect("rev-list");
+        assert_eq!(ahead.trim(), "1", "exatamente um commit de snapshot");
+        // The user's main repository is untouched by the auto-commit.
+        assert!(run_git(&repo, &["status", "--porcelain"])
+            .expect("status principal")
+            .trim()
+            .is_empty());
+    }
+
+    #[test]
+    fn race_diff_with_clean_worktree_makes_no_extra_commit() {
+        let (_tmp, repo) = temp_repo("autocommit-clean");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let worktree = worktree_of(&record, 0);
+        fs::write(worktree.join("agente.txt"), "trabalho commitado\n").expect("mudança");
+        run_git(&worktree, &["add", "-A"]).expect("add");
+        run_git(&worktree, &["commit", "-m", "commit explícito do agente"]).expect("commit");
+
+        race_diff_blocking_in(root.path(), handle_of(&record), "claude".to_string()).expect("diff");
+        let last = run_git(&worktree, &["log", "--format=%s", "-n", "1"]).expect("log");
+        assert!(
+            last.contains("commit explícito do agente"),
+            "commit extra criado com o worktree limpo: {last}"
+        );
+        let ahead = run_git(
+            &worktree,
+            &[
+                "rev-list",
+                "--count",
+                &format!("{}..{}", record.base_sha, record.agents[0].branch),
+            ],
+        )
+        .expect("rev-list");
+        assert_eq!(ahead.trim(), "1");
+    }
+
+    #[test]
+    fn race_adopt_snapshots_uncommitted_work_before_adopting() {
+        let (_tmp, repo) = temp_repo("autocommit-adopt");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let worktree = worktree_of(&record, 0);
+        fs::write(worktree.join("agente.txt"), "trabalho não commitado\n").expect("mudança");
+
+        let report = race_adopt_blocking_in(
+            root.path(),
+            handle_of(&record),
+            "claude".to_string(),
+            AdoptMode::Branch,
+        )
+        .expect("adopt branch");
+        assert!(report.ok, "mensagem: {}", report.message);
+        // The adoption branch carries the uncommitted work: it points at the
+        // snapshot commit, not at the empty base.
+        let branch = report.branch.expect("branch de adoção");
+        let tip_file = run_git(&repo, &["show", &format!("{}:agente.txt", branch)]).expect("blob");
+        assert_eq!(tip_file, "trabalho não commitado\n");
+        assert!(
+            run_git(&worktree, &["status", "--porcelain"])
+                .expect("status")
+                .trim()
+                .is_empty(),
+            "worktree do agente deveria ter ficado limpo"
+        );
+    }
+
+    #[test]
+    fn auto_commit_refuses_worktree_outside_the_race_directory() {
+        let (_tmp, repo) = temp_repo("autocommit-scope");
+        let root = temp_race_root();
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let handle = handle_of(&record);
+        // Tampered persisted state: the worktree now points at the user's MAIN
+        // repository. The scope guard must refuse it — the auto-commit may
+        // never run `git add -A` + `git commit` on the user's tree.
+        let mut tampered = record.clone();
+        tampered.agents[0].worktree = repo.to_string_lossy().into_owned();
+        upsert_race(root.path(), &tampered).expect("registrar estado adulterado");
+
+        let error = race_diff_blocking_in(root.path(), handle, "claude".to_string())
+            .expect_err("worktree fora do escopo deve ser recusado");
+        assert!(error.contains("recusada"), "mensagem: {error}");
+        // The user's main repository did not receive any snapshot commit.
+        let log = run_git(&repo, &["log", "--format=%s", "-n", "1"]).expect("log");
+        assert!(
+            !log.contains("snapshot do agente"),
+            "auto-commit alcançou o repositório principal: {log}"
+        );
     }
 
     // --- Adopt guards and modes ------------------------------------------------
