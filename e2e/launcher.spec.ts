@@ -148,7 +148,14 @@ test.describe("AI Launcher Pro smoke", () => {
     await page.locator("body").click();
     await page.keyboard.press("Control+7");
     await page.getByRole("button", { name: /^(manage runbooks|gerenciar runbooks)$/i }).click();
-    await page.getByRole("button", { name: /^(run|executar)$/i }).click();
+    // The v23 sidebar group header ("Run"/"Executar") is also a button, so the
+    // deck's run button must be scoped to its runbook row — a bare
+    // /^(run|executar)$/i resolves to 2 elements (group head + row button).
+    await page
+      .locator(".cd-rb-panel__item")
+      .first()
+      .getByRole("button", { name: /^(run|executar)$/i })
+      .click();
     await page.getByRole("button", { name: /dry run|simular/i }).click();
 
     await expect(page.getByText(/ready to execute|pronto para executar/i)).toBeVisible();

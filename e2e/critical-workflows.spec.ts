@@ -292,11 +292,22 @@ test.describe("v21 critical workflows", () => {
     await gotoApp(page);
     await page.keyboard.press("Control+7");
     await page.getByRole("button", { name: /manage runbooks/i }).click();
-    await page.getByRole("button", { name: /^run$/i }).click();
+    // The v23 sidebar group header ("Run") is also a button, so the row's run
+    // button must be scoped to its runbook item — a bare /^run$/i resolves to
+    // 2 elements (group head + row button).
+    await page
+      .locator(".cd-rb-panel__item")
+      .first()
+      .getByRole("button", { name: /^run$/i })
+      .click();
 
     await page.getByRole("button", { name: /dry run/i }).click();
     await expect(page.getByText(/ready to execute/i).first()).toBeVisible();
-    await page.getByRole("button", { name: /^run$/i }).click();
+    // Same collision: scope the runner's start button to its controls row.
+    await page
+      .locator(".cd-rb-run__controls")
+      .getByRole("button", { name: /^run$/i })
+      .click();
     await modal(page).getByRole("button", { name: /approve step/i }).click();
     await expect(page.getByText(/unit failure/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /resume/i })).toBeVisible();
