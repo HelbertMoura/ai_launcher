@@ -181,3 +181,136 @@ export function downloadVerifiedAppUpdate(version: string): Promise<AppUpdateDow
   return invoke("download_verified_app_update", { version });
 }
 
+// ============================================================================
+// Race Mode (v23.2)
+//
+// Wire payloads mirror the Rust structs in `src-tauri/src/commands/race.rs`
+// (snake_case fields, serde defaults). A race handle is the opaque receipt
+// returned by `race_start` and passed back to every other race command.
+// ============================================================================
+
+/** Receipt of a started race; opaque handle for the other race commands. */
+export interface RaceHandle {
+  race_id: string;
+  directory: string;
+  /** HEAD SHA frozen at start; diffs always use `base_sha...race-branch`. */
+  base_sha: string;
+  agents: string[];
+  branches: string[];
+  worktrees: string[];
+  /** Limitation banners (submodules/LFS/dependencies) captured at start. */
+  warnings: string[];
+  started_at: string;
+}
+
+/** Per-agent poll view (`status`: running | completed | failed | killed | unknown). */
+export interface RaceAgentStatus {
+  agent: string;
+  status: string;
+  pid: number | null;
+  exit_code: number | null;
+  duration_secs: number | null;
+  last_log_lines: string[];
+}
+
+/** Lightweight poll snapshot (`status`: running | completed | failed | cancelled | adopted | cleaned). */
+export interface RaceSnapshot {
+  race_id: string;
+  directory: string;
+  status: string;
+  base_sha: string;
+  started_at: string;
+  warnings: string[];
+  agents: RaceAgentStatus[];
+}
+
+/** One changed file (`null` adds/dels = binary file). */
+export interface RaceFileStat {
+  path: string;
+  adds: number | null;
+  dels: number | null;
+}
+
+/** Diff of one agent against the frozen base; patch capped at 2 MB. */
+export interface DiffReport {
+  agent: string;
+  files: RaceFileStat[];
+  total_adds: number;
+  total_dels: number;
+  patch: string;
+  truncated: boolean;
+}
+
+export type RaceAdoptMode = "branch" | "apply";
+
+/** One file that could not be applied (apply mode conflict report). */
+export interface AdoptConflict {
+  path: string;
+  reason: string;
+}
+
+export interface AdoptReport {
+  mode: RaceAdoptMode;
+  ok: boolean;
+  branch: string | null;
+  conflicts: AdoptConflict[];
+  message: string;
+}
+
+export interface RaceCleanupReport {
+  race_id: string;
+  removed_worktrees: string[];
+  removed_branches: string[];
+  pruned: boolean;
+  skipped_reason: string | null;
+}
+
+/** One orphaned race found by the boot-time scan (wired in 23.2d). */
+export interface RaceOrphan {
+  race_id: string;
+  directory: string;
+  started_at: string;
+  agents: string[];
+  worktree_root: string;
+}
+
+export interface OrphanScanReport {
+  orphans: RaceOrphan[];
+}
+
+export function raceStart(
+  directory: string,
+  taskPrompt: string,
+  agents: string[],
+): Promise<RaceHandle> {
+  return invoke<RaceHandle>("race_start", { directory, taskPrompt, agents });
+}
+
+export function raceStatus(handle: RaceHandle): Promise<RaceSnapshot> {
+  return invoke<RaceSnapshot>("race_status", { handle });
+}
+
+export function raceDiff(handle: RaceHandle, agent: string): Promise<DiffReport> {
+  return invoke<DiffReport>("race_diff", { handle, agent });
+}
+
+export function raceAdopt(
+  handle: RaceHandle,
+  agent: string,
+  mode: RaceAdoptMode = "branch",
+): Promise<AdoptReport> {
+  return invoke<AdoptReport>("race_adopt", { handle, agent, mode });
+}
+
+export function raceCancel(handle: RaceHandle): Promise<void> {
+  return invoke("race_cancel", { handle });
+}
+
+export function raceCleanup(handle: RaceHandle, keepDays?: number): Promise<RaceCleanupReport> {
+  return invoke<RaceCleanupReport>("race_cleanup", { handle, keepDays: keepDays ?? null });
+}
+
+export function raceScanOrphans(): Promise<OrphanScanReport> {
+  return invoke<OrphanScanReport>("race_scan_orphans");
+}
+
