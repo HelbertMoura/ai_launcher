@@ -36,9 +36,11 @@
   border-color: var(--border);
 }
 .cd-chip--missing {
-  color: var(--text-dim);
+  /* opacity: 0.7 dropped the effective contrast to 3.52:1 on dark surfaces
+     (axe wcag2aa "color-contrast", serious). Mixing toward --text keeps the
+     dimmed look while meeting AA (>=4.5:1) on every theme. */
+  color: color-mix(in srgb, var(--text-dim) 72%, var(--text));
   border-color: var(--border);
-  opacity: 0.7;
 }
 .cd-chip--update {
   color: color-mix(in srgb, var(--warn) 72%, var(--text));
