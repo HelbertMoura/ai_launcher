@@ -72,7 +72,9 @@ export function RacePage() {
     return () => raceStore.dispose();
   }, []);
 
-  const detected = clis.filter((cli) => checks[cli.key]?.installed);
+  // The checks map is keyed by the CLI display name (catalogStore contract),
+  // not by its key.
+  const detected = clis.filter((cli) => checks[cli.name]?.installed);
 
   const canStart =
     phase === "configuring" &&
@@ -199,7 +201,7 @@ export function RacePage() {
               <div className="cd-race__agent-list">
                 {detected.map((cli) => {
                   const checked = selected.includes(cli.key);
-                  const version = checks[cli.key]?.version;
+                  const version = checks[cli.name]?.version;
                   return (
                     <label
                       key={cli.key}

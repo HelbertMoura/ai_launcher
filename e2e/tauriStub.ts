@@ -38,6 +38,33 @@ type TauriResultMap = {
   launch_cli: { session_id: string; message: string };
   launch_custom_cli: { session_id: string; message: string };
   kill_session: boolean;
+  race_start: {
+    race_id: string;
+    directory: string;
+    base_sha: string;
+    agents: string[];
+    branches: string[];
+    worktrees: string[];
+    warnings: string[];
+    started_at: string;
+  };
+  race_status: {
+    race_id: string;
+    directory: string;
+    status: string;
+    base_sha: string;
+    started_at: string;
+    warnings: string[];
+    agents: Array<{
+      agent: string;
+      status: string;
+      pid: number | null;
+      exit_code: number | null;
+      duration_secs: number | null;
+      last_log_lines: string[];
+    }>;
+  };
+  race_cancel: null;
   add_mcp_server: null;
   update_mcp_server: null;
   remove_mcp_server: null;
@@ -118,6 +145,95 @@ export async function installTauriStub(
       const unknownCommands: string[] = [];
       const callbacks = new Map<number, (...args: unknown[]) => unknown>();
       let nextCallbackId = 1;
+
+      // --- Deterministic fake race (v23.2 Race surface) -------------------
+      // Two-agent race with fixed state transitions: every `race_status`
+      // poll bumps a counter; the snapshot flips to "completed" after the
+      // tunable flip count (localStorage `ai-launcher:e2e-race-flip-after`,
+      // default 3). `race_cancel` flips the fake to "cancelled" and the
+      // next poll reports killed agents. Each branch below only runs when
+      // the responses map carries NO explicit override, so specs can still
+      // force raw failures (`__error`) or static payloads per command.
+      let racePhase: "idle" | "running" | "cancelled" = "idle";
+      let racePollCount = 0;
+      const RACE_ID = "race-e2e-1";
+      const RACE_NOW = "2026-09-22T10:00:00.000Z";
+      const raceAgents = (raw: unknown): string[] => {
+        const list = Array.isArray(raw) ? raw.map(String) : [];
+        return list.length > 0 ? list : ["claude", "codex"];
+      };
+      let raceDir = "C:/proj";
+      let raceAgentKeys: string[] = ["claude", "codex"];
+      const fakeRaceSnapshot = (status: string) => ({
+        race_id: RACE_ID,
+        directory: raceDir,
+        status,
+        base_sha: "e2ebase0000000000000000000000000000000000",
+        started_at: RACE_NOW,
+        warnings: ["stub: worktree dependencies are not inherited"],
+        agents: raceAgentKeys.map((agent, i) => {
+          if (status === "running") {
+            return {
+              agent,
+              status: "running",
+              pid: 4200 + i,
+              exit_code: null,
+              duration_secs: racePollCount * 2,
+              last_log_lines: ["[stub] analyzing workspace", "[stub] editing files"],
+            };
+          }
+          if (status === "cancelled") {
+            return {
+              agent,
+              status: "killed",
+              pid: null,
+              exit_code: null,
+              duration_secs: racePollCount * 2,
+              last_log_lines: ["[stub] terminated by user"],
+            };
+          }
+          return {
+            agent,
+            status: "completed",
+            pid: null,
+            exit_code: 0,
+            duration_secs: 12,
+            last_log_lines: ["[stub] task finished"],
+          };
+        }),
+      });
+      const runFakeRaceCommand = (
+        command: string,
+        args?: Record<string, unknown>,
+      ): unknown => {
+        if (command === "race_start") {
+          racePhase = "running";
+          racePollCount = 0;
+          raceAgentKeys = raceAgents(args?.agents);
+          raceDir = typeof args?.directory === "string" ? args.directory : raceDir;
+          return {
+            race_id: RACE_ID,
+            directory: raceDir,
+            base_sha: "e2ebase0000000000000000000000000000000000",
+            agents: raceAgentKeys,
+            branches: raceAgentKeys.map((a) => `race/${RACE_ID}/${a}`),
+            worktrees: raceAgentKeys.map((a) => `C:/races/${RACE_ID}/${a}`),
+            warnings: ["stub: worktree dependencies are not inherited"],
+            started_at: RACE_NOW,
+          };
+        }
+        if (command === "race_cancel") {
+          racePhase = "cancelled";
+          return null;
+        }
+        racePollCount += 1;
+        const flipAfter = Number(
+          localStorage.getItem("ai-launcher:e2e-race-flip-after") ?? "3",
+        );
+        if (racePhase !== "running") return fakeRaceSnapshot("cancelled");
+        return fakeRaceSnapshot(racePollCount >= flipAfter ? "completed" : "running");
+      };
+
       Object.defineProperty(window, "__UNKNOWN_TAURI_COMMANDS__", {
         configurable: true,
         value: unknownCommands,
@@ -139,10 +255,18 @@ export async function installTauriStub(
             return id;
           },
           unregisterCallback: (id: number) => callbacks.delete(id),
-          invoke: async (command: string) => {
+          invoke: async (command: string, args?: Record<string, unknown>) => {
             if (command === "plugin:event|listen") return nextCallbackId++;
             if (command === "plugin:event|unlisten") return null;
             if (command.startsWith("plugin:")) return null;
+            if (
+              (command === "race_start" ||
+                command === "race_status" ||
+                command === "race_cancel") &&
+              !Object.prototype.hasOwnProperty.call(responses, command)
+            ) {
+              return runFakeRaceCommand(command, args);
+            }
             if (Object.prototype.hasOwnProperty.call(responses, command)) {
               const response = responses[command];
               if (
