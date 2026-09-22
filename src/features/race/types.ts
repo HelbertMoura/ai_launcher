@@ -65,3 +65,50 @@ export const TERMINAL_SNAPSHOT_STATUSES = [
 export function isTerminalSnapshotStatus(status: string): boolean {
   return (TERMINAL_SNAPSHOT_STATUSES as readonly string[]).includes(status);
 }
+
+/** One changed file in the diff (`null` adds/dels = binary file). */
+export const RaceFileStatSchema = z.object({
+  path: z.string().min(1),
+  adds: z.number().nullable(),
+  dels: z.number().nullable(),
+});
+export type RaceFileStat = z.infer<typeof RaceFileStatSchema>;
+
+/** Result of `race_diff`: file stats plus the capped unified patch. */
+export const DiffReportSchema = z.object({
+  agent: z.string().min(1),
+  files: z.array(RaceFileStatSchema),
+  total_adds: z.number(),
+  total_dels: z.number(),
+  patch: z.string(),
+  /** True when the patch hit the backend's 2 MB cap. */
+  truncated: z.boolean(),
+});
+export type DiffReport = z.infer<typeof DiffReportSchema>;
+
+/** Adoption strategy: `branch` (default safe) or `apply`. */
+export const RaceAdoptModeSchema = z.enum(["branch", "apply"]);
+export type RaceAdoptMode = z.infer<typeof RaceAdoptModeSchema>;
+
+/** Result of `race_adopt` (report with per-file conflicts on apply mode). */
+export const AdoptReportSchema = z.object({
+  mode: RaceAdoptModeSchema,
+  ok: z.boolean(),
+  branch: z.string().nullable(),
+  conflicts: z
+    .array(z.object({ path: z.string(), reason: z.string() }))
+    .default([]),
+  message: z.string(),
+});
+export type AdoptReport = z.infer<typeof AdoptReportSchema>;
+
+/** Result of `race_cleanup`. */
+export const RaceCleanupReportSchema = z.object({
+  race_id: z.string(),
+  removed_worktrees: z.array(z.string()).default([]),
+  removed_branches: z.array(z.string()).default([]),
+  pruned: z.boolean(),
+  /** Present when the retention window has not elapsed yet. */
+  skipped_reason: z.string().nullable(),
+});
+export type RaceCleanupReport = z.infer<typeof RaceCleanupReportSchema>;

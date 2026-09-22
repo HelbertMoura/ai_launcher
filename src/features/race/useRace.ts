@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { raceStore, type RaceStartInput, type RaceState } from "./raceStore";
+import type { RaceAdoptMode } from "./types";
 
 /**
  * React binding for `raceStore` (useSyncExternalStore), mirroring `useMcp`.
@@ -12,6 +13,9 @@ export function useRace(): RaceState & {
   cancel: () => Promise<void>;
   resumePolling: () => void;
   reset: () => void;
+  loadDiff: (agent: string) => Promise<void>;
+  adopt: (agent: string, mode: RaceAdoptMode) => Promise<void>;
+  cleanup: (keepDays?: number) => Promise<void>;
 } {
   const state = useSyncExternalStore(
     (listener) => raceStore.subscribe(listener),
@@ -24,6 +28,22 @@ export function useRace(): RaceState & {
   const cancel = useCallback(() => raceStore.cancel(), []);
   const resumePolling = useCallback(() => raceStore.resumePolling(), []);
   const reset = useCallback(() => raceStore.reset(), []);
+  const loadDiff = useCallback((agent: string) => raceStore.loadDiff(agent), []);
+  const adopt = useCallback(
+    (agent: string, mode: RaceAdoptMode) => raceStore.adopt(agent, mode),
+    [],
+  );
+  const cleanup = useCallback((keepDays?: number) => raceStore.cleanup(keepDays), []);
 
-  return { ...state, beginConfiguration, start, cancel, resumePolling, reset };
+  return {
+    ...state,
+    beginConfiguration,
+    start,
+    cancel,
+    resumePolling,
+    reset,
+    loadDiff,
+    adopt,
+    cleanup,
+  };
 }
