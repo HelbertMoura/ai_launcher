@@ -350,11 +350,33 @@ fn prune_race_worktree_metadata(main_repo: &Path, root: &Path, race_id: &str) ->
         // (useRelativePaths) may write it RELATIVE to this metadata
         // directory, so resolution happens in [`gitdir_points_into_race`].
         let scoped = gitdir_points_into_race(&gitdir_text, &entry.path(), &race_dir);
-        if scoped && fs::remove_dir_all(entry.path()).is_err() {
+        if scoped && !remove_dir_all_settled(&entry.path()) {
             swept = false;
         }
     }
     swept
+}
+
+/// Removes a directory and WAITS for the name to actually disappear. On
+/// Windows `RemoveDirectoryW` can return success while the name stays
+/// briefly visible ("delete pending") as long as any handle — antivirus,
+/// indexer, a just-exited git subprocess — lingers. The `git branch -D`
+/// right after this sweep depends on the stale metadata being GONE, so a
+/// fire-and-forget removal made the cleanup intermittently partial; the
+/// retry loop makes the contract ("the entry is out of there") real.
+/// Exhausted retries are reported as a failed sweep, never masked.
+fn remove_dir_all_settled(path: &Path) -> bool {
+    for _ in 0..5 {
+        if !path.exists() {
+            return true;
+        }
+        let _ = fs::remove_dir_all(path);
+        if !path.exists() {
+            return true;
+        }
+        thread::sleep(std::time::Duration::from_millis(40));
+    }
+    !path.exists()
 }
 
 /// Reports whether the content of a worktree metadata `gitdir` file points
@@ -400,25 +422,43 @@ fn gitdir_points_into_race(
 /// and — on Windows only — lowercased, since the filesystem is
 /// case-insensitive there. Prefix/RootDir collapse into a single canonical
 /// anchor token so absolute and relative spellings of the same path always
-/// normalize to the same component list.
+/// normalize to the same component list. The anchor carries the REAL
+/// drive/share (`C:` vs `D:`, UNC) so worktrees on different volumes can
+/// never normalize to the same scope.
 fn normalized_path_components(path: &Path) -> Vec<String> {
-    const ABSOLUTE_ANCHOR: &str = "\u{0}absolute";
+    const BARE_ROOT_ANCHOR: &str = "\u{0}root\u{0}";
     let lowercase = cfg!(windows);
     let mut out: Vec<String> = Vec::new();
+    let mut anchored = false;
     for component in path.components() {
         match component {
             std::path::Component::CurDir => {}
-            std::path::Component::Prefix(_) | std::path::Component::RootDir => {
-                // The absolute anchor (re)starts the path: Prefix followed by
-                // RootDir collapses into one token, never two.
-                if out.first().map(String::as_str) != Some(ABSOLUTE_ANCHOR) {
+            std::path::Component::Prefix(prefix) => {
+                if !anchored {
+                    let text = prefix.as_os_str().to_string_lossy();
+                    let anchor = if lowercase {
+                        format!("\u{0}{}\u{0}", text.to_lowercase())
+                    } else {
+                        format!("\u{0}{}\u{0}", text)
+                    };
                     out.clear();
-                    out.push(ABSOLUTE_ANCHOR.to_string());
+                    out.push(anchor);
+                    anchored = true;
+                }
+            }
+            std::path::Component::RootDir => {
+                // Right after a prefix this is the same anchor. A bare root
+                // (Unix `/`, Windows `\dir` against the current drive) gets
+                // its own anchor: it can never be PROVEN equal to an
+                // explicit drive, and the sweep must not reap on a guess.
+                if !anchored {
+                    out.clear();
+                    out.push(BARE_ROOT_ANCHOR.to_string());
+                    anchored = true;
                 }
             }
             std::path::Component::ParentDir => {
                 // Popping past the anchor/root is a no-op (`C:\..` == `C:\`).
-                let anchored = out.first().map(String::as_str) == Some(ABSOLUTE_ANCHOR);
                 if out.len() > usize::from(anchored) {
                     out.pop();
                 }
@@ -3207,6 +3247,20 @@ mod tests {
     }
 
     #[test]
+    fn gitdir_on_another_drive_is_never_matched() {
+        // Cross-drive absolute content with the SAME suffix must never
+        // match: the anchor carries the real drive, not a generic token
+        // (re-audit follow-up — `D:\...` once matched scope `C:/...`).
+        let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/claude");
+        let race_dir = Path::new("C:/dados/races/race-1");
+        assert!(!gitdir_points_into_race(
+            r"D:\dados\races\race-1\x\.git",
+            metadata_dir,
+            race_dir
+        ));
+    }
+
+    #[test]
     fn prune_resolves_relative_gitdir_written_by_newer_git() {
         // Builds the RELATIVE path from `from` to `to` the way git 2.46+
         // (useRelativePaths) does: through the closest common ancestor.
@@ -3236,7 +3290,12 @@ mod tests {
 
         // The worktree directory is removed externally; only the metadata in
         // the user's repository survives — as after any crash/hand cleanup.
-        fs::remove_dir_all(worktree_of(&record, 0)).expect("remover worktree da corrida");
+        // The settled removal keeps the setup deterministic under CI file
+        // scanners (a freshly git-written tree can linger "delete pending").
+        assert!(
+            remove_dir_all_settled(&worktree_of(&record, 0)),
+            "remover worktree da corrida"
+        );
         let metadata_dir = repo.join(".git").join("worktrees").join("claude");
         let gitdir_file = metadata_dir.join("gitdir");
         assert!(gitdir_file.is_file(), "metadado órfão presente");
