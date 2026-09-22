@@ -364,9 +364,12 @@ fn prune_race_worktree_metadata(main_repo: &Path, root: &Path, race_id: &str) ->
 /// right after this sweep depends on the stale metadata being GONE, so a
 /// fire-and-forget removal made the cleanup intermittently partial; the
 /// retry loop makes the contract ("the entry is out of there") real.
-/// Exhausted retries are reported as a failed sweep, never masked.
+/// CI runners with antivirus hold handles far longer than a local machine,
+/// so the budget ramps 50 ms → 200 ms (≈1.6 s total) — rare and acceptable
+/// on a cleanup path. Exhausted retries are reported as a failed sweep,
+/// never masked.
 fn remove_dir_all_settled(path: &Path) -> bool {
-    for _ in 0..5 {
+    for attempt in 0..12u32 {
         if !path.exists() {
             return true;
         }
@@ -374,7 +377,8 @@ fn remove_dir_all_settled(path: &Path) -> bool {
         if !path.exists() {
             return true;
         }
-        thread::sleep(std::time::Duration::from_millis(40));
+        let backoff = (50 + u64::from(attempt) * 15).min(200);
+        thread::sleep(std::time::Duration::from_millis(backoff));
     }
     !path.exists()
 }
@@ -1657,7 +1661,13 @@ fn race_cleanup_blocking_in(
     // checked out, which would make `git branch -D` refuse.
     let pruned = prune_race_worktree_metadata(&main_repo, root, &race_id);
     for entry in &record.agents {
-        if run_git(&main_repo, &["branch", "-D", &entry.branch]).is_ok() {
+        // One retry with a short wait: a metadata directory still settling
+        // ("delete pending") can make git refuse the branch as "checked
+        // out" for a few extra milliseconds even after the sweep.
+        if run_git(&main_repo, &["branch", "-D", &entry.branch]).is_ok() || {
+            thread::sleep(std::time::Duration::from_millis(100));
+            run_git(&main_repo, &["branch", "-D", &entry.branch]).is_ok()
+        } {
             removed_branches.push(entry.branch.clone());
         }
     }
@@ -3145,8 +3155,14 @@ mod tests {
                 "HEAD",
             ],
         );
-        fs::remove_dir_all(worktree_of(&record, 0)).expect("remover worktree da corrida");
-        fs::remove_dir_all(&user_wt).expect("remover worktree do usuário");
+        assert!(
+            remove_dir_all_settled(&worktree_of(&record, 0)),
+            "remover worktree da corrida"
+        );
+        assert!(
+            remove_dir_all_settled(&user_wt),
+            "remover worktree do usuário"
+        );
 
         record.status = "completed".to_string();
         record.finished_at = Some((chrono::Local::now() - chrono::Duration::days(8)).to_rfc3339());
@@ -3203,19 +3219,24 @@ mod tests {
     #[test]
     fn gitdir_absolute_forward_slashes_match_on_both_platforms() {
         // git writes forward slashes regardless of platform; on Windows the
-        // filesystem (and therefore the match) is case-insensitive.
-        let content = if cfg!(windows) {
-            "c:/dados/races/race-1/claude/.git"
+        // filesystem (and therefore the match) is case-insensitive. The unix
+        // branch uses NATIVE absolute paths — "C:/..." would be RELATIVE
+        // there (a leading "C:" is just a directory name) and the resolution
+        // against metadata_dir is exactly what the test must not conflate.
+        let (content, race_dir, metadata_dir) = if cfg!(windows) {
+            (
+                "c:/dados/races/race-1/claude/.git",
+                PathBuf::from("C:\\Dados\\Races\\race-1"),
+                PathBuf::from("C:/dados/repo/.git/worktrees/claude"),
+            )
         } else {
-            "C:/dados/races/race-1/claude/.git"
+            (
+                "/dados/races/race-1/claude/.git",
+                PathBuf::from("/dados/races/race-1"),
+                PathBuf::from("/dados/repo/.git/worktrees/claude"),
+            )
         };
-        let race_dir = if cfg!(windows) {
-            PathBuf::from("C:\\Dados\\Races\\race-1")
-        } else {
-            PathBuf::from("C:/dados/races/race-1")
-        };
-        let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/claude");
-        assert!(gitdir_points_into_race(content, metadata_dir, &race_dir));
+        assert!(gitdir_points_into_race(content, &metadata_dir, &race_dir));
     }
 
     #[test]
@@ -3251,6 +3272,9 @@ mod tests {
         // Cross-drive absolute content with the SAME suffix must never
         // match: the anchor carries the real drive, not a generic token
         // (re-audit follow-up — `D:\...` once matched scope `C:/...`).
+        // The scenario is inherently Windows; on other platforms the
+        // backslash path is a single relative component and the result is
+        // still the required `false`, so the test stays cross-platform.
         let metadata_dir = Path::new("C:/dados/repo/.git/worktrees/claude");
         let race_dir = Path::new("C:/dados/races/race-1");
         assert!(!gitdir_points_into_race(
@@ -3340,7 +3364,10 @@ mod tests {
         upsert_race(root.path(), &record).expect("atualizar registro");
 
         // The user deleted or moved the project after the race ended.
-        fs::remove_dir_all(&repo).expect("remover o diretório do projeto");
+        assert!(
+            remove_dir_all_settled(&repo),
+            "remover o diretório do projeto"
+        );
 
         let report =
             race_cleanup_blocking_in(root.path(), handle_of(&record), Some(0)).expect("cleanup");
@@ -3575,7 +3602,10 @@ mod tests {
         let mut gone = manual_race(root.path(), &repo, &["codex"]);
         gone.status = "cleaned".to_string();
         gone.started_at = "2026-09-02T10:00:00-03:00".to_string();
-        fs::remove_dir_all(worktree_of(&gone, 0)).expect("remover worktree limpo");
+        assert!(
+            remove_dir_all_settled(&worktree_of(&gone, 0)),
+            "remover worktree limpo"
+        );
         upsert_race(root.path(), &gone).expect("atualizar registro");
 
         let running = manual_race(root.path(), &repo, &["goose"]);
