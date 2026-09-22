@@ -4,6 +4,7 @@ import {
   expectNoUnknownTauriCommands,
   installTauriStub,
 } from "./tauriStub";
+import { openSidebarSurface } from "./navigation";
 
 test.describe("v21 visual baseline", () => {
   const VISUAL_CLOCK_NOW = "2026-07-13T12:00:00.000Z";
@@ -82,10 +83,16 @@ test.describe("v21 visual baseline", () => {
       }] }));
     });
     await page.goto("/");
-    await page.locator("body").click();
-    await page.keyboard.press("Control+7");
+    await openSidebarSurface(page, "Workspaces");
     await page.getByRole("button", { name: /^(manage runbooks|gerenciar runbooks)$/i }).click();
-    await page.getByRole("button", { name: /^(run|executar)$/i }).click();
+    // The v23 sidebar group header ("Run"/"Executar") is also a button, so the
+    // deck's run button must be scoped to its runbook row — a bare
+    // /^(run|executar)$/i resolves to 2 elements (group head + row button).
+    await page
+      .locator(".cd-rb-panel__item")
+      .first()
+      .getByRole("button", { name: /^(run|executar)$/i })
+      .click();
     await page.getByRole("button", { name: /dry run|simular/i }).click();
     await expect(page.getByText(/dry run validated|dry-run validado/i)).toBeVisible();
     await page.waitForTimeout(300);
