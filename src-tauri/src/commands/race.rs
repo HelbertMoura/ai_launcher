@@ -394,7 +394,10 @@ fn remove_dir_all_settled(path: &Path) -> bool {
 ///   component — never by string prefix, so `race-11` never matches
 ///   `race-1`;
 /// - the comparison is case-insensitive on Windows (case-insensitive
-///   filesystem) and exact elsewhere.
+///   filesystem) and exact elsewhere;
+/// - when the plain scope misses, the canonical (long-form) spelling of
+///   `race_dir` is also tried: Windows may hand the races root over with a
+///   DOS 8.3 alias while git records the canonical path in `gitdir`.
 fn gitdir_points_into_race(
     gitdir_file_content: &str,
     metadata_dir: &Path,
@@ -412,13 +415,41 @@ fn gitdir_points_into_race(
     };
     let target = normalized_path_components(&joined);
     let scope = normalized_path_components(race_dir);
-    if scope.is_empty() || target.len() < scope.len() {
-        return false;
+    if scope_matches(&target, &scope) {
+        return true;
     }
-    target
-        .iter()
-        .zip(scope.iter())
-        .all(|(target, scope)| target == scope)
+    // Windows: the races root can reach this comparison carrying a DOS 8.3
+    // short alias (`C:\Users\RUNNER~1\...` — `env::temp_dir()` and inherited
+    // environment variables do it on CI runners), while git writes the
+    // `gitdir` with the canonical LONG form (it resolves the path when it
+    // opens the worktree). Component-wise comparison then permanently
+    // misses (`tmp-re~1` is never `tmp-repro-longdirectoryname`) and the
+    // race's own stale metadata would never be swept. Compare against the
+    // canonical scope as well; the `\\?\` verbatim prefix (and its UNC
+    // spelling) is unwrapped so the anchors match. Cross-drive stays
+    // impossible: the anchor still carries the real drive.
+    if let Ok(canonical) = fs::canonicalize(race_dir) {
+        let text = canonical.to_string_lossy().into_owned();
+        let text = match text.strip_prefix(r"\\?\UNC\") {
+            Some(rest) => format!(r"\\{rest}"),
+            None => text.strip_prefix(r"\\?\").unwrap_or(&text).to_string(),
+        };
+        let canonical_scope = normalized_path_components(Path::new(&text));
+        if scope_matches(&target, &canonical_scope) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Component-wise prefix check shared by the plain and canonical scopes.
+fn scope_matches(target: &[String], scope: &[String]) -> bool {
+    !scope.is_empty()
+        && target.len() >= scope.len()
+        && target
+            .iter()
+            .zip(scope.iter())
+            .all(|(target, scope)| target == scope)
 }
 
 /// Component-wise path normalization: `.` dropped, `..` popped (popping
@@ -3367,6 +3398,132 @@ mod tests {
             metadata_dir,
             race_dir
         ));
+    }
+
+    /// Best-effort DOS 8.3 alias of `path` (via `dir /x` parsing). `None`
+    /// when the volume does not generate short names.
+    fn short_alias_8dot3(path: &Path) -> Option<String> {
+        let parent = path.parent()?;
+        let name = path.file_name()?.to_string_lossy().into_owned();
+        let mut cmd = Command::new("cmd");
+        cmd.args(["/c", "dir", "/x", "/ad"]).arg(parent);
+        apply_no_window(&mut cmd);
+        let output = cmd.output().ok()?;
+        for line in String::from_utf8_lossy(&output.stdout).lines() {
+            if !line.contains(&name) {
+                continue;
+            }
+            // `22/09/2026  18:40    <DIR>          TMP-RE~1     long-name`
+            let tokens: Vec<&str> = line.split_whitespace().collect();
+            if tokens.len() >= 5 && tokens[2] == "<DIR>" && tokens[3].contains('~') {
+                return Some(format!(r"{}\{}", parent.display(), tokens[3]));
+            }
+        }
+        None
+    }
+
+    #[test]
+    fn prune_resolves_dos_8dot3_alias_in_the_races_root() {
+        // Runner-shaped regression (root cause of 4 red CI runs): the races
+        // root can reach the sweep carrying a DOS 8.3 alias
+        // (C:\Users\RUNNER~1\…) while git writes the `gitdir` with the
+        // canonical long form — component-wise comparison can never match
+        // (`tmp-re~1` is not `tmp-repro-longdirectoryname`). Requires a
+        // volume that generates short names; without one the scenario
+        // cannot be mounted here (loud degradation, no silent assertion).
+        let base = temp_race_root();
+        let long_dir = base.path().join("tmp-races-longDirectoryName");
+        fs::create_dir_all(&long_dir).expect("criar diretório longo");
+        let Some(alias) = short_alias_8dot3(&long_dir) else {
+            eprintln!("volume sem geração de nomes 8.3 — cenário alias não exercido aqui");
+            return;
+        };
+        let root = tempfile::Builder::new()
+            .prefix("x8dot3-")
+            .tempdir_in(&alias)
+            .expect("raiz de corridas via alias 8.3");
+
+        let (_tmp, repo) = temp_repo("prune-8dot3");
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let metadata_dir = repo.join(".git").join("worktrees").join("claude");
+        assert!(
+            remove_dir_all_settled(&worktree_of(&record, 0)),
+            "remover worktree da corrida"
+        );
+        let mut finished = record.clone();
+        finished.status = "completed".to_string();
+        finished.finished_at =
+            Some((chrono::Local::now() - chrono::Duration::days(8)).to_rfc3339());
+        upsert_race(root.path(), &finished).expect("atualizar registro");
+
+        let outcome = cleanup_retried(
+            || race_cleanup_blocking_in(root.path(), handle_of(&finished), Some(0)),
+            || !metadata_dir.exists() && branch_is_gone(&repo, &finished.agents[0].branch),
+        );
+        assert!(outcome.pruned, "o prune escopado deve rodar");
+        assert!(
+            !metadata_dir.exists(),
+            "metadado da corrida removido com raiz via alias 8.3 (gitdir vivo: {})",
+            gitdir_of(&repo, "claude")
+        );
+        assert!(branch_is_gone(&repo, &finished.agents[0].branch));
+    }
+
+    #[test]
+    fn prune_works_when_repo_and_races_roots_live_on_different_drives() {
+        // Runner-shaped layout: the user's repository on one drive, the
+        // managed races root on another (runner: repo on D:, temp on C:).
+        // Requires a second drive; with a single drive the scenario cannot
+        // physically exist (loud degradation, no silent assertion).
+        let root = temp_race_root();
+        let root_drive = root
+            .path()
+            .components()
+            .next()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned());
+        let Some(second) = ["D:", "E:", "F:", "G:"]
+            .into_iter()
+            .find(|drive| Path::new(drive).is_dir() && Some((*drive).to_string()) != root_drive)
+        else {
+            eprintln!("apenas um drive disponível — layout cross-drive não exercido aqui");
+            return;
+        };
+        let repo_tmp = tempfile::Builder::new()
+            .prefix("xdrive-repo-")
+            .tempdir_in(second)
+            .expect("repositório no segundo drive");
+        let repo = repo_tmp.path().join("repo");
+        fs::create_dir_all(&repo).expect("criar repo");
+        git(&repo, &["init"]);
+        git(&repo, &["config", "core.autocrlf", "false"]);
+        git(&repo, &["config", "user.email", "race-test@example.com"]);
+        git(&repo, &["config", "user.name", "Race Test"]);
+        fs::write(repo.join("file.txt"), "linha\n").expect("arquivo base");
+        commit_all(&repo, "base");
+
+        let record = manual_race(root.path(), &repo, &["claude"]);
+        let metadata_dir = repo.join(".git").join("worktrees").join("claude");
+        assert!(
+            remove_dir_all_settled(&worktree_of(&record, 0)),
+            "remover worktree da corrida"
+        );
+        let mut finished = record.clone();
+        finished.status = "completed".to_string();
+        finished.finished_at =
+            Some((chrono::Local::now() - chrono::Duration::days(8)).to_rfc3339());
+        upsert_race(root.path(), &finished).expect("atualizar registro");
+
+        let outcome = cleanup_retried(
+            || race_cleanup_blocking_in(root.path(), handle_of(&finished), Some(0)),
+            || !metadata_dir.exists() && branch_is_gone(&repo, &finished.agents[0].branch),
+        );
+        assert!(outcome.pruned, "o prune escopado deve rodar");
+        assert!(
+            !metadata_dir.exists(),
+            "metadado da corrida removido com repo e corridas em drives distintos (gitdir vivo: {})",
+            gitdir_of(&repo, "claude")
+        );
+        assert!(branch_is_gone(&repo, &finished.agents[0].branch));
     }
 
     #[test]
