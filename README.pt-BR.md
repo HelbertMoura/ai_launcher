@@ -13,7 +13,7 @@
 **Uma central desktop nativa, ultra leve e segura para detectar, executar, orquestrar e monitorar todos os seus agentes CLI de IA, IDEs customizadas, servidores MCP e limites de custo por provedor.**
 
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](./LICENSE)
-[![Versão 22.9.0](https://img.shields.io/badge/vers%C3%A3o-22.9.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Versão 23.0.0](https://img.shields.io/badge/vers%C3%A3o-23.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Plataforma: Windows | macOS | Linux](https://img.shields.io/badge/plataforma-Windows%20%7C%20macOS%20%7C%20Linux-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Quality Gates](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml/badge.svg)](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
