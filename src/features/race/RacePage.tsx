@@ -11,9 +11,9 @@ import { Input } from "../../ui/Input";
 import { Tooltip } from "../../ui/Tooltip";
 import { Warning } from "../../ui/icons";
 import { useClis } from "../launcher/useClis";
-import { raceStore } from "./raceStore";
+import { isRetentionExpired, raceStore } from "./raceStore";
 import { useRace } from "./useRace";
-import type { RaceAdoptMode } from "./types";
+import type { RaceAdoptMode, RaceHistoryEntry, RaceOrphan } from "./types";
 import "../page.css";
 import "./RacePage.css";
 
@@ -31,13 +31,50 @@ const STATUS_CHIP: Record<string, StatusChipVariant> = {
   cancelled: "offline",
 };
 
+/** Chip styling per terminal race record status (graveyard section). */
+const HISTORY_CHIP: Record<string, StatusChipVariant> = {
+  completed: "update",
+  failed: "missing",
+  cancelled: "offline",
+  adopted: "online",
+  cleaned: "neutral",
+};
+
 const KNOWN_AGENT_STATUSES = ["running", "completed", "failed", "killed"] as const;
+const KNOWN_RACE_STATUSES = ["completed", "failed", "cancelled", "adopted", "cleaned"] as const;
 
 function agentStatusLabel(status: string, translate: (key: string) => string): string {
   if ((KNOWN_AGENT_STATUSES as readonly string[]).includes(status)) {
     return translate(`race.status.${status}`);
   }
   return translate("race.status.unknown");
+}
+
+function raceStatusLabel(status: string, translate: (key: string) => string): string {
+  if ((KNOWN_RACE_STATUSES as readonly string[]).includes(status)) {
+    return translate(`race.status.${status}`);
+  }
+  return translate("race.status.unknown");
+}
+
+/** Compact relative age ("3 d", "5 h", "12 min") for graveyard rows. */
+function formatAge(
+  startedAt: string,
+  translate: (key: string, opts?: Record<string, unknown>) => string,
+): string {
+  const start = Date.parse(startedAt);
+  if (Number.isNaN(start)) return "—";
+  const minutes = Math.max(0, Math.floor((Date.now() - start) / 60_000));
+  if (minutes < 60) return translate("race.ageMinutes", { count: minutes });
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return translate("race.ageHours", { count: hours });
+  return translate("race.ageDays", { count: Math.floor(hours / 24) });
+}
+
+/** Locale-aware timestamp for the orphan inspection details. */
+function formatDateTime(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 }
 
 function formatDuration(secs: number | null): string {
@@ -85,6 +122,10 @@ export function RacePage() {
   const [cleanupConfirmOpen, setCleanupConfirmOpen] = useState(false);
   /** Agent explicitly picked for the Cockpit ("Ver diff"); null = auto. */
   const [cockpitAgent, setCockpitAgent] = useState<string | null>(null);
+  /** Orphan row pending confirmation of "Limpar" (kill + cleanup). */
+  const [orphanClearTarget, setOrphanClearTarget] = useState<RaceOrphan | null>(null);
+  /** Graveyard row pending confirmation of "Limpar agora" (keepDays = 0). */
+  const [historyClearTarget, setHistoryClearTarget] = useState<RaceHistoryEntry | null>(null);
 
   const { phase, handle, snapshot, error, cancelling } = race;
   const isStarting = phase === "starting";
@@ -93,7 +134,8 @@ export function RacePage() {
 
   // The surface opens ready to configure; remounting mid-race (e.g. after
   // navigating away and back) resumes the live poll cadence; after a race,
-  // "New race" returns to the form.
+  // "New race" returns to the form. 23.2d also runs the boot-time orphan
+  // scan and the graveyard listing here — both are cheap local JSON reads.
   useEffect(() => {
     const current = raceStore.getSnapshot();
     if (current.phase === "running" && current.handle) {
@@ -101,6 +143,8 @@ export function RacePage() {
     } else if (current.phase === "idle") {
       raceStore.beginConfiguration();
     }
+    void raceStore.scanOrphans();
+    void raceStore.loadHistory();
     // Clear the poll interval if this surface ever unmounts.
     return () => raceStore.dispose();
   }, []);
@@ -204,6 +248,79 @@ export function RacePage() {
         <Banner variant="warn">
           <span>{error}</span> <span className="cd-race__hint">{t("race.pollErrorNote")}</span>
         </Banner>
+      )}
+
+      {race.orphans.length > 0 && (
+        <Card className="cd-race__orphans">
+          <h2 className="cd-race__kicker">
+            {t("race.orphansTitle", { count: race.orphans.length })}
+          </h2>
+          <p className="cd-race__hint">{t("race.orphansHint")}</p>
+
+          {race.orphanError && (
+            <Banner variant="err">
+              <strong>{t("race.orphansErrorTitle")}</strong>
+              <span>{race.orphanError}</span>
+            </Banner>
+          )}
+
+          <ul className="cd-race__orphan-list">
+            {race.orphans.map((orphan) => {
+              const expanded = race.inspectedOrphan === orphan.race_id;
+              return (
+                <li key={orphan.race_id} className="cd-race__orphan">
+                  <div className="cd-race__orphan-row">
+                    <span className="cd-race__history-dir">{orphan.directory}</span>
+                    <span className="cd-race__history-meta">
+                      {t("race.orphanStarted")}{" "}
+                      {formatAge(orphan.started_at, t)}
+                    </span>
+                    <div className="cd-race__history-actions">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-expanded={expanded}
+                        onClick={() =>
+                          race.inspectOrphan(expanded ? null : orphan.race_id)
+                        }
+                      >
+                        {expanded ? t("race.orphansHide") : t("race.orphansInspect")}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        loading={race.recovering === orphan.race_id}
+                        onClick={() => setOrphanClearTarget(orphan)}
+                      >
+                        {t("race.orphansClear")}
+                      </Button>
+                    </div>
+                  </div>
+                  {expanded && (
+                    <dl className="cd-race__orphan-details">
+                      <div>
+                        <dt>{t("race.orphanDirectory")}</dt>
+                        <dd>{orphan.directory}</dd>
+                      </div>
+                      <div>
+                        <dt>{t("race.orphanStarted")}</dt>
+                        <dd>{formatDateTime(orphan.started_at)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t("race.orphanAgents")}</dt>
+                        <dd>{orphan.agents.join(", ")}</dd>
+                      </div>
+                      <div>
+                        <dt>{t("race.orphanWorktrees")}</dt>
+                        <dd className="cd-race__file-path">{orphan.worktree_root}</dd>
+                      </div>
+                    </dl>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
       )}
 
       {error && (phase === "configuring" || isStarting) && (
@@ -566,8 +683,125 @@ export function RacePage() {
         </>
       )}
 
-      {isTerminal && terminalBanner && (
+      {race.archivedEntry && (
+        <Card className="cd-race__archived">
+          <h2 className="cd-race__kicker">{t("race.archivedTitle")}</h2>
+          <p className="cd-race__hint">{t("race.archivedHint")}</p>
+          <dl className="cd-race__metrics">
+            <div>
+              <dt>{t("race.directory")}</dt>
+              <dd>{race.archivedEntry.directory}</dd>
+            </div>
+            <div>
+              <dt>{t("race.orphanStarted")}</dt>
+              <dd>
+                {t("race.historyAge", {
+                  age: formatAge(race.archivedEntry.started_at, t),
+                })}
+              </dd>
+            </div>
+            <div>
+              <dt>{t("race.historyAgents")}</dt>
+              <dd>{race.archivedEntry.agents.join(", ")}</dd>
+            </div>
+            <div>
+              <dt>{t("race.historyStatus")}</dt>
+              <dd>{raceStatusLabel(race.archivedEntry.status, t)}</dd>
+            </div>
+          </dl>
+          <div className="cd-race__actions">
+            <Button variant="ghost" onClick={race.beginConfiguration}>
+              {t("race.newRace")}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {isTerminal && terminalBanner && !race.archivedEntry && (
         <Banner variant={terminalBanner.variant}>{terminalBanner.text}</Banner>
+      )}
+
+      {race.history.length > 0 && phase !== "running" && phase !== "starting" && (
+        <Card className="cd-race__graveyard">
+          <h2 className="cd-race__kicker">{t("race.historyTitle")}</h2>
+
+          {race.historyError && (
+            <Banner variant="err">
+              <strong>{t("race.historyErrorTitle")}</strong>
+              <span>{race.historyError}</span>
+            </Banner>
+          )}
+
+          {race.historyReport && (
+            <Banner variant="info">
+              <strong>{t("race.cleanupReportTitle")}</strong>
+              <span>
+                {race.historyReport.skipped_reason
+                  ? race.historyReport.skipped_reason
+                  : t("race.cleanupSummary", {
+                      worktrees: race.historyReport.removed_worktrees.length,
+                      branches: race.historyReport.removed_branches.length,
+                    })}
+              </span>
+            </Banner>
+          )}
+
+          <ul className="cd-race__history-list">
+            {race.history.map((entry) => {
+              const archived = entry.status === "cleaned" || !entry.worktrees_present;
+              return (
+                <li key={entry.race_id} className="cd-race__history-row">
+                  <div className="cd-race__history-info">
+                    <span className="cd-race__history-dir">
+                      {entry.directory}
+                      {archived && (
+                        <span className="cd-race__history-tag">
+                          {t("race.historyArchived")}
+                        </span>
+                      )}
+                    </span>
+                    <span className="cd-race__history-meta">
+                      {t("race.historyAge", { age: formatAge(entry.started_at, t) })}
+                      {" · "}
+                      {entry.agents.join(", ")}
+                    </span>
+                    {isRetentionExpired(entry) && (
+                      <span className="cd-race__history-retention">
+                        {t("race.historyRetention")}
+                      </span>
+                    )}
+                  </div>
+                  <Chip variant={HISTORY_CHIP[entry.status] ?? "neutral"} dot>
+                    {raceStatusLabel(entry.status, t)}
+                  </Chip>
+                  <div className="cd-race__history-actions">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={race.historyBusy !== null}
+                      onClick={() => void race.restoreFromHistory(entry)}
+                    >
+                      {archived
+                        ? `${t("race.historyRestore")} · ${t("race.historyArchived")}`
+                        : t("race.historyRestore")}
+                    </Button>
+                    {entry.status !== "cleaned" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        loading={race.historyBusy === entry.race_id}
+                        disabled={race.historyBusy !== null}
+                        onClick={() => setHistoryClearTarget(entry)}
+                      >
+                        {t("race.historyClearNow")}
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
       )}
 
       <ConfirmDialog
@@ -596,6 +830,36 @@ export function RacePage() {
           void race.cleanup();
         }}
         onCancel={() => setCleanupConfirmOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={orphanClearTarget !== null}
+        title={t("race.orphansClearConfirmTitle")}
+        message={t("race.orphansClearConfirmBody")}
+        confirmLabel={t("race.orphansClear")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={() => {
+          const target = orphanClearTarget;
+          setOrphanClearTarget(null);
+          if (target) void race.recoverOrphan(target);
+        }}
+        onCancel={() => setOrphanClearTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={historyClearTarget !== null}
+        title={t("race.historyClearConfirmTitle")}
+        message={t("race.historyClearConfirmBody")}
+        confirmLabel={t("race.historyClearNow")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={() => {
+          const target = historyClearTarget;
+          setHistoryClearTarget(null);
+          if (target) void race.cleanupFromHistory(target);
+        }}
+        onCancel={() => setHistoryClearTarget(null)}
       />
     </section>
   );
