@@ -552,7 +552,12 @@ fn rollback_worktrees(main_repo: &Path, entries: &[AgentRecord]) {
 
 /// Non-interactive argv per CLI. The prompt is ALWAYS the last positional
 /// argument and each token is a separate argv entry: the prompt never crosses
-/// a shell and can never be interpreted as a flag. Unknown CLIs get a bare
+/// a shell. Real guarantee on flag interpretation: aider and goose take the
+/// prompt as a FLAG VALUE (`--message` / `--text`), so leading dashes are
+/// inert; claude/codex/unknown CLIs take a positional prompt, where a prompt
+/// starting with `-` COULD be parsed as a flag by the CLI itself — harmless
+/// to the OS (no shell, no injection), but a UI-wave refinement can add `--`
+/// for CLIs that document end-of-options support. Unknown CLIs get a bare
 /// positional prompt (documented MVP mapping; the UI wave refines it).
 fn agent_argv(agent: &str, prompt: &str) -> Vec<String> {
     let prompt = prompt.to_string();
