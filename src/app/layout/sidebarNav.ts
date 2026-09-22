@@ -26,7 +26,7 @@ export interface SidebarGroup {
  * never be pinned or grouped.
  */
 export const SIDEBAR_GROUPS: SidebarGroup[] = [
-  { id: "run", labelKey: "nav.groupRun", surfaces: ["launcher", "tools", "workspace"] },
+  { id: "run", labelKey: "nav.groupRun", surfaces: ["launcher", "tools", "workspace", "race"] },
   { id: "observe", labelKey: "nav.groupObserve", surfaces: ["history", "costs"] },
   { id: "connect", labelKey: "nav.groupConnect", surfaces: ["mcp"] },
   { id: "system", labelKey: "nav.groupSystem", surfaces: ["maintenance", "admin", "help"] },

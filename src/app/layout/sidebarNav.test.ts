@@ -64,7 +64,7 @@ describe("sidebarNav", () => {
     // Read the FILTERED list (entry.surfaces), not the original group list.
     const ids = layout.groups.map((g) => g.surfaces);
     expect(ids).toEqual([
-      ["tools", "workspace"], // run without launcher
+      ["tools", "workspace", "race"], // run without launcher
       ["costs"], // observe without history
       ["mcp"],
       ["maintenance", "admin", "help"],

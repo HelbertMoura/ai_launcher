@@ -54,6 +54,7 @@ export function HelpPage() {
       keys: `${IS_MAC ? "⌘" : "Ctrl"}+${digit}`,
       actionKey: digitActionKey(target),
     })),
+    { keys: `${IS_MAC ? "⌘" : "Ctrl"}+Alt+R`, actionKey: "help.actionGoRace" },
     { keys: IS_MAC ? "⌘," : "Ctrl+,", actionKey: "help.actionGoAdmin" },
     { keys: "?", actionKey: "help.actionShowHelp" },
     { keys: PALETTE_KEY, actionKey: "help.actionOpenPalette" },

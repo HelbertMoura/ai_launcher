@@ -6,6 +6,7 @@ export type TabId =
   | "history"
   | "costs"
   | "workspace"
+  | "race"
   | "maintenance"
   | "admin"
   | "help";
@@ -31,7 +32,7 @@ export interface NavigateTarget {
 /** Common signature for navigation callbacks routed through the App shell. */
 export type TabNavigator = (tab: TabId, section?: MaintenanceSection) => void;
 
-export const TAB_ORDER: TabId[] = ["command-center", "launcher", "tools", "workspace", "mcp", "history", "costs", "maintenance", "admin", "help"];
+export const TAB_ORDER: TabId[] = ["command-center", "launcher", "tools", "workspace", "race", "mcp", "history", "costs", "maintenance", "admin", "help"];
 
 export const TAB_LABELS: Record<TabId, string> = {
   "command-center": "Home",
@@ -41,6 +42,7 @@ export const TAB_LABELS: Record<TabId, string> = {
   history: "History",
   costs: "Analytics",
   workspace: "Workspaces",
+  race: "Race",
   maintenance: "Maintenance",
   admin: "Admin",
   help: "Help",
@@ -55,6 +57,7 @@ export const TAB_I18N_KEYS: Record<TabId, string> = {
   history: "nav.history",
   costs: "nav.costs",
   workspace: "nav.workspace",
+  race: "nav.race",
   maintenance: "nav.maintenance",
   admin: "nav.admin",
   help: "nav.help",
@@ -74,7 +77,9 @@ const MOD = typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigato
 /**
  * Stable shortcut map (documented in Help). Ctrl+1..7 keep their v22 meaning;
  * Ctrl+8/9/0 now open the fused Maintenance surface on the matching section
- * (Diagnostics / Updates / Verifications), preserving muscle memory.
+ * (Diagnostics / Updates / Verifications), preserving muscle memory. All ten
+ * digits are taken, so the v23.2 Race surface uses `Ctrl+Alt+R` (plain
+ * `Ctrl+R` is avoided for its reload semantics).
  */
 export const TAB_KEYS: Record<TabId, string> = {
   "command-center": `${MOD}+1`,
@@ -85,6 +90,7 @@ export const TAB_KEYS: Record<TabId, string> = {
   costs: `${MOD}+6`,
   workspace: `${MOD}+7`,
   maintenance: `${MOD}+8`,
+  race: `${MOD}+Alt+R`,
   admin: `${MOD}+,`,
   help: "?",
 };
