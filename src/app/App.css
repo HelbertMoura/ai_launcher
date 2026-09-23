@@ -12,7 +12,13 @@
   contain: layout style;
 }
 .cd-app--nav-collapsed { grid-template-columns: var(--sidebar-collapsed-w) 1fr; }
-.cd-app__top { grid-area: top; contain: layout style; }
+/* No `contain` here: `contain: layout` would create a stacking context that
+   traps the TopBar's absolutely positioned flyouts (inbox bell, quick
+   settings) inside the 56px bar while the sibling `.cd-app__main` (own
+   stacking context + opaque background) paints over them — the v22.5.0
+   "dead button" regression. The flyouts' positive z-index only wins because
+   this element stays OUT of the stacking game. */
+.cd-app__top { grid-area: top; }
 .cd-app__side { grid-area: side; display: flex; contain: layout style; }
 .cd-app__main {
   grid-area: main;
