@@ -59,8 +59,9 @@ describe("projectMcp", () => {
     });
 
     const summary = summarizeProjectMcpHealth(resolution, {
-      [mcpServerKey(filesystem)]: { ok: true, detail: "ok" },
-      [mcpServerKey(github)]: { ok: false, detail: "missing token" },
+      [mcpServerKey(filesystem)]: { state: "ok", ok: true, detail: "ok" },
+      // A disabled server is never probed: neutral state, never "unhealthy".
+      [mcpServerKey(github)]: { state: "disabled", ok: false, detail: "Servidor desativado: saúde não verificada" },
     });
 
     expect(summary).toMatchObject({
@@ -68,7 +69,7 @@ describe("projectMcp", () => {
       matched: 2,
       enabled: 1,
       healthy: 1,
-      unhealthy: 1,
+      unhealthy: 0,
       missing: 1,
       status: "warn",
     });

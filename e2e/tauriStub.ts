@@ -9,7 +9,7 @@ type TauriResultMap = {
   list_active_sessions: unknown[];
   /** `McpListResult` ({ servers, warnings }) since the v23 object contract. */
   list_mcp_servers: unknown;
-  mcp_health_check: { ok: boolean; detail: string };
+  mcp_health_check: { state: "ok" | "fail" | "disabled"; ok: boolean; detail: string };
   read_project_profile: null;
   scan_project_stack: { files: string[]; manifests: Record<string, string> };
   write_project_profile: null;
@@ -171,8 +171,14 @@ const DEFAULT_RESPONSES: TauriResultMap = {
   check_tools: [],
   check_environment: [],
   list_active_sessions: [],
-  list_mcp_servers: [],
-  mcp_health_check: { ok: true, detail: "stubbed health check" },
+  list_mcp_servers: {
+    servers: [
+      { name: "github", cli: "claude", transport: "http", url: "https://api.githubcopilot.com/mcp/", headers_keys: ["Authorization"], env_keys: [], enabled: true },
+      { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"], headers_keys: [], env_keys: [], enabled: true },
+      { name: "memory", cli: "gemini", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"], headers_keys: [], env_keys: [], enabled: false },
+    ],
+    warnings: [],
+  },
   read_project_profile: null,
   scan_project_stack: { files: [], manifests: {} },
   write_project_profile: null,
@@ -382,6 +388,24 @@ export async function installTauriStub(
         return fakeRaceSnapshot(racePollCount >= flipAfter ? "completed" : "running");
       };
 
+      // --- Deterministic MCP health fake (v23.1.1) ------------------------
+      // Mirrors the real backend contract: a disabled server is never probed
+      // and answers the neutral `disabled` state; anything else is healthy.
+      // Only runs when the responses map carries NO explicit override.
+      const runFakeMcpHealthCommand = (
+        args?: Record<string, unknown>,
+      ): { state: "ok" | "disabled"; ok: boolean; detail: string } => {
+        const server = (args?.server ?? {}) as { enabled?: boolean };
+        if (server.enabled === false) {
+          return {
+            state: "disabled",
+            ok: false,
+            detail: "stub: disabled server is not probed",
+          };
+        }
+        return { state: "ok", ok: true, detail: "stubbed health check" };
+      };
+
       Object.defineProperty(window, "__UNKNOWN_TAURI_COMMANDS__", {
         configurable: true,
         value: unknownCommands,
@@ -417,6 +441,12 @@ export async function installTauriStub(
               !Object.prototype.hasOwnProperty.call(responses, command)
             ) {
               return runFakeRaceCommand(command, args);
+            }
+            if (
+              command === "mcp_health_check" &&
+              !Object.prototype.hasOwnProperty.call(responses, command)
+            ) {
+              return runFakeMcpHealthCommand(args);
             }
             if (Object.prototype.hasOwnProperty.call(responses, command)) {
               const response = responses[command];

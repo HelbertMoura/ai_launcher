@@ -62,8 +62,16 @@ export interface McpServerInput {
   enabled: boolean;
 }
 
-/** Result of `mcp_health_check`. */
+/** Outcome discriminators of `mcp_health_check`. Mirrors the Rust enum. */
+export const McpHealthStateSchema = z.enum(["ok", "fail", "disabled"]);
+export type McpHealthState = z.infer<typeof McpHealthStateSchema>;
+
+/**
+ * Result of `mcp_health_check`. `disabled` = the server is switched off, so
+ * the backend never probes it and the UI must render a neutral state.
+ */
 export const McpHealthSchema = z.object({
+  state: McpHealthStateSchema,
   ok: z.boolean(),
   detail: z.string(),
 });

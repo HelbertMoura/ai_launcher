@@ -5,6 +5,7 @@ import {
   type McpServer,
 } from "./types";
 import { invokeOrFallback } from "../../lib/tauri";
+import i18n from "../../i18n";
 
 /**
  * Shared MCP store. Mirrors the `clisStore` pattern: a single in-memory
@@ -69,8 +70,10 @@ async function load(): Promise<void> {
       const parsed = McpListResultSchema.safeParse(raw);
       if (!parsed.success) {
         // Contract drift between frontend and backend: keep the page alive
-        // with a clear error state instead of throwing.
-        setState({ loading: false, error: parsed.error.message });
+        // with a friendly error state instead of throwing. The raw Zod issue
+        // list stays in the console for debugging.
+        console.warn("[mcp] list_mcp_servers payload failed schema validation", parsed.error);
+        setState({ loading: false, error: i18n.t("mcp.configError") });
         return;
       }
       const servers = parsed.data.servers
@@ -85,8 +88,8 @@ async function load(): Promise<void> {
       hydrated = true;
       emit();
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      setState({ loading: false, error: message });
+      console.warn("[mcp] list_mcp_servers failed", e);
+      setState({ loading: false, error: i18n.t("mcp.configError") });
     } finally {
       inflight = null;
     }

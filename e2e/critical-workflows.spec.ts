@@ -318,17 +318,20 @@ test.describe("v21 critical workflows", () => {
   test("adds an MCP server from the catalog and verifies health UI", async ({ page }) => {
     await preparePage(page, {
       responses: {
-        list_mcp_servers: [{
-          name: "context7",
-          cli: "codex",
-          transport: "stdio",
-          command: "npx",
-          args: ["-y", "@upstash/context7-mcp@latest"],
-          env_keys: [],
-          headers_keys: [],
-          enabled: true,
-        }],
-        mcp_health_check: { ok: true, detail: "healthy" },
+        list_mcp_servers: {
+          servers: [{
+            name: "context7",
+            cli: "codex",
+            transport: "stdio",
+            command: "npx",
+            args: ["-y", "@upstash/context7-mcp@latest"],
+            env_keys: [],
+            headers_keys: [],
+            enabled: true,
+          }],
+          warnings: [],
+        },
+        mcp_health_check: { state: "ok", ok: true, detail: "healthy" },
       },
     });
     await gotoApp(page);
