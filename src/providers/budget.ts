@@ -289,6 +289,15 @@ export function removeBudgetLimit(providerKey: string): void {
   saveStore(store);
 }
 
+/** Remove the project-scope budget limit for a project key. */
+export function removeProjectBudgetLimit(projectKey: string): void {
+  const store = loadStore();
+  store.limits = store.limits.filter(
+    (l) => !(l.scope.kind === 'project' && l.scope.projectKey === projectKey),
+  );
+  saveStore(store);
+}
+
 /** Get all configured budget limits (v3 shape, both scopes). */
 export function getBudgetLimits(): BudgetLimitV3[] {
   return loadStore().limits;

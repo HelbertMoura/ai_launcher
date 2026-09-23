@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Project budgets:** Budget Guard now has a Providers | Projects tab switch (WAI-ARIA tablist with arrow-key navigation). Each project gets a calendar-month quota ("Monthly (calendar)", with its own alert threshold), created from a dropdown of reconciled usage projects (canonical keys, deduplicated), with per-item removal alongside the existing rolling-window provider limits.
+- **Month projection:** the Costs surface gains a projection card — month-to-date spend, end-of-month projection from the 14-day daily-burn average, 7- and 14-day burn windows, and an estimated overflow date ("~Sep 28") when an active budget is projected to burst within its period. Fewer than 3 days with data renders an honest "insufficient data" state instead of a number.
+- **Canonical project ranking:** the top-projects ranking now groups usage by canonical project key (workspace-aware reconciliation), shows the reconciled display name once instead of one row per raw label, lists aggregated source labels in a tooltip, and gains a per-project budget column (percentage bar with ok/warning/over states) for projects with an active limit.
+- **Budget-aware sidebar indicator:** the Analytics sidebar chip reflects budget health across provider AND project scopes (warning tone when near/over a limit, showing the worst percentage when there is no spend today), and project-scope inbox events use a dedicated `budget:project:<key>:<month>` id namespace.
+- **Centralized usage state:** one shared, zod-validated usage store feeds the boot budget check, the status bar and every Costs surface (replacing four independent `read_usage_stats` invokes), with a manual refresh button on the Costs surface.
+- All budget bars (dashboard and ranking column) are exposed as ARIA progressbars with `aria-valuenow/min/max` and accessible labels.
+
 ### Changed
 - **Usage export carries `project_path`:** usage entries now include the raw project directory when reliably known (Codex records its `cwd`; Claude leaves it empty), so the CSV export gained the column additively — existing consumers are unaffected. The report also exposes top projects aggregated by a canonical `key` with a stable `display_name`.
 
