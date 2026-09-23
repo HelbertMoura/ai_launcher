@@ -1,5 +1,7 @@
 // Pure aggregation helpers for the Analytics view. No I/O, no Date.now —
 // `today` is always injectable so every function is deterministic in tests.
+import type { WorkspaceProfile } from "../../domain/types";
+import { resolveProjectKey } from "./reconcile";
 import type { UsageEntry } from "./types";
 
 export interface DayPoint {
@@ -110,6 +112,73 @@ function rank(
 
 export function byProject(entries: UsageEntry[], days = 30, topN = 8, today = todayISO()): RankRow[] {
   return rank(windowEntries(entries, days, today), (e) => e.project ?? null, topN);
+}
+
+export interface ProjectRankRow {
+  /** Canonical project key; null = aggregated/unknown bucket. */
+  key: string | null;
+  /** Reconciled display name; null for the aggregated bucket. */
+  label: string | null;
+  /** Raw usage labels aggregated into this row (R1 sources tooltip). */
+  sources: string[];
+  costUsd: number;
+  /** Fraction of the window total, 0..1 (0 when total is 0). */
+  share: number;
+}
+
+/**
+ * Project ranking grouped by CANONICAL key (gate condition 5): entries are
+ * reconciled via `resolveProjectKey` so the same workspace under different
+ * raw labels collapses into ONE row — which is what keeps a per-project
+ * budget percentage from being duplicated across label rows. The shown
+ * label is the reconciled `displayName`; entries with neither a label nor a
+ * path fall into the null bucket, together with the beyond-topN overflow.
+ */
+export function byProjectResolved(
+  entries: UsageEntry[],
+  workspaces: WorkspaceProfile[],
+  days = 30,
+  topN = 8,
+  today = todayISO(),
+): ProjectRankRow[] {
+  const start = shiftDays(today, days - 1);
+  const acc = new Map<string, { label: string; sources: string[]; costUsd: number }>();
+  let total = 0;
+  let unknownUsd = 0;
+
+  for (const e of entries) {
+    if (e.date < start || e.date > today) continue;
+    total += e.cost_estimate_usd;
+    const rec = resolveProjectKey(
+      { project: e.project, projectPath: e.project_path },
+      workspaces,
+    );
+    if (!rec) {
+      unknownUsd += e.cost_estimate_usd;
+      continue;
+    }
+    const bucket = acc.get(rec.key) ?? { label: rec.displayName, sources: [], costUsd: 0 };
+    const source = e.project ?? rec.displayName;
+    if (!bucket.sources.includes(source)) bucket.sources.push(source);
+    bucket.costUsd += e.cost_estimate_usd;
+    acc.set(rec.key, bucket);
+  }
+
+  const sorted = [...acc.entries()].sort((a, b) => b[1].costUsd - a[1].costUsd);
+  const top = sorted.slice(0, topN);
+  const restUsd = sorted.slice(topN).reduce((s, [, b]) => s + b.costUsd, 0) + unknownUsd;
+  const rows: ProjectRankRow[] = top.map(([key, b]) => ({
+    key,
+    label: b.label,
+    sources: b.sources,
+    costUsd: b.costUsd,
+    share: total > 0 ? b.costUsd / total : 0,
+  }));
+  if (restUsd === 0) return rows;
+  return [
+    ...rows,
+    { key: null, label: null, sources: [], costUsd: restUsd, share: total > 0 ? restUsd / total : 0 },
+  ];
 }
 
 export function byModel(entries: UsageEntry[], days = 30, today = todayISO()): RankRow[] {

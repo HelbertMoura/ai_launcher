@@ -324,7 +324,7 @@ Os botões **Instalar** em Pré-reqs, **Corrigir** no Doctor e **Install prereq*
 | Typography | JetBrains Mono · Inter · Space Grotesk (display) |
 | Ícones | Logos oficiais (LobeHub Icons, devicons) + Phosphor Icons |
 | i18n | i18next 26 |
-| Testes | Vitest (280 testes), Playwright E2E/visual, cargo test (184 testes Rust) |
+| Testes | Vitest (326 testes), Playwright E2E/visual, cargo test (190 testes Rust) |
 | Build | Tauri CLI → `.msi` + `.exe` (NSIS) · `.dmg` (Apple Silicon + Intel) · AppImage + `.deb` |
 | Distribuição | GitHub Releases · Scoop (auto-update no Windows) |
 

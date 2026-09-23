@@ -25,7 +25,8 @@ import { ErrorBoundary } from "../ui/ErrorBoundary";
 import { ToastContainer } from "../ui/Toast";
 import { showToast } from "../ui/toastStore";
 import { migrateApiKeysToSecureStorage } from "../providers/storage";
-import { getBudgetAlerts } from "../providers/budget";
+import { getBudgetAlerts, getBudgetLimits } from "../providers/budget";
+import { loadWorkspaces } from "../features/workspace/workspaceStore";
 import { pushEvent } from "../features/inbox/inboxStore";
 import { useTranslation } from "react-i18next";
 import "./App.css";
@@ -142,11 +143,14 @@ export function App() {
     };
   }, []);
 
-  // On boot, check configured budget limits and surface a toast if any
-  // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
-  // The report comes from the shared usage store (one fetch per boot; the
-  // same snapshot feeds the status bar and the costs surfaces). Badge in the
-  // TopBar is intentionally out of scope for this batch.
+  // On boot, check configured budget limits (provider AND project scopes —
+  // workspaces are passed so project keys reconcile, D5) and surface a toast
+  // if any limit is at/over its alert threshold (>= alertAtPercent, default
+  // 80%). The report comes from the shared usage store (one fetch per boot;
+  // the same snapshot feeds the status bar and the costs surfaces). Badge in
+  // the TopBar is intentionally out of scope for this batch. Inbox ids are
+  // namespaced per scope: `budget:<provider>:<month>` vs
+  // `budget:project:<key>:<month>` (gate condition 7).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -155,15 +159,35 @@ export function App() {
         if (cancelled) return;
         const { report } = usageStore.getSnapshot();
         if (!report) return;
-        const alerts = getBudgetAlerts(report.entries ?? []);
+        const alerts = getBudgetAlerts(report.entries ?? [], loadWorkspaces());
         if (alerts.length === 0) return;
         const month = new Date().toISOString().slice(0, 7);
+        const limits = getBudgetLimits();
         for (const a of alerts) {
+          // Narrow the discriminated scope once; `isProject` alone doesn't narrow.
+          const projectScope =
+            a.scope.kind === "project"
+              ? { key: a.scope.projectKey, displayName: null as string | null }
+              : null;
+          const name = projectScope
+            ? (() => {
+                const match = limits.find(
+                  (l) =>
+                    l.scope.kind === "project" &&
+                    l.scope.projectKey === projectScope.key,
+                );
+                return match?.scope.kind === "project"
+                  ? match.scope.displayName
+                  : projectScope.key;
+              })()
+            : a.providerKey;
           pushEvent({
-            id: `budget:${a.providerKey}:${month}`,
+            id: projectScope
+              ? `budget:project:${projectScope.key}:${month}`
+              : `budget:${a.providerKey}:${month}`,
             type: "budget",
-            titleKey: "inbox.budgetTitle",
-            titleParams: { provider: a.providerKey },
+            titleKey: projectScope ? "inbox.budgetProjectTitle" : "inbox.budgetTitle",
+            titleParams: projectScope ? { name } : { provider: name },
             bodyKey: a.status === "exceeded" ? "inbox.budgetExceeded" : "inbox.budgetWarning",
             bodyParams: { percent: Math.round(a.percentUsed) },
             targetTab: "costs",
@@ -404,8 +428,16 @@ function ChromeConnector({
         tone: "neutral",
       };
     }
-    if (indicatorCounts.todaySpend) {
-      map.costs = { value: indicatorCounts.todaySpend, tone: "neutral" };
+    // Costs chip: today's spend, gaining the budget tone when any provider or
+    // project budget is near/over its limit (gate condition 7). When there is
+    // no spend today, the chip still surfaces the worst budget percent.
+    if (indicatorCounts.todaySpend || indicatorCounts.budgetStatus !== "ok") {
+      map.costs = {
+        value:
+          indicatorCounts.todaySpend ||
+          `${indicatorCounts.budgetPercent ?? 0}%`,
+        tone: indicatorCounts.budgetStatus !== "ok" ? "warn" : "neutral",
+      };
     }
     if (indicatorCounts.pinnedWorkspaces > 0) {
       map.workspace = {
