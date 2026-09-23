@@ -344,7 +344,7 @@ MIT — veja [LICENSE](./LICENSE).
 
 ## ☕ Créditos & Suporte
 
-- **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura)
+- **Desenvolvido à base de ☕ e ⚡ por:** [Dev Maniac's](https://devmaniacs.com.br/) · [Redes e contatos](https://linktr.ee/helbertmoura) · [☕ Apoie o projeto no Ko-fi](https://ko-fi.com/helbertmoura)
 - **Autor:** Helbert Moura — [DevManiac's](https://devmaniacs.com.br/)
 - **Ícones** — [LobeHub Icons](https://github.com/lobehub/lobe-icons), [devicons](https://github.com/devicons/devicon), [Phosphor Icons](https://phosphoricons.com/)
 - Nomes de marcas e marcas registradas pertencem aos seus respectivos donos.
@@ -353,7 +353,7 @@ MIT — veja [LICENSE](./LICENSE).
 
 <div align="center">
 
-Desenvolvido à base de ☕ e ⚡ por **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Redes e contatos](https://linktr.ee/helbertmoura)**
+Desenvolvido à base de ☕ e ⚡ por **[Dev Maniac's](https://devmaniacs.com.br/)** · **[Redes e contatos](https://linktr.ee/helbertmoura)** · **[☕ Apoie o projeto no Ko-fi](https://ko-fi.com/helbertmoura)**
 
 **[Download](https://github.com/HelbertMoura/ai_launcher/releases)** · **[Reportar Bug](https://github.com/HelbertMoura/ai_launcher/issues)** · **[Sugerir Feature](https://github.com/HelbertMoura/ai_launcher/issues)**
 
