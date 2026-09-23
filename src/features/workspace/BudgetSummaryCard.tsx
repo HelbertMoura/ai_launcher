@@ -1,15 +1,20 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useUsage } from "../costs/useUsage";
+import { usageStore, useUsageEntries } from "../costs/usageStore";
 import { getAllBudgetUsage, type BudgetUsage } from "../../providers/budget";
 import type { TabNavigator } from "../../app/layout/TabId";
 import { BentoCard } from "./BentoCard";
 
 export function BudgetSummaryCard({ onNavigate }: { onNavigate?: TabNavigator }) {
   const { t } = useTranslation();
-  const { report } = useUsage();
-  const entries = report?.entries ?? [];
+  const entries = useUsageEntries();
   const usages = useMemo<BudgetUsage[]>(() => getAllBudgetUsage(entries), [entries]);
+
+  // Preserve the pre-store mount fetch: opening the workspace tab refreshes
+  // the shared report (deduped by the store's in-flight guard).
+  useEffect(() => {
+    void usageStore.refresh();
+  }, []);
 
   const totalUsed = usages.reduce((s, u) => s + u.usedUsd, 0);
   const totalLimit = usages.reduce((s, u) => s + u.limitUsd, 0);

@@ -437,10 +437,15 @@ test.describe("v21 visual baseline", () => {
         ],
         read_usage_stats: {
           entries: [
-            { date: "2026-07-13", cli: "codex", provider: "openai", model: "gpt-5", tokens_in: 12000, tokens_out: 4300, cost_estimate_usd: 4.6, project: "Command Deck" },
-            { date: "2026-07-12", cli: "claude", provider: "anthropic", model: "opus", tokens_in: 9000, tokens_out: 3800, cost_estimate_usd: 5.2, project: "Command Deck" },
-            { date: "2026-07-08", cli: "codex", provider: "openai", model: "gpt-5-mini", tokens_in: 24000, tokens_out: 6000, cost_estimate_usd: 2.3, project: "Platform API" },
-            { date: "2026-06-16", cli: "claude", provider: "anthropic", model: "sonnet", tokens_in: 6000, tokens_out: 1800, cost_estimate_usd: 1.4, project: "Archive" },
+            { date: "2026-07-13", cli: "codex", provider: "openai", model: "gpt-5", tokens_in: 12000, tokens_out: 4300, cost_estimate_usd: 4.6, project: "Command Deck", project_path: "C:/dev/command-deck" },
+            { date: "2026-07-12", cli: "claude", provider: "anthropic", model: "opus", tokens_in: 9000, tokens_out: 3800, cost_estimate_usd: 5.2, project: "Command Deck", project_path: null },
+            { date: "2026-07-08", cli: "codex", provider: "openai", model: "gpt-5-mini", tokens_in: 24000, tokens_out: 6000, cost_estimate_usd: 2.3, project: "Platform API", project_path: "C:/dev/platform-api" },
+            { date: "2026-06-16", cli: "claude", provider: "anthropic", model: "sonnet", tokens_in: 6000, tokens_out: 1800, cost_estimate_usd: 1.4, project: "Archive", project_path: null },
+          ],
+          top_projects: [
+            { project: "Command Deck", key: "c:/dev/command-deck", display_name: "Command Deck", cost_usd: 9.8, tokens: 29100 },
+            { project: "Platform API", key: "c:/dev/platform-api", display_name: "Platform API", cost_usd: 2.3, tokens: 30000 },
+            { project: "Archive", key: "archive", display_name: "Archive", cost_usd: 1.4, tokens: 7800 },
           ],
         },
       },

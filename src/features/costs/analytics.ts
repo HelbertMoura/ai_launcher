@@ -1,6 +1,6 @@
 // Pure aggregation helpers for the Analytics view. No I/O, no Date.now —
 // `today` is always injectable so every function is deterministic in tests.
-import type { UsageEntry } from "./useUsage";
+import type { UsageEntry } from "./types";
 
 export interface DayPoint {
   date: string;

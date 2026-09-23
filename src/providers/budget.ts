@@ -4,7 +4,7 @@
 // ==============================================================================
 
 import { z } from 'zod';
-import type { UsageEntry } from '../features/costs/useUsage';
+import type { UsageEntry } from '../features/costs/types';
 import { readKey, removeKey, writeKey } from '../lib/storage';
 
 // --- Types -------------------------------------------------------------------

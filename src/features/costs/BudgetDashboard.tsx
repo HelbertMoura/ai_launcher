@@ -9,7 +9,7 @@ import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { Banner } from '../../ui/Banner';
-import { useUsage } from './useUsage';
+import { useUsageEntries } from './usageStore';
 import {
   getAllBudgetUsage,
   setBudgetLimit,
@@ -164,8 +164,7 @@ function BudgetBar({ usage, onRemove, onReset }: BudgetBarProps) {
 
 export function BudgetDashboard() {
   const { t } = useTranslation();
-  const { report } = useUsage();
-  const entries = report?.entries ?? [];
+  const entries = useUsageEntries();
   const [showForm, setShowForm] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 

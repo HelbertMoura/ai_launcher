@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { UsageReport } from "../features/costs/types";
 
 export function isTauriRuntime(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -344,5 +345,24 @@ export function raceRecover(handle: RaceHandle): Promise<RaceCleanupReport> {
 /** Graveyard listing: terminal race records, newest first. */
 export function raceListHistory(): Promise<RaceHistoryEntry[]> {
   return invoke<RaceHistoryEntry[]>("race_list_history");
+}
+
+// ============================================================================
+// Usage / costs (v23 Cost Governance 3.0)
+//
+// Wire payloads mirror the Rust structs in
+// `src-tauri/src/commands/config.rs`; the shared types live in
+// `features/costs/types.ts` and are validated with zod in
+// `features/costs/usageStore.ts` — this wrapper stays typed-only.
+// ============================================================================
+
+/**
+ * Raw `read_usage_stats` payload reader. `force = true` bypasses the
+ * backend's mtime usage cache; omitted keeps the default cached read.
+ */
+export function readUsageStats(force?: boolean): Promise<UsageReport> {
+  // Omit the key entirely when not forcing, matching the legacy
+  // argument-less invoke byte for byte.
+  return invoke<UsageReport>("read_usage_stats", force === undefined ? undefined : { force });
 }
 

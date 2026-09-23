@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { UsageEntry } from '../features/costs/useUsage';
+import type { UsageEntry } from '../features/costs/types';
 import {
   setBudgetLimit,
   resetBudgetPeriod,

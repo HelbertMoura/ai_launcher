@@ -26,7 +26,28 @@ type TauriResultMap = {
     release_notes_url: string;
     release_notes_body: string;
   };
-  read_usage_stats: { entries: unknown[] };
+  read_usage_stats: {
+    entries: Array<{
+      date: string;
+      cli: string;
+      provider?: string | null;
+      model: string | null;
+      tokens_in: number;
+      tokens_out: number;
+      cost_estimate_usd: number;
+      project?: string | null;
+      /** 3a: raw project directory when reliably known (Codex); null for Claude. */
+      project_path?: string | null;
+    }>;
+    /** 3a: top projects aggregated by canonical key. */
+    top_projects?: Array<{
+      project: string;
+      key?: string;
+      display_name?: string;
+      cost_usd: number;
+      tokens: number;
+    }>;
+  };
   has_secure_storage: boolean;
   store_secret: { stored: boolean; backend: string; migratedLegacy: boolean };
   get_secret: string | null;
