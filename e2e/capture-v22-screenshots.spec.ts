@@ -46,6 +46,30 @@ const CLIS_STUB = [
   { key: "droid", name: "Factory Droid", command: "droid", installed: false, version: null },
 ];
 
+// Usage seed for the Costs surface: three distinct current-month days so the
+// month projection card renders with real numbers (same date-relative shape as
+// the canonical wave-3d seeds in costs.spec.ts — the capture must run on/after
+// the 3rd day of the month, like the projection test's honest skip).
+function isoDate(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const USAGE_SEED = {
+  entries: [0, 1, 2].map((offset, i) => ({
+    date: isoDate(offset),
+    cli: i % 2 === 0 ? "codex" : "claude",
+    provider: i % 2 === 0 ? "openai" : "anthropic",
+    model: i % 2 === 0 ? "gpt-5" : "opus",
+    tokens_in: 1000,
+    tokens_out: 500,
+    cost_estimate_usd: 4.0,
+    project: "Web Portal",
+    project_path: "C:/dev/web-portal",
+  })),
+};
+
 test.describe("v22 public screenshots capture", () => {
   const screenshotsDir = path.resolve(process.cwd(), "docs/screenshots/v22");
 
@@ -58,6 +82,7 @@ test.describe("v22 public screenshots capture", () => {
       responses: {
         get_all_clis: CLIS_STUB,
         check_clis: CLIS_STUB,
+        read_usage_stats: USAGE_SEED,
         list_active_sessions: [
           {
             session_id: "sess-v22-1",

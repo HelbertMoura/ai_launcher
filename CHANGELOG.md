@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [23.1.0] — 2026-09-23 — Cost Governance 3.0
+
+The cost-governance release: Budget Guard learns per-project budgets — calendar-month quotas with their own alert thresholds, created from reconciled usage projects — sitting beside the existing rolling-window provider limits. The Costs surface gains a month projection card that estimates end-of-month spend from the recent burn rate, with an honest insufficient-data state when there is not enough history to project. Usage state is centralized in one shared, zod-validated store, projects are reconciled across workspace labels into canonical keys, and existing budgets migrate loss-lessly to the new v3 storage schema. Budgets still only alert — they never block; enforcement remains future work.
+
 ### Added
 - **Project budgets:** Budget Guard now has a Providers | Projects tab switch (WAI-ARIA tablist with arrow-key navigation). Each project gets a calendar-month quota ("Monthly (calendar)", with its own alert threshold), created from a dropdown of reconciled usage projects (canonical keys, deduplicated), with per-item removal alongside the existing rolling-window provider limits.
 - **Month projection:** the Costs surface gains a projection card — month-to-date spend, end-of-month projection from the 14-day daily-burn average, 7- and 14-day burn windows, and an estimated overflow date ("~Sep 28") when an active budget is projected to burst within its period. Fewer than 3 days with data renders an honest "insufficient data" state instead of a number.
@@ -21,7 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All budget bars (dashboard and ranking column) are exposed as ARIA progressbars with `aria-valuenow/min/max` and accessible labels.
 
 ### Changed
+- **Loss-less budget storage v15 → v3:** budget limits now carry an `id`, a `scope` (`provider` | `project`), a `period` (`rolling` | `calendar-month`) and a `createdAt`, stored under the same `ai-launcher:v15:budget` key. The v15 → v3 migration runs on the read path (`budget.ts`) and on old backup imports; v15 entries are never dropped — corrupt numerics fall back to safe defaults with a `console.warn` instead.
 - **Usage export carries `project_path`:** usage entries now include the raw project directory when reliably known (Codex records its `cwd`; Claude leaves it empty), so the CSV export gained the column additively — existing consumers are unaffected. The report also exposes top projects aggregated by a canonical `key` with a stable `display_name`.
+
+### Fixed
+- **Backup imports now run schema migrations:** `importConfig` applied incoming values without calling the registry entry's `migrate`, so legacy backups skipped the v15 → v3 budget migration on import. Imports now apply the entry's declared migration structurally and idempotently (backups carry no per-key storage version, so `fromVersion` is treated as unknown).
+
+### CI and Dependencies
+- Playwright e2e coverage expanded: a new costs suite covers the month projection card, the honest insufficient-data guard, project-budget creation from the Projects tab, and warning/exceeded budget states (4 new tests).
+- New UI strings shipped in English and pt-BR; the Analytics visual baselines were refreshed for the new projection hero (dark, light, and high-contrast).
 
 ## [23.0.0] — 2026-09-22 — Fleet Command
 
