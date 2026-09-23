@@ -171,7 +171,9 @@ export function BudgetDashboard() {
   const budgetUsages = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     refreshKey; // depend on refreshKey to recompute after mutations
-    return getAllBudgetUsage(entries);
+    // Project-scope budgets get their own tab in wave 3d; the current
+    // provider-only UI must keep showing exactly what it showed before.
+    return getAllBudgetUsage(entries).filter((u) => u.scope.kind === 'provider');
   }, [entries, refreshKey]);
 
   const handleSave = useCallback(

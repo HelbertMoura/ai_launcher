@@ -8,7 +8,12 @@ import { BentoCard } from "./BentoCard";
 export function BudgetSummaryCard({ onNavigate }: { onNavigate?: TabNavigator }) {
   const { t } = useTranslation();
   const entries = useUsageEntries();
-  const usages = useMemo<BudgetUsage[]>(() => getAllBudgetUsage(entries), [entries]);
+  // Provider budgets only for now — project budgets surface with their own UI
+  // in wave 3d; this card must keep its current provider-only semantics.
+  const usages = useMemo<BudgetUsage[]>(
+    () => getAllBudgetUsage(entries).filter((u) => u.scope.kind === "provider"),
+    [entries],
+  );
 
   // Preserve the pre-store mount fetch: opening the workspace tab refreshes
   // the shared report (deduped by the store's in-flight guard).

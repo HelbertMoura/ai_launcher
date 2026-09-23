@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { exportConfig, importConfig, previewImportConfig } from './configIO';
 import { readKey, writeKey, STORAGE_KEYS } from './storage';
 
@@ -79,6 +79,45 @@ describe('importConfig — legacy backup compatibility', () => {
     expect(localStorage.getItem(STORAGE_KEYS.config)).toContain('dark');
     // raw string entry — not JSON-wrapped
     expect(localStorage.getItem(STORAGE_KEYS.displayFont)).toBe('JetBrains Mono');
+  });
+
+  it('migrates v15 budget limits to v3 through the registry entry migrate()', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const result = importConfig(
+        JSON.stringify({
+          version: '22.0',
+          exportedAt: '2026-08-01T00:00:00Z',
+          keys: {
+            budget: {
+              limits: [
+                {
+                  providerKey: 'anthropic',
+                  limitUsd: 50,
+                  periodDays: 30,
+                  alertAtPercent: 80,
+                  periodAnchor: '2026-07-01',
+                },
+              ],
+            },
+          },
+        }),
+        'replace',
+      );
+      expect(result.ok).toBe(true);
+
+      const limits = readKey('budget').limits as Array<Record<string, unknown>>;
+      expect(limits).toHaveLength(1);
+      expect(limits[0]).toMatchObject({
+        scope: { kind: 'provider', providerKey: 'anthropic' },
+        limitUsd: 50,
+        period: { kind: 'rolling', days: 30, anchor: '2026-07-01' },
+        alertAtPercent: 80,
+      });
+      expect(String(limits[0].id)).toMatch(/^bgt-[0-9a-f]{8}$/);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
 
