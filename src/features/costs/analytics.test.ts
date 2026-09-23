@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildCostsOverview, byModel, byProject, dailySeries, trend } from "./analytics";
-import type { UsageEntry } from "./useUsage";
+import type { UsageEntry } from "./types";
 
 function entry(partial: Partial<UsageEntry>): UsageEntry {
   return {

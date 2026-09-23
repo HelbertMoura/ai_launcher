@@ -18,7 +18,7 @@ import { useCommandPalette } from "../features/command-palette/useCommandPalette
 import { markOnboarded, readOnboarded } from "./onboarding";
 import { clisStore } from "../features/launcher/clisStore";
 import { useClis } from "../features/launcher/useClis";
-import { useUsage } from "../features/costs/useUsage";
+import { usageStore, useUsageStore } from "../features/costs/usageStore";
 import { useUpdates } from "../hooks/useUpdates";
 import { useSidebarIndicators } from "../hooks/useSidebarIndicators";
 import { ErrorBoundary } from "../ui/ErrorBoundary";
@@ -27,8 +27,6 @@ import { showToast } from "../ui/toastStore";
 import { migrateApiKeysToSecureStorage } from "../providers/storage";
 import { getBudgetAlerts } from "../providers/budget";
 import { pushEvent } from "../features/inbox/inboxStore";
-import type { UsageReport } from "../features/costs/useUsage";
-import { invokeOrFallback } from "../lib/tauri";
 import { useTranslation } from "react-i18next";
 import "./App.css";
 import { migrateStorage } from "../lib/storage/migrations";
@@ -146,17 +144,17 @@ export function App() {
 
   // On boot, check configured budget limits and surface a toast if any
   // provider is at/over its alert threshold (>= alertAtPercent, default 80%).
-  // Badge in the TopBar is intentionally out of scope for this batch.
+  // The report comes from the shared usage store (one fetch per boot; the
+  // same snapshot feeds the status bar and the costs surfaces). Badge in the
+  // TopBar is intentionally out of scope for this batch.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const report = await invokeOrFallback<UsageReport>(
-          "read_usage_stats",
-          undefined,
-          { entries: [] },
-        );
+        await usageStore.refresh();
         if (cancelled) return;
+        const { report } = usageStore.getSnapshot();
+        if (!report) return;
         const alerts = getBudgetAlerts(report.entries ?? []);
         if (alerts.length === 0) return;
         const month = new Date().toISOString().slice(0, 7);
@@ -358,7 +356,7 @@ function ChromeConnector({
   // so the bar populates on boot instead of staying stuck at "0/0" until an
   // unrelated re-render happened to pick up the updated store.
   const snapshot = useClis();
-  const { report } = useUsage();
+  const { report } = useUsageStore();
   const { summary: updates, refresh: refreshUpdates } = useUpdates();
   const [refreshTick, setRefreshTick] = useState(0);
   const [executionMode, setExecutionModeState] = useState<ExecutionMode>(getExecutionMode);

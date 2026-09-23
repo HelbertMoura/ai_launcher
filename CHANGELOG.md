@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Usage export carries `project_path`:** usage entries now include the raw project directory when reliably known (Codex records its `cwd`; Claude leaves it empty), so the CSV export gained the column additively — existing consumers are unaffected. The report also exposes top projects aggregated by a canonical `key` with a stable `display_name`.
+
 ## [23.0.0] — 2026-09-22 — Fleet Command
 
 The fleet-command release: Race Mode puts up to three agents on the same task in parallel, each in its own isolated git worktree, and closes the loop with a Diff & Review Cockpit whose adoption is always atomic — a race lands as a branch or as an apply report, never partially. Navigation is regrouped around it (collapsible Run / Observe / Connect / System groups, a fused Maintenance surface) and the whole app got a fluidity pass (tab-switch jank, progressive rechecks, batched history).

@@ -4,7 +4,7 @@
 // ==============================================================================
 
 import { useEffect, useMemo, useState } from "react";
-import type { UsageReport } from "../features/costs/useUsage";
+import type { UsageReport } from "../features/costs/types";
 import { loadWorkspaces } from "../features/workspace/workspaceStore";
 import type { HistoryItem } from "../features/history/useHistory";
 import { readKey, STORAGE_KEYS } from "../lib/storage";

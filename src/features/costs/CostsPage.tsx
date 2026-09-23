@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Banner } from "../../ui/Banner";
 import { Card } from "../../ui/Card";
 import { EmptyState, ART_CHART } from "../../ui/EmptyState";
 import { Skeleton } from "../../ui/Skeleton";
-import { useUsage } from "./useUsage";
+import { usageStore, useUsageStore } from "./usageStore";
 import { toCsv, downloadBlob } from "../../lib/exportData";
 import { BudgetDashboard } from "./BudgetDashboard";
 import { AreaChart } from "../../ui/charts/AreaChart";
@@ -32,8 +32,14 @@ const RANGES: Array<{ days: number; label: string }> = [
 
 export function CostsPage() {
   const { t } = useTranslation();
-  const { report, loading, error } = useUsage();
+  const { report, loading, error } = useUsageStore();
   const [rangeDays, setRangeDays] = useState<number>(30);
+
+  // Revalidate on page open (design §5b): one shared refresh, deduped by the
+  // store's in-flight guard. Never blocking: the cached report stays visible.
+  useEffect(() => {
+    void usageStore.refresh();
+  }, []);
 
   const overview = useMemo(() => {
     const entries = report?.entries ?? [];
@@ -100,7 +106,7 @@ export function CostsPage() {
 
       {error && <Banner variant="err">{error}</Banner>}
 
-      {loading && (
+      {loading && !report && (
         <div className="cd-costs__loading">
           <Skeleton variant="card" height={120} />
           <div className="cd-page__grid">
@@ -122,7 +128,7 @@ export function CostsPage() {
         />
       )}
 
-      {!loading && hasData && (
+      {hasData && (
         <>
           <section className="cd-costs__overview" aria-label={t("costs.overviewLabel")}>
             <div className="cd-costs__hero">
