@@ -36,6 +36,11 @@ pub struct UsageEntry {
     pub cost_estimate_usd: f64,
     pub model: Option<String>,
     pub project: Option<String>,
+    /// Raw project directory when reliably known (Codex records its `cwd`).
+    /// Claude leaves this `None`: its on-disk project folder encoding is not
+    /// guaranteed to be reversible. Wire-only — never persisted anywhere.
+    #[serde(default)]
+    pub project_path: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -59,7 +64,15 @@ pub struct CliUsageSummary {
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ProjectUsage {
+    /// Readable group label (kept unchanged on the wire for old consumers).
     pub project: String,
+    /// Canonical grouping key: normalized project path (`\` -> `/`, lowercased,
+    /// trailing slashes stripped) when a trusted path is available; otherwise
+    /// the label lowercased.
+    pub key: String,
+    /// Deterministic readable label: the highest-cost entry's label inside the
+    /// group; ties break to the lexicographically first.
+    pub display_name: String,
     pub cost_usd: f64,
     pub tokens: u64,
 }
@@ -235,6 +248,7 @@ fn parse_claude_file(path: &Path) -> Vec<UsageEntry> {
                 cost_estimate_usd: cost,
                 model,
                 project: project.clone(),
+                project_path: None,
             }
         })
         .collect()
@@ -368,7 +382,8 @@ fn parse_codex_file(path: &Path) -> Vec<UsageEntry> {
         tokens_out,
         cost_estimate_usd: cost,
         model,
-        project: cwd,
+        project: cwd.clone(),
+        project_path: cwd,
     }]
 }
 
@@ -391,6 +406,73 @@ fn read_codex_usage(entries: &mut Vec<UsageEntry>, _warnings: &mut [String]) {
 // AGGREGATION
 // ============================================================
 
+/// Canonical grouping key for a project: when a trusted raw path is available
+/// it is normalized (`\` -> `/`, lowercased, trailing slashes stripped);
+/// otherwise the label itself is lowercased. Codex supplies `project_path`
+/// (its recorded `cwd`); Claude does not, so its labels group as-is.
+fn canonical_project_key(label: &str, path: Option<&str>) -> String {
+    if let Some(p) = path {
+        let normalized = p.replace('\\', "/");
+        let normalized = normalized.trim_end_matches('/');
+        if !normalized.is_empty() {
+            return normalized.to_lowercase();
+        }
+    }
+    label.to_lowercase()
+}
+
+/// Pure aggregation behind `top_projects`: groups entries by canonical key,
+/// sums cost/tokens per group, picks a deterministic `display_name` (label of
+/// the highest-cost entry inside the group; ties break to the lexicographically
+/// first) and keeps the top 5 by cost. Entries without a project label stay out
+/// of the ranking, as before.
+fn aggregate_top_projects(entries: &[UsageEntry]) -> Vec<ProjectUsage> {
+    struct Group {
+        cost: f64,
+        tokens: u64,
+        display: String,
+        display_cost: f64,
+    }
+    let mut groups: HashMap<String, Group> = HashMap::new();
+    for e in entries {
+        let Some(label) = e.project.as_deref().filter(|l| !l.is_empty()) else {
+            continue;
+        };
+        let key = canonical_project_key(label, e.project_path.as_deref());
+        let g = groups.entry(key).or_insert_with(|| Group {
+            cost: 0.0,
+            tokens: 0,
+            display: label.to_string(),
+            display_cost: e.cost_estimate_usd,
+        });
+        g.cost += e.cost_estimate_usd;
+        g.tokens += e.tokens_in + e.tokens_out;
+        if e.cost_estimate_usd > g.display_cost
+            || (e.cost_estimate_usd == g.display_cost && label < g.display.as_str())
+        {
+            g.display = label.to_string();
+            g.display_cost = e.cost_estimate_usd;
+        }
+    }
+    let mut top: Vec<ProjectUsage> = groups
+        .into_iter()
+        .map(|(key, g)| ProjectUsage {
+            project: g.display.clone(),
+            key,
+            display_name: g.display,
+            cost_usd: g.cost,
+            tokens: g.tokens,
+        })
+        .collect();
+    top.sort_by(|a, b| {
+        b.cost_usd
+            .partial_cmp(&a.cost_usd)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    top.truncate(5);
+    top
+}
+
 /// Blocking aggregation of Claude/Codex JSONL usage: walks thousands of files
 /// under `~/.claude/projects` and `~/.codex/sessions`. MUST run off the
 /// command thread — see [`read_usage_stats`].
@@ -411,8 +493,6 @@ fn compute_usage_report(force: Option<bool>) -> Result<UsageReport, String> {
     let mut total_cost: f64 = 0.0;
     let mut by_cli: std::collections::BTreeMap<String, CliUsageSummary> =
         std::collections::BTreeMap::new();
-    let mut project_agg: std::collections::HashMap<String, (f64, u64)> =
-        std::collections::HashMap::new();
 
     for e in &entries {
         total_in += e.tokens_in;
@@ -428,28 +508,8 @@ fn compute_usage_report(force: Option<bool>) -> Result<UsageReport, String> {
         s.tokens_out += e.tokens_out;
         s.cost_usd += e.cost_estimate_usd;
         s.entries += 1;
-        if let Some(p) = &e.project {
-            if !p.is_empty() {
-                let v = project_agg.entry(p.clone()).or_insert((0.0, 0));
-                v.0 += e.cost_estimate_usd;
-                v.1 += e.tokens_in + e.tokens_out;
-            }
-        }
     }
-    let mut top_projects: Vec<ProjectUsage> = project_agg
-        .into_iter()
-        .map(|(project, (cost, tokens))| ProjectUsage {
-            project,
-            cost_usd: cost,
-            tokens,
-        })
-        .collect();
-    top_projects.sort_by(|a, b| {
-        b.cost_usd
-            .partial_cmp(&a.cost_usd)
-            .unwrap_or(std::cmp::Ordering::Equal)
-    });
-    top_projects.truncate(5);
+    let top_projects = aggregate_top_projects(&entries);
 
     Ok(UsageReport {
         entries,
@@ -628,6 +688,133 @@ mod tests {
         assert_eq!(price_per_mtoken("gemini", Some("pro")), (1.0, 4.0));
         assert_eq!(price_per_mtoken("claude", Some("opus")), (15.0, 75.0));
         assert_eq!(price_per_mtoken("codex", None), (2.5, 10.0));
+    }
+
+    fn usage_entry(label: Option<&str>, path: Option<&str>, cost: f64) -> UsageEntry {
+        UsageEntry {
+            cli: "codex".to_string(),
+            provider: provider_for_cli("codex"),
+            date: "2026-01-01".to_string(),
+            tokens_in: 100,
+            tokens_out: 50,
+            cost_estimate_usd: cost,
+            model: None,
+            project: label.map(String::from),
+            project_path: path.map(String::from),
+        }
+    }
+
+    #[test]
+    fn top_projects_dedupes_by_canonical_key_and_sums_cost() {
+        // The same Codex project recorded under two cwd spellings: the labels
+        // differ string-wise but normalize to one key => a single merged group.
+        let entries = vec![
+            usage_entry(Some("E:\\InteliMON"), Some("E:\\InteliMON\\"), 1.5),
+            usage_entry(Some("e:/intelimon"), Some("e:/intelimon"), 0.5),
+        ];
+        let top = aggregate_top_projects(&entries);
+
+        assert_eq!(top.len(), 1, "both spellings collapse into one key");
+        assert_eq!(top[0].key, "e:/intelimon");
+        assert_eq!(top[0].cost_usd, 2.0);
+        assert_eq!(top[0].tokens, 300);
+        assert_eq!(top[0].display_name, "E:\\InteliMON", "highest cost wins");
+        assert_eq!(top[0].project, top[0].display_name);
+    }
+
+    #[test]
+    fn top_projects_display_name_breaks_cost_ties_lexicographically() {
+        let top = aggregate_top_projects(&[
+            usage_entry(Some("zeta"), Some("C:/Proj"), 1.0),
+            usage_entry(Some("alpha"), Some("C:/Proj"), 1.0),
+        ]);
+
+        assert_eq!(top.len(), 1);
+        assert_eq!(
+            top[0].display_name, "alpha",
+            "cost tie => lexicographically first"
+        );
+    }
+
+    #[test]
+    fn top_projects_skips_entries_without_project_label() {
+        let ranked = usage_entry(Some("solo"), None, 9.0);
+        let orphan = UsageEntry {
+            project: None,
+            project_path: None,
+            cost_estimate_usd: 50.0,
+            ..ranked.clone()
+        };
+        let top = aggregate_top_projects(&[orphan, ranked]);
+
+        assert_eq!(top.len(), 1, "no label => out of the ranking");
+        assert_eq!(top[0].key, "solo");
+    }
+
+    #[test]
+    fn codex_entry_propagates_cwd_as_project_path() {
+        let content = concat!(
+            r#"{"timestamp":"2025-11-04T13:39:22.608Z","type":"turn_context","payload":{"cwd":"D:\\Work\\My App","model":"gpt-5-codex"}}"#,
+            "\n",
+            r#"{"timestamp":"2025-11-04T13:40:00.000Z","type":"event_msg","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":10,"output_tokens":5}}}}"#,
+        );
+        let mut path = std::env::temp_dir();
+        path.push(format!(
+            "rollout-2025-11-04T13-39-22-cwd-{}.jsonl",
+            std::process::id()
+        ));
+        std::fs::write(&path, content).expect("write codex temp");
+        let entries = parse_codex_file(&path);
+        let _ = std::fs::remove_file(&path);
+
+        assert_eq!(entries.len(), 1);
+        let e = &entries[0];
+        assert_eq!(e.project.as_deref(), Some("D:\\Work\\My App"), "label kept");
+        assert_eq!(
+            e.project_path.as_deref(),
+            Some("D:\\Work\\My App"),
+            "cwd propagates as project_path"
+        );
+    }
+
+    #[test]
+    fn claude_entry_has_no_project_path_and_groups_by_lowered_label() {
+        let dir = std::env::temp_dir().join(format!("AiLauncherTestProj{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("create temp project dir");
+        let path = dir.join("session.jsonl");
+        std::fs::write(
+            &path,
+            r#"{"type":"assistant","timestamp":"2026-05-19T01:00:00.000Z","message":{"model":"claude-sonnet-4-5","usage":{"input_tokens":100,"output_tokens":10}}}"#,
+        )
+        .expect("write claude temp");
+        let entries = parse_claude_file(&path);
+        let _ = std::fs::remove_dir_all(&dir);
+
+        assert_eq!(entries.len(), 1);
+        let e = &entries[0];
+        let label = e.project.as_deref().expect("folder name becomes label");
+        assert_eq!(e.project_path, None, "Claude path encoding is not trusted");
+        let top = aggregate_top_projects(std::slice::from_ref(e));
+        assert_eq!(top.len(), 1);
+        assert_eq!(top[0].key, label.to_lowercase());
+        assert_eq!(top[0].display_name, label);
+    }
+
+    #[test]
+    fn project_usage_serialization_is_additive() {
+        let pu = ProjectUsage {
+            project: "Proj".to_string(),
+            key: "proj".to_string(),
+            display_name: "Proj".to_string(),
+            cost_usd: 1.25,
+            tokens: 42,
+        };
+        let json = serde_json::to_value(&pu).expect("serialize ProjectUsage");
+        for field in ["project", "cost_usd", "tokens", "key", "display_name"] {
+            assert!(json.get(field).is_some(), "missing field: {field}");
+        }
+        assert_eq!(json["key"], "proj");
+        assert_eq!(json["display_name"], "Proj");
     }
 }
 
