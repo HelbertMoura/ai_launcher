@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [23.1.1] — 2026-09-23 — Bug fixes
+
+The bug-fix release: top-bar dropdowns paint above the page again (they had been opening invisibly behind the main content since v22.5.0), MCP stdio health stops reporting "unavailable" for executables that resolve outside the GUI process PATH, switched-off MCP servers get an honest "Disabled" state with its own overview metric, MCP configuration failures show a friendly localized message instead of raw Zod output, and the MCP card layout stops squeezing server names and scrolling sideways.
+
+### Fixed
+- **Top-bar dropdowns painted behind the main content (since v22.5.0):** the notifications bell and quick-settings dropdowns opened invisible — clicks landed on the page and both buttons felt dead — because the top bar carried `contain: layout`, whose stacking context trapped the absolutely-positioned flyouts while the sibling main area (opaque background, its own stacking context) painted after it. The containment is removed so the flyouts' positive z-index paints above the page again, and a real hit-test regression guard now covers both panels in e2e: `document.elementFromPoint` at the open panel's center must return the panel or a descendant (`toBeVisible()` cannot catch paint-order bugs).
+- **MCP stdio health no longer reports "unavailable" for executables outside the GUI process PATH:** path-form commands are validated by direct file existence after `%VAR%` expansion (trying `.exe`/`.cmd`/`.bat` variants), and bare names are additionally looked up in the common tool install dirs that never touch PATH — npm folders, `~\.local\bin`, `~\.cargo\bin`, scoop shims, and Python Scripts. Servers with `enabled == false` are never probed anymore: they answer a neutral "Disabled" state, which now shows as a fifth metric in the overview, and the health tooltip carries the exact failure reason. Honest scope, unchanged from the feature: stdio health verifies executable presence, not a protocol handshake.
+- **MCP configuration load failures show a friendly localized banner** instead of the raw Zod issue list; the technical detail goes to the console (`console.warn`).
+- **MCP card layout:** the server name sits alone on its own row (no longer squeezed to a few characters, with the badges moved to a second row), command boxes wrap with word-break instead of a horizontal scrollbar, and env/header lists scroll within a max height.
+
+### CI and Dependencies
+- e2e MCP seeds moved to the `{servers, warnings}` object contract — the visual baselines had photographed the raw-error screen as canonical — and the `wave-b-mcp` baselines were regenerated for the fixed card layout. All 8 README screenshots were re-captured on v23.1.1 (the MCP one shows the new layout).
+
 ## [23.1.0] — 2026-09-23 — Cost Governance 3.0
 
 The cost-governance release: Budget Guard learns per-project budgets — calendar-month quotas with their own alert thresholds, created from reconciled usage projects — sitting beside the existing rolling-window provider limits. The Costs surface gains a month projection card that estimates end-of-month spend from the recent burn rate, with an honest insufficient-data state when there is not enough history to project. Usage state is centralized in one shared, zod-validated store, projects are reconciled across workspace labels into canonical keys, and existing budgets migrate loss-lessly to the new v3 storage schema. Budgets still only alert — they never block; enforcement remains future work.

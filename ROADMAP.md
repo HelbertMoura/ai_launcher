@@ -2,7 +2,7 @@
 
 Where the project is heading. Priorities, not promises: this roadmap intentionally carries no dates — each item ships when it is done.
 
-## Where we are — v23.1.0
+## Where we are — v23.1.1
 
 AI Launcher is a native desktop command deck (Tauri v2 + React 19 + Rust) for discovering, launching, and monitoring AI CLI agents, IDEs, and MCP servers — local-first, zero telemetry, MIT licensed.
 
@@ -20,7 +20,7 @@ Pillars already shipped:
 
 ## Shipped recently
 
-Recent engineering waves (hygiene → safety net → platform), as of v23.1.0:
+Recent engineering waves (hygiene → safety net → platform), as of v23.1.1:
 
 - [x] Core hygiene pass — deduplicated safety helpers, typed `AppError` layer across Rust commands, blocking network/filesystem scans moved off the command thread
 - [x] Shell safety — escaped `cmd /K` fallback metacharacters, gated custom command tokens, real HTTP reachability probe for MCP health checks
