@@ -96,7 +96,11 @@ export function summarizeProjectMcpHealth(
     .map(({ server }) => healthByServerKey[mcpServerKey(server)])
     .filter((health): health is McpHealth => Boolean(health));
   const healthy = healthResults.filter((health) => health.ok).length;
-  const unhealthy = healthResults.filter((health) => !health.ok).length;
+  // A disabled server was never probed (neutral state), so it must not count
+  // as unhealthy; it lands in "unknown" alongside not-yet-checked servers.
+  const unhealthy = healthResults.filter(
+    (health) => !health.ok && health.state !== "disabled",
+  ).length;
   const missing = resolution.missing.length;
   const unknown = Math.max(0, matched - healthy - unhealthy);
   const status =

@@ -427,6 +427,7 @@ export const en: Dictionary = {
     metricHealthy: "healthy",
     metricUnavailable: "unavailable",
     metricUnknown: "checking",
+    metricDisabled: "disabled",
     metricClis: "CLIs covered",
     targetCli: "Target CLI",
     add: "Add",
@@ -467,6 +468,7 @@ export const en: Dictionary = {
     toastUpdated: "Server \"{{name}}\" updated",
     toastRemoved: "Server \"{{name}}\" removed",
     configWarning: "Could not read the {{cli}} MCP config ({{path}}): {{message}}",
+    configError: "Could not load the MCP server configuration. Check the configuration file and try refreshing.",
   },
   costs: {
     title: "COSTS",

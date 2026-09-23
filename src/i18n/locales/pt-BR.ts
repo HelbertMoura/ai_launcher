@@ -425,6 +425,7 @@ export const ptBR = {
     metricHealthy: "saudáveis",
     metricUnavailable: "indisponíveis",
     metricUnknown: "verificando",
+    metricDisabled: "desativados",
     metricClis: "CLIs cobertos",
     targetCli: "CLI de destino",
     add: "Adicionar",
@@ -465,6 +466,7 @@ export const ptBR = {
     toastUpdated: "Servidor \"{{name}}\" atualizado",
     toastRemoved: "Servidor \"{{name}}\" removido",
     configWarning: "Não foi possível ler a config MCP do {{cli}} ({{path}}): {{message}}",
+    configError: "Não foi possível carregar a configuração dos servidores MCP. Verifique o arquivo de configuração e tente atualizar.",
   },
   costs: {
     title: "CUSTOS",

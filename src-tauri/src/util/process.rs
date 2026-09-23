@@ -125,7 +125,130 @@ pub fn run_silent(cmd: &str, args: &[&str]) -> (bool, Option<String>) {
     run_silent_with_timeout(cmd, args, RUN_SILENT_TIMEOUT_SECS)
 }
 
-pub fn command_exists(cmd: &str) -> bool {
+/// True when `cmd` is a filesystem path (path separator or Windows drive
+/// prefix) rather than a bare executable name. MCP configs store the
+/// executable in `command` and the arguments in a separate `args` field, so
+/// any path form here refers to the program file itself.
+pub fn command_looks_like_path(cmd: &str) -> bool {
+    if cmd.contains('\\') || cmd.contains('/') {
+        return true;
+    }
+    let bytes = cmd.as_bytes();
+    bytes.len() >= 2 && bytes[1] == b':' && bytes[0].is_ascii_alphabetic()
+}
+
+/// Expands `%VAR%` references (Windows convention) via `std::env::var`.
+/// Unset variables are kept verbatim so error messages show what the user
+/// wrote instead of a mangled path.
+fn expand_windows_env_vars(path: &str) -> String {
+    let mut out = String::with_capacity(path.len());
+    let mut rest = path;
+    while let Some(start) = rest.find('%') {
+        let after = &rest[start + 1..];
+        if let Some(end) = after.find('%') {
+            if end > 0 {
+                let name = &after[..end];
+                out.push_str(&rest[..start]);
+                match std::env::var(name) {
+                    Ok(value) => out.push_str(&value),
+                    Err(_) => {
+                        out.push('%');
+                        out.push_str(name);
+                        out.push('%');
+                    }
+                }
+                rest = &after[end + 1..];
+                continue;
+            }
+        }
+        // No closing '%' (or empty name): keep the remainder verbatim.
+        out.push_str(rest);
+        rest = "";
+        break;
+    }
+    out.push_str(rest);
+    out
+}
+
+/// File existence check for a path-form command. `%VAR%` segments expand
+/// first; when the final component has no extension, the usual Windows
+/// executable extensions are appended so `C:\Python314\python` resolves the
+/// way CreateProcess would.
+fn path_command_exists(path: &str) -> bool {
+    let expanded = expand_windows_env_vars(path);
+    let candidate = std::path::Path::new(&expanded);
+    if candidate.is_file() {
+        return true;
+    }
+    if candidate.extension().is_none() {
+        for ext in ["exe", "cmd", "bat"] {
+            if candidate.with_extension(ext).is_file() {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// Extension variants tried for a bare command name in the fallback dirs
+/// (npm shims are `.cmd`, pipx tools `.exe`, and so on). The empty extension
+/// keeps the exact name last, mirroring the legacy lookup order.
+fn command_file_variants(cmd: &str) -> [String; 5] {
+    [
+        format!("{}.cmd", cmd),
+        format!("{}.ps1", cmd),
+        format!("{}.exe", cmd),
+        format!("{}.bat", cmd),
+        cmd.to_string(),
+    ]
+}
+
+/// Extra lookup directories probed for bare command names that are absent
+/// from the GUI process PATH: npm shims plus the common Windows installers
+/// that never touch PATH (pipx/uv, cargo, scoop shims, Python Scripts).
+pub fn fallback_command_dirs() -> Vec<std::path::PathBuf> {
+    let mut dirs = Vec::new();
+    for var in ["APPDATA", "LOCALAPPDATA"] {
+        if let Ok(base) = std::env::var(var) {
+            dirs.push(std::path::PathBuf::from(base).join("npm"));
+        }
+    }
+    if let Ok(profile) = std::env::var("USERPROFILE") {
+        let profile = std::path::PathBuf::from(profile);
+        dirs.push(profile.join(".local").join("bin"));
+        dirs.push(profile.join(".cargo").join("bin"));
+        dirs.push(profile.join("scoop").join("shims"));
+    }
+    if let Ok(appdata) = std::env::var("APPDATA") {
+        dirs.push(
+            std::path::PathBuf::from(appdata)
+                .join("Python")
+                .join("Scripts"),
+        );
+    }
+    if let Ok(lad) = std::env::var("LOCALAPPDATA") {
+        dirs.push(
+            std::path::PathBuf::from(lad)
+                .join("Programs")
+                .join("Python"),
+        );
+    }
+    dirs
+}
+
+/// Resolution chain for `command_exists`, with the fallback dirs injectable
+/// so tests can exercise short-name resolution without touching the machine
+/// PATH:
+///
+/// 1. Path-form commands: direct file existence after `%VAR%` expansion —
+///    authoritative and immune to the GUI process PATH.
+/// 2. Bare names: `where` (Windows) / `which` (Unix) PATH lookup.
+/// 3. Bare names: known tool install dirs with the platform executable
+///    extension variants.
+pub fn command_exists_in_dirs(cmd: &str, dirs: &[std::path::PathBuf]) -> bool {
+    if command_looks_like_path(cmd) {
+        return path_command_exists(cmd);
+    }
     #[cfg(windows)]
     {
         let mut c = Command::new("where");
@@ -134,42 +257,33 @@ pub fn command_exists(cmd: &str) -> bool {
         if c.output().map(|o| o.status.success()).unwrap_or(false) {
             return true;
         }
-        if let Ok(appdata) = std::env::var("APPDATA") {
-            let npm_path = format!("{}\\npm", appdata);
-            for ext in &["cmd", "ps1", "exe", "bat", ""] {
-                let full = if ext.is_empty() {
-                    format!("{}\\{}", npm_path, cmd)
-                } else {
-                    format!("{}\\{}.{}", npm_path, cmd, ext)
-                };
-                if std::path::Path::new(&full).exists() {
-                    return true;
-                }
-            }
-        }
-        if let Ok(lad) = std::env::var("LOCALAPPDATA") {
-            let npm_path = format!("{}\\npm", lad);
-            for ext in &["cmd", "ps1", "exe", "bat", ""] {
-                let full = if ext.is_empty() {
-                    format!("{}\\{}", npm_path, cmd)
-                } else {
-                    format!("{}\\{}.{}", npm_path, cmd, ext)
-                };
-                if std::path::Path::new(&full).exists() {
-                    return true;
-                }
-            }
-        }
-        false
     }
     #[cfg(not(windows))]
     {
-        Command::new("which")
+        if Command::new("which")
             .arg(cmd)
             .output()
             .map(|o| o.status.success())
             .unwrap_or(false)
+        {
+            return true;
+        }
     }
+    for dir in dirs {
+        for name in command_file_variants(cmd) {
+            if dir.join(&name).is_file() {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// True when `cmd` resolves as an executable: path-form commands are checked
+/// on disk directly, bare names go through PATH and then the common tool
+/// install dirs ([`fallback_command_dirs`]).
+pub fn command_exists(cmd: &str) -> bool {
+    command_exists_in_dirs(cmd, &fallback_command_dirs())
 }
 
 /// Terminates a whole process tree by pid.
@@ -527,5 +641,83 @@ pub async fn stream_install(
             key,
             status.code().unwrap_or(-1)
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn temp_dir_with(name: &str) -> std::path::PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("launcher-proc-{}-{}", name, std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn looks_like_path_detects_separators_and_drive() {
+        assert!(command_looks_like_path("C:\\Python314\\python.exe"));
+        assert!(command_looks_like_path("C:\\Python314\\python"));
+        assert!(command_looks_like_path("/usr/local/bin/foo"));
+        assert!(command_looks_like_path("X:relative"));
+        assert!(!command_looks_like_path("npx"));
+        assert!(!command_looks_like_path("my-server"));
+        assert!(!command_looks_like_path("1:clock"));
+        assert!(!command_looks_like_path(""));
+    }
+
+    #[test]
+    fn env_expansion_resolves_set_vars_and_keeps_unknown_verbatim() {
+        std::env::set_var("LAUNCHER_TEST_EXPAND", "expanded");
+        assert_eq!(
+            expand_windows_env_vars("%LAUNCHER_TEST_EXPAND%\\tool.exe"),
+            "expanded\\tool.exe"
+        );
+        assert_eq!(
+            expand_windows_env_vars("%LAUNCHER_TEST_UNSET_VAR_XYZ%\\tool.exe"),
+            "%LAUNCHER_TEST_UNSET_VAR_XYZ%\\tool.exe"
+        );
+        assert_eq!(
+            expand_windows_env_vars("C:\\plain\\path"),
+            "C:\\plain\\path"
+        );
+        assert_eq!(
+            expand_windows_env_vars("C:\\trailing\\%TEMP"),
+            "C:\\trailing\\%TEMP"
+        );
+    }
+
+    #[test]
+    fn path_command_resolves_by_file_existence() {
+        let dir = temp_dir_with("path");
+        let exe = dir.join("stubtool.exe");
+        std::fs::write(&exe, b"stub").unwrap();
+
+        assert!(command_exists_in_dirs(exe.to_str().unwrap(), &[]));
+        // Extensionless path form resolves through the executable variants.
+        let no_ext = dir.join("stubtool");
+        assert!(command_exists_in_dirs(no_ext.to_str().unwrap(), &[]));
+
+        let ghost = dir.join("ghost-dir").join("stubtool.exe");
+        assert!(!command_exists_in_dirs(ghost.to_str().unwrap(), &[]));
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn bare_name_resolves_via_injected_fallback_dirs() {
+        let dir = temp_dir_with("fallback");
+        std::fs::write(dir.join("stubmcp.bat"), b"@echo off").unwrap();
+        std::fs::write(dir.join("stubmcp-exe.exe"), b"stub").unwrap();
+
+        // Bare name misses PATH and resolves through the injected dir.
+        let dirs = std::slice::from_ref(&dir);
+        assert!(command_exists_in_dirs("stubmcp", dirs));
+        assert!(command_exists_in_dirs("stubmcp-exe", dirs));
+        assert!(!command_exists_in_dirs("ghost_cmd_xyz", dirs));
+        assert!(!command_exists_in_dirs("stubmcp", &[]));
+
+        std::fs::remove_dir_all(&dir).ok();
     }
 }

@@ -273,11 +273,14 @@ test.describe("v21 visual baseline", () => {
           { key: "docker", name: "Docker", installed: false, version: null, install_command: "winget install Docker.DockerDesktop" },
           { key: "git", name: "Git", installed: true, version: "2.50.0", install_command: null },
         ],
-        list_mcp_servers: [
-          { name: "github", cli: "claude", transport: "http", url: "https://api.githubcopilot.com/mcp/", headers_keys: ["Authorization"], env_keys: [], enabled: true },
-          { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "C:\\dev"], headers_keys: [], env_keys: [], enabled: true },
-          { name: "memory", cli: "gemini", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"], headers_keys: [], env_keys: [], enabled: true },
-        ],
+        list_mcp_servers: {
+          servers: [
+            { name: "github", cli: "claude", transport: "http", url: "https://api.githubcopilot.com/mcp/", headers_keys: ["Authorization"], env_keys: [], enabled: true },
+            { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem", "C:\\dev"], headers_keys: [], env_keys: [], enabled: true },
+            { name: "memory", cli: "gemini", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-memory"], headers_keys: [], env_keys: [], enabled: false },
+          ],
+          warnings: [],
+        },
         check_all_updates: {
           cli_updates: [
             { cli: "Codex CLI", current: "0.21.0", latest: "0.22.0", has_update: true, method: "npm", no_api: false, key: "codex" },

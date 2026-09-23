@@ -119,11 +119,51 @@ pub struct McpServerInput {
     pub enabled: bool,
 }
 
-/// Result of a [`mcp_health_check`].
+/// Discriminator of a [`mcp_health_check`] outcome. `Disabled` marks servers
+/// that are switched off: no probe runs and the UI renders a neutral state
+/// (neither ok nor unreachable).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum McpHealthState {
+    Ok,
+    Fail,
+    Disabled,
+}
+
+/// Result of a [`mcp_health_check`]. `ok` mirrors `state == Ok` for
+/// boolean-style consumers; `detail` carries the human-readable reason shown
+/// as tooltip in the UI.
 #[derive(Debug, Clone, Serialize)]
 pub struct McpHealth {
+    pub state: McpHealthState,
     pub ok: bool,
     pub detail: String,
+}
+
+impl McpHealth {
+    fn reachable(detail: String) -> Self {
+        Self {
+            state: McpHealthState::Ok,
+            ok: true,
+            detail,
+        }
+    }
+
+    fn failed(detail: String) -> Self {
+        Self {
+            state: McpHealthState::Fail,
+            ok: false,
+            detail,
+        }
+    }
+
+    fn disabled() -> Self {
+        Self {
+            state: McpHealthState::Disabled,
+            ok: false,
+            detail: "Servidor desativado: saúde não verificada".into(),
+        }
+    }
 }
 
 // ============================================================
@@ -745,56 +785,52 @@ fn probe_http_reachability(url: &str) -> McpHealth {
         .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
         .build();
     match agent.get(url).call() {
-        Ok(resp) => McpHealth {
-            ok: true,
-            detail: format!("Endpoint HTTP {} alcançado (HTTP {})", url, resp.status()),
-        },
+        Ok(resp) => McpHealth::reachable(format!(
+            "Endpoint HTTP {} alcançado (HTTP {})",
+            url,
+            resp.status()
+        )),
         // ureq surfaces 4xx/5xx as Err(Status): the server DID answer, so the
         // network path is fine — do not treat app errors as unreachable.
-        Err(ureq::Error::Status(status, _)) => McpHealth {
-            ok: true,
-            detail: format!("Endpoint HTTP {} alcançado (HTTP {})", url, status),
-        },
-        Err(e) => McpHealth {
-            ok: false,
-            detail: format!("Endpoint HTTP {} inacessível: {}", url, e),
-        },
+        Err(ureq::Error::Status(status, _)) => {
+            McpHealth::reachable(format!("Endpoint HTTP {} alcançado (HTTP {})", url, status))
+        }
+        Err(e) => McpHealth::failed(format!("Endpoint HTTP {} inacessível: {}", url, e)),
     }
 }
 
-/// Lightweight health check for an MCP server.
-///
-/// - **stdio**: checks that `command` resolves on `PATH` (reuses
-///   [`crate::util::command_exists`]).
-/// - **http**: performs a real reachability probe — a short-timeout (3 s) HTTP
-///   GET via `ureq`, classified as reachable on ANY HTTP response (4xx/5xx
-///   included: this is network health, not application health) and unreachable
-///   on transport errors. Auth headers are never sent.
-///
-/// Both branches block (subprocess probe / network), so the whole check runs
-/// on the blocking thread pool.
-#[tauri::command]
-pub async fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
-    tokio::task::spawn_blocking(move || match server.transport {
-        McpTransport::Stdio => {
-            let Some(cmd) = server.command.as_deref().filter(|c| !c.trim().is_empty()) else {
-                return Ok(McpHealth {
-                    ok: false,
-                    detail: "Servidor stdio sem 'command'".into(),
-                });
-            };
-            if crate::util::command_exists(cmd) {
-                Ok(McpHealth {
-                    ok: true,
-                    detail: format!("Comando '{}' encontrado no PATH", cmd),
-                })
-            } else {
-                Ok(McpHealth {
-                    ok: false,
-                    detail: format!("Comando '{}' não encontrado no PATH", cmd),
-                })
-            }
+/// Stdio health: verifies the configured executable actually resolves.
+/// Path-form commands (drive letter or path separator) are validated by
+/// direct file existence after `%VAR%` expansion; bare names go through
+/// PATH plus the common tool install dirs (`~\.local\bin`, `~\.cargo\bin`,
+/// scoop shims, Python Scripts — see [`crate::util::command_exists`]).
+fn stdio_health(command: Option<&str>) -> McpHealth {
+    let Some(cmd) = command.map(str::trim).filter(|c| !c.is_empty()) else {
+        return McpHealth::failed("Servidor stdio sem 'command'".into());
+    };
+    let path_form = crate::util::command_looks_like_path(cmd);
+    if crate::util::command_exists(cmd) {
+        if path_form {
+            McpHealth::reachable(format!("Executável '{}' encontrado", cmd))
+        } else {
+            McpHealth::reachable(format!("Comando '{}' encontrado no PATH", cmd))
         }
+    } else if path_form {
+        McpHealth::failed(format!("Executável não encontrado: {}", cmd))
+    } else {
+        McpHealth::failed(format!("Comando '{}' não encontrado no PATH", cmd))
+    }
+}
+
+/// Sync core of [`mcp_health_check`], kept unit-testable. A server with
+/// `enabled == false` is NEVER probed: the honest answer is the neutral
+/// [`McpHealthState::Disabled`] state, not a fabricated ok/unreachable.
+fn health_check_sync(server: &McpServerInput) -> Result<McpHealth, AppError> {
+    if !server.enabled {
+        return Ok(McpHealth::disabled());
+    }
+    match server.transport {
+        McpTransport::Stdio => Ok(stdio_health(server.command.as_deref())),
         McpTransport::Http => {
             let url = server
                 .url
@@ -805,9 +841,28 @@ pub async fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppEr
                 })?;
             Ok(probe_http_reachability(url))
         }
-    })
-    .await
-    .map_err(|e| AppError::new(format!("background MCP health check failed: {e}")))?
+    }
+}
+
+/// Lightweight health check for an MCP server.
+///
+/// - **disabled**: `enabled == false` short-circuits to the neutral
+///   `Disabled` state — no probe of any kind runs.
+/// - **stdio**: checks that `command` actually resolves — path-form commands
+///   by file existence (`%VAR%` expansion included), bare names via PATH and
+///   the common tool install dirs (reuses [`crate::util::command_exists`]).
+/// - **http**: performs a real reachability probe — a short-timeout (3 s) HTTP
+///   GET via `ureq`, classified as reachable on ANY HTTP response (4xx/5xx
+///   included: this is network health, not application health) and unreachable
+///   on transport errors. Auth headers are never sent.
+///
+/// Both probe branches block (subprocess probe / network), so the whole check
+/// runs on the blocking thread pool.
+#[tauri::command]
+pub async fn mcp_health_check(server: McpServerInput) -> Result<McpHealth, AppError> {
+    tokio::task::spawn_blocking(move || health_check_sync(&server))
+        .await
+        .map_err(|e| AppError::new(format!("background MCP health check failed: {e}")))?
 }
 
 /// A comprehensive MCP configuration export bundle.
@@ -1002,6 +1057,65 @@ mod tests {
         let health = probe_http_reachability("https://127.0.0.1:1/mcp");
         assert!(!health.ok);
         assert!(health.detail.contains("https://127.0.0.1:1/mcp"));
+    }
+
+    // ---- stdio health: path-form + bare-name resolution (B1) ----
+
+    #[test]
+    fn stdio_health_accepts_existing_absolute_path() {
+        let dir = std::env::temp_dir().join(format!("mcp-health-{}", uuid::Uuid::new_v4()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let exe = dir.join("stub-tool.exe");
+        std::fs::write(&exe, b"stub").unwrap();
+
+        let health = stdio_health(Some(exe.to_str().unwrap()));
+        assert!(health.ok, "existing absolute path must be ok");
+        assert_eq!(health.state, McpHealthState::Ok);
+        assert!(health.detail.contains("Executável"), "{}", health.detail);
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn stdio_health_fails_missing_absolute_path_with_reason() {
+        let ghost = std::env::temp_dir()
+            .join(format!("mcp-missing-{}", uuid::Uuid::new_v4()))
+            .join("ghost-tool.exe");
+        let ghost_str = ghost.to_str().unwrap().to_string();
+
+        let health = stdio_health(Some(&ghost_str));
+        assert!(!health.ok, "missing absolute path must fail");
+        assert_eq!(health.state, McpHealthState::Fail);
+        assert!(
+            health.detail.starts_with("Executável não encontrado: "),
+            "detail must carry the reason, got: {}",
+            health.detail
+        );
+        assert!(health.detail.contains(&ghost_str));
+    }
+
+    #[test]
+    fn disabled_server_is_never_probed() {
+        let mut input = input_stdio("off");
+        input.enabled = false;
+
+        let health = health_check_sync(&input).unwrap();
+        assert_eq!(health.state, McpHealthState::Disabled);
+        assert!(!health.ok);
+        // Even a command that cannot exist stays unprobed: the neutral state
+        // is the answer, not a resolution failure.
+        input.command = Some("Z:\\no-such-dir\\never.exe".into());
+        let health = health_check_sync(&input).unwrap();
+        assert_eq!(health.state, McpHealthState::Disabled);
+    }
+
+    #[test]
+    fn enabled_stdio_input_still_resolves_command() {
+        let input = input_stdio("on");
+        let health = health_check_sync(&input).unwrap();
+        // `npx` is a bare name; whatever the machine PATH holds, the probe
+        // must produce a state — never panic and never report Disabled.
+        assert_ne!(health.state, McpHealthState::Disabled);
     }
 
     // ---- Claude JSON parse: stdio + http ----

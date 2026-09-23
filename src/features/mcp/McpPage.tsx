@@ -190,6 +190,7 @@ export function McpPage() {
           <div><strong>{overview.healthy}</strong><span>{t("mcp.metricHealthy")}</span></div>
           <div><strong>{overview.unavailable}</strong><span>{t("mcp.metricUnavailable")}</span></div>
           <div><strong>{overview.unknown}</strong><span>{t("mcp.metricUnknown")}</span></div>
+          <div><strong>{overview.disabled}</strong><span>{t("mcp.metricDisabled")}</span></div>
           <div><strong>{overview.configuredClis}</strong><span>{t("mcp.metricClis")}</span></div>
         </div>
       </section>
@@ -335,26 +336,35 @@ interface ServerCardProps {
 function ServerCard({ server, health, onEdit, onRemove }: ServerCardProps) {
   const { t } = useTranslation();
   const transportVariant = server.transport === "http" ? "update" : "online";
-  const healthTone = health ? (health.ok ? "online" : "missing") : "neutral";
-  const healthText = health
-    ? health.ok
-      ? t("mcp.healthOk")
-      : t("mcp.healthBad")
-    : t("mcp.healthUnknown");
+  // A disabled server is never probed: the pill reads straight from the
+  // list payload (synchronous) instead of waiting for a health result.
+  const healthTone = !server.enabled
+    ? "neutral"
+    : health
+      ? health.ok
+        ? "online"
+        : "missing"
+      : "neutral";
+  const healthText = !server.enabled
+    ? t("mcp.disabled")
+    : health
+      ? health.ok
+        ? t("mcp.healthOk")
+        : t("mcp.healthBad")
+      : t("mcp.healthUnknown");
 
   return (
     <Card className="cd-mcp__card">
       <div className="cd-mcp__card-head">
         <div className="cd-mcp__card-identity">
-          <span className="cd-mcp__status-dot" data-status={health ? (health.ok ? "ok" : "bad") : "unknown"} aria-hidden />
-          <span className="cd-mcp__card-name">{server.name}</span>
+          <span className="cd-mcp__status-dot" data-status={health && health.state !== "disabled" ? (health.ok ? "ok" : "bad") : "unknown"} aria-hidden />
+          <span className="cd-mcp__card-name" title={server.name}>{server.name}</span>
         </div>
         <div className="cd-mcp__card-badges">
           <Chip variant={transportVariant}>{server.transport}</Chip>
           <Chip variant={healthTone} dot title={health?.detail}>
             {healthText}
           </Chip>
-          {!server.enabled && <Chip variant="neutral">{t("mcp.disabled")}</Chip>}
         </div>
       </div>
 
