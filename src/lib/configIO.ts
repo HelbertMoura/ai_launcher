@@ -288,11 +288,17 @@ export function importConfig(raw: string, mode: 'merge' | 'replace'): ImportResu
     const entry = (REGISTRY as Record<string, RegistryEntry | undefined>)[id];
     if (!entry) continue;
 
+    // Apply the entry's declared schema migration (e.g. budget v15 -> v3 on
+    // old backups). Backups carry no per-key storage version, so fromVersion
+    // is unknown (0); migrations must therefore be structural and idempotent.
+    const incomingMigrated = entry.migrate ? entry.migrate(incoming, 0) : incoming;
+
     if (mode === 'replace') {
-      persistEntry(entry, incoming);
+      persistEntry(entry, incomingMigrated);
     } else {
       const existing = readCurrent(entry);
-      const next = existing === undefined ? incoming : mergeValue(id as RegistryId, existing, incoming);
+      const next =
+        existing === undefined ? incomingMigrated : mergeValue(id as RegistryId, existing, incomingMigrated);
       persistEntry(entry, next);
     }
   }

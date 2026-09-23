@@ -22,6 +22,12 @@
 
 import { z } from 'zod';
 import { STORAGE_KEYS, type StorageKeyId } from './keys';
+import { normalizeBudgetLimits } from '../../features/costs/types';
+
+function newIsoDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 // --- Reusable leaf schemas ---------------------------------------------------
 
@@ -105,15 +111,11 @@ const runbookExecutionSchema = z.object({
   steps: z.array(runbookStepExecutionSchema).default([]),
 }).passthrough();
 
-const budgetLimitSchema = z
-  .object({
-    providerKey: z.string(),
-    limitUsd: z.number(),
-    periodDays: z.number(),
-    alertAtPercent: z.number(),
-    periodAnchor: z.string().optional(),
-  })
-  .passthrough();
+// Budget storage v3 (Cost Governance 3.0): same key, new per-limit shape.
+// The boundary validates only the outer structure (`limits` is an array) —
+// per-entry strictness AND the loss-less v15 -> v3 migration live in
+// `features/costs/types.ts` and run per entry in `providers/budget.ts` on
+// every read, so one corrupt entry can never wipe its valid neighbors.
 
 const customCliSchema = z
   .object({
@@ -301,9 +303,21 @@ export const REGISTRY = {
   budget: entry({
     id: 'budget',
     key: STORAGE_KEYS.budget,
-    schema: z.object({ limits: z.array(budgetLimitSchema).default([]) }).passthrough(),
-    default: { limits: [] as z.infer<typeof budgetLimitSchema>[] },
-    version: 1,
+    schema: z.object({ limits: z.array(z.unknown()).default([]) }).passthrough(),
+    default: { limits: [] },
+    // v3 (Cost Governance 3.0): project-scoped limits + calendar-month periods.
+    version: 3,
+    // v15 -> v3 migration for OLD BACKUP IMPORTS. Backups carry no per-key
+    // storage version, so detection is structural (absence of id/scope) and
+    // the conversion is idempotent + loss-less (gate condition 1). The strict
+    // read-path in providers/budget.ts applies the same rules via
+    // `normalizeBudgetLimits` from features/costs/types.ts.
+    migrate: (data) => ({
+      limits: normalizeBudgetLimits(
+        (data as { limits?: unknown } | null | undefined)?.limits,
+        newIsoDate(),
+      ),
+    }),
   }),
 
   inbox: entry({
