@@ -26,7 +26,7 @@ assignees: ''
 
 ### Environment
 
-- AI Launcher version: <!-- visible in the app header, e.g. 23.0.0 -->
+- AI Launcher version: <!-- visible in the app header, e.g. 23.1.0 -->
 - Windows version: <!-- Settings → System → About, e.g. Windows 11 23H2 -->
 - Affected CLI / tool (if any): <!-- e.g. Claude Code 2.0.3 installed via npm -->
 - Node / Python version (if the problem is install-related):

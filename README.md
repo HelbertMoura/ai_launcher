@@ -13,7 +13,7 @@
 **A native, ultra-lightweight desktop control plane to discover, launch, orchestrate, and monitor all your AI CLI agents, custom IDEs, MCP servers, and multi-provider token budgets.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
-[![Version 23.0.0](https://img.shields.io/badge/version-23.0.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
+[![Version 23.1.0](https://img.shields.io/badge/version-23.1.0-ff3131?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Platform: Windows | macOS | Linux](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0078D4?labelColor=1a1a1d)](https://github.com/HelbertMoura/ai_launcher/releases)
 [![Quality Gates](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml/badge.svg)](https://github.com/HelbertMoura/ai_launcher/actions/workflows/quality.yml)
 ![React 19](https://img.shields.io/badge/React-19-61dafb?labelColor=1a1a1d)
