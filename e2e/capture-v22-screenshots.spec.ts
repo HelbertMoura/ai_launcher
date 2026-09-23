@@ -103,11 +103,16 @@ test.describe("v22 public screenshots capture", () => {
             started_at: new Date(Date.now() - 3600000).toISOString(),
           },
         ],
-        list_mcp_servers: [
-          { name: "github", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
-          { name: "postgres", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-postgres"] },
-          { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"] },
-        ],
+        // McpListResult object contract (v23): a bare array fails Zod parsing
+        // and renders the raw validation error banner on the MCP surface.
+        list_mcp_servers: {
+          servers: [
+            { name: "github", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-github"] },
+            { name: "postgres", cli: "claude", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-postgres"] },
+            { name: "filesystem", cli: "codex", transport: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-filesystem"] },
+          ],
+          warnings: [],
+        },
       },
     });
 
@@ -183,13 +188,30 @@ test.describe("v22 public screenshots capture", () => {
       } else {
         await openSidebarSurface(page, surface.nav);
       }
+      // Anchor the heading gate at the ACTIVE panel: page-level matching can
+      // hit stale DOM before React commits the lazy suspension (the Command
+      // Center h2 "AI Launcher Pro" matches /launch/i), and during the
+      // suspension no active panel exists, so this only passes once the real
+      // surface is mounted — never on the Suspense fallback.
       await expect(
-        page.getByRole("heading", { name: surface.heading }).first()
+        page
+          .locator(".cd-tab-panel--active")
+          .getByRole("heading", { name: surface.heading })
+          .first()
       ).toBeVisible();
 
       // Let async stub-driven content settle after the heading marks the
       // surface as mounted; the heading wait above remains the real gate.
       await page.waitForTimeout(300);
+      // The settle window can land mid lazy-chunk resolution (fallback shows
+      // then resolves), so re-assert the surface is still mounted, not the
+      // "Loading / preparing module…" fallback, before shooting.
+      await expect(
+        page
+          .locator(".cd-tab-panel--active")
+          .getByRole("heading", { name: surface.heading })
+          .first()
+      ).toBeVisible();
       await page.evaluate(() => {
         window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;

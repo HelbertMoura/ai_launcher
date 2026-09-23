@@ -7,7 +7,8 @@ type TauriResultMap = {
   check_tools: unknown[];
   check_environment: unknown[];
   list_active_sessions: unknown[];
-  list_mcp_servers: unknown[];
+  /** `McpListResult` ({ servers, warnings }) since the v23 object contract. */
+  list_mcp_servers: unknown;
   mcp_health_check: { ok: boolean; detail: string };
   read_project_profile: null;
   scan_project_stack: { files: string[]; manifests: Record<string, string> };
