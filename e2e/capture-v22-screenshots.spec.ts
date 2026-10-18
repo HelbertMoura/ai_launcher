@@ -128,7 +128,7 @@ test.describe("v22 public screenshots capture", () => {
           {
             id: "ws-ai-launcher",
             name: "AI Launcher Pro",
-            directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+            directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
             cliKeys: ["claude", "aider", "cline", "goose"],
             envVars: {},
             tags: ["Tauri", "React", "Rust", "v22"],
@@ -145,7 +145,7 @@ test.describe("v22 public screenshots capture", () => {
             {
               cli: "Claude Code",
               cliKey: "claude",
-              directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+              directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
               args: "--dangerously-skip-permissions",
               timestamp: now,
               startedAt: now,
@@ -155,7 +155,7 @@ test.describe("v22 public screenshots capture", () => {
             {
               cli: "Aider AI",
               cliKey: "aider",
-              directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+              directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
               args: "--yes-always",
               timestamp: new Date(Date.now() - 86400000).toISOString(),
               startedAt: new Date(Date.now() - 86400000).toISOString(),

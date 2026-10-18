@@ -41,7 +41,7 @@ async function run() {
         {
           id: "ws-ai-launcher",
           name: "AI Launcher Pro",
-          directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+          directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
           cliKeys: ["claude", "aider", "cline", "goose"],
           envVars: {},
           tags: ["Tauri", "React", "Rust", "v22"],
@@ -58,7 +58,7 @@ async function run() {
           {
             cli: "Claude Code",
             cliKey: "claude",
-            directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+            directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
             args: "--dangerously-skip-permissions",
             timestamp: now,
             startedAt: now,
@@ -68,7 +68,7 @@ async function run() {
           {
             cli: "Aider AI",
             cliKey: "aider",
-            directory: "C:\\Users\\Helbert\\Desktop\\ai_launcher",
+            directory: "C:\\Users\\dev\\Desktop\\ai_launcher",
             args: "--yes-always",
             timestamp: new Date(Date.now() - 86400000).toISOString(),
             startedAt: new Date(Date.now() - 86400000).toISOString(),

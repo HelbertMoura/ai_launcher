@@ -17,33 +17,33 @@ function workspace(id: string, name: string, directory: string): WorkspaceProfil
 }
 
 const WORKSPACES = [
-  workspace('ws1', 'MyApp', 'C:\\Users\\helbe\\MyApp'),
-  workspace('ws2', 'Blog', '/home/helbe/blog'),
+  workspace('ws1', 'MyApp', 'C:\\Users\\dev\\MyApp'),
+  workspace('ws2', 'Blog', '/home/dev/blog'),
   workspace('ws3', 'Empty dir', ''),
 ];
 
 describe('normalizeDirPath', () => {
   it('lowercases, converts separators and strips trailing slashes', () => {
-    expect(normalizeDirPath('C:\\Users\\Helbe\\MyApp\\')).toBe('c:/users/helbe/myapp');
-    expect(normalizeDirPath('/Home/Helbe/Blog/')).toBe('/home/helbe/blog');
+    expect(normalizeDirPath('C:\\Users\\Dev\\MyApp\\')).toBe('c:/users/dev/myapp');
+    expect(normalizeDirPath('/Home/Dev/Blog/')).toBe('/home/dev/blog');
   });
 });
 
 describe('resolveProjectKey — precedence (gate condition 2)', () => {
   it('exact normalized path match wins over everything else', () => {
     const resolved = resolveProjectKey(
-      { project: 'MyApp', projectPath: 'c:/users/helbe/myapp/' },
+      { project: 'MyApp', projectPath: 'c:/users/dev/myapp/' },
       WORKSPACES,
     );
-    expect(resolved).toEqual({ key: 'c:/users/helbe/myapp', displayName: 'MyApp' });
+    expect(resolved).toEqual({ key: 'c:/users/dev/myapp', displayName: 'MyApp' });
   });
 
   it('exact match is case- and separator-insensitive on both sides', () => {
     const resolved = resolveProjectKey(
-      { project: null, projectPath: 'C:\\USERS\\helbe\\MYAPP' },
+      { project: null, projectPath: 'C:\\USERS\\dev\\MYAPP' },
       WORKSPACES,
     );
-    expect(resolved?.key).toBe('c:/users/helbe/myapp');
+    expect(resolved?.key).toBe('c:/users/dev/myapp');
   });
 
   it('unambiguous basename fallback matches (entry path differs from workspace dir)', () => {
@@ -52,12 +52,12 @@ describe('resolveProjectKey — precedence (gate condition 2)', () => {
       WORKSPACES,
     );
     // Matched -> canonical key becomes the workspace's normalized directory.
-    expect(resolved).toEqual({ key: 'c:/users/helbe/myapp', displayName: 'MyApp' });
+    expect(resolved).toEqual({ key: 'c:/users/dev/myapp', displayName: 'MyApp' });
   });
 
   it('unambiguous basename fallback matches label-only (Claude-style) entries', () => {
     const resolved = resolveProjectKey({ project: 'myapp', projectPath: null }, WORKSPACES);
-    expect(resolved).toEqual({ key: 'c:/users/helbe/myapp', displayName: 'myapp' });
+    expect(resolved).toEqual({ key: 'c:/users/dev/myapp', displayName: 'myapp' });
   });
 
   it('ambiguous basenames NEVER match, falling back to the entry path key', () => {

@@ -319,7 +319,7 @@ describe('budget v3 — project scope with calendar month (D1)', () => {
   });
 
   it('counts only current-calendar-month spend for project budgets', () => {
-    const projectKey = 'c:/users/helbe/myapp';
+    const projectKey = 'c:/users/dev/myapp';
     setBudgetLimit({ kind: 'project', projectKey, displayName: 'myapp' }, 10, 80);
 
     const entries: UsageEntry[] = [
@@ -327,14 +327,14 @@ describe('budget v3 — project scope with calendar month (D1)', () => {
       entry({
         provider: 'anthropic',
         project: 'MyApp',
-        project_path: 'C:\\Users\\helbe\\myapp',
+        project_path: 'C:\\Users\\dev\\myapp',
         date: daysAgoISO(40),
         cost_estimate_usd: 7,
       }),
       entry({
         provider: 'anthropic',
         project: 'MyApp',
-        project_path: 'C:\\Users\\helbe\\myapp',
+        project_path: 'C:\\Users\\dev\\myapp',
         date: todayISO(),
         cost_estimate_usd: 3,
       }),
@@ -350,21 +350,21 @@ describe('budget v3 — project scope with calendar month (D1)', () => {
   });
 
   it('reconciles label-only entries via unambiguous workspace basename (D5)', () => {
-    const workspaces = [workspace('ws1', 'MyApp', 'C:\\Users\\helbe\\MyApp')];
-    setBudgetLimit({ kind: 'project', projectKey: 'c:/users/helbe/myapp', displayName: 'MyApp' }, 10, 80);
+    const workspaces = [workspace('ws1', 'MyApp', 'C:\\Users\\dev\\MyApp')];
+    setBudgetLimit({ kind: 'project', projectKey: 'c:/users/dev/myapp', displayName: 'MyApp' }, 10, 80);
 
     // Claude-style entry: no project_path, label matches workspace basename.
     const entries: UsageEntry[] = [
       entry({ provider: 'anthropic', project: 'myapp', project_path: null, cost_estimate_usd: 9 }),
     ];
 
-    const usage = checkBudget('c:/users/helbe/myapp', entries, workspaces);
+    const usage = checkBudget('c:/users/dev/myapp', entries, workspaces);
     expect(usage?.usedUsd).toBe(9);
 
     const alerts = getBudgetAlerts(entries, workspaces);
     expect(alerts).toHaveLength(1);
-    expect(alerts[0].scope).toEqual({ kind: 'project', projectKey: 'c:/users/helbe/myapp' });
-    expect(alerts[0].providerKey).toBe('c:/users/helbe/myapp');
+    expect(alerts[0].scope).toEqual({ kind: 'project', projectKey: 'c:/users/dev/myapp' });
+    expect(alerts[0].providerKey).toBe('c:/users/dev/myapp');
     expect(alerts[0].periodKind).toBe('calendar-month');
     expect(alerts[0].status).toBe('warning');
   });
