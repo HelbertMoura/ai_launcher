@@ -780,21 +780,23 @@ const MCP_PROBE_TIMEOUT_SECS: u64 = 3;
 /// Only transport failures (connection refused, DNS, timeout, invalid URL) are
 /// unreachable. Auth headers from the input are deliberately NOT sent.
 fn probe_http_reachability(url: &str) -> McpHealth {
-    let agent = ureq::AgentBuilder::new()
-        .timeout(std::time::Duration::from_secs(MCP_PROBE_TIMEOUT_SECS))
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(std::time::Duration::from_secs(MCP_PROBE_TIMEOUT_SECS)))
+        // Any HTTP response — 4xx/5xx included — proves the server answered.
+        // Keeping statuses as responses (instead of Err(StatusCode)) is exactly
+        // the network signal this probe wants.
+        .http_status_as_error(false)
         .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
-        .build();
+        .build()
+        .into();
     match agent.get(url).call() {
         Ok(resp) => McpHealth::reachable(format!(
             "Endpoint HTTP {} alcançado (HTTP {})",
             url,
-            resp.status()
+            resp.status().as_u16()
         )),
-        // ureq surfaces 4xx/5xx as Err(Status): the server DID answer, so the
-        // network path is fine — do not treat app errors as unreachable.
-        Err(ureq::Error::Status(status, _)) => {
-            McpHealth::reachable(format!("Endpoint HTTP {} alcançado (HTTP {})", url, status))
-        }
+        // Only transport failures (connection refused, DNS, timeout, bad URL)
+        // land here: the server did not answer at all.
         Err(e) => McpHealth::failed(format!("Endpoint HTTP {} inacessível: {}", url, e)),
     }
 }
