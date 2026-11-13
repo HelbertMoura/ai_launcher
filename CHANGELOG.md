@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **`ureq` 2.12.1 → 3.4.2 (HTTP client):** the bump Dependabot could not do alone (#82) is done, with the call sites migrated rather than left broken. Agents are now built from `Agent::config_builder()`, request headers use `.header()` instead of `.set()`, and response bodies are read through `body_mut().read_json()` / `read_to_string()` (ureq 3 dropped the `Response::into_json`/`into_string` shortcuts). The provider test and the MCP HTTP probe configure the agent with `http_status_as_error(false)` so a 4xx/5xx stays a response: the credential check still shows the provider's own error message, and the MCP probe still counts any HTTP answer as reachable, exactly as before. Downloads keep a connect/per-call budget (`timeout_connect` + `timeout_per_call`, ureq 3.4 having no per-read timeout yet), and the version lookups keep ureq's default of treating 4xx/5xx as an error, so an unreachable registry still resolves to "no version" instead of an empty parse. No user-visible behavior change is intended.
+
 ## [23.1.1] — 2026-09-23 — Bug fixes
 
 The bug-fix release: top-bar dropdowns paint above the page again (they had been opening invisibly behind the main content since v22.5.0), MCP stdio health stops reporting "unavailable" for executables that resolve outside the GUI process PATH, switched-off MCP servers get an honest "Disabled" state with its own overview metric, MCP configuration failures show a friendly localized message instead of raw Zod output, and the MCP card layout stops squeezing server names and scrolling sideways.

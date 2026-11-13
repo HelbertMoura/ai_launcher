@@ -943,73 +943,82 @@ pub fn test_provider_connection(
         }
     };
 
-    let agent = ureq::AgentBuilder::new()
-        .timeout(std::time::Duration::from_secs(10))
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(std::time::Duration::from_secs(10)))
+        // ureq 3 would turn 4xx/5xx into Err(StatusCode) and drop the response;
+        // keeping them as responses lets the error body (the provider's own
+        // message) be read and shown in the test result.
+        .http_status_as_error(false)
         .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
-        .build();
+        .build()
+        .into();
 
     let t0 = std::time::Instant::now();
-    let mut req = agent.post(&url).set("Content-Type", "application/json");
+    let mut req = agent.post(&url).header("Content-Type", "application/json");
     if auth_style == "anthropic" {
         req = req
-            .set("x-api-key", &api_key)
-            .set("Authorization", &format!("Bearer {}", api_key))
-            .set("anthropic-version", "2023-06-01");
+            .header("x-api-key", api_key.as_str())
+            .header("Authorization", format!("Bearer {}", api_key).as_str())
+            .header("anthropic-version", "2023-06-01");
     } else {
         // openai_chat / openai_responses — Bearer token only
-        req = req.set("Authorization", &format!("Bearer {}", api_key));
+        req = req.header("Authorization", format!("Bearer {}", api_key).as_str());
     }
     let resp = req.send_json(body);
     let latency_ms = t0.elapsed().as_millis() as u64;
 
     match resp {
-        Ok(r) => {
-            let status = r.status();
-            let text = r.into_string().unwrap_or_default();
-            let model_echo = serde_json::from_str::<serde_json::Value>(&text)
-                .ok()
-                .and_then(|j| j.get("model").and_then(|m| m.as_str().map(String::from)));
-            Ok(ProviderTestResult {
-                ok: true,
-                status_code: Some(status),
-                latency_ms,
-                message: format!(
-                    "Conectou em {}ms{}",
+        Ok(mut r) => {
+            let code = r.status().as_u16();
+            let text = r.body_mut().read_to_string().unwrap_or_default();
+            if !(200..400).contains(&code) {
+                let hint = match code {
+                    401 | 403 => {
+                        "Authentication failed — invalid API key or no access to this model."
+                    }
+                    404 => match proto {
+                        "openai_chat" => "Endpoint /chat/completions not found — verify baseUrl is the API root (e.g. https://openrouter.ai/api/v1).",
+                        "openai_responses" => "Endpoint /responses not found — verify baseUrl and protocol.",
+                        _ => "Endpoint /v1/messages not found — verify baseUrl.",
+                    },
+                    429 => "Rate-limited, but the endpoint is reachable.",
+                    _ => "Provider returned an error.",
+                };
+                let snippet = if text.is_empty() {
+                    String::new()
+                } else {
+                    format!(" · {}", text.chars().take(160).collect::<String>())
+                };
+                Ok(ProviderTestResult {
+                    ok: false,
+                    status_code: Some(code),
                     latency_ms,
-                    model_echo
-                        .as_ref()
-                        .map(|m| format!(" · modelo {}", m))
-                        .unwrap_or_default()
-                ),
-                model_echo,
-            })
-        }
-        Err(ureq::Error::Status(code, resp)) => {
-            let text = resp.into_string().unwrap_or_default();
-            let hint = match code {
-                401 | 403 => "Authentication failed — invalid API key or no access to this model.",
-                404 => match proto {
-                    "openai_chat" => "Endpoint /chat/completions not found — verify baseUrl is the API root (e.g. https://openrouter.ai/api/v1).",
-                    "openai_responses" => "Endpoint /responses not found — verify baseUrl and protocol.",
-                    _ => "Endpoint /v1/messages not found — verify baseUrl.",
-                },
-                429 => "Rate-limited, but the endpoint is reachable.",
-                _ => "Provider returned an error.",
-            };
-            let snippet = if text.is_empty() {
-                String::new()
+                    model_echo: None,
+                    message: format!("HTTP {} — {}{}", code, hint, snippet),
+                })
             } else {
-                format!(" · {}", text.chars().take(160).collect::<String>())
-            };
-            Ok(ProviderTestResult {
-                ok: false,
-                status_code: Some(code),
-                latency_ms,
-                model_echo: None,
-                message: format!("HTTP {} — {}{}", code, hint, snippet),
-            })
+                let model_echo = serde_json::from_str::<serde_json::Value>(&text)
+                    .ok()
+                    .and_then(|j| j.get("model").and_then(|m| m.as_str().map(String::from)));
+                Ok(ProviderTestResult {
+                    ok: true,
+                    status_code: Some(code),
+                    latency_ms,
+                    message: format!(
+                        "Conectou em {}ms{}",
+                        latency_ms,
+                        model_echo
+                            .as_ref()
+                            .map(|m| format!(" · modelo {}", m))
+                            .unwrap_or_default()
+                    ),
+                    model_echo,
+                })
+            }
         }
-        Err(ureq::Error::Transport(t)) => Ok(ProviderTestResult {
+        // With `http_status_as_error(false)`, anything left here is a transport
+        // failure: no HTTP response at all (DNS, connection, timeout).
+        Err(t) => Ok(ProviderTestResult {
             ok: false,
             status_code: None,
             latency_ms,

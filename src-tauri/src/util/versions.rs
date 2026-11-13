@@ -228,19 +228,23 @@ pub fn detect_python() -> (bool, Option<String>) {
 }
 
 pub fn http_agent() -> ureq::Agent {
-    ureq::AgentBuilder::new()
-        .timeout(std::time::Duration::from_secs(10))
+    let config = ureq::Agent::config_builder()
+        .timeout_global(Some(std::time::Duration::from_secs(10)))
         .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
-        .build()
+        .build();
+    config.into()
 }
 
 #[allow(dead_code)]
 pub fn download_agent() -> ureq::Agent {
-    ureq::AgentBuilder::new()
-        .timeout_connect(std::time::Duration::from_secs(30))
-        .timeout_read(std::time::Duration::from_secs(60))
+    let config = ureq::Agent::config_builder()
+        .timeout_connect(Some(std::time::Duration::from_secs(30)))
+        // ureq 3.4 has no per-read timeout (that arrived in 3.5); a per-call
+        // budget keeps the ureq 2 anti-hang intent for a download.
+        .timeout_per_call(Some(std::time::Duration::from_secs(60)))
         .user_agent(concat!("ai-launcher-pro/", env!("CARGO_PKG_VERSION")))
-        .build()
+        .build();
+    config.into()
 }
 
 pub fn fetch_vscode_latest() -> Option<String> {
@@ -253,23 +257,23 @@ pub fn fetch_vscode_latest() -> Option<String> {
     let platform = "win32-x64";
     let url =
         format!("https://update.code.visualstudio.com/api/releases/stable/{platform}/version");
-    let resp = http_agent().get(&url).call().ok()?;
-    let json: serde_json::Value = resp.into_json().ok()?;
+    let mut resp = http_agent().get(&url).call().ok()?;
+    let json: serde_json::Value = resp.body_mut().read_json().ok()?;
     json["productVersion"].as_str().map(|s| s.to_string())
 }
 
 pub fn fetch_github_latest(repo: &str) -> Option<String> {
     let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
-    let resp = http_agent().get(&url).call().ok()?;
-    let json: serde_json::Value = resp.into_json().ok()?;
+    let mut resp = http_agent().get(&url).call().ok()?;
+    let json: serde_json::Value = resp.body_mut().read_json().ok()?;
     json["tag_name"]
         .as_str()
         .map(|s| s.trim_start_matches('v').to_string())
 }
 
 pub fn fetch_manifest_version(url: &str) -> Option<String> {
-    let resp = http_agent().get(url).call().ok()?;
-    let body = resp.into_string().ok()?;
+    let mut resp = http_agent().get(url).call().ok()?;
+    let body = resp.body_mut().read_to_string().ok()?;
     if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
         if let Some(v) = json["version"].as_str() {
             return Some(v.trim_start_matches('v').to_string());
@@ -289,8 +293,8 @@ const NPM_CACHE_TTL: std::time::Duration = std::time::Duration::from_secs(15 * 6
 
 fn npm_latest_http(pkg: &str) -> Option<String> {
     let url = format!("https://registry.npmjs.org/{}/latest", pkg);
-    let resp = http_agent().get(&url).call().ok()?;
-    let json: serde_json::Value = resp.into_json().ok()?;
+    let mut resp = http_agent().get(&url).call().ok()?;
+    let json: serde_json::Value = resp.body_mut().read_json().ok()?;
     json["version"].as_str().and_then(extract_version)
 }
 
