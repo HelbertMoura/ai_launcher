@@ -34,7 +34,7 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           # Node 24: jsdom 30.1 exige "^22.22.2 || ^24.15.0 || >=26" (mesmo motivo do quality.yml).
           node-version: 24
@@ -90,7 +90,7 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 20
           cache: npm
@@ -281,7 +281,7 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 20
           cache: npm
@@ -351,7 +351,7 @@ jobs:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 20
           cache: npm
