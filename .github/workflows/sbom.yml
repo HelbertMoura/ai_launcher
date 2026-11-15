@@ -52,9 +52,9 @@ jobs:
       - name: Generate CycloneDX SBOM (npm)
         # Use the official cyclonedx-npm generator. 1.6 spec, no validate
         # flag in 1.6 mode (npm generator validates internally).
-        run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --spec-version 1.6 --output-file sbom.frontend.cdx.json
+        run: npx --yes @cyclonedx/cyclonedx-npm@6.0.1 --output-format JSON --spec-version 1.6 --output-file sbom.frontend.cdx.json
       - name: Generate CycloneDX SBOM (npm, XML)
-        run: npx --yes @cyclonedx/cyclonedx-npm --output-format XML --spec-version 1.6 --output-file sbom.frontend.cdx.xml
+        run: npx --yes @cyclonedx/cyclonedx-npm@6.0.1 --output-format XML --spec-version 1.6 --output-file sbom.frontend.cdx.xml
 
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
