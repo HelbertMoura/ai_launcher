@@ -154,15 +154,15 @@ pub async fn check_all_updates(app: tauri::AppHandle) -> Result<UpdatesSummary, 
 pub fn check_latest_release() -> Result<serde_json::Value, AppError> {
     let agent = http_agent();
     let url = "https://api.github.com/repos/HelbertMoura/ai_launcher/releases/latest";
-    let resp = agent
+    let mut resp = agent
         .get(url)
-        .set(
+        .header(
             "User-Agent",
-            &format!("ai-launcher/{}", env!("CARGO_PKG_VERSION")),
+            format!("ai-launcher/{}", env!("CARGO_PKG_VERSION")),
         )
         .call()
         .map_err(|e| format!("Falha na requisição: {e}"))?;
-    let json: serde_json::Value = resp.into_json().map_err(|e| e.to_string())?;
+    let json: serde_json::Value = resp.body_mut().read_json().map_err(|e| e.to_string())?;
     Ok(json)
 }
 
