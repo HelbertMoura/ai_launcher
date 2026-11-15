@@ -39,4 +39,13 @@ ignore = [
     # advisory requires a custom global logger overriding rand::rng(), which
     # this app never installs. Superseded by rand 0.8+ elsewhere in the tree.
     "RUSTSEC-2026-0097",
+    # zvariant / zvariant_derive / zbus_names 4.x-5.x (transitive, unmaintained)
+    # — merged into zbus 6 as its `wire` module; no patched release on the
+    # old crates. Linux-only D-Bus stack pulled by zbus 5 (notify-rust via
+    # tauri-plugin-notification, tauri-plugin-single-instance) and zbus 4
+    # (keyring → secret-service). Informational notice, no vulnerability; drop
+    # these when the Tauri plugins and keyring move to zbus 6.
+    "RUSTSEC-2026-0370", # zvariant
+    "RUSTSEC-2026-0371", # zbus_names
+    "RUSTSEC-2026-0372", # zvariant_derive
 ]
