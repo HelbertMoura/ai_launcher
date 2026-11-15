@@ -61,7 +61,11 @@
   white-space: nowrap;
 }
 .cd-history__link-badge--agent {
-  color: var(--accent);
+  /* O acento puro sobre --surface-hover fica em 4.47:1 no escuro e 4.34:1 no
+     claro (reprova AA 4.5:1). Misturar com --text puxa o tom para o lado
+     legível do tema — escurece no claro, clareia no escuro — e mantém a
+     matiz de acento. 63% é o mínimo que passa AA em todos os temas. */
+  color: color-mix(in srgb, var(--accent) 63%, var(--text));
   border-color: color-mix(in oklch, var(--accent) 30%, transparent);
 }
 .cd-history__status {
@@ -366,7 +370,9 @@
 }
 .cd-timeline__range-btn.is-active {
   background: var(--accent-soft);
-  color: var(--accent);
+  /* Mesmo motivo do badge de agente: --accent sobre --accent-soft dá 4.68:1
+     no escuro e 4.41:1 no claro. Ver .cd-history__link-badge--agent. */
+  color: color-mix(in srgb, var(--accent) 63%, var(--text));
 }
 .cd-timeline__range-btn:hover:not(.is-active) {
   color: var(--text);
