@@ -781,6 +781,9 @@ const MCP_PROBE_TIMEOUT_SECS: u64 = 3;
 /// unreachable. Auth headers from the input are deliberately NOT sent.
 fn probe_http_reachability(url: &str) -> McpHealth {
     let agent: ureq::Agent = ureq::Agent::config_builder()
+        // Direct connection, as in ureq 2: an env proxy without NO_PROXY
+        // would make a localhost MCP server look unreachable.
+        .proxy(None)
         .timeout_global(Some(std::time::Duration::from_secs(MCP_PROBE_TIMEOUT_SECS)))
         // Any HTTP response — 4xx/5xx included — proves the server answered.
         // Keeping statuses as responses (instead of Err(StatusCode)) is exactly

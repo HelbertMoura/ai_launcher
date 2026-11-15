@@ -944,6 +944,9 @@ pub fn test_provider_connection(
     };
 
     let agent: ureq::Agent = ureq::Agent::config_builder()
+        // Direct connection, as in ureq 2 (ureq 3 reads the env proxy by
+        // default).
+        .proxy(None)
         .timeout_global(Some(std::time::Duration::from_secs(10)))
         // ureq 3 would turn 4xx/5xx into Err(StatusCode) and drop the response;
         // keeping them as responses lets the error body (the provider's own
